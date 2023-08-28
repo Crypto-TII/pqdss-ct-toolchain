@@ -1,0 +1,3 @@
+set(ID2ISOX_DIR id2isox)
+
+include(${SELECT_SQISIGN_VARIANT})

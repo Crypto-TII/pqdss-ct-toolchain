@@ -1,0 +1,5 @@
+[checkct:result] Program status is : secure (0.087)
+[checkct:info] 3 visited paths covering 78 instructions
+[checkct:info] 2 / 2 control flow checks pass
+[checkct:info] 40 / 40 memory access checks pass
+
