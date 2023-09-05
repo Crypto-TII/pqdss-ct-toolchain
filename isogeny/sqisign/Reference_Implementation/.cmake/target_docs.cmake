@@ -9,7 +9,7 @@ if(DOXYGEN_FOUND)
   # Add a target to generate Doxygen documentation using 'make doc'
   add_custom_target(doc
     COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_CONF}
-    WORKING_DIRECTORY ../../../..
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generating API documentation with Doxygen"
     VERBATIM )
 else()

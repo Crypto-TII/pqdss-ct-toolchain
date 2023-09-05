@@ -1,7 +1,7 @@
 #ifndef EC_PARAMS_H
 #define EC_PARAMS_H
 
-#include "fp_constants.h"
+#include <fp_constants.h>
 
 #define POWER_OF_2 75
 #define POWER_OF_3 36

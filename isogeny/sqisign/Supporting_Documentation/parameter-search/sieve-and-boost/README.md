@@ -1,7 +1,7 @@
 SageMath implementation of the sieve-and-boost approach, using
 a C implementation for sieving for smooth numbers in an interval.
 
-To run, first run `make all` in the [c subfolder](Desktop/nist-pqc-first-round-signatures/isogeny/sqisign-submission/Supporting_Documentation/parameter-search/sieve-and-boost/c). After that, run
+To run, first run `make all` in the [c subfolder](c). After that, run
 ```
 python3 sieve-and-boost -h
 ```

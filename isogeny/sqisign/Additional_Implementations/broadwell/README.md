@@ -238,7 +238,7 @@ It is possible to share implementations between implementation types. For exampl
 
 ## License
 
-SQIsign is licensed under Apache-2.0. See [LICENSE](Desktop/nist-pqc-first-round-signatures/isogeny/sqisign-submission/Additional_Implementations/broadwell/LICENSE) and [NOTICE](Desktop/nist-pqc-first-round-signatures/isogeny/sqisign-submission/Additional_Implementations/broadwell/NOTICE).
+SQIsign is licensed under Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 Third party code is used in some test and common code files:
 

@@ -1,0 +1,89 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "sqisign_keypair",
+					"jsonFile" : "directory-sqisign_keypair-Debug-a0ddc0214e99ffcf1c55.json",
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "sqisign_keypair",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "sqisign_sign",
+					"jsonFile" : "directory-sqisign_sign-Debug-7c64722f7cb01eac4b06.json",
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "sqisign_sign",
+					"targetIndexes" : 
+					[
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2
+					],
+					"name" : "Project",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "binsec_sqisign_keypair_lvl1::@e9fd93624819406426c2",
+					"jsonFile" : "target-binsec_sqisign_keypair_lvl1-Debug-0f4b294045cc313ae23b.json",
+					"name" : "binsec_sqisign_keypair_lvl1",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "binsec_sqisign_lvl1::@ae005f27532df6fb2d05",
+					"jsonFile" : "target-binsec_sqisign_lvl1-Debug-9fbb5f5c2e47566c9870.json",
+					"name" : "binsec_sqisign_lvl1",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/olivieradjonyo/Desktop/nist-pqc-first-round-signatures/isogeny/sqisign/Additional_Implementations/broadwell/binsec/cmake-build-debug",
+		"source" : "/Users/olivieradjonyo/Desktop/nist-pqc-first-round-signatures/isogeny/sqisign/Additional_Implementations/broadwell/binsec"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 4
+	}
+}

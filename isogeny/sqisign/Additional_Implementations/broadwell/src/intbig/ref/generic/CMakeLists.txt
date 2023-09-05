@@ -1,5 +1,5 @@
 set(SOURCE_FILES_INTBIG_GENERIC_REF
-        intbig.c
+    intbig.c
 )
 
 add_library(${LIB_INTBIG} ${SOURCE_FILES_INTBIG_GENERIC_REF})

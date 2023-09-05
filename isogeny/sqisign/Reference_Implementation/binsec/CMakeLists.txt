@@ -1,0 +1,2 @@
+add_subdirectory(sqisign_keypair)
+add_subdirectory(sqisign_sign)

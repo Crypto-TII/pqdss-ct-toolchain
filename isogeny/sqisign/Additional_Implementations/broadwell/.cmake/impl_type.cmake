@@ -1,4 +1,4 @@
-get_filename_component(CCSD_NAME . NAME)
+get_filename_component(CCSD_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 string(TOUPPER ${CCSD_NAME} CCSD_NAME_UPPER)
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/broadwell AND SQISIGN_BUILD_TYPE MATCHES "broadwell")
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/broadwell)

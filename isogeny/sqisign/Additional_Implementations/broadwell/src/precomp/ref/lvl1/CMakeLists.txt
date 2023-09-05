@@ -1,8 +1,8 @@
 set(SOURCE_FILES_PRECOMP_${SVARIANT_UPPER}_REF
-        torsion_constants.c
-        quaternion_data.c
-        endomorphism_action.c
-        klpt_constants.c
+    torsion_constants.c
+    quaternion_data.c
+    endomorphism_action.c
+    klpt_constants.c
 )
 
 add_library(${LIB_PRECOMP_${SVARIANT_UPPER}} ${SOURCE_FILES_PRECOMP_${SVARIANT_UPPER}_REF})
@@ -11,16 +11,16 @@ target_compile_options(${LIB_PRECOMP_${SVARIANT_UPPER}} PRIVATE ${C_OPT_FLAGS})
 
 add_custom_command(
     OUTPUT
-        "torsion_constants.c"
-        "include/torsion_constants.h"
-        "include/klpt_constants.h"
-        "klpt_constants.c"
-        "include/encoded_sizes.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/torsion_constants.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/torsion_constants.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/klpt_constants.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/klpt_constants.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/encoded_sizes.h"
         "${PROJECT_SOURCE_DIR}/src/nistapi/lvl1/api.h"
-        "quaternion_data.c"
-        "include/quaternion_data.h"
-        "endomorphism_action.c"
-        "include/endomorphism_action.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/quaternion_data.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/quaternion_data.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/endomorphism_action.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/endomorphism_action.h"
     COMMAND
         echo "Please run manually: make precomp"
 )
@@ -28,7 +28,7 @@ add_custom_command(
 find_program(SAGEMATH sage)
 add_custom_target(precomp_${SVARIANT_LOWER}
     DEPENDS
-        "sqisign_parameters.txt"
+        "./sqisign_parameters.txt"
     COMMAND
         "${SAGEMATH}" "${PROJECT_SOURCE_DIR}/scripts/precompute_torsion_constants.sage"
     COMMAND
@@ -40,7 +40,7 @@ add_custom_target(precomp_${SVARIANT_LOWER}
     COMMAND
         "${SAGEMATH}" "${PROJECT_SOURCE_DIR}/scripts/precompute_endomorphism_action.sage"
     WORKING_DIRECTORY
-        "."
+        "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
 set_directory_properties(PROPERTIES CLEAN_NO_CUSTOM true)

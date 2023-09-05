@@ -1,0 +1,6 @@
+add_executable(binsec_sqisign_keypair_lvl1 test_harness_sqisign_keypair_lvl1.c)
+add_executable(binsec_sqisign_keypair_lvl3 test_harness_sqisign_keypair_lvl3.c)
+add_executable(binsec_sqisign_keypair_lvl5 test_harness_sqisign_keypair_lvl5.c)
+target_link_libraries(binsec_sqisign_keypair_lvl1 PRIVATE sqisign_lvl1)
+target_link_libraries(binsec_sqisign_keypair_lvl3 PRIVATE sqisign_lvl3)
+target_link_libraries(binsec_sqisign_keypair_lvl5 PRIVATE sqisign_lvl5)

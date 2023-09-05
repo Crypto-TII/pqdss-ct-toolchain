@@ -40,6 +40,7 @@ set(INC_PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 add_subdirectory(src)
 add_subdirectory(apps)
+add_subdirectory(binsec)#add binsec folder
 
 if(ENABLE_TESTS)
 	enable_testing()

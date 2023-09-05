@@ -62,7 +62,7 @@ FOREACH(SVARIANT ${SVARIANT_S})
     target_compile_definitions(sqisign_${SVARIANT_LOWER} PUBLIC SQISIGN_VARIANT=${SVARIANT})
 
     # Library for SQIsign variant (test)
-    add_library(sqisign_${SVARIANT_LOWER}_test ${SOURCE_FILES_VARIANT})
+    add_library(sqisign_${SVARIANT_LOWER}_test  ${SOURCE_FILES_VARIANT})
     target_link_libraries(sqisign_${SVARIANT_LOWER}_test PUBLIC 
         ${LIB_PROTOCOLS_${SVARIANT_UPPER}} 
         ${LIB_ID2ISO_${SVARIANT_UPPER}} 
@@ -81,7 +81,7 @@ FOREACH(SVARIANT ${SVARIANT_S})
 
     # Library with NIST API
     set(SOURCE_FILE_NISTAPI nistapi/${SVARIANT_LOWER}/api.c)
-    add_library(sqisign_${SVARIANT_LOWER}_nistapi ${SOURCE_FILE_NISTAPI})
+    add_library(sqisign_${SVARIANT_LOWER}_nistapi  ${SOURCE_FILE_NISTAPI})
     target_link_libraries(sqisign_${SVARIANT_LOWER}_nistapi PRIVATE sqisign_${SVARIANT_LOWER})
     target_include_directories(sqisign_${SVARIANT_LOWER}_nistapi PUBLIC nistapi/${SVARIANT_LOWER} PUBLIC ../include)
 

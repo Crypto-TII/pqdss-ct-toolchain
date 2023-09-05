@@ -1,6 +1,6 @@
 
 set(SOURCE_FILES_GF_${SVARIANT_UPPER}_BROADWELL
-        fp_asm.S fp.c fp2.c
+    fp_asm.S fp.c fp2.c
 )
 
 add_library(${LIB_GF_${SVARIANT_UPPER}} ${SOURCE_FILES_GF_${SVARIANT_UPPER}_BROADWELL})

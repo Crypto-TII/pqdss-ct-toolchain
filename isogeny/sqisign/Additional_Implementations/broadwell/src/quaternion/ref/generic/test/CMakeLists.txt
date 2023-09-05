@@ -1,14 +1,14 @@
 set(SOURCE_FILES_QUATERNION_GENERIC_REF_TESTS
-        algebra.c
-        ideal.c
-        dim4.c
-        dim2.c
-        integers.c
-        lattice.c
-        finit.c
-        matkermod.c
-        randomized.c
-        test_quaternions.c
+    algebra.c
+    ideal.c
+    dim4.c
+    dim2.c
+    integers.c
+    lattice.c
+    finit.c
+    matkermod.c
+    randomized.c
+    test_quaternions.c
 )
 add_executable(sqisign_test_quaternion ${SOURCE_FILES_QUATERNION_GENERIC_REF_TESTS})
 target_link_libraries(sqisign_test_quaternion ${LIB_INTBIG} ${LIB_QUATERNION} ${GMP} sqisign_common_sys )
