@@ -29,7 +29,7 @@ This README would normally document whatever steps are necessary to get your app
 * Other community or team contact
 
 ## Build a docker image for toolchain(ctgring, binsec, flowtracker ...)
-[TO DO] : Complete dockerfile to have also all the instructions for binsec and upcoming tools
+[TO DO] : Complete dockerfile to have also all the instructions for and upcoming tools (Only binsec and valgrind/ctgrind are available now)
 
 ```
 docker build .-t toolchain
