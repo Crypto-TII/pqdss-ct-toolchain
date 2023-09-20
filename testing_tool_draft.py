@@ -2394,8 +2394,6 @@ def makefile_hawk(path_to_makefile_folder,subfolder,tool_type,candidate):
     test_harness_kpair = ""
     test_harness_sign = ""
     taint = ""
-    subfolder = ""
-    src_folder = 'pqsigrm613'
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     makefile_content_block_cflags = f'''
     CC = gcc
@@ -2403,7 +2401,7 @@ def makefile_hawk(path_to_makefile_folder,subfolder,tool_type,candidate):
     CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
     LIBFLAGS = -lcrypto -lssl -lm
     
-    BASE_DIR = ../{src_folder}
+    BASE_DIR = ../{subfolder}
      
     
     CFILES := $(shell find $(BASE_DIR)/src -name '*.c' | sed -e 's/\.c/\.o/')
@@ -2497,8 +2495,326 @@ def compile_run_hawk(tools_list,signature_type,candidate,optimized_imp_folder,in
     compile_with_cmake = 'no'
     generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
+#=========================================  EagleSign ====================================================================
+def makefile_EagleSign(path_to_makefile_folder,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content_block_cflags = f'''
+    CC = gcc
+    LDFLAGS =  -L/usr/local/lib
+    CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
+    LIBFLAGS = -lcrypto -lssl -lm
+    
+    BASE_DIR = ../{subfolder}
+     
+    
+    CFILES := $(shell find $(BASE_DIR)/src -name '*.c' | sed -e 's/\.c/\.o/')
+    
+    OBJS = ${{CFILES}}
+    
+    BUILD					= build
+    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN			= $(BUILD)/{candidate}_sign
+    '''
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+        
+        BINSEC_STATIC_FLAG  = -static
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        CT_GRIND_SHAREDLIB_PATH = /usr/lib/
+        
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
+        '''
+    makefile_content_block_object_files = f'''
+    ifeq ($(DEBUG), 1)
+    \tDBG_FLAGS = -g -O0 -DDEBUG
+    else
+    \tDBG_FLAGS = -g -O2 -DNDEBUG -Wunused-variable -Wunused-function   
+    endif
+    
+    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    %.o : %.c
+    \t$(CC) $(CFLAGS) $(DBG_FLAGS) -o $@ -c $<
+    '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+    $(EXECUTABLE_KEYPAIR): ${{OBJS}} {candidate}_keypair/$(EXECUTABLE_KEYPAIR).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    
+    $(EXECUTABLE_SIGN): ${{OBJS}} {candidate}_sign/$(EXECUTABLE_SIGN).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    
+    matrix.o : matrix.h
+    rng.o : rng.h
+    api.o : api.h
+    '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): ${{OBJS}} $(EXECUTABLE_KEYPAIR).c
+        \tmkdir -p $(BUILD)  
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+    
+        $(EXECUTABLE_SIGN): ${{OBJS}} $(EXECUTABLE_SIGN).c
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+    
+        matrix.o : matrix.h
+        rng.o : rng.h
+        api.o : api.h
+        '''
+    makefile_content_block_clean = f'''
+    clean:
+    \tcd  $(BASE_DIR)/src; rm -f *.o; cd ..
+    \trm -f *.o
+    \t cd ../../{candidate}
+    \trm -f  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content_block_cflags))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_object_files))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_clean))
 
+def compile_run_EagleSign(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
+#=========================================  hufu ====================================================================
+def makefile_hufu(path_to_makefile_folder,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content_block_cflags = f'''
+    CC = gcc
+    LDFLAGS =  -L/usr/local/lib
+    CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
+    LIBFLAGS = -lcrypto -lssl -lm
+    
+    BASE_DIR = ../{subfolder}
+     
+    
+    CFILES := $(shell find $(BASE_DIR)/src -name '*.c' | sed -e 's/\.c/\.o/')
+    
+    OBJS = ${{CFILES}}
+    
+    BUILD					= build
+    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN			= $(BUILD)/{candidate}_sign
+    '''
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+        
+        BINSEC_STATIC_FLAG  = -static
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        CT_GRIND_SHAREDLIB_PATH = /usr/lib/
+        
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
+        '''
+    makefile_content_block_object_files = f'''
+    ifeq ($(DEBUG), 1)
+    \tDBG_FLAGS = -g -O0 -DDEBUG
+    else
+    \tDBG_FLAGS = -g -O2 -DNDEBUG -Wunused-variable -Wunused-function   
+    endif
+    
+    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    %.o : %.c
+    \t$(CC) $(CFLAGS) $(DBG_FLAGS) -o $@ -c $<
+    '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+    $(EXECUTABLE_KEYPAIR): ${{OBJS}} {candidate}_keypair/$(EXECUTABLE_KEYPAIR).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    
+    $(EXECUTABLE_SIGN): ${{OBJS}} {candidate}_sign/$(EXECUTABLE_SIGN).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    
+    matrix.o : matrix.h
+    rng.o : rng.h
+    api.o : api.h
+    '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): ${{OBJS}} $(EXECUTABLE_KEYPAIR).c
+        \tmkdir -p $(BUILD)  
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+    
+        $(EXECUTABLE_SIGN): ${{OBJS}} $(EXECUTABLE_SIGN).c
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+    
+        matrix.o : matrix.h
+        rng.o : rng.h
+        api.o : api.h
+        '''
+    makefile_content_block_clean = f'''
+    clean:
+    \tcd  $(BASE_DIR)/src; rm -f *.o; cd ..
+    \trm -f *.o
+    \t cd ../../{candidate}
+    \trm -f  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content_block_cflags))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_object_files))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+def compile_run_hufu(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
+#=========================================  squirrels ====================================================================
+def makefile_squirrels(path_to_makefile_folder,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content_block_cflags = f'''
+    CC = gcc
+    LDFLAGS =  -L/usr/local/lib
+    CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
+    LIBFLAGS = -lcrypto -lssl -lm
+    
+    BASE_DIR = ../{subfolder}
+     
+    
+    CFILES := $(shell find $(BASE_DIR)/src -name '*.c' | sed -e 's/\.c/\.o/')
+    
+    OBJS = ${{CFILES}}
+    
+    BUILD					= build
+    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN			= $(BUILD)/{candidate}_sign
+    '''
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+        
+        BINSEC_STATIC_FLAG  = -static
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        CT_GRIND_SHAREDLIB_PATH = /usr/lib/
+        
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
+        '''
+    makefile_content_block_object_files = f'''
+    ifeq ($(DEBUG), 1)
+    \tDBG_FLAGS = -g -O0 -DDEBUG
+    else
+    \tDBG_FLAGS = -g -O2 -DNDEBUG -Wunused-variable -Wunused-function   
+    endif
+    
+    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    %.o : %.c
+    \t$(CC) $(CFLAGS) $(DBG_FLAGS) -o $@ -c $<
+    '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+    $(EXECUTABLE_KEYPAIR): ${{OBJS}} {candidate}_keypair/$(EXECUTABLE_KEYPAIR).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    
+    $(EXECUTABLE_SIGN): ${{OBJS}} {candidate}_sign/$(EXECUTABLE_SIGN).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    
+    matrix.o : matrix.h
+    rng.o : rng.h
+    api.o : api.h
+    '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): ${{OBJS}} $(EXECUTABLE_KEYPAIR).c
+        \tmkdir -p $(BUILD)  
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+    
+        $(EXECUTABLE_SIGN): ${{OBJS}} $(EXECUTABLE_SIGN).c
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+    
+        matrix.o : matrix.h
+        rng.o : rng.h
+        api.o : api.h
+        '''
+    makefile_content_block_clean = f'''
+    clean:
+    \tcd  $(BASE_DIR)/src; rm -f *.o; cd ..
+    \trm -f *.o
+    \t cd ../../{candidate}
+    \trm -f  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content_block_cflags))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_object_files))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+def compile_run_squirrels(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
 
 #####B#####
@@ -2524,6 +2840,12 @@ default_binary_patterns = ["keypair","sign"]
 #********************** List of candidates *******************************************************************************
 #********************** LATTICE ********************************************************************************
 hawk_init_compile_run = subparser.add_parser('compile_run_hawk', help='hawk: create test harness, configuration files,\
+                                    and required Makefile to compile   (and) run binsec )')
+EagleSign_init_compile_run = subparser.add_parser('compile_run_EagleSign', help='EagleSign: create test harness, configuration files,\
+                                    and required Makefile to compile   (and) run binsec )')
+hufu_init_compile_run = subparser.add_parser('compile_run_hufu', help='hufu: create test harness, configuration files,\
+                                    and required Makefile to compile   (and) run binsec )')
+squirrels_init_compile_run = subparser.add_parser('compile_run_squirrels', help='squirrels: create test harness, configuration files,\
                                     and required Makefile to compile   (and) run binsec )')
 #********************** MPC-IN-THE-HEAD ********************************************************************************
 cross_init_compile_run = subparser.add_parser('compile_run_cross', help='cross: create test harness, configuration files,\
@@ -2572,6 +2894,81 @@ hawk_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
 hawk_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
 hawk_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
 hawk_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
+
+#===================== EagleSign ============================================================================================
+EagleSign_opt_folder = "lattice/EagleSign/Specifications_and_Supporting_Documentation/Optimized_Implementation"
+EagleSign_default_list_of_folders = os.listdir(EagleSign_opt_folder)
+#if 'README.md' in EagleSign_default_list_of_folders:
+#EagleSign_default_list_of_folders.remove('README.md')
+if 'binsec' in EagleSign_default_list_of_folders:
+    EagleSign_default_list_of_folders.remove('binsec')
+if 'ctgrind' in EagleSign_default_list_of_folders:
+    EagleSign_default_list_of_folders.remove('ctgrind')
+if 'ct_grind' in EagleSign_default_list_of_folders:
+    EagleSign_default_list_of_folders.remove('ct_grind')
+
+EagleSign_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
+EagleSign_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='lattice')
+EagleSign_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='EagleSign')
+EagleSign_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Specifications_and_Supporting_Documentation/Optimized_Implementation')
+EagleSign_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=EagleSign_default_list_of_folders)
+EagleSign_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='')
+EagleSign_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='"../../../sign.h"')#chercher api path ../../../instance_here/sign.h
+EagleSign_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
+EagleSign_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
+EagleSign_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
+EagleSign_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
+EagleSign_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
+
+#===================== hufu ============================================================================================
+hufu_opt_folder = "lattice/hufu/HuFu/Optimized_Implementation/crypto_sign"
+hufu_default_list_of_folders = os.listdir(hufu_opt_folder)
+#if 'README.md' in hufu_default_list_of_folders:
+#hufu_default_list_of_folders.remove('README.md')
+if 'binsec' in hufu_default_list_of_folders:
+    hufu_default_list_of_folders.remove('binsec')
+if 'ctgrind' in hufu_default_list_of_folders:
+    hufu_default_list_of_folders.remove('ctgrind')
+if 'ct_grind' in hufu_default_list_of_folders:
+    hufu_default_list_of_folders.remove('ct_grind')
+
+hufu_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
+hufu_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='lattice')
+hufu_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='hufu')
+hufu_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='HuFu/Optimized_Implementation/crypto_sign')
+hufu_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=hufu_default_list_of_folders)
+hufu_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='')
+hufu_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='"../../../api.h"')#chercher api path ../../../instance_here/sign.h
+hufu_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
+hufu_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
+hufu_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
+hufu_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
+hufu_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
+
+#===================== squirrels ============================================================================================
+squirrels_opt_folder = "lattice/squirrels/Optimized_Implementation"
+squirrels_default_list_of_folders = os.listdir(hufu_opt_folder)
+#if 'README.md' in squirrels_default_list_of_folders:
+#squirrels_default_list_of_folders.remove('README.md')
+if 'binsec' in squirrels_default_list_of_folders:
+    squirrels_default_list_of_folders.remove('binsec')
+if 'ctgrind' in squirrels_default_list_of_folders:
+    squirrels_default_list_of_folders.remove('ctgrind')
+if 'ct_grind' in squirrels_default_list_of_folders:
+    squirrels_default_list_of_folders.remove('ct_grind')
+
+squirrels_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
+squirrels_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='lattice')
+squirrels_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='squirrels')
+squirrels_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
+squirrels_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=squirrels_default_list_of_folders)
+squirrels_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='')
+squirrels_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='"../../../api.h"')#chercher api path ../../../instance_here/sign.h
+squirrels_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
+squirrels_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
+squirrels_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
+squirrels_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
+squirrels_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
 
 #********************** MPC-IN-THE-HEAD ********************************************************************************
 #===================== cross ============================================================================================
@@ -2753,6 +3150,8 @@ less_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=d
 #####D#####
 #set all the command-line arguments into the object args
 args = parser.parse_args()
+#********************** LATTICE **********************************************************************************************
+#===================== hawk ============================================================================================
 if args.binsec_test == "compile_run_hawk":
     tools_list = args.tools
     signature_type = args.type
@@ -2767,6 +3166,55 @@ if args.binsec_test == "compile_run_hawk":
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
     compile_run_hawk(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+#===================== EagleSign ============================================================================================
+if args.binsec_test == "compile_run_EagleSign":
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_EagleSign(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+#===================== hufu ============================================================================================
+if args.binsec_test == "compile_run_hufu":
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_hufu(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+#===================== squirrels ============================================================================================
+if args.binsec_test == "compile_run_squirrels":
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_squirrels(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+
+
+#********************** mpc-in-the-head **********************************************************************************************
+#===================== cross ============================================================================================
 if args.binsec_test == "compile_run_cross":
     tools_list = args.tools
     signature_type = args.type
@@ -2781,6 +3229,7 @@ if args.binsec_test == "compile_run_cross":
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
     compile_run_cross(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+#===================== mira ============================================================================================
 if args.binsec_test == "compile_run_mira":
     tools_list = args.tools
     signature_type = args.type
@@ -2795,6 +3244,7 @@ if args.binsec_test == "compile_run_mira":
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
     compile_run_mira(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+#===================== mirith ============================================================================================
 if args.binsec_test == "compile_run_mirith":
     tools_list = args.tools
     signature_type = args.type
@@ -2809,6 +3259,7 @@ if args.binsec_test == "compile_run_mirith":
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
     compile_run_mirith(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+#===================== perk ============================================================================================
 if args.binsec_test == "compile_run_perk":
     tools_list = args.tools
     signature_type = args.type
@@ -2823,6 +3274,7 @@ if args.binsec_test == "compile_run_perk":
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
     compile_run_perk(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+#===================== mqom ============================================================================================
 if args.binsec_test == "compile_run_mqom":
     tools_list = args.tools
     signature_type = args.type
@@ -2837,6 +3289,7 @@ if args.binsec_test == "compile_run_mqom":
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
     compile_run_mqom(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+#===================== ryde ============================================================================================
 if args.binsec_test == "compile_run_ryde":
     tools_list = args.tools
     signature_type = args.type
@@ -2851,6 +3304,8 @@ if args.binsec_test == "compile_run_ryde":
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
     compile_run_ryde(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+#********************** CODE **********************************************************************************************
+#===================== pqsigRM ============================================================================================
 if args.binsec_test == "compile_run_pqsigRM":
     tools_list = args.tools
     signature_type = args.type
@@ -2865,6 +3320,7 @@ if args.binsec_test == "compile_run_pqsigRM":
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
     compile_run_pqsigRM(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+#===================== less ============================================================================================
 if args.binsec_test == "compile_run_less":
     tools_list = args.tools
     signature_type = args.type
