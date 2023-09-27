@@ -2815,6 +2815,326 @@ def compile_run_squirrels(tools_list,signature_type,candidate,optimized_imp_fold
     add_includes = []
     compile_with_cmake = 'no'
     generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+#===================== EHTv3v4 ============================================================================================
+def makefile_EHTv3v4(path_to_makefile_folder,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content_block_cflags = f'''
+    CC = gcc
+    LDFLAGS =  -L/usr/local/lib
+    CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
+    LIBFLAGS = -lcrypto -lssl -lm
+    
+    BASE_DIR = ../{subfolder}
+     
+    
+    CFILES := $(shell find $(BASE_DIR)/src -name '*.c' | sed -e 's/\.c/\.o/')
+    
+    OBJS = ${{CFILES}}
+    
+    BUILD					= build
+    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN			= $(BUILD)/{candidate}_sign
+    '''
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+        
+        BINSEC_STATIC_FLAG  = -static
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        CT_GRIND_SHAREDLIB_PATH = /usr/lib/
+        
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
+        '''
+    makefile_content_block_object_files = f'''
+    ifeq ($(DEBUG), 1)
+    \tDBG_FLAGS = -g -O0 -DDEBUG
+    else
+    \tDBG_FLAGS = -g -O2 -DNDEBUG -Wunused-variable -Wunused-function   
+    endif
+    
+    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    %.o : %.c
+    \t$(CC) $(CFLAGS) $(DBG_FLAGS) -o $@ -c $<
+    '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+    $(EXECUTABLE_KEYPAIR): ${{OBJS}} {candidate}_keypair/$(EXECUTABLE_KEYPAIR).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    
+    $(EXECUTABLE_SIGN): ${{OBJS}} {candidate}_sign/$(EXECUTABLE_SIGN).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    
+    matrix.o : matrix.h
+    rng.o : rng.h
+    api.o : api.h
+    '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): ${{OBJS}} $(EXECUTABLE_KEYPAIR).c
+        \tmkdir -p $(BUILD)  
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+    
+        $(EXECUTABLE_SIGN): ${{OBJS}} $(EXECUTABLE_SIGN).c
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+    
+        matrix.o : matrix.h
+        rng.o : rng.h
+        api.o : api.h
+        '''
+    makefile_content_block_clean = f'''
+    clean:
+    \tcd  $(BASE_DIR)/src; rm -f *.o; cd ..
+    \trm -f *.o
+    \t cd ../../{candidate}
+    \trm -f  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content_block_cflags))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_object_files))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+def compile_run_EHTv3v4(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
+#=============================== haetae ==================================================================================
+def cmake_haetae(path_to_cmakelist,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    subfolder  = ""
+    path_to_cmakelist = path_to_cmakelist+'/CMakeLists.txt'
+    cmake_file_content_src_block1 = f'''
+    cmake_minimum_required(VERSION 3.9.4)
+    project(LESS C)
+
+    # build type can be case-sensitive!
+    string(TOUPPER "${{CMAKE_BUILD_TYPE}}" UPPER_CMAKE_BUILD_TYPE)
+    
+    set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -Wall -pedantic -Wuninitialized -Wsign-conversion -Wno-strict-prototypes")
+    
+    include(CheckCCompilerFlag)
+    unset(COMPILER_SUPPORTS_MARCH_NATIVE CACHE)
+    check_c_compiler_flag(-march=native COMPILER_SUPPORTS_MARCH_NATIVE)
+    
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT lto_supported OUTPUT error)
+    
+    if(UPPER_CMAKE_BUILD_TYPE MATCHES DEBUG)
+        message(STATUS "Building in Debug mode!")
+    else() # Release, RELEASE, MINSIZEREL, etc
+        set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -mtune=native -O3 -g")   
+        if(COMPILER_SUPPORTS_MARCH_NATIVE)
+            set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -march=native")
+        endif()
+        if(lto_supported)
+            message(STATUS "IPO / LTO enabled")
+            set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+        endif()
+    endif()
+    
+    option(COMPRESS_CMT_COLUMNS "Enable COMPRESS_CMT_COLUMNS to compress commitment in SG and VY before hashing (reduces SHA-3 permutaitons by 12.5%, but adds overhead of encoding)" OFF)
+    if(COMPRESS_CMT_COLUMNS)
+        message(STATUS "COMPRESS_CMT_COLUMNS is enabled")
+        add_definitions(-DCOMPRESS_CMT_COLUMNS)
+    else()
+        message(STATUS "COMPRESS_CMT_COLUMNS is disabled")
+    endif()
+    unset(COMPRESS_CMT_COLUMNS CACHE)
+    
+    set(SANITIZE "")
+    message(STATUS "Compilation flags:" ${{CMAKE_C_FLAGS}})
+    
+    set(CMAKE_C_STANDARD 11)
+    
+    find_library(KECCAK_LIB keccak)
+    if(NOT KECCAK_LIB)
+        set(STANDALONE_KECCAK 1)
+    endif()
+    
+    # selection of specialized compilation units differing between ref and opt implementations.
+    option(AVX2_OPTIMIZED "Use the AVX2 Optimized Implementation. If not set the Reference Implementation will be used." OFF)
+    
+    #set(BASE_DIR  ../Optimized_Implementation) 
+    set(BASE_DIR  ../)  
+    set(HEADERS
+            ${{BASE_DIR}}/include/api.h
+            ${{BASE_DIR}}/include/codes.h
+            ${{BASE_DIR}}/include/fips202.h
+            ${{BASE_DIR}}/include/fq_arith.h
+            ${{BASE_DIR}}/include/keccakf1600.h
+            ${{BASE_DIR}}/include/LESS.h
+            ${{BASE_DIR}}/include/monomial_mat.h
+            ${{BASE_DIR}}/include/parameters.h
+            ${{BASE_DIR}}/include/rng.h
+            ${{BASE_DIR}}/include/seedtree.h
+            ${{BASE_DIR}}/include/sha3.h
+            ${{BASE_DIR}}/include/utils.h
+            )
+    
+    if(STANDALONE_KECCAK)
+        message(STATUS "Employing standalone SHA-3")
+        set(KECCAK_EXTERNAL_LIB "")
+        set(KECCAK_EXTERNAL_ENABLE "")
+        list(APPEND COMMON_SOURCES ${{BASE_DIR}}/lib/keccakf1600.c)
+        list(APPEND COMMON_SOURCES ${{BASE_DIR}}/lib/fips202.c)
+    else()
+        message(STATUS "Employing libkeccak")
+        set(KECCAK_EXTERNAL_LIB keccak)
+        set(KECCAK_EXTERNAL_ENABLE "-DSHA_3_LIBKECCAK")
+    endif()
+    
+    '''
+    cmake_file_content_find_ctgrind_lib = ""
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        cmake_file_content_find_ctgrind_lib = f'''
+        find_library(CT_GRIND_LIB ctgrind)
+        if(NOT CT_GRIND_LIB)
+        \tmessage("${{CT_GRIND_LIB}} library not found")
+        endif()
+        find_library(CT_GRIND_SHARED_LIB ctgrind.so)
+        if(NOT CT_GRIND_SHARED_LIB)
+        \tmessage("${{CT_GRIND_SHARED_LIB}} library not found")
+        \tset(CT_GRIND_SHARED_LIB /usr/lib/libctgrind.so)
+        endif()
+        '''
+    cmake_file_content_src_block2 = f'''
+    set(SOURCES
+            ${{COMMON_SOURCES}}
+            ${{BASE_DIR}}/lib/codes.c
+            ${{BASE_DIR}}/lib/LESS.c
+            ${{BASE_DIR}}/lib/monomial.c
+            ${{BASE_DIR}}/lib/rng.c
+            ${{BASE_DIR}}/lib/seedtree.c
+            ${{BASE_DIR}}/lib/utils.c
+            ${{BASE_DIR}}/lib/sign.c
+            )
+    set(BUILD build)
+    set(BUILD_KEYPAIR {candidate}_keypair)
+    set(BUILD_SIGN {candidate}_sign)
+    '''
+    cmake_file_content_block_loop = f'''
+    foreach(category RANGE 1 5 2)
+        if(category EQUAL 1)
+            set(PARAM_TARGETS SIG_SIZE BALANCED PK_SIZE)
+        else()
+            set(PARAM_TARGETS SIG_SIZE PK_SIZE)
+        endif()
+        foreach(optimiz_target ${{PARAM_TARGETS}})
+        '''# settings for benchmarking binary
+    cmake_file_content_loop_content_block_keypair = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        cmake_file_content_loop_content_block_keypair = f'''
+            set(TEST_HARNESS ./{tool_type}/{candidate}_keypair/{test_harness_kpair}.c ./{tool_type}/{candidate}_sign/{test_harness_sign}.c)
+            set(TARGET_BINARY_NAME {test_harness_kpair}_${{category}}_${{optimiz_target}})  
+            add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
+                    ./{candidate}_keypair/{test_harness_kpair}.c)
+            target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
+            target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
+                    ${{BASE_DIR}}/include
+                    ./include)
+            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
+            '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        cmake_file_content_loop_content_block_keypair = f'''
+        set(TARGET_BINARY_NAME {taint}_${{category}}_${{optimiz_target}})  
+            add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
+                    ./{candidate}_keypair/{taint}.c)
+            target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
+                    ${{BASE_DIR}}/include
+                    ./include)
+            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
+            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{CT_GRIND_LIB}} ${{CT_GRIND_SHARED_LIB}})
+            '''
+
+    cmake_file_content_loop_content_block2 = f'''
+            set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
+            set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
+                    COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}} ")
+            '''
+    cmake_file_content_loop_content_block_sign = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_sign = tool.binsec_test_harness_sign
+        cmake_file_content_loop_content_block_sign = f'''
+            #Test harness for crypto_sign
+            set(TARGET_BINARY_NAME {test_harness_sign}_${{category}}_${{optimiz_target}})
+            add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
+                    ./{candidate}_sign/{test_harness_sign}.c)   
+            target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
+            target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
+                    ${{BASE_DIR}}/include
+                    ./include)
+            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
+            '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        cmake_file_content_loop_content_block_sign = f'''    
+        #Test harness for crypto_sign
+            set(TARGET_BINARY_NAME {taint}_sign_${{category}}_${{optimiz_target}})
+            add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
+                    ./{candidate}_sign/{taint}.c)   
+            target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
+                    ${{BASE_DIR}}/include
+                    ./include)
+            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
+            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{CT_GRIND_LIB}} ${{CT_GRIND_SHARED_LIB}})
+            '''
+    cmake_file_content_loop_content_block3 = f'''
+            set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}}) 
+            set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
+                    COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}}")
+            '''
+    cmake_file_content_block_loop_end = f'''
+            #endforeach(t_harness)
+        endforeach(optimiz_target)
+    endforeach(category)
+    '''
+    with open(path_to_cmakelist, "w") as cmake_file:
+        cmake_file.write(textwrap.dedent(cmake_file_content_src_block1))
+        if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+            cmake_file.write(textwrap.dedent(cmake_file_content_find_ctgrind_lib))
+        cmake_file.write(textwrap.dedent(cmake_file_content_src_block2))
+        cmake_file.write(textwrap.dedent(cmake_file_content_block_loop))
+        cmake_file.write(textwrap.dedent(cmake_file_content_loop_content_block_keypair))
+        cmake_file.write(textwrap.dedent(cmake_file_content_loop_content_block2))
+        cmake_file.write(textwrap.dedent(cmake_file_content_loop_content_block_sign))
+        cmake_file.write(textwrap.dedent(cmake_file_content_loop_content_block3))
+        cmake_file.write(textwrap.dedent(cmake_file_content_block_loop_end))
+
+
+def compile_run_haetae(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'yes'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
 
 #####B#####
@@ -2847,6 +3167,10 @@ hufu_init_compile_run = subparser.add_parser('compile_run_hufu', help='hufu: cre
                                     and required Makefile to compile   (and) run binsec )')
 squirrels_init_compile_run = subparser.add_parser('compile_run_squirrels', help='squirrels: create test harness, configuration files,\
                                     and required Makefile to compile   (and) run binsec )')
+EHTv3v4_init_compile_run = subparser.add_parser('compile_run_EHTv3v4', help='EHTv3v4: create test harness, configuration files,\
+                                    and required Makefile to compile   (and) run binsec )')
+haetae_init_compile_run = subparser.add_parser('compile_run_haetae', help='haetae: create test harness, configuration files,\
+                                    and required CmakeFile to compile   (and) run binsec )')
 #********************** MPC-IN-THE-HEAD ********************************************************************************
 cross_init_compile_run = subparser.add_parser('compile_run_cross', help='cross: create test harness, configuration files,\
                                     and required Makefile to compile   (and) run binsec )')
@@ -2865,7 +3189,7 @@ ryde_init_compile_run = subparser.add_parser('compile_run_ryde', help='ryde: cre
 pqsigrm_init_compile_run = subparser.add_parser('compile_run_pqsigRM', help='pqsigRM: create test harness, configuration files,\
                                     and required Makefile to compile   (and) run binsec )')
 less_init_compile_run = subparser.add_parser('compile_run_less', help='less: create test harness, configuration files,\
-                                    and required Makefile to compile   (and) run binsec )')
+                                    and required CmakeFile to compile   (and) run binsec )')
 
 #####C#####
 # Add argument for each candidate
@@ -2944,7 +3268,30 @@ hufu_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
 hufu_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
 hufu_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
 hufu_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
+#===================== EHTv3v4 ============================================================================================
+EHTv3v4_opt_folder = "lattice/EHTv3v4/Optimized_Implementation/crypto_sign"
+EHTv3v4_default_list_of_folders = os.listdir(EHTv3v4_opt_folder)
+#if 'README.md' in EHTv3v4_default_list_of_folders:
+#EHTv3v4_default_list_of_folders.remove('README.md')
+if 'binsec' in EHTv3v4_default_list_of_folders:
+    EHTv3v4_default_list_of_folders.remove('binsec')
+if 'ctgrind' in EHTv3v4_default_list_of_folders:
+    EHTv3v4_default_list_of_folders.remove('ctgrind')
+if 'ct_grind' in EHTv3v4_default_list_of_folders:
+    EHTv3v4_default_list_of_folders.remove('ct_grind')
 
+EHTv3v4_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
+EHTv3v4_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='lattice')
+EHTv3v4_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='EHTv3v4')
+EHTv3v4_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation/crypto_sign')
+EHTv3v4_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=EHTv3v4_default_list_of_folders)
+EHTv3v4_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='')
+EHTv3v4_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='"../../../api.h"')#chercher api path ../../../instance_here/sign.h
+EHTv3v4_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
+EHTv3v4_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
+EHTv3v4_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
+EHTv3v4_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
+EHTv3v4_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
 #===================== squirrels ============================================================================================
 squirrels_opt_folder = "lattice/squirrels/Optimized_Implementation"
 squirrels_default_list_of_folders = os.listdir(hufu_opt_folder)
@@ -2969,6 +3316,21 @@ squirrels_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
 squirrels_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
 squirrels_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
 squirrels_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
+
+#===================== haetae ============================================================================================
+haetae_default_list_of_folders = []
+haetae_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
+haetae_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='lattice')
+haetae_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='haetae')
+haetae_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
+haetae_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=haetae_default_list_of_folders)
+haetae_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='"../../include/sign.h"')
+haetae_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='')
+haetae_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
+haetae_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
+haetae_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
+haetae_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
+haetae_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
 
 #********************** MPC-IN-THE-HEAD ********************************************************************************
 #===================== cross ============================================================================================
@@ -3211,7 +3573,36 @@ if args.binsec_test == "compile_run_squirrels":
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
     compile_run_squirrels(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
-
+#===================== EHTv3v4 ============================================================================================
+if args.binsec_test == "compile_run_EHTv3v4":
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_EHTv3v4(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+#===================== haetae ============================================================================================
+if args.binsec_test == "compile_run_haetae":
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_haetae(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
 
 #********************** mpc-in-the-head **********************************************************************************************
 #===================== cross ============================================================================================
