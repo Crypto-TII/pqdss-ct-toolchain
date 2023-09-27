@@ -514,7 +514,7 @@ def ctgrind_keypair_taint_content(taint_file,api,sign,add_includes,function_retu
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
-def ctgrind_sign_taint_content(taint_file,api,sign,rng,add_includes,function_return_type,function_name,args_types,args_names):
+def ctgrind_sign_taint_content_original_until_26_sept(taint_file,api,sign,rng,add_includes,function_return_type,function_name,args_types,args_names):
     args_types[2] = args_types[2].replace('const','')
     args_types[2] = args_types[2].strip()
     args_types[4] =args_types[4].replace('const','')
@@ -577,6 +577,72 @@ def ctgrind_sign_taint_content(taint_file,api,sign,rng,add_includes,function_ret
             t_file.write(f'#include {api}\n')
         t_file.write(f'#include {rng}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
+
+
+
+def ctgrind_sign_taint_content(taint_file,api,sign,rng,add_includes,function_return_type,function_name,args_types,args_names):
+    args_types[2] = args_types[2].replace('const','')
+    args_types[2] = args_types[2].strip()
+    args_types[4] =args_types[4].replace('const','')
+    args_types[4] = args_types[4].strip()
+    taint_file_content_block_include = f'''
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    #include <string.h>
+    #include <stdlib.h>
+    #include <ctgrind.h>
+    
+    '''
+    taint_file_content_block_main = f'''    
+    #define CTGRIND_SAMPLE_SIZE 100
+    #define max_message_length 3300
+    
+    
+    {args_types[0]} *{args_names[0]};
+    {args_types[1]} {args_names[1]};
+    {args_types[2]} *{args_names[2]};
+    {args_types[3]} {args_names[3]};
+    {args_types[4]} {args_names[4]}[CRYPTO_SECRETKEYBYTES];
+    
+    void generate_test_vectors() {{
+    \t//Fill randombytes
+    \trandombytes({args_names[2]}, {args_names[3]});
+    \trandombytes({args_names[4]}, CRYPTO_SECRETKEYBYTES);
+    }} 
+    
+    int main() {{
+    
+    \t{args_names[2]} = ({args_types[2]} *)calloc({args_names[3]}, sizeof({args_types[2]}));
+    \t{args_names[0]} = ({args_types[0]} *)calloc({args_names[3]}+CRYPTO_BYTES, sizeof({args_types[0]})); 
+    
+    
+    \t{function_return_type} result = 2 ; 
+    \tfor (int i = 0; i < CTGRIND_SAMPLE_SIZE; i++) {{
+    \t\t{args_names[3]} = 33*(i+1);
+    \t\tgenerate_test_vectors(); 
+    \t\tct_poison({args_names[4]}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
+    \t\tresult = {function_name}({args_names[0]}, &{args_names[1]}, {args_names[2]}, {args_names[3]}, {args_names[4]}); 
+    \t\tct_unpoison({args_names[4]}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
+    \t}}
+
+    \tfree({args_names[0]}); 
+    \tfree({args_names[2]});
+    \treturn result;
+    }}
+    '''
+    with open(taint_file, "w") as t_file:
+        t_file.write(textwrap.dedent(taint_file_content_block_include))
+        if not add_includes == []:
+            for include in add_includes:
+                t_file.write(f'#include {include}\n')
+        if not sign == '""':
+            t_file.write(f'#include {sign}\n')
+        if not api == '""':
+            t_file.write(f'#include {api}\n')
+        t_file.write(f'#include {rng}\n')
+        t_file.write(textwrap.dedent(taint_file_content_block_main))
+
 
 
 #==========================================CONFIGURATION FILES =========================================================
@@ -1195,10 +1261,10 @@ def makefile_mirith(path_to_makefile_folder,subfolder,tool_type,candidate):
         makefile_content_block_binary_files = f'''
         $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).o $(OBJ)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) ${{LIBDIR}} $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -L. -lctgrind 
+        \t$(CC) ${{LIBDIR}} $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) -L. -lctgrind 
         $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).o $(OBJ)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) ${{LIBDIR}} $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -L. -lctgrind -lcrypto -lssl
+        \t$(CC) ${{LIBDIR}} $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) -L. -lctgrind  
         '''
     makefile_content_block_clean = f'''
     .PHONY: clean
@@ -1218,31 +1284,6 @@ def compile_run_mirith(tools_list,signature_type,candidate,optimized_imp_folder,
     add_includes = []
     compile_with_cmake = 'no'
     generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
-
-
-# def init_compile_mirith(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign):
-#     path_to_cmakelist_file = ""
-#     path_to_build_folder = ""
-#     add_includes = []
-#     for instance in instance_folders_list:
-#         generic_initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,add_includes)
-#         for tool_type in tools_list:
-#             path_to_makefile_folder = signature_type+'/'+candidate+'/'+optimized_imp_folder+'/'+tool_type+'/'+instance
-#             makefile_mirith(path_to_makefile_folder,instance,tool_type,candidate)
-#             compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,path_to_makefile_folder,path_to_build_folder)
-#
-# def run_mirith(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns):
-#     generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-#
-# def compile_run_mirith(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
-#     if 'y' in to_compile.lower() and 'y' in to_run.lower():
-#         init_compile_mirith(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
-#         generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-#     elif 'y' in to_compile.lower() and 'n' in to_run.lower():
-#         init_compile_mirith(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
-#     if 'n' in to_compile.lower() and 'y' in to_run.lower():
-#         generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-
 
 #========================================== PERK ======================================================================
 def makefile_perk(path_to_makefile_folder,subfolder,tool_type,candidate):
@@ -1369,13 +1410,13 @@ def makefile_perk(path_to_makefile_folder,subfolder,tool_type,candidate):
         \t@echo -e "### Compiling PERK Taint keypair"
         \t@mkdir -p $(dir $@)
         \tmkdir -p $(BUILD_KEYPAIR) 
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS)  $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $^ $(LDFLAGS) -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind #-lcrypto -lssl
+        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $^ $(LDFLAGS) -L. -lctgrind 
             
         $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c  $(PERK_OBJS) $(LIB_OBJS)
         \t@echo -e "### Compiling PERK Taint sign"
         \t@mkdir -p $(dir $@)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS)  $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $^ $(LDFLAGS) -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind #-lcrypto -lssl
+        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $^ $(LDFLAGS) -L. -lctgrind
         '''
     makefile_content_block_clean = f'''
     clean:
@@ -1389,36 +1430,41 @@ def makefile_perk(path_to_makefile_folder,subfolder,tool_type,candidate):
         mfile.write(textwrap.dedent(makefile_content_block_clean))
 
 
+# def compile_perk(path_to_makefile):
+#     cwd = os.getcwd()
+#     os.chdir(path_to_makefile)
+#     cmd = ["make","all"]
+#     subprocess.call(cmd, stdin = sys.stdin)
+#     os.chdir(cwd)
+#
+#
+# def init_compile_perk(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign):
+#     path_to_cmakelist_file = ""
+#     path_to_build_folder = ""
+#     add_includes = []
+#     for instance in instance_folders_list:
+#         generic_initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,add_includes)
+#         for tool_type in tools_list:
+#             path_to_makefile_folder = signature_type+'/'+candidate+'/'+optimized_imp_folder+'/'+tool_type+'/'+instance
+#             makefile_perk(path_to_makefile_folder,instance,tool_type,candidate)
+#             compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,path_to_makefile_folder,path_to_build_folder)
+#
+#
+# def compile_run_perk(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+#     if 'y' in to_compile.lower() and 'y' in to_run.lower():
+#         init_compile_perk(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
+#         generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
+#     elif 'y' in to_compile.lower() and 'n' in to_run.lower():
+#         init_compile_perk(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
+#     if 'n' in to_compile.lower() and 'y' in to_run.lower():
+#         generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
 
 
-def compile_perk(path_to_makefile):
-    cwd = os.getcwd()
-    os.chdir(path_to_makefile)
-    cmd = ["make","all"]
-    subprocess.call(cmd, stdin = sys.stdin)
-    os.chdir(cwd)
 
-
-def init_compile_perk(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign):
-    path_to_cmakelist_file = ""
-    path_to_build_folder = ""
+def compile_run_perk(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,to_compile,to_run,depth,build_folder,binary_patterns):
     add_includes = []
-    for instance in instance_folders_list:
-        generic_initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,add_includes)
-        for tool_type in tools_list:
-            path_to_makefile_folder = signature_type+'/'+candidate+'/'+optimized_imp_folder+'/'+tool_type+'/'+instance
-            makefile_perk(path_to_makefile_folder,instance,tool_type,candidate)
-            compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,path_to_makefile_folder,path_to_build_folder)
-
-
-def compile_run_perk(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
-    if 'y' in to_compile.lower() and 'y' in to_run.lower():
-        init_compile_perk(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
-        generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-    elif 'y' in to_compile.lower() and 'n' in to_run.lower():
-        init_compile_perk(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
-    if 'n' in to_compile.lower() and 'y' in to_run.lower():
-        generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
 
 #========================================== MQOM ======================================================================
@@ -1506,12 +1552,12 @@ def makefile_mqom(path_to_makefile_folder,subfolder,tool_type,candidate):
         $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(EXECUTABLE_KEYPAIR_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(CT_GRIND_FLAGS) $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl -o $(BUILD)/$@
+        \t$(CC) $(EXECUTABLE_KEYPAIR_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(CT_GRIND_FLAGS) $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto -lctgrind -o $(BUILD)/$@
         
         $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(CT_GRIND_FLAGS) $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl -o $(BUILD)/$@
+        \t$(CC) $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(CT_GRIND_FLAGS) $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto -lctgrind -o $(BUILD)/$@
         # Cleaning
         '''
     makefile_content_block_clean = f'''
@@ -1528,27 +1574,11 @@ def makefile_mqom(path_to_makefile_folder,subfolder,tool_type,candidate):
         mfile.write(textwrap.dedent(makefile_content_block_binary_files))
         mfile.write(textwrap.dedent(makefile_content_block_clean))
 
-def init_compile_mqom(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign):
-    path_to_cmakelist_file = ""
-    path_to_build_folder = ""
+
+def compile_run_mqom(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,to_compile,to_run,depth,build_folder,binary_patterns):
     add_includes = []
-    for instance in instance_folders_list:
-        generic_initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,add_includes)
-        for tool_type in tools_list:
-            path_to_makefile_folder = signature_type+'/'+candidate+'/'+optimized_imp_folder+'/'+tool_type+'/'+instance
-            makefile_mqom(path_to_makefile_folder,instance,tool_type,candidate)
-            compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,path_to_makefile_folder,path_to_build_folder)
-
-
-def compile_run_mqom(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
-    if 'y' in to_compile.lower() and 'y' in to_run.lower():
-        init_compile_mqom(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
-        generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-    elif 'y' in to_compile.lower() and 'n' in to_run.lower():
-        init_compile_mqom(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
-    if 'n' in to_compile.lower() and 'y' in to_run.lower():
-        generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
 
 #========================================== RYDE =======================================================================
@@ -1658,6 +1688,7 @@ def makefile_ryde(path_to_makefile_folder,subfolder,tool_type,candidate):
     makefile_content_block_binary_files = ""
     if tool_type.lower() == 'binsec':
         makefile_content_block_binary_files = f'''
+        default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
         all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
         
     
@@ -1679,12 +1710,12 @@ def makefile_ryde(path_to_makefile_folder,subfolder,tool_type,candidate):
         $(EXECUTABLE_KEYPAIR): $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build build {test_harness_kpair}
         \t@echo -e "### Compiling {taint} for keypair"
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(SRC_KEYPAIR) $(addprefix $(BIN)/, $^) $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@ -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(SRC_KEYPAIR) $(addprefix $(BIN)/, $^) $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@ -L. -lctgrind 
     
         $(EXECUTABLE_SIGN): $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build build {test_harness_sign}
         \t@echo -e "### Compiling {taint} for sign"
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(SRC_SIGN) $(addprefix $(BIN)/, $^) $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@ -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(SRC_SIGN) $(addprefix $(BIN)/, $^) $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@ -L. -lctgrind 
         '''
     makefile_content_block_clean = f'''
     .PHONY: clean
@@ -1702,35 +1733,40 @@ def makefile_ryde(path_to_makefile_folder,subfolder,tool_type,candidate):
         mfile.write(textwrap.dedent(makefile_content_block_clean))
 
 
-
-def compile_ryde(path_to_makefile):
-    cwd = os.getcwd()
-    os.chdir(path_to_makefile)
-    cmd = ["make","all"]
-    subprocess.call(cmd, stdin = sys.stdin)
-    os.chdir(cwd)
-
-def init_compile_ryde(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign):
-    path_to_cmakelist_file = ""
-    path_to_build_folder = ""
+def compile_run_ryde(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,to_compile,to_run,depth,build_folder,binary_patterns):
     add_includes = []
-    for instance in instance_folders_list:
-        generic_initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,add_includes)
-        for tool_type in tools_list:
-            path_to_makefile_folder = signature_type+'/'+candidate+'/'+optimized_imp_folder+'/'+tool_type+'/'+instance
-            makefile_ryde(path_to_makefile_folder,instance,tool_type,candidate)
-            compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,path_to_makefile_folder,path_to_build_folder,"all")
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
 
-def compile_run_ryde(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
-    if 'y' in to_compile.lower() and 'y' in to_run.lower():
-        init_compile_ryde(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
-        generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-    elif 'y' in to_compile.lower() and 'n' in to_run.lower():
-        init_compile_ryde(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
-    if 'n' in to_compile.lower() and 'y' in to_run.lower():
-        generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-
+# def compile_ryde(path_to_makefile):
+#     cwd = os.getcwd()
+#     os.chdir(path_to_makefile)
+#     cmd = ["make","all"]
+#     subprocess.call(cmd, stdin = sys.stdin)
+#     os.chdir(cwd)
+#
+# def init_compile_ryde(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign):
+#     path_to_cmakelist_file = ""
+#     path_to_build_folder = ""
+#     add_includes = []
+#     for instance in instance_folders_list:
+#         generic_initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,add_includes)
+#         for tool_type in tools_list:
+#             path_to_makefile_folder = signature_type+'/'+candidate+'/'+optimized_imp_folder+'/'+tool_type+'/'+instance
+#             makefile_ryde(path_to_makefile_folder,instance,tool_type,candidate)
+#             compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,path_to_makefile_folder,path_to_build_folder,"all")
+#
+#
+# def compile_run_ryde(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+#     if 'y' in to_compile.lower() and 'y' in to_run.lower():
+#         init_compile_ryde(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
+#         generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
+#     elif 'y' in to_compile.lower() and 'n' in to_run.lower():
+#         init_compile_ryde(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
+#     if 'n' in to_compile.lower() and 'y' in to_run.lower():
+#         generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
+#
 
 
 #========================================== MIRA ======================================================================
@@ -1843,11 +1879,11 @@ def makefile_mira(path_to_makefile_folder,subfolder,tool_type,candidate):
         makefile_content_block_binary_files = f'''
         $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
         \t@echo -e "### Compiling MIRA-128F (taint keypair)"
-        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^) $(INCLUDE) $(XKCP_LINKER) $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl -o $(BUILD)/$@ 
+        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^) $(INCLUDE) $(XKCP_LINKER) -L. -lctgrind -o $(BUILD)/$@ 
 
         $(EXECUTABLE_SIGN): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
         \t@echo -e "### Compiling MIRA-128F (taint sign)"
-        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^) $(INCLUDE) $(XKCP_LINKER) $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl -o $(BUILD)/$@
+        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^) $(INCLUDE) $(XKCP_LINKER) -L. -lctgrind -o $(BUILD)/$@
         '''
 
     makefile_content_block_clean = f'''
@@ -1876,37 +1912,10 @@ def init_compile_mira(tools_list,signature_type,candidate,optimized_imp_folder,i
             makefile_mira(path_to_makefile_folder,instance,tool_type,candidate)
             compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,path_to_makefile_folder,path_to_build_folder,"all")
 
-
-
-# def compile_run_mira(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
-#     if 'y' in to_compile.lower() and 'y' in to_run.lower():
-#         init_compile_mira(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
-#         generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-#     elif 'y' in to_compile.lower() and 'n' in to_run.lower():
-#         init_compile_mira(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign)
-#     if 'n' in to_compile.lower() and 'y' in to_run.lower():
-#         generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-#
-
-
-# def generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
-#     candidate = candidate
-#     compile_run = f'init_compile_{candidate}({tools_list},{signature_type},{candidate},{optimized_imp_folder},{instance_folders_list},{rel_path_to_api},{rel_path_to_sign})'
-#     if 'y' in to_compile.lower() and 'y' in to_run.lower():
-#         f'{compile_run}'
-#         generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-#     elif 'y' in to_compile.lower() and 'n' in to_run.lower():
-#         f'{compile_run}'
-#     if 'n' in to_compile.lower() and 'y' in to_run.lower():
-#         generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
-
-# def compile_run_mira(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
-#     generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns)
-
-def compile_run_mira(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+def compile_run_mira(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,to_compile,to_run,depth,build_folder,binary_patterns):
     add_includes = []
     compile_with_cmake = 'no'
-    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
 #========================================== CROSS ======================================================================
 
@@ -2251,10 +2260,10 @@ def makefile_pqsigRM(path_to_makefile_folder,subfolder,tool_type,candidate):
         mfile.write(textwrap.dedent(makefile_content_block_binary_files))
         mfile.write(textwrap.dedent(makefile_content_block_clean))
 
-def compile_run_pqsigRM(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+def compile_run_pqsigRM(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,to_compile,to_run,depth,build_folder,binary_patterns):
     add_includes = []
     compile_with_cmake = 'no'
-    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
 
 
@@ -3487,7 +3496,7 @@ ryde_init_compile_run = subparser.add_parser('compile_run_ryde', help='ryde: cre
                                     and required Makefile to compile   (and) run binsec )')
 
 #********************** CODE *******************************************************************************************
-pqsigrm_init_compile_run = subparser.add_parser('compile_run_pqsigRM', help='pqsigRM: create test harness, configuration files,\
+pqsigRM_init_compile_run = subparser.add_parser('compile_run_pqsigRM', help='pqsigRM: create test harness, configuration files,\
                                     and required Makefile to compile   (and) run binsec )')
 less_init_compile_run = subparser.add_parser('compile_run_less', help='less: create test harness, configuration files,\
                                     and required Makefile to compile   (and) run binsec )')
@@ -3544,6 +3553,9 @@ cross_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1
 cross_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
 cross_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
 
+#add_cli_arguments('mpc-in-the-head','cross','Optimized_Implementation','"../../../Reference_Implementation/include/api.h"','""','"../../../lib/randombytes/randombytes.h"')
+
+
 #===================== mira ============================================================================================
 mira_opt_folder = "mpc-in-the-head/mira/Optimized_Implementation"
 mira_default_list_of_folders = os.listdir(mira_opt_folder)
@@ -3555,19 +3567,7 @@ if 'ctgrind' in mira_default_list_of_folders:
 if 'ct_grind' in mira_default_list_of_folders:
     mira_default_list_of_folders.remove('ct_grind')
 
-mira_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
-mira_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='mpc-in-the-head')
-mira_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='mira')
-mira_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
-mira_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=mira_default_list_of_folders)
-mira_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='"../../../src/api.h"')
-mira_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='')
-mira_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
-mira_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
-mira_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
-mira_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
-mira_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
-
+add_cli_arguments('mpc-in-the-head','mira','Optimized_Implementation','"../../../src/api.h"','""','"../../../lib/randombytes/randombytes.h"')
 
 
 #===================== Mirith ==========================================================================================
@@ -3594,18 +3594,7 @@ if 'ctgrind' in perk_default_list_of_folders:
 if 'ct_grind' in perk_default_list_of_folders:
     perk_default_list_of_folders.remove('ct_grind')
 
-perk_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
-perk_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='mpc-in-the-head')
-perk_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='perk')
-perk_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
-perk_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=perk_default_list_of_folders)
-perk_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='"../../../src/api.h"')
-perk_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='')
-perk_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
-perk_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
-perk_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
-perk_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
-perk_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
+add_cli_arguments('mpc-in-the-head','perk','Optimized_Implementation','"../../../src/api.h"','""','"../../../lib/randombytes/rng.h"')
 
 
 
@@ -3620,18 +3609,8 @@ if 'ctgrind' in mqom_default_list_of_folders:
 if 'ct_grind' in mqom_default_list_of_folders:
     mqom_default_list_of_folders.remove('ct_grind')
 
-mqom_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
-mqom_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='mpc-in-the-head')
-mqom_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='mqom')
-mqom_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
-mqom_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=mqom_default_list_of_folders)
-mqom_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='"../../../api.h"')
-mqom_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='')
-mqom_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
-mqom_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
-mqom_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
-mqom_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
-mqom_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
+add_cli_arguments('mpc-in-the-head','mqom','Optimized_Implementation','"../../../api.h"','""','"../../../generator/rng.h"')
+
 
 
 #===================== ryde ============================================================================================
@@ -3645,52 +3624,32 @@ if 'ctgrind' in ryde_default_list_of_folders:
 if 'ct_grind' in ryde_default_list_of_folders:
     ryde_default_list_of_folders.remove('ct_grind')
 
-ryde_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
-ryde_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='mpc-in-the-head')
-ryde_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='ryde')
-ryde_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
-ryde_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=mqom_default_list_of_folders)
-ryde_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='"../../../src/api.h"')
-ryde_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='')
-ryde_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
-ryde_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
-ryde_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
-ryde_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
-ryde_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
-
+add_cli_arguments('mpc-in-the-head','ryde','Optimized_Implementation','"../../../src/api.h"','""', '"../../../lib/randombytes/randombytes.h"')
 
 
 #********************** CODE *******************************************************************************************
 #===================== pqsigRM ============================================================================================
 pqsigrm_default_list_of_folders = []
-pqsigrm_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
-pqsigrm_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='code')
-pqsigrm_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='pqsigRM')
-pqsigrm_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
-pqsigrm_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=pqsigrm_default_list_of_folders)
-pqsigrm_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='"../../pqsigrm613/src/api.h"')
-pqsigrm_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='')
-pqsigrm_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
-pqsigrm_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
-pqsigrm_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
-pqsigrm_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
-pqsigrm_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
+
+add_cli_arguments('code','pqsigRM','Optimized_Implementation','"../../pqsigrm613/src/api.h"','""', '"../../pqsigrm613/src/rng.h"')
+
 
 #===================== less ============================================================================================
 less_default_list_of_folders = []
-less_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
-less_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='code')
-less_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='less')
-less_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
-less_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=less_default_list_of_folders)
-less_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='"../../include/api.h"')
-less_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='')
-less_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
-less_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
-less_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
-less_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
-less_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
+# less_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
+# less_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='code')
+# less_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='less')
+# less_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
+# less_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=less_default_list_of_folders)
+# less_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='"../../include/api.h"')
+# less_init_compile_run.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default='')
+# less_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
+# less_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
+# less_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
+# less_init_compile_run.add_argument('--build', '-build', dest='build',default='build')
+# less_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns)
 
+add_cli_arguments('code','less','Optimized_Implementation','"../../include/api.h"','""', '"../../include/rng.h"')
 
 
 
@@ -3853,12 +3812,13 @@ if args.binsec_test == "compile_run_mira":
     instance_folders_list = args.instance_folders_list
     rel_path_to_api = args.api
     rel_path_to_sign = args.sign
+    rel_path_to_rng = args.rng
     compile = args.compile
     run = args.run
     depth = args.depth
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
-    compile_run_mira(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+    compile_run_mira(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile,run,depth,build_folder,binary_patterns)
 if args.binsec_test == "compile_run_mirith":
     tools_list = args.tools
     signature_type = args.type
@@ -3882,12 +3842,13 @@ if args.binsec_test == "compile_run_perk":
     instance_folders_list = args.instance_folders_list
     rel_path_to_api = args.api
     rel_path_to_sign = args.sign
+    rel_path_to_rng = args.rng
     compile = args.compile
     run = args.run
     depth = args.depth
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
-    compile_run_perk(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+    compile_run_perk(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile,run,depth,build_folder,binary_patterns)
 if args.binsec_test == "compile_run_mqom":
     tools_list = args.tools
     signature_type = args.type
@@ -3896,12 +3857,13 @@ if args.binsec_test == "compile_run_mqom":
     instance_folders_list = args.instance_folders_list
     rel_path_to_api = args.api
     rel_path_to_sign = args.sign
+    rel_path_to_rng = args.rng
     compile = args.compile
     run = args.run
     depth = args.depth
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
-    compile_run_mqom(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+    compile_run_mqom(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile,run,depth,build_folder,binary_patterns)
 if args.binsec_test == "compile_run_ryde":
     tools_list = args.tools
     signature_type = args.type
@@ -3910,12 +3872,13 @@ if args.binsec_test == "compile_run_ryde":
     instance_folders_list = args.instance_folders_list
     rel_path_to_api = args.api
     rel_path_to_sign = args.sign
+    rel_path_to_rng = args.rng
     compile = args.compile
     run = args.run
     depth = args.depth
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
-    compile_run_ryde(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+    compile_run_ryde(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile,run,depth,build_folder,binary_patterns)
 #********************** CODE ****************************************************************************************
 if args.binsec_test == "compile_run_pqsigRM":
     tools_list = args.tools
@@ -3925,12 +3888,13 @@ if args.binsec_test == "compile_run_pqsigRM":
     instance_folders_list = args.instance_folders_list
     rel_path_to_api = args.api
     rel_path_to_sign = args.sign
+    rel_path_to_rng = args.rng
     compile = args.compile
     run = args.run
     depth = args.depth
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
-    compile_run_pqsigRM(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+    compile_run_pqsigRM(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile,run,depth,build_folder,binary_patterns)
 if args.binsec_test == "compile_run_less":
     tools_list = args.tools
     signature_type = args.type
@@ -3939,12 +3903,13 @@ if args.binsec_test == "compile_run_less":
     instance_folders_list = args.instance_folders_list
     rel_path_to_api = args.api
     rel_path_to_sign = args.sign
+    rel_path_to_rng = args.rng
     compile = args.compile
     run = args.run
     depth = args.depth
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
-    compile_run_less(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+    compile_run_less(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile,run,depth,build_folder,binary_patterns)
 #********************** LATTICE ****************************************************************************************
 if args.binsec_test == "compile_run_squirrels":
     #add_cli_arguments(squirrels_signature_type,'squirrels','Optimized_Implementation','"../../include/api.h"')
