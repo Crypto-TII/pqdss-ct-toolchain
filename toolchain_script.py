@@ -1242,6 +1242,13 @@ def run_cli_candidate(candidate):
     #exec(f'compile_run_{candidate}({tools_list},{signature_type},{candidate},{optimization_folder},{instance_folders_list},{rel_path_to_api},{rel_path_to_sign},{rel_path_to_rng},{compile},{run},{depth},{build_folder},{binary_patterns})')
 
 
+def get_default_list_of_folders(candidate_default_list_of_folders,tools_list):
+    for tool_name in tools_list:
+        if tool_name in candidate_default_list_of_folders:
+            candidate_default_list_of_folders.remove(tool_name)
+    return candidate_default_list_of_folders
+
+
 #######################################################################################################################################################
 #########################################################################  A  #########################################################################
 #######################################################################################################################################################
@@ -6351,12 +6358,7 @@ add_cli_arguments('mpc-in-the-head','cross','Optimized_Implementation','"../../.
 mira_opt_folder = "mpc-in-the-head/mira/Optimized_Implementation"
 mira_default_list_of_folders = os.listdir(mira_opt_folder)
 mira_default_list_of_folders.remove('README.md')
-if 'binsec' in mira_default_list_of_folders:
-    mira_default_list_of_folders.remove('binsec')
-if 'ctgrind' in mira_default_list_of_folders:
-    mira_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in mira_default_list_of_folders:
-    mira_default_list_of_folders.remove('ct_grind')
+mira_default_list_of_folders = get_default_list_of_folders(mira_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('mpc-in-the-head','mira','Optimized_Implementation','"../../../src/api.h"','""','"../../../lib/randombytes/randombytes.h"')
 
@@ -6365,12 +6367,7 @@ add_cli_arguments('mpc-in-the-head','mira','Optimized_Implementation','"../../..
 #In case of second run for example, where binsec or ctgrind folder is already created by the first run
 mirith_opt_folder = "mpc-in-the-head/mirith/Optimized_Implementation"
 mirith_default_list_of_folders = os.listdir(mirith_opt_folder)
-if 'binsec' in mirith_default_list_of_folders:
-    mirith_default_list_of_folders.remove('binsec')
-if 'ctgrind' in mirith_default_list_of_folders:
-    mirith_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in mirith_default_list_of_folders:
-    mirith_default_list_of_folders.remove('ct_grind')
+mirith_default_list_of_folders = get_default_list_of_folders(mirith_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('mpc-in-the-head','mirith','Optimized_Implementation','"../../../api.h"','"../../../sign.h"','"../../../nist/rng.h"')
 
@@ -6380,12 +6377,7 @@ add_cli_arguments('mpc-in-the-head','mirith','Optimized_Implementation','"../../
 perk_opt_folder = "mpc-in-the-head/perk/Optimized_Implementation"
 perk_default_list_of_folders = os.listdir(perk_opt_folder)
 perk_default_list_of_folders.remove('README')
-if 'binsec' in perk_default_list_of_folders:
-    perk_default_list_of_folders.remove('binsec')
-if 'ctgrind' in perk_default_list_of_folders:
-    perk_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in perk_default_list_of_folders:
-    perk_default_list_of_folders.remove('ct_grind')
+perk_default_list_of_folders = get_default_list_of_folders(perk_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('mpc-in-the-head','perk','Optimized_Implementation','"../../../src/api.h"','""','"../../../lib/randombytes/rng.h"')
 
@@ -6393,13 +6385,7 @@ add_cli_arguments('mpc-in-the-head','perk','Optimized_Implementation','"../../..
 #In case of second run for example, where binsec or ctgrind folder is already created by the first run
 sdith_opt_folder = "mpc-in-the-head/sdith/Optimized_Implementation"
 sdith_default_list_of_folders = os.listdir(sdith_opt_folder)
-sdith_default_list_of_folders.remove('README')
-if 'binsec' in sdith_default_list_of_folders:
-    sdith_default_list_of_folders.remove('binsec')
-if 'ctgrind' in sdith_default_list_of_folders:
-    perk_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in sdith_default_list_of_folders:
-    sdith_default_list_of_folders.remove('ct_grind')
+sdith_default_list_of_folders = get_default_list_of_folders(sdith_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('mpc-in-the-head','sdith','Optimized_Implementation','"../../../../api.h"','""','"../../../../rng.h"')
 
@@ -6407,12 +6393,7 @@ add_cli_arguments('mpc-in-the-head','sdith','Optimized_Implementation','"../../.
 #In case of second run for example, where binsec or ctgrind folder is already created by the first run
 mqom_opt_folder = "mpc-in-the-head/mqom/Optimized_Implementation"
 mqom_default_list_of_folders = os.listdir(mqom_opt_folder)
-if 'binsec' in mqom_default_list_of_folders:
-    mqom_default_list_of_folders.remove('binsec')
-if 'ctgrind' in mqom_default_list_of_folders:
-    mqom_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in mqom_default_list_of_folders:
-    mqom_default_list_of_folders.remove('ct_grind')
+mqom_default_list_of_folders = get_default_list_of_folders(mqom_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('mpc-in-the-head','mqom','Optimized_Implementation','"../../../api.h"','""','"../../../generator/rng.h"')
 
@@ -6421,12 +6402,7 @@ add_cli_arguments('mpc-in-the-head','mqom','Optimized_Implementation','"../../..
 ryde_opt_folder = "mpc-in-the-head/ryde/Optimized_Implementation"
 ryde_default_list_of_folders = os.listdir(ryde_opt_folder)
 ryde_default_list_of_folders.remove('README')
-if 'binsec' in ryde_default_list_of_folders:
-    ryde_default_list_of_folders.remove('binsec')
-if 'ctgrind' in ryde_default_list_of_folders:
-    ryde_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in ryde_default_list_of_folders:
-    ryde_default_list_of_folders.remove('ct_grind')
+ryde_default_list_of_folders = get_default_list_of_folders(ryde_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('mpc-in-the-head','ryde','Optimized_Implementation','"../../../src/api.h"','""', '"../../../lib/randombytes/randombytes.h"')
 
@@ -6440,13 +6416,7 @@ add_cli_arguments('code','pqsigRM','Optimized_Implementation','"../../pqsigrm613
 #In case of second run for example, where binsec or ctgrind folder is already created by the first run
 fuleeca_opt_folder = "code/fuleeca/Reference_Implementation"
 fuleeca_default_list_of_folders = os.listdir(fuleeca_opt_folder)
-fuleeca_default_list_of_folders.remove('README')
-if 'binsec' in fuleeca_default_list_of_folders:
-    fuleeca_default_list_of_folders.remove('binsec')
-if 'ctgrind' in fuleeca_default_list_of_folders:
-    fuleeca_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in fuleeca_default_list_of_folders:
-    fuleeca_default_list_of_folders.remove('ct_grind')
+fuleeca_default_list_of_folders = get_default_list_of_folders(fuleeca_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('code','fuleeca','Optimized_Implementation','"../../../Reference_Implementation/api.h"','""', '"../../../Reference_Implementation/rng.h"')
 
@@ -6471,13 +6441,7 @@ add_cli_arguments('code','less','Optimized_Implementation','"../../include/api.h
 #In case of second run for example, where binsec or ctgrind folder is already created by the first run
 meds_opt_folder = "code/meds/Optimized_Implementation"
 meds_default_list_of_folders = os.listdir(meds_opt_folder)
-meds_default_list_of_folders.remove('README')
-if 'binsec' in meds_default_list_of_folders:
-    meds_default_list_of_folders.remove('binsec')
-if 'ctgrind' in meds_default_list_of_folders:
-    meds_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in meds_default_list_of_folders:
-    meds_default_list_of_folders.remove('ct_grind')
+meds_default_list_of_folders = get_default_list_of_folders(meds_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('code','meds','Optimized_Implementation','"../../../api.h"','""', '"../../../rng.h"')
 
@@ -6485,13 +6449,10 @@ add_cli_arguments('code','meds','Optimized_Implementation','"../../../api.h"','"
 #In case of second run for example, where binsec or ctgrind folder is already created by the first run
 Wave_opt_folder = "code/Wave/Optimized_Implementation"
 Wave_default_list_of_folders = os.listdir(Wave_opt_folder)
-Wave_default_list_of_folders.remove('README')
-if 'binsec' in Wave_default_list_of_folders:
-    Wave_default_list_of_folders.remove('binsec')
-if 'ctgrind' in Wave_default_list_of_folders:
-    Wave_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in Wave_default_list_of_folders:
-    Wave_default_list_of_folders.remove('ct_grind')
+Wave_default_list_of_folders.remove('README.md')
+Wave_default_list_of_folders.remove('AUTHORS.md')
+Wave_default_list_of_folders.remove('LICENSE')
+Wave_default_list_of_folders = get_default_list_of_folders(Wave_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('code','Wave','Optimized_Implementation','"../../../api.h"','""', '"../../../NIST-kat/rng.h"')
 
@@ -6500,12 +6461,7 @@ add_cli_arguments('code','Wave','Optimized_Implementation','"../../../api.h"','"
 #[TODO:Path to /KAT/generator/katrng.h]
 squirrels_opt_folder = "lattice/squirrels/Optimized_Implementation"
 squirrels_default_list_of_folders = os.listdir(squirrels_opt_folder)
-if 'binsec' in squirrels_default_list_of_folders:
-    squirrels_default_list_of_folders.remove('binsec')
-if 'ctgrind' in squirrels_default_list_of_folders:
-    squirrels_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in squirrels_default_list_of_folders:
-    squirrels_default_list_of_folders.remove('ct_grind')
+squirrels_default_list_of_folders = get_default_list_of_folders(squirrels_default_list_of_folders,default_tools_list)
 #print("---------GLOBAL: squirrels_default_list_of_folders",squirrels_default_list_of_folders)
 squirrels_signature_type = 'lattice'
 add_cli_arguments('lattice','squirrels','Optimized_Implementation','"../../../api.h"','""', '"../../../NIST-kat/rng.h"')
@@ -6524,60 +6480,35 @@ add_cli_arguments('lattice','haetae','Optimized_Implementation','"../../include/
 #===================== EagleSign =======================================================================================
 EagleSign_opt_folder = "lattice/EagleSign/Specifications_and_Supporting_Documentation/Optimized_Implementation"
 EagleSign_default_list_of_folders = os.listdir(EagleSign_opt_folder)
-if 'binsec' in EagleSign_default_list_of_folders:
-    EagleSign_default_list_of_folders.remove('binsec')
-if 'ctgrind' in EagleSign_default_list_of_folders:
-    EagleSign_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in EagleSign_default_list_of_folders:
-    EagleSign_default_list_of_folders.remove('ct_grind')
+EagleSign_default_list_of_folders = get_default_list_of_folders(EagleSign_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('lattice','EagleSign','Specifications_and_Supporting_Documentation/Optimized_Implementation','""','"../../../sign.h"','"../../../rng.h"')
 
 #===================== EHTv3v4 =========================================================================================
 EHTv3v4_opt_folder = "lattice/EHTv3v4/Optimized_Implementation/crypto_sign"
 EHTv3v4_default_list_of_folders = os.listdir(EHTv3v4_opt_folder)
-if 'binsec' in EHTv3v4_default_list_of_folders:
-    EHTv3v4_default_list_of_folders.remove('binsec')
-if 'ctgrind' in EHTv3v4_default_list_of_folders:
-    EHTv3v4_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in EHTv3v4_default_list_of_folders:
-    EHTv3v4_default_list_of_folders.remove('ct_grind')
+EHTv3v4_default_list_of_folders = get_default_list_of_folders(EHTv3v4_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('lattice','EHTv3v4','Optimized_Implementation/crypto_sign','"../../../../api.h"','""','"../../../../rng.h"')
 
 #===================== HAWK ============================================================================================
 hawk_opt_folder = "lattice/hawk/Optimized_Implementation/avx2"
 hawk_default_list_of_folders = os.listdir(hawk_opt_folder)
-if 'binsec' in hawk_default_list_of_folders:
-    hawk_default_list_of_folders.remove('binsec')
-if 'ctgrind' in hawk_default_list_of_folders:
-    hawk_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in hawk_default_list_of_folders:
-    hawk_default_list_of_folders.remove('ct_grind')
+hawk_default_list_of_folders = get_default_list_of_folders(hawk_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('lattice','hawk','Optimized_Implementation/avx2','"../../../../api.h"','""','"../../../../rng.h"')
 
 #===================== hufu ============================================================================================
-hufu_opt_folder = "lattice/hufu/Optimized_Implementation/crypto_sign"
+hufu_opt_folder = "lattice/hufu/HuFu/Optimized_Implementation/crypto_sign"
 hufu_default_list_of_folders = os.listdir(hufu_opt_folder)
-if 'binsec' in hufu_default_list_of_folders:
-    hufu_default_list_of_folders.remove('binsec')
-if 'ctgrind' in hufu_default_list_of_folders:
-    hufu_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in hufu_default_list_of_folders:
-    hufu_default_list_of_folders.remove('ct_grind')
+hufu_default_list_of_folders = get_default_list_of_folders(hufu_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('lattice','hufu','Optimized_Implementation/crypto_sign','"../../../../api.h"','""','"../../../../rng.h"')
 #===================== Raccoon =========================================================================================
 #[TODO]
 Raccoon_opt_folder = "lattice/Raccoon/Optimized_Implementation"
 Raccoon_default_list_of_folders = os.listdir(Raccoon_opt_folder)
-if 'binsec' in Raccoon_default_list_of_folders:
-    Raccoon_default_list_of_folders.remove('binsec')
-if 'ctgrind' in Raccoon_default_list_of_folders:
-    Raccoon_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in Raccoon_default_list_of_folders:
-    Raccoon_default_list_of_folders.remove('ct_grind')
+Raccoon_default_list_of_folders = get_default_list_of_folders(Raccoon_default_list_of_folders,default_tools_list)
 #print("---------GLOBAL: squirrels_default_list_of_folders",squirrels_default_list_of_folders)
 squirrels_signature_type = 'lattice'
 add_cli_arguments('lattice','Raccoon','Optimized_Implementation','"../../../api.h"','""', '"../../../rng.h"')
@@ -6586,26 +6517,92 @@ add_cli_arguments('lattice','Raccoon','Optimized_Implementation','"../../../api.
 #===================== snova ===========================================================================================
 snova_opt_folder = "multivariate/snova/Optimized_Implementation"
 snova_default_list_of_folders = os.listdir(snova_opt_folder)
-if 'binsec' in snova_default_list_of_folders:
-    snova_default_list_of_folders.remove('binsec')
-if 'ctgrind' in snova_default_list_of_folders:
-    snova_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in snova_default_list_of_folders:
-    snova_default_list_of_folders.remove('ct_grind')
+snova_default_list_of_folders = get_default_list_of_folders(snova_default_list_of_folders,default_tools_list)
 
-add_cli_arguments('multivariate','snova','Optimized_Implementation','"../../../api.h"')
+add_cli_arguments('multivariate','snova','Optimized_Implementation','"../../../api.h"','""', '"../../../rng.h"')
+
+#===================== biscuit =========================================================================================
+biscuit_opt_folder = "multivariate/biscuit/Optimized_Implementation"
+biscuit_default_list_of_folders = os.listdir(biscuit_opt_folder)
+biscuit_default_list_of_folders = get_default_list_of_folders(biscuit_default_list_of_folders,default_tools_list)
+add_cli_arguments('multivariate','biscuit','Optimized_Implementation','"../../../api.h"','""', '"../../../rng.h"')
+
+
+#===================== dme_sign ========================================================================================
+#[TODO: each subfolder of DME-SIGN_nist-pqc-2023 has Reference_Implementation and Optimized_Implementaton folder  ]
+dme_sign_opt_folder = "multivariate/dme_sign/DME-SIGN_nist-pqc-2023/dme-3rnds-8vars-32bits-sign/Optimized_Implementation"
+dme_sign_default_list_of_folders = os.listdir(dme_sign_opt_folder)
+dme_sign_default_list_of_folders = get_default_list_of_folders(dme_sign_default_list_of_folders,default_tools_list)
+add_cli_arguments('multivariate','dme_sign','DME-SIGN_nist-pqc-2023/dme-3rnds-8vars-32bits-sign/Optimized_Implementation','"../../../api.h"')
+
+#===================== hppc ============================================================================================
+hppc_opt_folder = "multivariate/hppc/Optimized_Implementation"
+hppc_default_list_of_folders = os.listdir(hppc_opt_folder)
+hppc_default_list_of_folders = get_default_list_of_folders(hppc_default_list_of_folders,default_tools_list)
+add_cli_arguments('multivariate','hppc','Optimized_Implementation','"../../../api.h"','""', '"../../../rng.h"')
+
+#===================== mayo ============================================================================================
+#[TODO: Optimized_Implementation/src has 4 instances mayo_1, mayo_2, mayo_3 and mayo_5]
+mayo_default_list_of_folders = []
+add_cli_arguments('multivariate','mayo','Optimized_Implementation','"../../../api.h"','""', '"../../../rng.h"')
+
+
+#===================== prov ============================================================================================
+prov_opt_folder = "multivariate/prov/Optimized_Implementation"
+prov_default_list_of_folders = os.listdir(prov_opt_folder)
+prov_default_list_of_folders = get_default_list_of_folders(prov_default_list_of_folders,default_tools_list)
+add_cli_arguments('multivariate','prov','QR_UOV/Optimized_Implementation','"../../../api.h"','""', '"../../../rng.h"')
+
+#===================== qr_uov ==========================================================================================
+qruov_default_list_of_folders = ["qruov1q7L10v740m100","qruov1q31L3v165m60", "qruov1q31L10v600m70", "qruov1q127L3v156m54",
+                                 "qruov3q7L10v1100m140", "qruov3q31L3v246m87",  "qruov3q31L10v890m100",  "qruov3q127L3v228m78",
+                                 "qruov5q7L10v1490m190", "qruov5q31L3v324m114", "qruov5q31L10v1120m120", "qruov5q127L3v306m105"]
+add_cli_arguments('multivariate','qr_uov','Optimized_Implementation','"../../binsec/qruov1q7L10v740m100/portable64/api.h"','""','"../../binsec/qruov1q7L10v740m100/portable64/rng.h"')
+
+#===================== tuov ============================================================================================
+tuov_opt_folder = "multivariate/tuov/TUOV/Optimized_Implementation"
+tuov_default_list_of_folders = os.listdir(tuov_opt_folder)
+tuov_default_list_of_folders = get_default_list_of_folders(tuov_default_list_of_folders,default_tools_list)
+tuov_default_list_of_folders.remove('tests')
+tuov_default_list_of_folders.remove('nistkat')
+add_cli_arguments('multivariate','tuov','Optimized_Implementation','"../../../api.h"','""', '"../../../../nistkat/rng.h"')
+
+#===================== uov =============================================================================================
+uov_opt_folder = "multivariate/uov/UOV/Optimized_Implementation"
+uov_amd64_avx2_neon_folders = os.listdir(uov_opt_folder)
+uov_amd64_avx2_neon_folders = get_default_list_of_folders(uov_amd64_avx2_neon_folders,default_tools_list)
+
+uov_amd64 = uov_amd64_avx2_neon_folders[0]
+uov_avx2 = uov_amd64_avx2_neon_folders[1]
+uov_neon = uov_amd64_avx2_neon_folders[2]
+uov_default_list_of_folders = []
+abs_path_to_uov_amd64 = uov_opt_folder+"/"+uov_amd64
+abs_path_to_uov_avx2 = uov_opt_folder+"/"+uov_avx2
+abs_path_to_uov_neon = uov_opt_folder+"/"+uov_neon
+uov_default_list_of_folders.extend([uov_amd64+"/"+subfold for subfold in os.listdir(abs_path_to_uov_amd64)])
+uov_default_list_of_folders.remove(uov_amd64+"/nistkat")
+uov_default_list_of_folders.extend([uov_avx2+"/"+subfold for subfold in os.listdir(abs_path_to_uov_avx2)])
+uov_default_list_of_folders.remove(uov_avx2+"/nistkat")
+uov_default_list_of_folders.extend([uov_neon+"/"+subfold for subfold in os.listdir(abs_path_to_uov_neon)])
+uov_default_list_of_folders.remove(uov_neon+"/nistkat")
+
+add_cli_arguments('multivariate','uov','UOV/Optimized_Implementation','"../../../../api.h"','""', '"../../../../../nistkat/rng.h"')
+
+#===================== vox =============================================================================================
+vox_opt_folder = "multivariate/vox/Additional_Implementations"
+vox_avx2_flint_folders = os.listdir(vox_opt_folder)
+vox_avx2_flint_folders = get_default_list_of_folders(vox_avx2_flint_folders,default_tools_list)
+
+vox_default_list_of_folders = ["multivariate/vox/Additional_Implementations/avx2/vox_sign","multivariate/vox/Additional_Implementations/flint/vox_sign"]
+
+add_cli_arguments('multivariate','vox','Additional_Implementations','"../../../../api.h"','""','"../../../../rng/api.h"')
 
 
 #********************** SYMMETRIC **************************************************************************************
 #===================== aimer ===========================================================================================
 aimer_opt_folder = "symmetric/aimer/AIMer_submission/Optimized_Implementation"
 aimer_default_list_of_folders = os.listdir(aimer_opt_folder)
-if 'binsec' in aimer_default_list_of_folders:
-    aimer_default_list_of_folders.remove('binsec')
-if 'ctgrind' in aimer_default_list_of_folders:
-    aimer_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in aimer_default_list_of_folders:
-    aimer_default_list_of_folders.remove('ct_grind')
+aimer_default_list_of_folders = get_default_list_of_folders(aimer_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('symmetric','aimer','AIMer_submission/Optimized_Implementation','"../../../api.h"','""', '"../../../rng.h"')
 
@@ -6613,12 +6610,7 @@ add_cli_arguments('symmetric','aimer','AIMer_submission/Optimized_Implementation
 ascon_opt_folder = "symmetric/Ascon_sign/Optimized_Implementation"
 ascon_default_robust_and_simple_folders = os.listdir(ascon_opt_folder)
 ascon_default_robust_and_simple_folders.remove('Readme')
-if 'binsec' in ascon_default_robust_and_simple_folders:
-    ascon_default_robust_and_simple_folders.remove('binsec')
-if 'ctgrind' in ascon_default_robust_and_simple_folders:
-    ascon_default_robust_and_simple_folders.remove('ctgrind')
-if 'ct_grind' in ascon_default_robust_and_simple_folders:
-    ascon_default_robust_and_simple_folders.remove('ct_grind')
+ascon_default_robust_and_simple_folders = get_default_list_of_folders(ascon_default_robust_and_simple_folders,default_tools_list)
 
 ascon_robust = ascon_default_robust_and_simple_folders[0]
 ascon_simple = ascon_default_robust_and_simple_folders[1]
@@ -6633,24 +6625,14 @@ add_cli_arguments('symmetric','Ascon_sign','Optimized_Implementation','"../../..
 #===================== faest ===========================================================================================
 faest_opt_folder = "symmetric/faest/Additional_Implementations/avx2"
 faest_default_list_of_folders = os.listdir(faest_opt_folder)
-if 'binsec' in faest_default_list_of_folders:
-    faest_default_list_of_folders.remove('binsec')
-if 'ctgrind' in faest_default_list_of_folders:
-    faest_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in faest_default_list_of_folders:
-    faest_default_list_of_folders.remove('ct_grind')
+faest_default_list_of_folders = get_default_list_of_folders(faest_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('symmetric','faest','Additional_Implementations/avx2','"../../../api.h"','""', '"../../../NIST-KATs/rng.h"')
 
 #===================== Sphincs_alpha ===================================================================================
 sphincs_opt_folder = "symmetric/sphincs_alpha/Optimized_Implementation"
 sphincs_default_list_of_folders = os.listdir(sphincs_opt_folder)
-if 'binsec' in sphincs_default_list_of_folders:
-    sphincs_default_list_of_folders.remove('binsec')
-if 'ctgrind' in sphincs_default_list_of_folders:
-    sphincs_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in sphincs_default_list_of_folders:
-    sphincs_default_list_of_folders.remove('ct_grind')
+sphincs_default_list_of_folders = get_default_list_of_folders(sphincs_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('symmetric','sphincs_alpha','Optimized_Implementation','"../../../api.h"','""', '"../../../rng.h"')
 
@@ -6659,12 +6641,7 @@ add_cli_arguments('symmetric','sphincs_alpha','Optimized_Implementation','"../..
 #===================== preon ===========================================================================================
 preon_opt_folder = "other/preon/Optimized_Implementation"
 preon_default_128_192_256_folders = os.listdir(preon_opt_folder)
-if 'binsec' in preon_default_128_192_256_folders:
-    preon_default_128_192_256_folders.remove('binsec')
-if 'ctgrind' in preon_default_128_192_256_folders:
-    preon_default_128_192_256_folders.remove('ctgrind')
-if 'ct_grind' in preon_default_128_192_256_folders:
-    preon_default_128_192_256_folders.remove('ct_grind')
+preon_default_128_192_256_folders = get_default_list_of_folders(preon_default_128_192_256_folders,default_tools_list)
 
 preon_128 = preon_default_128_192_256_folders[0]
 preon_192 = preon_default_128_192_256_folders[1]
@@ -6688,24 +6665,14 @@ add_cli_arguments('other','alteq','Optimized_Implementation','"../../../api/api.
 #===================== emle2_0 ===================================================================================
 emle2_0_opt_folder = "other/emle2_0/Additional_Implementations/aesni/crypto_sign"
 emle2_0_default_list_of_folders = os.listdir(emle2_0_opt_folder)
-if 'binsec' in emle2_0_default_list_of_folders:
-    emle2_0_default_list_of_folders.remove('binsec')
-if 'ctgrind' in emle2_0_default_list_of_folders:
-    emle2_0_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in emle2_0_default_list_of_folders:
-    emle2_0_default_list_of_folders.remove('ct_grind')
+emle2_0_default_list_of_folders = get_default_list_of_folders(emle2_0_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('other','emle2_0','Additional_Implementations/aesni/crypto_sign','"../../../../../api.h"','""', '"../../../../../rng.h"')
 
 #===================== kaz_sign ===================================================================================
 kaz_sign_opt_folder = "other/kaz_sign/Optimized_Implementation"
 kaz_sign_default_list_of_folders = os.listdir(kaz_sign_opt_folder)
-if 'binsec' in kaz_sign_default_list_of_folders:
-    kaz_sign_default_list_of_folders.remove('binsec')
-if 'ctgrind' in kaz_sign_default_list_of_folders:
-    kaz_sign_default_list_of_folders.remove('ctgrind')
-if 'ct_grind' in kaz_sign_default_list_of_folders:
-    kaz_sign_default_list_of_folders.remove('ct_grind')
+kaz_sign_default_list_of_folders = get_default_list_of_folders(kaz_sign_default_list_of_folders,default_tools_list)
 
 add_cli_arguments('other','kaz_sign','Optimized_Implementation','"../../../api.h"','""', '"../../../rng.h"')
 
