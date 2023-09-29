@@ -1193,18 +1193,12 @@ def add_cli_arguments_modif_22_sept(signature_type,candidate,optimized_imp_folde
     exec(f"{candidate_sub_parser}.add_argument('--build', '-build', dest='build',default='build')")
     exec(f"{candidate_sub_parser}.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns,help = f'{candidate} algorithms_patterns')")
 
-def add_cli_arguments(signature_type,candidate,optimized_imp_folder,rel_path_to_api = '""',rel_path_to_sign = '""',rel_path_to_rng = '""' ):
+
+
+def add_cli_arguments1(signature_type,candidate,optimized_imp_folder,rel_path_to_api = '""',rel_path_to_sign = '""',rel_path_to_rng = '""', candidate_default_list_of_folders = []):
     candidate_sub_parser = f'{candidate}_init_compile_run'
-    candidate_default_list_of_folders = f'{candidate}_default_list_of_folders'
-    # print("~~~~~~~~~candidate_default_list_of_folders",f'{candidate_default_list_of_folders}')
-    # print("~~~~~~~~~candidate_default_list_of_folders",candidate_default_list_of_folders)
-    # t = f'{candidate_default_list_of_folders}'
-    # print("----t = ",t)
-    # print(exec(f'candidate_default_list_of_folders'))
-    exec(f"{candidate_sub_parser}.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list,help = f'{candidate} tools')")
+    exec(f"{candidate_sub_parser}.add_argument('--tools', '-tools', dest='tools', nargs='+', default=default_tools_list, help = f'{candidate} tools')")
     exec(f"{candidate_sub_parser}.add_argument('--signature_type', '-type',dest='type',type=str,default=f'{signature_type}',help=f'{candidate} type')")
-    # sig_type = f"{candidate_sub_parser}.add_argument('--signature_type', '-type',dest='type',type=str,default=f'{signature_type}',help=f'{candidate} type')"
-    # exec(sig_type)
     exec(f"{candidate_sub_parser}.add_argument('--candidate', '-candidata',dest='candidate',type=str,default=f'{candidate}',help = f'{candidate} candidate')")
     exec(f"{candidate_sub_parser}.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default=f'{optimized_imp_folder}')")
     exec(f"{candidate_sub_parser}.add_argument('--instance_folders_list', nargs='+', default=candidate_default_list_of_folders)")
@@ -1240,6 +1234,24 @@ def run_cli_candidate(candidate):
         print("--",test)
         exec(test)
     #exec(f'compile_run_{candidate}({tools_list},{signature_type},{candidate},{optimization_folder},{instance_folders_list},{rel_path_to_api},{rel_path_to_sign},{rel_path_to_rng},{compile},{run},{depth},{build_folder},{binary_patterns})')
+
+
+
+def add_cli_arguments(signature_type,candidate,optimized_imp_folder,rel_path_to_api = '""',rel_path_to_sign = '""',rel_path_to_rng = '""', candidate_default_list_of_folders = []):
+    candidate_sub_parser = f'{candidate}_init_compile_run'
+    exec(f"{candidate_sub_parser}.add_argument('--tools', '-tools', dest='tools', nargs='+', default=default_tools_list, help = f'{candidate} tools')")
+    exec(f"{candidate_sub_parser}.add_argument('--signature_type', '-type',dest='type',type=str,default=f'{signature_type}',help=f'{candidate} type')")
+    exec(f"{candidate_sub_parser}.add_argument('--candidate', '-candidata',dest='candidate',type=str,default=f'{candidate}',help = f'{candidate} candidate')")
+    exec(f"{candidate_sub_parser}.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default=f'{optimized_imp_folder}')")
+    exec(f"{candidate_sub_parser}.add_argument('--instance_folders_list', nargs='+', default=candidate_default_list_of_folders)")
+    exec(f"{candidate_sub_parser}.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default=f'{rel_path_to_api}',help = f'{rel_path_to_api} api')")
+    exec(f"{candidate_sub_parser}.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default=f'{rel_path_to_sign}',help = f'{rel_path_to_sign} sign')")
+    exec(f"{candidate_sub_parser}.add_argument('--rel_path_to_rng', '-rng', dest='rng',type=str,default=f'{rel_path_to_rng}')")
+    exec(f"{candidate_sub_parser}.add_argument('--compile', '-c', dest='compile',default='Yes')")
+    exec(f"{candidate_sub_parser}.add_argument('--run', '-r', dest='run',default='Yes')")
+    exec(f"{candidate_sub_parser}.add_argument('--depth', '-depth', dest='depth',default='1000000',help = f'{candidate} depth')")
+    exec(f"{candidate_sub_parser}.add_argument('--build', '-build', dest='build',default='build')")
+    exec(f"{candidate_sub_parser}.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns,help = f'{candidate} algorithms_patterns')")
 
 
 def get_default_list_of_folders(candidate_default_list_of_folders,tools_list):
@@ -3166,20 +3178,154 @@ def compile_run_squirrels(tools_list,signature_type,candidate,optimized_imp_fold
     compile_with_cmake = 'no'
     generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
+
+
+
 #=============================== HAETAE ================================================================================
-#[TODO:Peaufine cmake]
+
 def cmake_haetae(path_to_cmakelist,subfolder,tool_type,candidate):
     tool = GenericPatterns(tool_type)
     test_harness_kpair = ""
     test_harness_sign = ""
     taint = ""
-    subfolder  = ""
     path_to_cmakelist = path_to_cmakelist+'/CMakeLists.txt'
-
+    cmake_file_content_src_block = f'''
+    cmake_minimum_required(VERSION 3.16)
+    project({subfolder} LANGUAGES ASM C CXX) # CXX for the google test
+    
+    enable_testing() # Enables running `ctest`
+    
+    set(BASE_DIR ..)
+    
+    set(CMAKE_C_STANDARD 11)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/libs/)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/libs/)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/bin/)
+    set(EXECUTABLE_OUTPUT_PATH ${{CMAKE_BINARY_DIR}}/bin/)
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+    
+    set(HAETAE_SRCS
+      ${{BASE_DIR}}/src/consts.c
+      ${{BASE_DIR}}/src/poly.c
+      ${{BASE_DIR}}/src/ntt.S
+      ${{BASE_DIR}}/src/invntt.S
+      ${{BASE_DIR}}/src/pointwise.S
+      ${{BASE_DIR}}/src/shuffle.S
+      ${{BASE_DIR}}/src/fft.c
+      ${{BASE_DIR}}/src/reduce.c
+      ${{BASE_DIR}}/src/polyvec.c
+      ${{BASE_DIR}}/src/polymat.c
+      ${{BASE_DIR}}/src/polyfix.c
+      ${{BASE_DIR}}/src/decompose.c
+      ${{BASE_DIR}}/src/sampler.c
+      ${{BASE_DIR}}/src/packing.c
+      ${{BASE_DIR}}/src/sign.c
+      ${{BASE_DIR}}/src/fixpoint.c
+      ${{BASE_DIR}}/src/encoding.c
+    )
+    
+    set(HAETAE_FIPS202_SRCS
+      ${{HAETAE_SRCS}}
+      ${{BASE_DIR}}/src/symmetric-shake.c
+    )
+    set(FIPS202_SRCS ${{BASE_DIR}}/src/fips202.c ${{BASE_DIR}}/src/fips202x4.c ${{BASE_DIR}}/src/f1600x4.S)
+    
+    if(MSVC)
+      set(C_FLAGS /nologo /O2 /W4 /wd4146 /wd4244)
+    else()
+      set(C_FLAGS -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic)
+    endif()
+    
+    find_package(OpenSSL REQUIRED)
+    
+    include_directories(${{BASE_DIR}}/include)
+    include_directories(${{BASE_DIR}}/api)
+    link_directories(${{BASE_DIR}}/libs)
+    
+    add_library(fips202 SHARED ${{FIPS202_SRCS}})
+    target_compile_options(fips202 PRIVATE -O3 -mavx2 -fomit-frame-pointer -fPIC)
+    add_library(RNG SHARED ${{PROJECT_SOURCE_DIR}}/${{BASE_DIR}}//src/randombytes.c)
+    target_compile_options(RNG PRIVATE -O3 -fomit-frame-pointer -fPIC)
+    target_link_libraries(RNG PUBLIC OpenSSL::Crypto)
+    
+    
+    # HAETAE 2 SHAKE ONLY
+    set(LIB_NAME2 ${{PROJECT_NAME}}2)
+    add_library(${{LIB_NAME2}} SHARED ${{HAETAE_FIPS202_SRCS}})
+    target_compile_definitions(${{LIB_NAME2}} PUBLIC HAETAE_MODE=2)
+    target_compile_options(${{LIB_NAME2}} PRIVATE ${{C_FLAGS}})
+    target_link_libraries(${{LIB_NAME2}} INTERFACE fips202 m)
+    target_link_libraries(${{LIB_NAME2}} PUBLIC RNG)
+    
+    # HAETAE 3 SHAKE ONLY
+    set(LIB_NAME3 ${{PROJECT_NAME}}3)
+    add_library(${{LIB_NAME3}} SHARED ${{HAETAE_FIPS202_SRCS}})
+    target_compile_definitions(${{LIB_NAME3}} PUBLIC HAETAE_MODE=3)
+    target_compile_options(${{LIB_NAME3}} PRIVATE ${{C_FLAGS}})
+    target_link_libraries(${{LIB_NAME3}} INTERFACE fips202 m)
+    target_link_libraries(${{LIB_NAME3}} PUBLIC RNG)
+    
+    # HAETAE 5 SHAKE ONLY
+    set(LIB_NAME5 ${{PROJECT_NAME}}5)
+    add_library(${{LIB_NAME5}} SHARED ${{HAETAE_FIPS202_SRCS}})
+    target_compile_definitions(${{LIB_NAME5}} PUBLIC HAETAE_MODE=5)
+    target_compile_options(${{LIB_NAME5}} PRIVATE ${{C_FLAGS}})
+    target_link_libraries(${{LIB_NAME5}} INTERFACE fips202 m)
+    target_link_libraries(${{LIB_NAME5}} PUBLIC RNG)
+    
+    
+    set(BUILD build)
+    set(BUILD_KEYPAIR {candidate}_keypair)
+    set(BUILD_SIGN {candidate}_sign)
+    '''
+    cmake_file_content_loop_content_block_executables = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        cmake_file_content_loop_content_block_executables = f'''
+        foreach(category RANGE 2 3 5)
+            \t\tset(TARGET_KEYPAIR_BINARY_NAME {test_harness_kpair}_${{category}})
+            \t\tadd_executable(${{TARGET_KEYPAIR_BINARY_NAME}} ./{candidate}_keypair/{test_harness_kpair}.c)
+            \t\ttarget_link_libraries(${{TARGET_KEYPAIR_BINARY_NAME}}  ${{LIB_NAME${{category}}}} OpenSSL::Crypto)
+            \t\ttarget_include_directories(${{TARGET_KEYPAIR_BINARY_NAME}} PUBLIC ../include)
+            \t\ttarget_compile_definitions(${{TARGET_KEYPAIR_BINARY_NAME}} PUBLIC HAETAE_MODE=${{category}})
+            \t\tset_target_properties(${{TARGET_KEYPAIR_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
+            
+            \t\tset(TARGET_SIGN_BINARY_NAME {test_harness_sign}_${{category}})
+            \t\tadd_executable(${{TARGET_SIGN_BINARY_NAME}} ./{candidate}_sign/{test_harness_sign}.c)
+            \t\ttarget_include_directories(${{TARGET_SIGN_BINARY_NAME}} PUBLIC ../include)
+            \t\ttarget_compile_definitions(${{TARGET_SIGN_BINARY_NAME}} PUBLIC HAETAE_MODE=${{category}})
+            \t\ttarget_link_libraries(${{TARGET_SIGN_BINARY_NAME}}  ${{LIB_NAME${{category}}}} OpenSSL::Crypto)
+        endforeach(category) 
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        cmake_file_content_loop_content_block_executables = f'''
+        find_library(CT_GRIND_LIB ctgrind)
+        foreach(category RANGE 2 3 5)
+        \t\tset(TARGET_KEYPAIR_BINARY_NAME {taint}_${{category}})
+        \t\tadd_executable(${{TARGET_KEYPAIR_BINARY_NAME}} ./{candidate}_keypair/{taint}.c)
+        \t\ttarget_link_libraries(${{TARGET_KEYPAIR_BINARY_NAME}}  ${{LIB_NAME${{category}}}} ${{CT_GRIND_LIB}} OpenSSL::Crypto)
+        \t\ttarget_include_directories(${{TARGET_KEYPAIR_BINARY_NAME}} PUBLIC ../include)
+        \t\ttarget_compile_definitions(${{TARGET_KEYPAIR_BINARY_NAME}} PUBLIC HAETAE_MODE=${{category}})
+        \t\tset_target_properties(${{TARGET_KEYPAIR_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
+        
+        \t\tset(TARGET_SIGN_BINARY_NAME {taint}_${{category}}_1)
+        \t\tadd_executable(${{TARGET_SIGN_BINARY_NAME}} ./{candidate}_sign/{taint}.c)
+        \t\ttarget_include_directories(${{TARGET_SIGN_BINARY_NAME}} PUBLIC ../include)
+        \t\ttarget_compile_definitions(${{TARGET_SIGN_BINARY_NAME}} PUBLIC HAETAE_MODE=${{category}})
+        \t\ttarget_link_libraries(${{TARGET_SIGN_BINARY_NAME}}  ${{LIB_NAME${{category}}}} ${{CT_GRIND_LIB}} OpenSSL::Crypto)
+        \t\tset_target_properties(${{TARGET_SIGN_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}})
+        endforeach(category)
+        '''
+    with open(path_to_cmakelist, "w") as cmake_file:
+        cmake_file.write(textwrap.dedent(cmake_file_content_src_block))
+        cmake_file.write(textwrap.dedent(cmake_file_content_loop_content_block_executables))
 def compile_run_haetae(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,to_compile,to_run,depth,build_folder,binary_patterns):
     add_includes = []
     compile_with_cmake = 'yes'
     generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
 
 #=============================== EAGLESIGN =============================================================================
 #[TODO]
@@ -3837,23 +3983,6 @@ def makefile_qr_uov(path_to_makefile_folder,subfolder,tool_type,candidate):
         mfile.write(textwrap.dedent(makefile_content_block_clean))
 
 
-#
-
-def custom_init_compile_qr_uov1(tool_type,subfolder):
-    print("-------subfolder: ",subfolder)
-    path_to_tool_folder = f'multivariate/qr_uov/QR_UOV/Optimized_Implementation/{tool_type}'
-    if not os.path.isdir(path_to_tool_folder):
-        cmd = ["mkdir","-p",path_to_tool_folder]
-        subprocess.call(cmd, stdin = sys.stdin)
-    qr_uov_main_makefile(path_to_tool_folder,subfolder)
-    cwd = os.getcwd()
-    os.chdir(path_to_tool_folder)
-    cmd = ["make"]
-    subprocess.call(cmd, stdin = sys.stdin)
-    cwd1 = os.getcwd()
-    print("-------we are here into : custom_init_compile_qr_uov",cwd1)
-    os.chdir(cwd)
-
 def custom_init_compile_qr_uov(custom_makefile_folder,instance_folders_list):
     path_to_tool_folder = f'multivariate/qr_uov/QR_UOV/Optimized_Implementation/{custom_makefile_folder}'
     if not os.path.isdir(path_to_tool_folder):
@@ -3871,6 +4000,15 @@ def custom_init_compile_qr_uov(custom_makefile_folder,instance_folders_list):
     subprocess.call(cmd, stdin = sys.stdin)
 
 
+def compile_run_qr_uov1(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    custom_folder = "custom_makefile"
+    for tool in tools_list:
+        custom_init_compile_qr_uov(custom_folder,instance_folders_list)
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
+
 def compile_run_qr_uov(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,to_compile,to_run,depth,build_folder,binary_patterns):
     add_includes = []
     compile_with_cmake = 'no'
@@ -3880,10 +4018,6 @@ def compile_run_qr_uov(tools_list,signature_type,candidate,optimized_imp_folder,
     generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
 
-
-
-def print_messsage():
-    pass
 
 #=========================================  snova ======================================================================
 #[TODO:error after running binsec. Make sure binary is static]
@@ -6532,13 +6666,7 @@ add_cli_arguments('lattice','squirrels','Optimized_Implementation','"../../../ap
 #===================== haetae ==========================================================================================
 haetae_default_list_of_folders = []
 print("---------GLOBAL: haetae_default_list_of_folders",haetae_default_list_of_folders)
-# if 'binsec' in haetae_default_list_of_folders:
-#     haetae_default_list_of_folders.remove('binsec')
-# if 'ctgrind' in haetae_default_list_of_folders:
-#     haetae_default_list_of_folders.remove('ctgrind')
-# if 'ct_grind' in haetae_default_list_of_folders:
-#     haetae_default_list_of_folders.remove('ct_grind')
-add_cli_arguments('lattice','haetae','Optimized_Implementation','"../../include/api.h"','""', '"../../../include/randombytes.h"')
+add_cli_arguments('lattice','haetae','Optimized_Implementation','""','"../../include/sign.h"', '"../../include/randombytes.h"')
 
 #===================== EagleSign =======================================================================================
 EagleSign_opt_folder = "lattice/EagleSign/Specifications_and_Supporting_Documentation/Optimized_Implementation"
