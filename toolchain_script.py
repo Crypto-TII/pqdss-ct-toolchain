@@ -3733,40 +3733,25 @@ def compile_run_Raccoon(tools_list,signature_type,candidate,optimized_imp_folder
 
 #=========================================  QR-UOV =====================================================================
 #[TODO:Rename functions if needed/if not working with new script keep old script ...]
-def run_qr_uov_makefile(path_to_qrUOV_makefile_folder):
-    cwd = os.getcwd()
-    os.chdir(path_to_qrUOV_makefile_folder)
-    cwd1 = os.getcwd()
-    cmd = ["make"]
-    subprocess.call(cmd, stdin=sys.stdin)
-    os.chdir(cwd)
 
-
-
-def main_makefile_qr_uov(tool_type,path_to_tool_folder,subfolder):
-    #path_to_makefile = path_to_binsec_folder+'/Makefile'
-    tool = GenericPatterns(tool_type)
-    test_harness_kpair = ""
-    test_harness_sign = ""
-    taint = ""
+def qr_uov_main_makefile(path_to_tool_folder,subfolder):
     path_to_makefile = path_to_tool_folder+'/Makefile'
     makefile_content = f'''
     platform := portable64
     
-    BASE_DIR = ../..
+    BASE_DIR = ..
     subdirs :={subfolder}
     
     .PHONY: all clean $(subdirs)
     
-    #all: $(subdirs) 
+    all: $(subdirs)
     
     $(subdirs): $(BASE_DIR)/qruov_config.src
-    #\tmkdir -p $@/$(platform)
-    \tgrep $@ $(BASE_DIR)/qruov_config.src > $(platform)/qruov_config.txt 
-    \tsh -c "cd $(platform) ; ln -s ../$(BASE_DIR)/$(platform)/* . || true"
-    \tsh -c "cd $(platform) ; cp -R makefile_folder/Makefile . || true"
-    #\tsh -c "cd $(platform) ; rm -r makefile_folder || true"
-    \t$(MAKE) -C $(platform)   
+    #\tsh -c "cd .. || true"
+    \tmkdir -p $(BASE_DIR)/$@/$(platform)
+    \tgrep $@ $(BASE_DIR)/qruov_config.src > $(BASE_DIR)/$@/$(platform)/qruov_config.txt
+    \tsh -c "cd $(BASE_DIR)/$@/$(platform) ; ln -s ../$(BASE_DIR)/$(platform)/* . || true"
+    \t$(MAKE) -C $(BASE_DIR)/$@/$(platform)
     
     clean:
     \trm -rf $(subdirs)
@@ -3774,53 +3759,131 @@ def main_makefile_qr_uov(tool_type,path_to_tool_folder,subfolder):
     with open(path_to_makefile, "w") as mfile:
         mfile.write(textwrap.dedent(makefile_content))
 
-
-def makefile_qr_uov(path_to_makefile_folder,subfolder):
+def makefile_qr_uov(path_to_makefile_folder,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content = f'''
+    makefile_content_block_header = f'''
     CC=gcc
     CFLAGS=-O3 -fomit-frame-pointer -Wno-unused-result -Wno-aggressive-loop-optimizations -I. -fopenmp # -DQRUOV_HASH_LEGACY # -ggdb3 
     LDFLAGS=-lcrypto -Wl,-Bstatic -lcrypto -Wl,-Bdynamic -lm
     
-    BINSEC_STATIC_FLAG  = -static
-    DEBUG_G_FLAG = -g
     BASE_DIR = ../../{subfolder}/portable64
-    
-    EXECUTABLE_KEYPAIR	    = ../qr_uov_keypair/test_harness_crypto_sign_keypair
-    EXECUTABLE_SIGN		    = ../qr_uov_sign/test_harness_crypto_sign
-    
-    
+    BUILD           = build
+    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN		= $(BUILD)/{candidate}_sign
+    '''
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+        BINSEC_STATIC_FLAG  = -static
+        DEBUG_G_FLAG = -g
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
+        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
+        '''
+    makefile_content_block_creating_object_files = f'''    
     OBJS=$(BASE_DIR)/Fql.o $(BASE_DIR)/mgf.o  $(BASE_DIR)/qruov.o $(BASE_DIR)/rng.o $(BASE_DIR)/sign.o $(BASE_DIR)/matrix.o
-    
-    .SUFFIXES:
-    .SUFFIXES: .rsp .req .diff .c .o .h
     
     .PHONY: all clean
     
-    all: $(BASE_DIR)/qruov_config.h $(BASE_DIR)/api.h 
-    #\t./PQCgenKAT_sign
-        
+    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+    $(EXECUTABLE_KEYPAIR): Makefile $(EXECUTABLE_KEYPAIR).c ${{OBJS}}
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(BINSEC_STATIC_FLAG) ${{LDFLAGS}} $(EXECUTABLE_KEYPAIR).c -o $(BUILD)/$@
+
+    $(EXECUTABLE_SIGN): Makefile $(EXECUTABLE_SIGN).c ${{OBJS}}
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(BINSEC_STATIC_FLAG) ${{LDFLAGS}} $(EXECUTABLE_SIGN).c -o $(BUILD)/$@
+    '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f''' 
+        $(EXECUTABLE_KEYPAIR): Makefile $(EXECUTABLE_KEYPAIR).c ${{OBJS}}
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(CT_GRIND_FLAGS) ${{LDFLAGS}} -L. -lctgrind $(EXECUTABLE_KEYPAIR).c -o $(BUILD)/$@
     
-    $(BASE_DIR)/qruov_config.h: $(BASE_DIR)/qruov_config_h_gen.c
-    \t${{CC}} @$(BASE_DIR)/qruov_config.txt -DQRUOV_PLATFORM=portable64 -DQRUOV_CONFIG_H_GEN ${{CFLAGS}} ${{LDFLAGS}} $(BASE_DIR)/qruov_config_h_gen.c
-    \t./$(BASE_DIR)/a.out > $(BASE_DIR)/qruov_config.h
-    \trm $(BASE_DIR)/a.out
-    
-    $(BASE_DIR)/api.h: $(BASE_DIR)/api_h_gen.c
-    \t${{CC}} -DAPI_H_GEN ${{CFLAGS}} ${{LDFLAGS}} $(BASE_DIR)/api_h_gen.c
-    \t./$(BASE_DIR)/a.out > $(BASE_DIR)/api.h
-    \trm $(BASE_DIR)/a.out
-    
+        $(EXECUTABLE_SIGN): Makefile $(EXECUTABLE_SIGN).c ${{OBJS}}
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(CT_GRIND_FLAGS) ${{LDFLAGS}} -L. -lctgrind $(EXECUTABLE_SIGN).c -o $(BUILD)/$@
+        '''
+    makefile_content_block_clean = f'''
     clean:
-    \trm -f $(BASE_DIR)/PQCgenKAT_sign PQCsignKAT_*.req $(BASE_DIR)/PQCsignKAT_*.rsp $(BASE_DIR)/${{OBJS}}
+    \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content))
+        mfile.write(textwrap.dedent(makefile_content_block_header))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+
+#
+
+def custom_init_compile_qr_uov1(tool_type,subfolder):
+    print("-------subfolder: ",subfolder)
+    path_to_tool_folder = f'multivariate/qr_uov/QR_UOV/Optimized_Implementation/{tool_type}'
+    if not os.path.isdir(path_to_tool_folder):
+        cmd = ["mkdir","-p",path_to_tool_folder]
+        subprocess.call(cmd, stdin = sys.stdin)
+    qr_uov_main_makefile(path_to_tool_folder,subfolder)
+    cwd = os.getcwd()
+    os.chdir(path_to_tool_folder)
+    cmd = ["make"]
+    subprocess.call(cmd, stdin = sys.stdin)
+    cwd1 = os.getcwd()
+    print("-------we are here into : custom_init_compile_qr_uov",cwd1)
+    os.chdir(cwd)
+
+def custom_init_compile_qr_uov(custom_makefile_folder,instance_folders_list):
+    path_to_tool_folder = f'multivariate/qr_uov/QR_UOV/Optimized_Implementation/{custom_makefile_folder}'
+    if not os.path.isdir(path_to_tool_folder):
+        cmd = ["mkdir","-p",path_to_tool_folder]
+        subprocess.call(cmd, stdin = sys.stdin)
+    subfolders = " ".join(instance_folders_list)
+    qr_uov_main_makefile(path_to_tool_folder,subfolders)
+    cwd = os.getcwd()
+    os.chdir(path_to_tool_folder)
+    cmd = ["make"]
+    subprocess.call(cmd, stdin = sys.stdin)
+    os.chdir(cwd)
+    cwd1 = os.getcwd()
+    cmd = ["rm","-r",path_to_tool_folder]
+    subprocess.call(cmd, stdin = sys.stdin)
+
 
 def compile_run_qr_uov(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,to_compile,to_run,depth,build_folder,binary_patterns):
     add_includes = []
     compile_with_cmake = 'no'
+    custom_folder = "custom_makefile"
+    for tool in tools_list:
+        custom_init_compile_qr_uov(custom_folder,instance_folders_list)
     generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,rel_path_to_rng,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
+
+
+
+def print_messsage():
+    pass
 
 #=========================================  snova ======================================================================
 #[TODO:error after running binsec. Make sure binary is static]
@@ -6510,7 +6573,6 @@ Raccoon_opt_folder = "lattice/Raccoon/Optimized_Implementation"
 Raccoon_default_list_of_folders = os.listdir(Raccoon_opt_folder)
 Raccoon_default_list_of_folders = get_default_list_of_folders(Raccoon_default_list_of_folders,default_tools_list)
 #print("---------GLOBAL: squirrels_default_list_of_folders",squirrels_default_list_of_folders)
-squirrels_signature_type = 'lattice'
 add_cli_arguments('lattice','Raccoon','Optimized_Implementation','"../../../api.h"','""', '"../../../rng.h"')
 
 #********************** MULTIVARIATE ***********************************************************************************
@@ -6557,7 +6619,7 @@ add_cli_arguments('multivariate','prov','QR_UOV/Optimized_Implementation','"../.
 qruov_default_list_of_folders = ["qruov1q7L10v740m100","qruov1q31L3v165m60", "qruov1q31L10v600m70", "qruov1q127L3v156m54",
                                  "qruov3q7L10v1100m140", "qruov3q31L3v246m87",  "qruov3q31L10v890m100",  "qruov3q127L3v228m78",
                                  "qruov5q7L10v1490m190", "qruov5q31L3v324m114", "qruov5q31L10v1120m120", "qruov5q127L3v306m105"]
-add_cli_arguments('multivariate','qr_uov','Optimized_Implementation','"../../binsec/qruov1q7L10v740m100/portable64/api.h"','""','"../../binsec/qruov1q7L10v740m100/portable64/rng.h"')
+add_cli_arguments('multivariate','qr_uov','QR_UOV/Optimized_Implementation','"../../../portable64/api.h"','""','"../../../portable64/rng.h"')
 
 #===================== tuov ============================================================================================
 tuov_opt_folder = "multivariate/tuov/TUOV/Optimized_Implementation"
