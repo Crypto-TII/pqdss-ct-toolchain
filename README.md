@@ -30,18 +30,18 @@ This README would normally document whatever steps are necessary to get your app
 
 ## Help
 ```
-python3 testing_tools.py -h
+python3 toolchain_script.py -h
 ```
 
 
 ### To see the list of arguments of function, type:
 ```
-python3 testing_tools.py compile_run_CANDIDATE_NAME -h
+python3 toolchain_script.py CANDIDATE_NAME -h
 ```
 
 ### Example
 ```
-python3 testing_tools.py compile_run_mirith -h
+python3 toolchain_script.py mirith -h
 ```
 ### Command-Line-Interface (CLI) Flags
 
@@ -73,25 +73,24 @@ python3 testing_tools.py compile_run_mirith -h
 To test a candidate by a targeted tool, run:
 
 ```
-python3 testing_tools.py compile_run_CANDIDATE --tools TOOLS --instance_folders_list PARAMETER_SET_FOLDER --algorithms_patterns PATTERN
+python3 toolchain_script.py CANDIDATE --tools TOOLS --instance_folders_list PARAMETER_SET_FOLDER --algorithms_patterns PATTERN
 ```
 
 ### Example
 
 ````
-python3 testing_tool.py compile_run_mirith --tools ctgrind --instance_folders_list mirith_avx2_Ia_fast --algorithms_patterns sign
+python3 toolchain_script.py mirith --tools ctgrind --instance_folders_list mirith_avx2_Ia_fast --algorithms_patterns sign
 ````
 
 ## To contribute to the project
 
 ### Add a new candidate in the CLI
 
-1. Write a function that generates the `Makefile` or `CMakeLists` for the candidate. 
+1. `candidates_build.py`: write a function that generates the `Makefile` or `CMakeLists` for the candidate. 
    - cmake_CANDIDATE(path_to_cmake_lists,tool_type,candidate)
    - makefile_CANDIDATE(path_to_makefile,tool_type,candidate)
-2. write a function`compile_run_CANDIDATE` as in function `compile_run_cross`.
+2. `generic_functions.py`: add the function just created above. 
+3. `toolchain_script.py`: write a function`compile_run_CANDIDATE` as in function `compile_run_cross`.
    - compile_with_cmake = 'yes' if the candidate is to be compiled with a CMakeLists.tx
    - compile_with_cmake = 'yes' otherwise (with a Makefile)
-3. Add  `CANDIDATE_init_compile_run` with the subparser. See the part: `# Create a parser for every function in the sub-parser namespace`
-4. Add the arguments of the `CANDIDATE_init_compile_run`
-5. Add `if args.binsec_test == "compile_run_CANDIDATE":` See the part `#set all the command-line arguments into the object args`
+4. `toolchain_script.py`: add `generic.add_cli_arguments`: See the part: `# Create a parser for every function in the sub-parser namespace`
