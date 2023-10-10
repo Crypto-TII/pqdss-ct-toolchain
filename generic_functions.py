@@ -271,13 +271,14 @@ def get_default_list_of_folders(candidate_default_list_of_folders, tools_list):
 class GenericPatterns(object):
     def __init__(self, tool_type, test_harness_keypair="test_harness_crypto_sign_keypair",
                  test_harness_sign="test_harness_crypto_sign",
-                 ctgrind_taint="taint"):
+                 ctgrind_taint="taint",dudect_dude="dude" ):
         self.tool_type = tool_type
         self.binsec_test_harness_keypair = test_harness_keypair
         self.binsec_test_harness_sign = test_harness_sign
         self.binsec_configuration_file_keypair = "cfg_keypair"
         self.binsec_configuration_file_sign = "cfg_sign"
         self.ctgrind_taint = ctgrind_taint
+        self.dudect_dude = dudect_dude
 
 
 # A candidate is a string. It refers to as the declaration of a function.
@@ -686,11 +687,11 @@ def test_harness_content_keypair(test_harness_file,
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block1))
         if not add_includes == []:
             for include in add_includes:
-                t_harness_file.write(f'#include {include}\n')
+                t_harness_file.write(f'#include "{include}"\n')
         if not sign == '""':
-            t_harness_file.write(f'#include {sign}\n')
+            t_harness_file.write(f'#include "{sign}"\n')
         if not api == '""':
-            t_harness_file.write(f'#include {api}\n')
+            t_harness_file.write(f'#include "{api}"\n')
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block2))
 
 
@@ -726,11 +727,11 @@ def sign_test_harness_content(test_harness_file, api,
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block1))
         if not add_includes == []:
             for include in add_includes:
-                t_harness_file.write(f'#include {include}\n')
+                t_harness_file.write(f'#include "{include}"\n')
         if not sign == '""':
-            t_harness_file.write(f'#include {sign}\n')
+            t_harness_file.write(f'#include "{sign}"\n')
         if not api == '""':
-            t_harness_file.write(f'#include {api}\n')
+            t_harness_file.write(f'#include "{api}"\n')
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block2))
 
 
@@ -776,11 +777,11 @@ def ctgrind_keypair_taint_content(taint_file, api,
         t_file.write(textwrap.dedent(taint_file_content_block_include))
         if not add_includes == []:
             for include in add_includes:
-                t_file.write(f'#include {include}\n')
+                t_file.write(f'#include "{include}"\n')
         if not sign == '""':
-            t_file.write(f'#include {sign}\n')
+            t_file.write(f'#include "{sign}"\n')
         if not api == '""':
-            t_file.write(f'#include {api}\n')
+            t_file.write(f'#include "{api}"\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
@@ -789,11 +790,6 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
                                function_return_type,
                                function_name, args_types,
                                args_names):
-    # args_types[2] = args_types[2].replace('const', '')
-    # args_types[2] = args_types[2].strip()
-    # args_types[4] = args_types[4].replace('const', '')
-    # args_types[4] = args_types[4].strip()
-
     args_types[2].replace('const', '')
     args_types[2].strip()
     args_types[4].replace('const', '')
@@ -846,14 +842,258 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
         t_file.write(textwrap.dedent(taint_file_content_block_include))
         if not add_includes == []:
             for include in add_includes:
+                t_file.write(f'#include "{include}"\n')
+        if not sign == '""':
+            t_file.write(f'#include "{sign}"\n')
+        if not api == '""':
+            t_file.write(f'#include "{api}"\n')
+        t_file.write(f'#include "{rng}"\n')
+        t_file.write(textwrap.dedent(taint_file_content_block_main))
+
+
+def dudect_keypair_dude_content(taint_file, api,
+                                sign, add_includes,
+                                function_return_type,
+                                function_name,
+                                args_types,
+                                args_names):
+    taint_file_content_block_include = f'''
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    #include <string.h>
+    #include <stdlib.h>
+    
+    #define DUDECT_IMPLEMENTATION
+    #include <dudect.h>
+    
+    '''
+    taint_file_content_block_main = f'''
+    uint8_t do_one_computation(uint8_t *data) {{
+    \t{args_types[0]} {args_names[0]}[CRYPTO_PUBLICKEYBYTES] = {{0}};;
+    \t{args_types[1]} {args_names[1]}[CRYPTO_SECRETKEYBYTES] = {{0}};;
+    
+    {function_return_type} \tresult = {function_name}({args_names[0]},{args_names[1]});
+    \treturn result;
+    }}
+    
+    void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
+    \trandombytes(input_data, c->number_measurements * c->chunk_size);
+    \tfor (size_t i = 0; i < c->number_measurements; i++) {{
+    \t\tclasses[i] = randombit();
+    \t\t\tif (classes[i] == 0) {{
+    \t\t\t\tmemset(input_data + (size_t)i * c->chunk_size, 0x00, c->chunk_size);
+    \t\t\t}} else {{
+        // leave random
+    \t\t\t}}
+    \t\t}}
+    \t}}
+    
+    int main(int argc, char **argv)
+    {{
+    \t(void)argc;
+    \t(void)argv;
+
+    \tdudect_config_t config = {{
+    \t\t.chunk_size = 32,
+    \t\t.number_measurements = 1e3,
+    \t}};
+    \tdudect_ctx_t ctx;
+
+    \tdudect_init(&ctx, &config);
+
+    \tdudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
+    \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
+    \t\tstate = dudect_main(&ctx);
+    \t}}
+    \tdudect_free(&ctx);
+    \treturn (int)state;
+    }}
+    '''
+    with open(taint_file, "w") as t_file:
+        t_file.write(textwrap.dedent(taint_file_content_block_include))
+        if not add_includes == []:
+            for include in add_includes:
                 t_file.write(f'#include {include}\n')
         if not sign == '""':
             t_file.write(f'#include {sign}\n')
         if not api == '""':
             t_file.write(f'#include {api}\n')
-        t_file.write(f'#include {rng}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
+
+def dudect_sign_dude_content(taint_file, api,
+                             sign, add_includes,
+                             function_return_type,
+                             function_name,
+                             args_types,
+                             args_names):
+    taint_file_content_block_include = f'''
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    #include <string.h>
+    #include <stdlib.h>
+    
+    #define DUDECT_IMPLEMENTATION
+    #include <dudect.h>
+    
+    '''
+    type_msg = args_types[2].replace('const', '')
+    type_msg = type_msg.strip()
+    type_sk = args_types[4].replace('const', '')
+    type_sk = type_sk.strip()
+    sig_msg = args_names[0]
+    sig_msg_len = args_names[1]
+    msg = args_names[2]
+    msg_len = args_names[3]
+    sk = args_names[4]
+    ret_type = function_return_type
+    taint_file_content_block_main = f'''
+    uint8_t do_one_computation(uint8_t *data) {{
+    \t{args_types[0]} *{sig_msg};
+    \t{args_types[1]} {sig_msg_len};
+    \t{type_msg} *{msg};
+    \t{args_types[3]} {msg_len};
+    \t{type_sk} {sk}[CRYPTO_SECRETKEYBYTES]= {{0}};
+    
+    \tuint8_t length ;
+    \tmemcpy(length, data, 1);
+    \tmsg_len = length+(length>>2) # See how to generate randomly the message length 
+    \tmemcpy({msg}, data+1, {msg_len});
+    \tmemcpy({sk}, data+{msg_len}, CRYPTO_SECRETKEYBYTES);
+    
+    \t\t{ret_type} result = {function_name}({sig_msg}, &{sig_msg_len}, {msg}, {msg_len}, {sk});
+    \treturn result;
+    }}
+    
+    void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
+    \trandombytes(input_data, c->number_measurements * c->chunk_size);
+    \tfor (size_t i = 0; i < c->number_measurements; i++) {{
+    \t\tclasses[i] = randombit();
+    \t\t\tif (classes[i] == 0) {{
+    \t\t\t\tmemset(input_data + (size_t)i * c->chunk_size, 0x00, c->chunk_size);
+    \t\t\t}} else {{
+        // leave random
+    \t\t\t}}
+    \t\t}}
+    \t}}
+    
+    int main(int argc, char **argv)
+    {{
+    \t(void)argc;
+    \t(void)argv;
+
+    \tdudect_config_t config = {{
+    \t\t.chunk_size = 32,
+    \t\t.number_measurements = 1e3,
+    \t}};
+    \tdudect_ctx_t ctx;
+
+    \tdudect_init(&ctx, &config);
+
+    \tdudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
+    \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
+    \t\tstate = dudect_main(&ctx);
+    \t}}
+    \tdudect_free(&ctx);
+    \treturn (int)state;
+    }}
+    '''
+    print("---------sign:", sign)
+    print("---------api:", api)
+    with open(taint_file, "w") as t_file:
+        t_file.write(textwrap.dedent(taint_file_content_block_include))
+        if not add_includes == []:
+            for include in add_includes:
+                t_file.write(f'#include {include}\n')
+        if not sign == '""':
+            t_file.write(f'#include {sign}\n')
+        if not api == '""':
+            t_file.write(f'#include {api}\n')
+        t_file.write(textwrap.dedent(taint_file_content_block_main))
+
+
+def flowtracker_keypair_xml_content(taint_file, api,
+                                    sign, add_includes,
+                                    function_return_type,
+                                    function_name,
+                                    args_types,
+                                    args_names):
+    pk = args_names[0]
+    sk = args_names[1]
+    crypto_keypair = function_name
+    xml_file_content = f'''
+    <functions>
+        <sources>
+            <function>
+                <name>{crypto_keypair}</name>
+                <return>false</return>
+                <public>
+                    <parameter>{pk}</parameter>
+                </public>
+                <secret>
+                    <parameter>{sk}</parameter>       <!--Secret key-->
+                </secret>
+            </function>
+        </sources>
+    </functions>
+    '''
+    with open(taint_file, "w") as t_file:
+        t_file.write(textwrap.dedent(xml_file_content))
+        # if not add_includes == []:
+        #     for include in add_includes:
+        #         t_file.write(f'#include {include}\n')
+        # if not sign == '""':
+        #     t_file.write(f'#include {sign}\n')
+        # if not api == '""':
+        #     t_file.write(f'#include {api}\n')
+        # t_file.write(textwrap.dedent(taint_file_content_block_main))
+
+
+def flowtracker_sign_xml_content(taint_file, api,
+                                 sign, add_includes,
+                                 function_return_type,
+                                 function_name,
+                                 args_types,
+                                 args_names):
+
+    sig_msg = args_names[0]
+    sig_msg_len = args_names[1]
+    msg = args_names[2]
+    msg_len = args_names[3]
+    sk = args_names[4]
+    ret_type = function_return_type
+    crypto_sign = function_name
+    xml_file_content = f'''
+    <functions>
+        <sources>
+            <function>
+                <name>{crypto_sign}</name>
+                <return>false</return>
+                <public>
+                    <parameter>{sig_msg}</parameter>
+                    <parameter>{sig_msg_len}</parameter>
+                    <parameter>{msg}</parameter>
+                    <parameter>{msg_len}</parameter>
+                </public>
+                <secret>
+                    <parameter>{sk}</parameter>       <!--Secret key-->
+                </secret>
+            </function>
+        </sources>
+    </functions>
+    '''
+    with open(taint_file, "w") as t_file:
+        t_file.write(textwrap.dedent(xml_file_content))
+        # if not add_includes == []:
+        #     for include in add_includes:
+        #         t_file.write(f'#include {include}\n')
+        # if not sign == '""':
+        #     t_file.write(f'#include {sign}\n')
+        # if not api == '""':
+        #     t_file.write(f'#include {api}\n')
+        # t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 # ======================CONFIGURATION FILES =================================
 # ===========================================================================
@@ -1013,6 +1253,9 @@ def run_ctgrind(binary_file, output_file):
     subprocess.call(cmd_args_lst, stdin=sys.stdin)
 
 
+
+
+
 def binsec_generic_run(binsec_folder, signature_type, candidate,
                        optimized_imp_folder, opt_src_folder_list_dir,
                        depth, build_folder, binary_patterns):
@@ -1094,6 +1337,46 @@ def ctgrind_generic_run(ctgrind_folder, signature_type,
                     run_ctgrind(abs_path_to_executable, output_file)
 
 
+def dudect_generic_run(dudect_folder, signature_type,
+                       candidate, optimized_imp_folder,
+                       opt_src_folder_list_dir,
+                       build_folder, binary_patterns):
+    optimized_imp_folder_full_path = signature_type + '/' + candidate + '/' + optimized_imp_folder
+    dudect_folder_full_path = optimized_imp_folder_full_path + '/' + dudect_folder
+    if not opt_src_folder_list_dir:
+        path_to_build_folder = f'{dudect_folder_full_path}/{build_folder}'
+        path_to_binary_files = path_to_build_folder
+        for bin_pattern in binary_patterns:
+            dudect_folder_basename = f'{candidate}_{bin_pattern}'
+            path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{dudect_folder_basename}'
+            path_to_pattern_subfolder = f'{dudect_folder_full_path}/{dudect_folder_basename}'
+            bin_files = os.listdir(path_to_binary_pattern_subfolder)
+            for executable in bin_files:
+                bin_basename = executable.split('dude_')[-1]
+                bin_basename = bin_basename.split('.o')[0]
+                output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
+                abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
+                print("-------------Running: ", abs_path_to_executable)
+                run_ctgrind(abs_path_to_executable, output_file)
+    else:
+        for subfold in opt_src_folder_list_dir:
+            path_to_subfolder = dudect_folder_full_path + '/' + subfold
+            path_to_build_folder = path_to_subfolder + '/' + build_folder
+            path_to_binary_files = path_to_build_folder
+            for bin_pattern in binary_patterns:
+                dudect_folder_basename = f'{candidate}_{bin_pattern}'
+                path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{dudect_folder_basename}'
+                path_to_pattern_subfolder = f'{path_to_subfolder}/{dudect_folder_basename}'
+                bin_files = os.listdir(path_to_binary_pattern_subfolder)
+                for executable in bin_files:
+                    bin_basename = executable.split('dude_')[-1]
+                    bin_basename = bin_basename.split('.o')[0]
+                    output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
+                    abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
+                    print("-------------Running:", abs_path_to_executable)
+                    run_dudect(abs_path_to_executable, output_file)
+
+
 def generic_run(tools_list, signature_type,
                 candidate, optimized_imp_folder,
                 opt_src_folder_list_dir, depth,
@@ -1112,10 +1395,17 @@ def generic_run(tools_list, signature_type,
                                 candidate, optimized_imp_folder,
                                 opt_src_folder_list_dir, build_folder,
                                 binary_patterns)
-
+    for tool_name in tools_list:
+        if 'dudect' in tool_name.lower():
+            dudect_folder = tool_name
+            dudect_generic_run(dudect_folder, signature_type,
+                               candidate, optimized_imp_folder,
+                               opt_src_folder_list_dir, build_folder,
+                               binary_patterns)
 
 # ========================== INITIALIZATION ==============================
 # ========================================================================
+
 
 def find_candidate_instance_api_sign_relative_path_good_until_4_oct(instance_folder,
                                                                     rel_path_to_api,
@@ -1293,6 +1583,37 @@ def ctgrind_initialize_candidate(path_to_opt_src_folder,
                                f_basename, args_types, args_names)
 
 
+def dudect_initialize_candidate(path_to_opt_src_folder,
+                                path_to_dudect_folder,
+                                path_to_dudect_keypair_folder,
+                                path_to_dudect_sign_folder, api,
+                                sign, rng, add_includes):
+    list_of_path_to_folders = [path_to_dudect_folder,
+                               path_to_dudect_keypair_folder,
+                               path_to_dudect_sign_folder]
+    generic_create_tests_folders(list_of_path_to_folders)
+    tool_type = "dudect"
+    opt_implementation_name = os.path.basename(path_to_opt_src_folder)
+    abth_p = find_api_sign_abs_path(path_to_opt_src_folder, api,
+                                    sign, opt_implementation_name)
+    abs_path_to_api_or_sign = abth_p
+    dudect_tool = GenericPatterns(tool_type)
+    dude_keypair_basename = f'{dudect_tool.dudect_dude}.c'
+    test_sign_basename = f'{dudect_tool.dudect_dude}.c'
+    dude_keypair = f'{path_to_dudect_keypair_folder}/{dude_keypair_basename}'
+    ret_kp = keypair_find_args_types_and_names(abs_path_to_api_or_sign)
+    return_type, f_basename, args_types, args_names = ret_kp
+    dudect_keypair_dude_content(dude_keypair, api, sign,
+                                add_includes, return_type,
+                                f_basename, args_types, args_names)
+    dude_sign = f'{path_to_dudect_sign_folder}/{test_sign_basename}'
+    ret_sign = sign_find_args_types_and_names(abs_path_to_api_or_sign)
+    return_type, f_basename, args_types, args_names = ret_sign
+    dudect_sign_dude_content(dude_sign, api, sign,
+                             add_includes, return_type,
+                             f_basename, args_types, args_names)
+
+
 def initialize_nist_candidate(tools_list, signature_type,
                               candidate, optimized_imp_folder,
                               instance_folder, api, sign,
@@ -1301,13 +1622,17 @@ def initialize_nist_candidate(tools_list, signature_type,
     tools_list_lowercase = [tool.lower() for tool in tools_list]
     binsec_folder = ""
     ctgrind_folder = ""
+    dudect_folder = ""
     for tool_name in tools_list_lowercase:
         if 'binsec' in tool_name:
             binsec_folder = tool_name
-        elif 'grind' or 'ct_grind' in tool_name:
+        if 'ctgrind' in tool_name or 'ct_grind' in tool_name:
             ctgrind_folder = tool_name
+        if 'dudect' in tool_name:
+            dudect_folder = tool_name
     binsec = "binsec"
     ctgrind = "ctgrind"
+    dudect = "dudect"
     if binsec in tools_list_lowercase:
         path_to_binsec_folder = path_to_opt_src_folder + '/' + binsec_folder
         binsec_keypair_folder_basename = candidate + '_keypair'
@@ -1322,7 +1647,7 @@ def initialize_nist_candidate(tools_list, signature_type,
                                     path_to_binsec_keypair_folder,
                                     path_to_binsec_sign_folder, api,
                                     sign, add_includes)
-    if ctgrind or 'ct_grind' in tools_list_lowercase:
+    if ctgrind in tools_list_lowercase or 'ct_grind' in tools_list_lowercase:
         path_to_ctgrind_folder = path_to_opt_src_folder + '/' + ctgrind_folder
         ctgrind_keypair_folder_basename = candidate + '_keypair'
         ctgrind_sign_folder_basename = candidate + '_sign'
@@ -1336,6 +1661,20 @@ def initialize_nist_candidate(tools_list, signature_type,
                                      path_to_ctgrind_keypair_folder,
                                      path_to_ctgrind_sign_folder,
                                      api, sign, rng, add_includes)
+    if dudect in tools_list_lowercase:
+        path_to_dudect_folder = path_to_opt_src_folder + '/' + dudect_folder
+        dudect_keypair_folder_basename = candidate + '_keypair'
+        dudect_sign_folder_basename = candidate + '_sign'
+        path_to_instance = path_to_dudect_folder
+        if not instance_folder == "":
+            path_to_instance = path_to_instance + '/' + instance_folder
+        path_to_dudect_keypair_folder = path_to_instance + '/' + dudect_keypair_folder_basename
+        path_to_dudect_sign_folder = path_to_instance + '/' + dudect_sign_folder_basename
+        dudect_initialize_candidate(path_to_opt_src_folder,
+                                    path_to_dudect_folder,
+                                    path_to_dudect_keypair_folder,
+                                    path_to_dudect_sign_folder,
+                                    api, sign, rng, add_includes)
 
 
 def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
@@ -1474,7 +1813,7 @@ def add_cli_arguments(subparser,
                                             help=f'{candidate}:...',
                                             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # Default tools list
-    default_tools_list = ["binsec", "ctgrind"]
+    default_tools_list = ["binsec", "ctgrind", "dudect"]
     # Default algorithms pattern to test
     default_binary_patterns = ["keypair", "sign"]
 
