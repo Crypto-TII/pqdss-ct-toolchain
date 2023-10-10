@@ -13,6 +13,7 @@ import textwrap
 import argparse
 
 import candidates_build as build_cand
+import tools as tool
 
 
 # ============================ MIRITH ==========================================
@@ -687,11 +688,11 @@ def test_harness_content_keypair(test_harness_file,
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block1))
         if not add_includes == []:
             for include in add_includes:
-                t_harness_file.write(f'#include "{include}"\n')
+                t_harness_file.write(f'#include {include}\n')
         if not sign == '""':
-            t_harness_file.write(f'#include "{sign}"\n')
+            t_harness_file.write(f'#include {sign}\n')
         if not api == '""':
-            t_harness_file.write(f'#include "{api}"\n')
+            t_harness_file.write(f'#include {api}\n')
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block2))
 
 
@@ -702,6 +703,7 @@ def sign_test_harness_content(test_harness_file, api,
                               args_names):
     if 'const' in args_types[2]:
         args_types[2] = re.sub("const ", "", args_types[2])
+        args_types[4] = re.sub("const ", "", args_types[4])
     test_harness_file_content_block1 = f'''
     #include <stdio.h>
     #include <stdlib.h>
@@ -727,11 +729,11 @@ def sign_test_harness_content(test_harness_file, api,
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block1))
         if not add_includes == []:
             for include in add_includes:
-                t_harness_file.write(f'#include "{include}"\n')
+                t_harness_file.write(f'#include {include}\n')
         if not sign == '""':
-            t_harness_file.write(f'#include "{sign}"\n')
+            t_harness_file.write(f'#include {sign}\n')
         if not api == '""':
-            t_harness_file.write(f'#include "{api}"\n')
+            t_harness_file.write(f'#include {api}\n')
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block2))
 
 
@@ -777,11 +779,11 @@ def ctgrind_keypair_taint_content(taint_file, api,
         t_file.write(textwrap.dedent(taint_file_content_block_include))
         if not add_includes == []:
             for include in add_includes:
-                t_file.write(f'#include "{include}"\n')
+                t_file.write(f'#include {include}\n')
         if not sign == '""':
-            t_file.write(f'#include "{sign}"\n')
+            t_file.write(f'#include {sign}\n')
         if not api == '""':
-            t_file.write(f'#include "{api}"\n')
+            t_file.write(f'#include {api}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
@@ -790,10 +792,8 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
                                function_return_type,
                                function_name, args_types,
                                args_names):
-    args_types[2].replace('const', '')
-    args_types[2].strip()
-    args_types[4].replace('const', '')
-    args_types[4].strip()
+    args_types[2] = re.sub("const ", "", args_types[2])
+    args_types[4] = re.sub("const ", "", args_types[4])
     taint_file_content_block_include = f'''
     #include <stdio.h>
     #include <sys/types.h>
@@ -842,12 +842,12 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
         t_file.write(textwrap.dedent(taint_file_content_block_include))
         if not add_includes == []:
             for include in add_includes:
-                t_file.write(f'#include "{include}"\n')
+                t_file.write(f'#include {include}\n')
         if not sign == '""':
-            t_file.write(f'#include "{sign}"\n')
+            t_file.write(f'#include {sign}\n')
         if not api == '""':
-            t_file.write(f'#include "{api}"\n')
-        t_file.write(f'#include "{rng}"\n')
+            t_file.write(f'#include {api}\n')
+        t_file.write(f'#include {rng}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
@@ -1253,7 +1253,15 @@ def run_ctgrind(binary_file, output_file):
     subprocess.call(cmd_args_lst, stdin=sys.stdin)
 
 
-
+def run_dudect(executable_file, output_file):
+    command = f'./{executable_file}'
+    cmd_args_lst = command.split()
+    execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
+    output, error = execution.communicate()
+    output_decode = output.decode('utf-8')
+    with open(output_file, "w") as file:
+        for line in output_decode.split('\n'):
+            file.write(line + '\n')
 
 
 def binsec_generic_run(binsec_folder, signature_type, candidate,
@@ -1583,6 +1591,31 @@ def ctgrind_initialize_candidate(path_to_opt_src_folder,
                                f_basename, args_types, args_names)
 
 
+
+
+# api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
+#                                                                 rel_path_to_api,
+#                                                                 rel_path_to_sign,
+#                                                                 rel_path_to_rng,
+#                                                                 rng_outside_instance_folder)
+# path_to_opt_src_folder = "mpc-in-the-head/mira/Optimized_Implementation"
+# path_to_tool_folder = f'{path_to_opt_src_folder}/binsec'
+# path_to_tool_keypair_folder = f'{path_to_tool_folder}/MIRA-128f/mira_keypair'
+# path_to_tool_sign_folder = f'{path_to_tool_folder}/MIRA-128f/mira_sign'
+# api = '"../../MIRA-128f/src/api.h"'
+# sign = '""'
+# rng = '"../../MIRA-128f/lib/randombytes/randombytes.h"'
+# add_includes = []
+#
+#
+# tool_initialize_candidate(path_to_opt_src_folder,
+#                           path_to_tool_folder,
+#                           path_to_tool_keypair_folder,
+#                           path_to_tool_sign_folder, api,
+#                           sign, rng, add_includes)
+
+
+
 def dudect_initialize_candidate(path_to_opt_src_folder,
                                 path_to_dudect_folder,
                                 path_to_dudect_keypair_folder,
@@ -1612,6 +1645,95 @@ def dudect_initialize_candidate(path_to_opt_src_folder,
     dudect_sign_dude_content(dude_sign, api, sign,
                              add_includes, return_type,
                              f_basename, args_types, args_names)
+
+
+def tool_initialize_candidate(path_to_opt_src_folder,
+                              path_to_tool_folder,
+                              path_to_tool_keypair_folder,
+                              path_to_tool_sign_folder, api,
+                              sign, rng, add_includes):
+    list_of_path_to_folders = [path_to_tool_folder,
+                               path_to_tool_keypair_folder,
+                               path_to_tool_sign_folder]
+    generic_create_tests_folders(list_of_path_to_folders)
+    tool_name = os.path.basename(path_to_tool_folder)
+    opt_implementation_name = os.path.basename(path_to_opt_src_folder)
+    abth_p = find_api_sign_abs_path(path_to_opt_src_folder, api,
+                                    sign, opt_implementation_name)
+    abs_path_to_api_or_sign = abth_p
+    tool_type = tool.Tools(tool_name)
+    tes_keypair_basename, tes_sign_basename = tool_type.get_tool_test_file_name()
+    if tool_name == 'flowtracker':
+        test_keypair_basename = f'{tes_keypair_basename}.xml'
+        test_sign_basename = f'{tes_sign_basename}.xml'
+    else:
+        test_keypair_basename = f'{tes_keypair_basename}.c'
+        test_sign_basename = f'{tes_sign_basename}.c'
+    test_keypair = f'{path_to_tool_keypair_folder}/{test_keypair_basename}'
+    ret_kp = keypair_find_args_types_and_names(abs_path_to_api_or_sign)
+    return_type_kp, f_basename_kp, args_types_kp, args_names_kp = ret_kp
+
+    test_sign = f'{path_to_tool_sign_folder}/{test_sign_basename}'
+    ret_sign = sign_find_args_types_and_names(abs_path_to_api_or_sign)
+    return_type_s, f_basename_s, args_types_s, args_names_s = ret_sign
+
+    if tool_name == 'ctgrind':
+        ctgrind_keypair_taint_content(test_keypair, api, sign,
+                                      add_includes, return_type_kp,
+                                      f_basename_kp, args_types_kp, args_names_kp)
+        ctgrind_sign_taint_content(test_sign, api, sign, rng,
+                                   add_includes, return_type_s,
+                                   f_basename_s, args_types_s, args_names_s)
+    if tool_name == 'binsec':
+        cfg_file_kp, cfg_file_sign = tool_type.binsec_configuration_files()
+        cfg_file_keypair = f'{path_to_tool_keypair_folder}/{cfg_file_kp}.cfg'
+        cfg_content_keypair(cfg_file_keypair)
+        test_harness_content_keypair(test_keypair, api, sign, add_includes, return_type_kp,
+                                     f_basename_kp)
+        crypto_sign_args_names = args_names_s
+        cfg_file_sign = f'{path_to_tool_sign_folder}/{cfg_file_sign}.cfg'
+        sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names)
+        sign_test_harness_content(test_sign, api, sign, add_includes, return_type_s, f_basename_s,
+                                  args_types_s, args_names_s)
+
+    if tool_name == 'dudect':
+        dudect_keypair_dude_content(test_keypair, api, sign,
+                                    add_includes, return_type_kp,
+                                    f_basename_kp, args_types_kp, args_names_kp)
+        dudect_sign_dude_content(test_sign, api, sign,
+                                 add_includes, return_type_s,
+                                 f_basename_s, args_types_s, args_names_s)
+    if tool_name == 'flowtracker':
+        flowtracker_keypair_xml_content(test_keypair, api, sign,
+                                        add_includes, return_type_kp,
+                                        f_basename_kp, args_types_kp, args_names_kp)
+        flowtracker_sign_xml_content(test_sign, api, sign,
+                                     add_includes, return_type_s,
+                                     f_basename_s, args_types_s, args_names_s)
+
+
+def initialization(tools_list, signature_type,
+                   candidate, optimized_imp_folder,
+                   instance_folder, api, sign,
+                   rng, add_includes):
+    path_to_opt_src_folder = signature_type + '/' + candidate + '/' + optimized_imp_folder
+    tools_list_lowercase = [tool.lower() for tool in tools_list]
+
+    for tool_name in tools_list_lowercase:
+        tool_folder = tool_name
+        path_to_tool_folder = path_to_opt_src_folder + '/' + tool_folder
+        tool_keypair_folder_basename = candidate + '_keypair'
+        tool_sign_folder_basename = candidate + '_sign'
+        path_to_instance = path_to_tool_folder
+        if not instance_folder == "":
+            path_to_instance = path_to_instance + '/' + instance_folder
+        path_to_tool_keypair_folder = path_to_instance + '/' + tool_keypair_folder_basename
+        path_to_tool_sign_folder = path_to_instance + '/' + tool_sign_folder_basename
+        tool_initialize_candidate(path_to_opt_src_folder,
+                                  path_to_tool_folder,
+                                  path_to_tool_keypair_folder,
+                                  path_to_tool_sign_folder, api,
+                                  sign, rng, add_includes)
 
 
 def initialize_nist_candidate(tools_list, signature_type,
@@ -1688,10 +1810,10 @@ def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
                                                                         rel_path_to_sign,
                                                                         rel_path_to_rng,
                                                                         rng_outside_instance_folder)
-        initialize_nist_candidate(tools_list, signature_type, candidate,
-                                  optimized_imp_folder,
-                                  instance_folder, api,
-                                  sign, rng, add_includes)
+        initialization(tools_list, signature_type,
+                       candidate, optimized_imp_folder,
+                       instance_folder, api, sign,
+                       rng, add_includes)
     else:
         for instance_folder in instance_folders_list:
             api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
@@ -1699,8 +1821,20 @@ def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
                                                                             rel_path_to_sign,
                                                                             rel_path_to_rng,
                                                                             rng_outside_instance_folder)
-            initialize_nist_candidate(tools_list, signature_type, candidate, optimized_imp_folder,
-                                      instance_folder, api, sign, rng, add_includes)
+            initialization(tools_list, signature_type,
+                           candidate, optimized_imp_folder,
+                           instance_folder, api, sign,
+                           rng, add_includes)
+
+
+def set_include_correct_format(api, sign, rng):
+    if not api.startswith('"'):
+        api = f'"{api}"'
+    if not sign.startswith('"'):
+        sign = f'"{sign}"'
+    if not rng.startswith('"'):
+        rng = f'"{rng}"'
+    return api, sign, rng
 
 
 def generic_init_compile(tools_list, signature_type, candidate,
@@ -1708,6 +1842,10 @@ def generic_init_compile(tools_list, signature_type, candidate,
                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                          add_includes, build_folder, with_cmake,
                          rng_outside_instance_folder="no"):
+    api, sign, rng = set_include_correct_format(rel_path_to_api, rel_path_to_sign, rel_path_to_rng)
+    rel_path_to_api = api
+    rel_path_to_sign = sign
+    rel_path_to_rng = rng
     cmd = []
     path_to_opt_impl_folder = signature_type + '/' + candidate + '/' + optimized_imp_folder
     if not instance_folders_list:
@@ -1813,7 +1951,7 @@ def add_cli_arguments(subparser,
                                             help=f'{candidate}:...',
                                             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # Default tools list
-    default_tools_list = ["binsec", "ctgrind", "dudect"]
+    default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker"]
     # Default algorithms pattern to test
     default_binary_patterns = ["keypair", "sign"]
 
