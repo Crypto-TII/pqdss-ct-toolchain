@@ -8,13 +8,14 @@ import sys
 import subprocess
 import textwrap
 import generic_functions as gen_funct
+import tools as tool
 
 
 # ============================== MPC-IN-THE-HEAD ================
 # ===============================================================
 
 # ================================ MIRITH ========================
-def makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate):
+def makefile_mirith1(path_to_makefile_folder, subfolder, tool_type, candidate):
     tool = gen_funct.GenericPatterns(tool_type)
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     makefile_content_block1 = f'''
@@ -123,6 +124,68 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate):
         mfile.write(textwrap.dedent(makefile_content_block_object_files))
         mfile.write(textwrap.dedent(makefile_content_block_binary_files))
         mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+
+def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content = f'''
+    CC=gcc
+    CFLAGS=-std=c11 -Wall -Wextra -pedantic -mavx2 -g 
+    
+    BASE_DIR = ../../{subfolder}
+    
+    
+    DEPS=$(wildcard $(BASE_DIR)/*.h)
+    OBJ=$(patsubst $(BASE_DIR)/%.c,$(BASE_DIR)/%.o,$(wildcard $(BASE_DIR)/*.c)) 
+    OBJ+=$(patsubst $(BASE_DIR)/%.s,$(BASE_DIR)/%.o,$(wildcard $(BASE_DIR)/*.s))
+    
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+    \tASMFLAGS := ${{CFLAGS}}
+    endif
+    ifeq ($(UNAME_S),Darwin)
+    \tASMFLAGS := ${{CFLAGS}} -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1
+    endif
+    
+    BUILD					= build
+    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN			= $(BUILD)/{candidate}_sign
+    
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+    
+    TOOL_FLAGS = {tool_flags}
+    TOOL_LIBS = {tool_libs}
+    
+    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    %.o: %.s
+    \t$(CC) -c $(ASMFLAGS) -o $@ $<
+    
+    %.o: %.c $(DEPS)
+    \t$(CC) -c $(CFLAGS) -o $@ $<
+    
+    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).o $(OBJ)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(LIBDIR) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) $(TOOL_LIBS) $(TOOL_FLAGS)
+        
+    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).o $(OBJ)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(LIBDIR) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) $(TOOL_LIBS) $(TOOL_FLAGS)
+    
+    
+    .PHONY: clean
+      
+    clean:
+    \trm -f $(BASE_DIR)/*.o $(BASE_DIR)/*.su
+    \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
 
 
 # ========================================== PERK ============================
@@ -539,10 +602,11 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 
 # =============================== MIRA =================================
-def makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate):
+def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate):
     print("-------path_to_makefile_folder",path_to_makefile_folder)
     type(path_to_makefile_folder)
-    tool = gen_funct.GenericPatterns(tool_type)
+    #tool = gen_funct.GenericPatterns(tool_type)
+    tool_type = tool.Tools(tool_name)
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     makefile_content_block_header = f'''
     SCRIPT_VERSION=v1.0
@@ -581,31 +645,34 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate):
     BUILD_SIGN			= $(BUILD)/{candidate}_sign
     '''
     makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+    if tool_name.lower() == 'binsec':
+        test_harness_kpair, test_harness_sign = tool_type.get_tool_test_file_name()
+        # test_harness_kpair = tool.binsec_test_harness_keypair
+        # test_harness_sign = tool.binsec_test_harness_sign
         makefile_content_block_tool_flags_binary_files = f'''
         BINSEC_STATIC_FLAG      = -static
         EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
         EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
         '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
+        #taint = tool.ctgrind_taint
+        taint_kpair, taint_sign = tool_type.get_tool_test_file_name()
         makefile_content_block_tool_flags_binary_files = f'''
         CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
         CT_GRIND_SHAREDLIB_PATH = /usr/lib/
         
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint_kpair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{taint_sign}
         '''
-    if 'dudect' in tool_type.lower():
-        dude = tool.dudect_dude
+    if 'dudect' in tool_name.lower():
+        #dude = tool.dudect_dude
+        dude_kpair, dude_sign = tool_type.get_tool_test_file_name()
         makefile_content_block_tool_flags_binary_files = f'''
         DUDECT_FLAGS = -std=c11
         LIBS += -lm
         
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{dude}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{dude}
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{dude_kpair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{dude_sign}
         '''
     makefile_content_block_creating_folders_and_object_files = f'''
     folders:
@@ -642,7 +709,7 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate):
     all:  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)  ##@Build Build all the project
     '''
     makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
+    if tool_name.lower() == 'binsec':
         makefile_content_block_binary_files = f'''
         $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
         \t@echo -e "### Compiling MIRA-128F (test harness keypair)"
@@ -654,7 +721,7 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate):
         \t$(CC) $(BINSEC_STATIC_FLAG) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^)\
          $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@
         '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
         makefile_content_block_binary_files = f'''
         $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
         \t@echo -e "### Compiling MIRA-128F (taint keypair)"
@@ -666,7 +733,7 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate):
         \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^) \
         $(INCLUDE) $(XKCP_LINKER) -L. -lctgrind -o $(BUILD)/$@
         '''
-    if 'dudect' in tool_type.lower():
+    if 'dudect' in tool_name.lower():
         makefile_content_block_binary_files = f'''
         $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
         \t@echo -e "### Compiling MIRA-128F (taint keypair)"
@@ -2599,7 +2666,8 @@ def custom_init_compile_qr_uov(custom_makefile_folder, instance_folders_list):
 def compile_run_qr_uov(tools_list, signature_type, candidate,
                        optimized_imp_folder, instance_folders_list,
                        rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                       to_compile, to_run, depth, build_folder, binary_patterns):
+                       to_compile, to_run, depth, build_folder,
+                       binary_patterns, rng_outside_instance_folder="no"):
     add_includes = []
     compile_with_cmake = 'no'
     custom_folder = "custom_makefile"
@@ -2608,7 +2676,8 @@ def compile_run_qr_uov(tools_list, signature_type, candidate,
     gen_funct.generic_compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_folder,
                                             instance_folders_list, rel_path_to_api, rel_path_to_sign,
                                             rel_path_to_rng, compile_with_cmake, add_includes, to_compile,
-                                            to_run, depth, build_folder, binary_patterns)
+                                            to_run, depth, build_folder,
+                                            binary_patterns,rng_outside_instance_folder)
 
 
 # ===============================  snova ==========================================
@@ -3803,8 +3872,8 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate):
 # ==============================================================================
 
 # =============================  AIMER =========================================
-def makefile_aimer(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_aimer1(path_to_makefile_folder, subfolder, tool_type, candidate):
+    tool1 = gen_funct.GenericPatterns(tool_type)
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     makefile_content_block_cflags_obj_files = f'''
     # SPDX-License-Identifier: MIT
@@ -3829,8 +3898,8 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_type, candidate):
     '''
     makefile_content_block_tool_flags_binary_files = ""
     if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+        test_harness_kpair = tool1.binsec_test_harness_keypair
+        test_harness_sign = tool1.binsec_test_harness_sign
         makefile_content_block_tool_flags_binary_files = f'''
         BINSEC_STATIC_FLAG  = -static
         DEBUG_G_FLAG = -g
@@ -3839,7 +3908,7 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_type, candidate):
         EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
         '''
     if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+        taint = tool1.ctgrind_taint
         makefile_content_block_tool_flags_binary_files = f'''
         \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
         \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
@@ -3901,6 +3970,74 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_type, candidate):
         mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
         mfile.write(textwrap.dedent(makefile_content_block_binary_files))
         mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+
+def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content = f'''
+    # SPDX-License-Identifier: MIT
+    
+    CC = gcc
+    CFLAGS += -I. -O3 -g -Wall -Wextra -march=native -fomit-frame-pointer
+    NISTFLAGS = -Wno-sign-compare -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-result
+    AVX2FLAGS = -mavx2 -mpclmul
+    
+    BASE_DIR = ../../{subfolder}
+    
+    SHAKE_PATH = $(BASE_DIR)/shake
+    SHAKE_LIB = libshake.a
+    LDFLAGS = $(SHAKE_PATH)/$(SHAKE_LIB)
+    
+    
+    
+    BUILD           = build
+    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN		= $(BUILD)/{candidate}_sign
+    
+    EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN         = {candidate}_sign/{test_sign}
+    
+    
+    TOOL_FLAGS = {tool_flags}
+    TOOL_LIBS = {tool_libs}
+    
+    .PHONY: all
+    
+    all: $(SHAKE_LIB) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    $(BUILD)/.c.o:
+    \t$(CC) -c $(CFLAGS) $< -o $@
+    
+    $(SHAKE_LIB):
+    \t$(MAKE) -C $(SHAKE_PATH)
+    
+    
+    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c\
+    $(BASE_DIR)/aim128.c $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c \
+    $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
+    \tmkdir -p $(BUILD_KEYPAIR) 
+    \t$(CC) -D_BSD_SOURCE -D_DEFAULT_SOURCE $(CFLAGS) $(TOOL_FLAGS) $(AVX2FLAGS)  -D_AIMER_L=1 \
+     $^ $(LDFLAGS) $(TOOL_LIBS) -lcrypto -o $(BUILD)/$@
+    
+    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c $(BASE_DIR)/aim128.c \
+    $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c \
+    $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
+    \tmkdir -p $(BUILD_SIGN) 
+    \t$(CC) -D_BSD_SOURCE -D_DEFAULT_SOURCE $(CFLAGS) $(TOOL_FLAGS) $(AVX2FLAGS)  -D_AIMER_L=1  \
+    $^ $(LDFLAGS) $(TOOL_LIBS) -lcrypto -o $(BUILD)/$@
+    
+
+    clean:
+    \trm -f $(wildcard *.o) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+    \t$(MAKE) -C $(SHAKE_PATH) clean   
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
 
 
 # ================================ ascon_sign ===================================
@@ -4074,7 +4211,7 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 
 # =================================== Sphincs-alpha ===========================
-def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_type, candidate):
+def makefile_sphincs_alpha1(path_to_makefile_folder, subfolder, tool_type, candidate):
     tool = gen_funct.GenericPatterns(tool_type)
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     makefile_content_block_header = f'''
@@ -4181,6 +4318,81 @@ def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_type, candid
         mfile.write(textwrap.dedent(makefile_content_block_all_target))
         mfile.write(textwrap.dedent(makefile_content_block_binary_files))
         mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+
+def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content = f'''
+    PARAMS = {subfolder}
+    #PARAMS = sphincs-a-sha2-128f
+    THASH = simple
+    
+    CC=/usr/bin/gcc
+    CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
+    
+    BASE_DIR = ../../{subfolder}
+    
+    SOURCES =  $(BASE_DIR)/address.c $(BASE_DIR)/randombytes.c $(BASE_DIR)/merkle.c $(BASE_DIR)/wots.c \
+                $(BASE_DIR)/wotsx1.c $(BASE_DIR)/utils.c $(BASE_DIR)/utilsx1.c $(BASE_DIR)/fors.c \
+                $(BASE_DIR)/sign.c $(BASE_DIR)/uintx.c
+    HEADERS = $(BASE_DIR)/params.h $(BASE_DIR)/address.h $(BASE_DIR)/randombytes.h $(BASE_DIR)/merkle.h \
+                $(BASE_DIR)/wots.h $(BASE_DIR)/wotsx1.h $(BASE_DIR)/utils.h $(BASE_DIR)/utilsx1.h \
+                $(BASE_DIR)/fors.h $(BASE_DIR)/api.h  $(BASE_DIR)/hash.h $(BASE_DIR)/thash.h $(BASE_DIR)/uintx.h
+    
+    ifneq (,$(findstring shake,$(PARAMS)))
+    \tSOURCES += $(BASE_DIR)/fips202.c $(BASE_DIR)/hash_shake.c $(BASE_DIR)/thash_shake_$(THASH).c
+    \tHEADERS += $(BASE_DIR)/fips202.h
+    endif
+    ifneq (,$(findstring haraka,$(PARAMS)))
+    \tSOURCES += $(BASE_DIR)/haraka.c $(BASE_DIR)/hash_haraka.c $(BASE_DIR)/thash_haraka_$(THASH).c
+    \tHEADERS += $(BASE_DIR)/haraka.h
+    endif
+    ifneq (,$(findstring sha2,$(PARAMS)))
+    \tSOURCES += $(BASE_DIR)/sha2.c $(BASE_DIR)/hash_sha2.c $(BASE_DIR)/thash_sha2_$(THASH).c
+    \tHEADERS += $(BASE_DIR)/sha2.h
+    endif
+    
+    DET_SOURCES = $(SOURCES:randombytes.%=rng.%)
+    DET_HEADERS = $(HEADERS:randombytes.%=rng.%)
+    
+    BUILD           = build
+    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN		= $(BUILD)/{candidate}_sign
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+    
+    \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_keypair}
+    \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_sign}
+    
+    .PHONY: clean 
+    
+    default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES) $(DET_HEADERS)
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto $(TOOL_LIBS)
+        
+    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES) $(DET_HEADERS)
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto $(TOOL_LIBS)
+    
+     
+    clean:
+    \t-$(RM) $(EXECUTABLE_KEYPAIR)
+    \t-$(RM) $(EXECUTABLE_SIGN)
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
 
 
 # ==============================  OTHER =================================
