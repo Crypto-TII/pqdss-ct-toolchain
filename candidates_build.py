@@ -35,6 +35,10 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate):
     ifeq ($(UNAME_S),Darwin)
     \tASMFLAGS := ${{CFLAGS}} -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1
     endif
+    
+    BUILD					= build
+    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN			= $(BUILD)/{candidate}_sign
     '''
     makefile_content_block_tool_flags_binary_files = ""
     if tool_type.lower() == 'binsec':
@@ -45,10 +49,6 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate):
     
         EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
         EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        
-        BUILD					= build
-        BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN			= $(BUILD)/{candidate}_sign
         
         all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
         '''
@@ -61,10 +61,16 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate):
         EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
         EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
         
-        BUILD					= build
-        BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN			= $(BUILD)/{candidate}_sign
+        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        '''
+    if 'dudect' in tool_type.lower():
+        dude = tool.dudect_dude
+        makefile_content_block_tool_flags_binary_files = f'''
+        DUDECT_FLAGS = -std=c11
+        LIBS += -lm
         
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{dude}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{dude}
         
         all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
         '''
@@ -94,6 +100,15 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate):
         $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).o $(OBJ)
         \tmkdir -p $(BUILD_SIGN)
         \t$(CC) ${{LIBDIR}} $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) -L. -lctgrind  
+        '''
+    if 'dudect' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).o $(OBJ)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) ${{LIBDIR}} $(DUDECT_FLAGS) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) -L. -lctgrind 
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).o $(OBJ)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) ${{LIBDIR}} $(DUDECT_FLAGS) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) -L. -lctgrind  
         '''
     makefile_content_block_clean = f'''
     .PHONY: clean
@@ -583,6 +598,15 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate):
         EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
         EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
         '''
+    if 'dudect' in tool_type.lower():
+        dude = tool.dudect_dude
+        makefile_content_block_tool_flags_binary_files = f'''
+        DUDECT_FLAGS = -std=c11
+        LIBS += -lm
+        
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{dude}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{dude}
+        '''
     makefile_content_block_creating_folders_and_object_files = f'''
     folders:
     \t@echo -e "### Creating build/bin folders"
@@ -641,6 +665,18 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate):
         \t@echo -e "### Compiling MIRA-128F (taint sign)"
         \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^) \
         $(INCLUDE) $(XKCP_LINKER) -L. -lctgrind -o $(BUILD)/$@
+        '''
+    if 'dudect' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
+        \t@echo -e "### Compiling MIRA-128F (taint keypair)"
+        \t$(CC) $(DUDECT_FLAGS) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^)\
+         $(INCLUDE) $(XKCP_LINKER) -L. $(LIBS) -o $(BUILD)/$@ 
+
+        $(EXECUTABLE_SIGN): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
+        \t@echo -e "### Compiling MIRA-128F (taint sign)"
+        \t$(CC) $(DUDECT_FLAGS) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^) \
+        $(INCLUDE) $(XKCP_LINKER) -L. $(LIBS) -o $(BUILD)/$@
         '''
 
     makefile_content_block_clean = f'''
