@@ -647,6 +647,7 @@ def compile_run_emle2_0(tools_list, signature_type, candidate, optimized_imp_fol
                         instance_folders_list, rel_path_to_api, rel_path_to_sign,
                         rel_path_to_rng, to_compile, to_run, depth, build_folder,
                         binary_patterns, rng_outside_instance_folder="no"):
+    '''Thisc mgrgkgrt'''
     add_includes = []
     with_cmake = 'no'
     generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
@@ -764,10 +765,11 @@ default_binary_patterns = ["keypair", "sign"]
 # Improve the message for help
 default_help_message = f'compile and run test'
 
-# Create a parser for every function in the sub-parser and add arguments in its namespace
+
 # =============================================================================================
 # ==============================================  C  ==========================================
 # =============================================================================================
+# Create a parser for every function in the sub-parser and add arguments in its namespace
 # [TODO:]
 # Take into account the case where api.h and sign.h are both needed in function add_cli_arguments(...)
 # ===================================== MPC-IN-THE-HEAD ========================================

@@ -15,7 +15,7 @@ import textwrap
 
 
 
-
+##cross
 
 #********************************************************************************************
 #********************************************************************************************
@@ -1140,6 +1140,9 @@ def init_compile_nist_candidate_type2(binsec_folder,signature_type,candidate,opt
 #=======================================================================================================================
 #=======================================================================================================================
 
+########A############
+
+
 #========================================== CODE ==================================================================
 #=======================================================================================================================
 
@@ -1382,7 +1385,7 @@ def compile_run_faest(binsec_folder,signature_type,candidate,optimized_imp_folde
 
 
 
-#========================================== Ascon_sign ======================================================================
+#========================================== ascon_sign ======================================================================
 
 def makefile_ascon(path_to_makefile_folder,subfolder):
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -3220,7 +3223,7 @@ def run_qrUOV_makefile(path_to_qrUOV_makefile_folder):
     os.chdir(path_to_qrUOV_makefile_folder)
     cwd1 = os.getcwd()
     cmd = ["make"]
-    subprocess.call(cmd, stdin = sys.stdin)
+    subprocess.call(cmd, stdin=sys.stdin)
     os.chdir(cwd)
 
 
@@ -3548,7 +3551,7 @@ def compile_run_squirrels(binsec_folder,signature_type,candidate,optimized_imp_f
 
 
 
-
+########B############
 #======================================= CLI: use argparse module ======================================================
 #=======================================================================================================================
 
@@ -3558,7 +3561,6 @@ parser = argparse.ArgumentParser(prog="NIST-Signature" ,description="Constant-ti
 subparser = parser.add_subparsers(dest='binsec_test')
 
 # Create a parser for every function in the sub-parser namespace
-
 #********************** List of candidates *******************************************************************************
 
 qruov_init_compile_run = subparser.add_parser('compile_run_qruov', help='qr_uov: create test harness, configuration files,\
@@ -3571,7 +3573,7 @@ snova_init_compile_run = subparser.add_parser('compile_run_snova', help='snova: 
 cross_init_compile_run = subparser.add_parser('compile_run_cross', help='cross: create test harness, configuration files,\
                                      and CMakeLists.txt for the crypto_sign_keypair and crypto_sign functions (and run binsec on them)')
 #
-pqsigRM_init_compile_run = subparser.add_parser('compile_run_pqsigRM', help='pqsigRM: create test harness, configuration files,\
+pqsigRM_init_compile_run = subparser.add_parser('compile_run_pqsigRM', help='pqsigrm: create test harness, configuration files,\
                                     and required Makefile to compile   (and) run binsec )')
 
 less_init_compile_run = subparser.add_parser('compile_run_less', help='less: create test harness, configuration files,\
@@ -3613,6 +3615,7 @@ squirrels_init_compile_run = subparser.add_parser('compile_run_squirrels', help=
                                     and required Makefile to compile   (and) run binsec )')
 
 
+########C############
 #===================== QR_UOV ============================================================================================
 
 squirrels_opt_folder = "lattice/squirrels/Optimized_Implementation"
@@ -3630,10 +3633,6 @@ squirrels_init_compile_run.add_argument('--abs_path_sign', '-sign', dest='sign',
 squirrels_init_compile_run.add_argument('--depth', '-depth', dest='depth',default="1000000")
 squirrels_init_compile_run.add_argument('--compile', '-c', dest='compile',default='Yes')
 squirrels_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
-
-
-
-
 
 
 #===================== QR_UOV ============================================================================================
@@ -3708,12 +3707,12 @@ cross_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
 #
 #
 #
-# #===================== pqsigRM ============================================================================================
+# #===================== pqsigrm ============================================================================================
 # # Add arguments (inputs) of the function
 # #===================== COMMENTS: Reference_Implementation folder has to be taken into account
 pqsigRM_init_compile_run.add_argument('--binsec_folder', '-binsec_folder',type=str, default="binsec")
 pqsigRM_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='code')
-pqsigRM_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='pqsigRM')
+pqsigRM_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='pqsigrm')
 pqsigRM_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
 pqsigRM_init_compile_run.add_argument('--src_folder', '-src',dest='source',type=str,default='pqsigrm613')
 pqsigRM_init_compile_run.add_argument('--api', '-api',dest='api',type=str, default='"../../src/api.h"')
@@ -3797,7 +3796,7 @@ faest_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
 
 
 #===================== Ascon_Sign ============================================================================================
-ascon_opt_folder = "symmetric/Ascon_sign/Optimized_Implementation"
+ascon_opt_folder = "symmetric/ascon_sign/Optimized_Implementation"
 ascon_default_robust_and_simple_folders = os.listdir(ascon_opt_folder)
 ascon_default_robust_and_simple_folders.remove('Readme')
 if 'binsec' in ascon_default_robust_and_simple_folders:
@@ -3814,7 +3813,7 @@ ascon_default_list_of_folders.extend([ascon_simple+"/"+subfold for subfold in os
 
 ascon_init_compile_run.add_argument('--binsec_folder', '-binsec_folder',type=str, default="binsec")
 ascon_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='symmetric')
-ascon_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='Ascon_sign')
+ascon_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='ascon_sign')
 ascon_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
 ascon_init_compile_run.add_argument('--list_of_folders', nargs='+', default=ascon_default_list_of_folders)
 ascon_init_compile_run.add_argument('--abs_path_api', '-api',dest='api',type=str, default='../../../../')
@@ -3954,7 +3953,7 @@ ryde_init_compile_run.add_argument('--run', '-r', dest='run',default='Yes')
 
 
 
-
+########D############
 #set all the command-line arguments into the object args
 args = parser.parse_args()
 

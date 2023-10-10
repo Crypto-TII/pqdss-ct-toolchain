@@ -14,7 +14,8 @@ import time
 import textwrap
 
 
-
+###### Remaining candidates
+#----
 
 
 #********************************************************************************************
@@ -316,18 +317,64 @@ def group_multiple_lines(file_content_list,starting_pattern,ending_pattern,exclu
     matching_string = " ".join(matching_string_list_strip)
     return matching_string,found_start_index,found_end_index
 
+def group_multiple_lines_new_to_check(file_content_list,starting_pattern,ending_pattern,exclude_pattern,starting_index,ending_index):
+    matching_string_list = []
+    break_index = -1
+    found_start_index = 0
+    found_end_index = 0
+    i = starting_index
+    line = file_content_list[i]
+    line.strip()
+    exclude_pattern = exclude_pattern.strip()
+    exclude_pattern_list = exclude_pattern.split()
+    while (i <= ending_index) and (break_index<0):
+        for word in exclude_pattern_list:
+            print("+++++++ word ", word)
+            if word in line :
+                print("~~~~~~~~ WORD in line here: line = ",line)
+                i+=1
+                line = file_content_list[i]
+            if starting_pattern in line and word in line:
+                i+=1
+                line = file_content_list[i]
+        line = file_content_list[i]
+        line.strip()
+        if starting_pattern in line:
+            found_start_index = i
+            if not "int" in line:
+                matching_string_list.append("int")
+            matching_string_list.append(line)
+            if ending_pattern in line:
+                found_end_index = i
+                break_index = i
+                break
+            for j in range(found_start_index+1,ending_index):
+                line = file_content_list[j]
+                line.strip()
+                matching_string_list.append(line)
+                if ending_pattern in line:
+                    found_end_index = j
+                    break_index = j
+                    break
+        i+=1
+
+    matching_string_list_strip = [word.strip() for word in matching_string_list]
+    matching_string = " ".join(matching_string_list_strip)
+    return matching_string,found_start_index,found_end_index
+
 
 def find_sign_and_keypair_definition_from_api_or_sign(api_sign_header_file):
     pattern_keypair = "keypair("
     file = open(api_sign_header_file,'r')
     file_content = file.read()
     file_content_line_by_line = file_content.split('\n')
-    exclude_pattern = "open"
+    exclude_pattern = "open _seed_"
     ending_pattern = ");"
-    included_pattern_keypair = "keypair("
+    included_pattern_keypair = "sign_keypair("
     starting_index = 0
     ending_index = len(file_content_line_by_line)
     keypair_def, start,end = group_multiple_lines(file_content_line_by_line,included_pattern_keypair,ending_pattern,exclude_pattern,starting_index,ending_index)
+    print("-------keypair_def ",keypair_def)
     included_pattern_sign = "_sign("
     starting_index = end+1
     sign_def, start,end = group_multiple_lines(file_content_line_by_line,included_pattern_sign,ending_pattern,exclude_pattern,starting_index,ending_index)
@@ -360,7 +407,7 @@ def keypair_find_args_types_and_names(abs_path_to_api_or_sign):
 #=======================================================================================================================
 #=======================================================================================================================
 
-def test_harness_content_keypair(test_harness_file,api,sign,add_includes,function_return_type,function_name):
+def test_harness_content_keypair_modif_25_sept(test_harness_file,api,sign,add_includes,function_return_type,function_name):
     test_harness_file_content_block1 = f'''
     #include <stdio.h>
     #include <stdlib.h>
@@ -385,6 +432,34 @@ def test_harness_content_keypair(test_harness_file,api,sign,add_includes,functio
         if not sign == "":
             t_harness_file.write(f'#include {sign}\n')
         if not api == "":
+            t_harness_file.write(f'#include {api}\n')
+        t_harness_file.write(textwrap.dedent(test_harness_file_content_block2))
+
+def test_harness_content_keypair(test_harness_file,api,sign,add_includes,function_return_type,function_name):
+    test_harness_file_content_block1 = f'''
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <stdint.h>
+    #include <ctype.h>
+    '''
+    test_harness_file_content_block2 = f'''
+    uint8_t pk[CRYPTO_PUBLICKEYBYTES] ;
+    uint8_t sk[CRYPTO_SECRETKEYBYTES] ;
+    
+    int main(){{
+    \t{function_return_type} result =  {function_name}(pk, sk);
+    \texit(result);
+    }} 
+    '''
+    with open(test_harness_file, "w") as t_harness_file:
+        t_harness_file.write(textwrap.dedent(test_harness_file_content_block1))
+        if not add_includes == []:
+            for include in add_includes:
+                t_harness_file.write(f'#include {include}\n')
+        if not sign == '""':
+            t_harness_file.write(f'#include {sign}\n')
+        if not api == '""':
             t_harness_file.write(f'#include {api}\n')
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block2))
 
@@ -417,9 +492,9 @@ def sign_test_harness_content(test_harness_file,api,sign,add_includes,function_r
         if not add_includes == []:
             for include in add_includes:
                 t_harness_file.write(f'#include {include}\n')
-        if not sign == "":
+        if not sign == '""':
             t_harness_file.write(f'#include {sign}\n')
-        if not api == "":
+        if not api == '""':
             t_harness_file.write(f'#include {api}\n')
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block2))
 
@@ -462,9 +537,9 @@ def ctgrind_keypair_taint_content(taint_file,api,sign,add_includes,function_retu
         if not add_includes == []:
             for include in add_includes:
                 t_file.write(f'#include {include}\n')
-        if not sign == "":
+        if not sign == '""':
             t_file.write(f'#include {sign}\n')
-        if not api == "":
+        if not api == '""':
             t_file.write(f'#include {api}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
@@ -539,9 +614,9 @@ def ctgrind_sign_taint_content(taint_file,api,sign,add_includes,function_return_
         if not add_includes == []:
             for include in add_includes:
                 t_file.write(f'#include {include}\n')
-        if not sign == "":
+        if not sign == '""':
             t_file.write(f'#include {sign}\n')
-        if not api == "":
+        if not api == '""':
             t_file.write(f'#include {api}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
@@ -803,7 +878,7 @@ def find_candidate_instance_api_sign_relative_path(instance_folder,rel_path_to_a
             sign_relative = ""
     return api_relative,sign_relative
 
-def find_api_sign_abs_path(path_to_opt_src_folder,api,sign,opt_implementation_name,ref_implementation_name = "Reference_Implementation"):
+def find_api_sign_abs_path_modif_22_sept(path_to_opt_src_folder,api,sign,opt_implementation_name,ref_implementation_name = "Reference_Implementation"):
     folder = path_to_opt_src_folder
     ref_implementation_name.strip()
     opt_implementation_name.strip()
@@ -831,6 +906,33 @@ def find_api_sign_abs_path(path_to_opt_src_folder,api,sign,opt_implementation_na
         folder = candidate_folder
     return abs_path_to_api_or_sign
 
+def find_api_sign_abs_path(path_to_opt_src_folder,api,sign,opt_implementation_name,ref_implementation_name = "Reference_Implementation"):
+    folder = path_to_opt_src_folder
+    ref_implementation_name.strip()
+    opt_implementation_name.strip()
+    api_folder = ""
+    sign_folder = ""
+    abs_path_to_api_or_sign = ""
+    if not api == '""':
+        api_folder_split = api.split("../")
+        api_folder = api_folder_split[-1]
+        api_folder = api_folder.split('"')
+        api_folder = api_folder[0]
+        abs_path_to_api_or_sign = f'{folder}/{api_folder}'
+    if not sign == '""':
+        sign_folder_split = sign.split("../")
+        sign_folder = sign_folder_split[-1]
+        sign_folder = sign_folder.split('"')
+        sign_folder = sign_folder[0]
+        abs_path_to_api_or_sign = f'{folder}/{sign_folder}'
+    if ref_implementation_name in abs_path_to_api_or_sign:
+        candidate_folder_list = abs_path_to_api_or_sign.split("/")
+        if opt_implementation_name in candidate_folder_list:
+            candidate_folder_list.remove(opt_implementation_name)
+        candidate_folder = "/".join(candidate_folder_list)
+        abs_path_to_api_or_sign = candidate_folder
+        folder = candidate_folder
+    return abs_path_to_api_or_sign
 
 
 def binsec_initialize_candidate(path_to_opt_src_folder,path_to_binsec_folder,path_to_binsec_keypair_folder,path_to_binsec_sign_folder,api,sign,add_includes):
@@ -908,6 +1010,18 @@ def initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_
         ctgrind_initialize_candidate(path_to_opt_src_folder,path_to_ctgrind_folder,path_to_ctgrind_keypair_folder,path_to_ctgrind_sign_folder,api,sign,add_includes)
 
 
+def generic_initialize_nist_candidate_modif_22_sept(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,add_includes):
+    if instance_folders_list == []:
+        print("--------instance_folders_list = []",instance_folders_list)
+        instance_folder = ""
+        api, sign = find_candidate_instance_api_sign_relative_path(instance_folder,rel_path_to_api,rel_path_to_sign)
+        initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folder,api,sign,add_includes)
+    else:
+        print("--------instance_folders_list = []",instance_folders_list)
+        for instance_folder in instance_folders_list:
+            api, sign = find_candidate_instance_api_sign_relative_path(instance_folder,rel_path_to_api,rel_path_to_sign)
+            initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folder,api,sign,add_includes)
+
 def generic_initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,add_includes):
     if instance_folders_list == []:
         instance_folder = ""
@@ -917,6 +1031,7 @@ def generic_initialize_nist_candidate(tools_list,signature_type,candidate,optimi
         for instance_folder in instance_folders_list:
             api, sign = find_candidate_instance_api_sign_relative_path(instance_folder,rel_path_to_api,rel_path_to_sign)
             initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folder,api,sign,add_includes)
+
 
 def generic_compile_run_candidate1(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
     candidate = candidate
@@ -973,6 +1088,7 @@ def generic_init_compile(tools_list,signature_type,candidate,optimized_imp_folde
     makefile_candidate = ''
     function_pattern = ""
     path_function_pattern_file = ""
+    cmd = []
     path_to_optimized_implementation_folder = signature_type+'/'+candidate+'/'+optimized_imp_folder
     if instance_folders_list == []:
         generic_initialize_nist_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,add_includes)
@@ -1026,6 +1142,8 @@ def generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_
         generic_init_compile(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,add_includes,build_folder,compile_with_cmake)
     if 'n' in to_compile.lower() and 'y' in to_run.lower():
         generic_run(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,depth,build_folder,binary_patterns)
+
+
 
 
 #========================================== MPC-IN-THE-HEAD ============================================================
@@ -2387,14 +2505,986 @@ def compile_run_less(tools_list,signature_type,candidate,optimized_imp_folder,in
     generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
 
 
+#=========================================  SQUIRRELS ==================================================================
+def squirrels_level(subfolder):
+    subfolder_split = subfolder.split("-")
+    level_roman_digest = subfolder_split[-1]
+    level = 0
+    if level_roman_digest == "I":
+        level = 1
+    elif level_roman_digest == "II":
+        level = 2
+    elif level_roman_digest == "III":
+        level = 3
+    elif level_roman_digest == "IV":
+        level = 4
+    else:
+        level = 5
+    return level
+def makefile_squirrels(path_to_makefile_folder,subfolder,tool_type,candidate):
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    level = squirrels_level(subfolder)
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+
+    makefile_content_block_Cflags_obj_files = f'''
+    .POSIX:
+
+    NIST_LEVEL?={level}
+    
+    BASE_DIR = ../../{subfolder}
+    CC = gcc
+    CFLAGS = -W -Wall -O3 -march=native -I../../../lib/build/mpfr/include -I../../../lib/build/mpfr/include -I../../../lib/build/gmp/include -I../../../lib/build/flint/include/flint -I../../../lib/build/fplll/include \
+        -DSQUIRRELS_LEVEL=$(NIST_LEVEL)
+    LD = gcc -v
+    LDFLAGS = 
+    
+    LIBSRPATH = '$$ORIGIN'../../../../../lib/build
+    LIBS = -lm \
+    \t-L../../../lib/build/mpfr/lib -Wl,-rpath,$(LIBSRPATH)/mpfr/lib -lmpfr \
+    \t-L../../../lib/build/gmp/lib -Wl,-rpath,$(LIBSRPATH)/gmp/lib -lgmp \
+    \t-L../../../lib/build/flint/lib -Wl,-rpath,$(LIBSRPATH)/flint/lib -lflint \
+    \t-L../../../lib/build/fplll/lib -Wl,-rpath,$(LIBSRPATH)/fplll/lib -lfplll \
+    \t-lstdc++
+    
+    OBJ1 = $(BASE_DIR)/build/codec.o $(BASE_DIR)/build/common.o $(BASE_DIR)/build/keygen_lll.o $(BASE_DIR)/build/keygen.o  $(BASE_DIR)/build/minors.o $(BASE_DIR)/build/nist.o $(BASE_DIR)/build/normaldist.o $(BASE_DIR)/build/param.o $(BASE_DIR)/build/sampler.o $(BASE_DIR)/build/shake.o $(BASE_DIR)/build/sign.o $(BASE_DIR)/build/vector.o
+    
+    
+    HEAD1 = $(BASE_DIR)/api.h $(BASE_DIR)/fpr.h $(BASE_DIR)/inner.h $(BASE_DIR)/param.h
+    
+    BUILD					= build
+    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN			= $(BUILD)/{candidate}_sign 
+    '''
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+    BINSEC_STATIC_FLAGS     = -static
+    DEBUG_G_FLAG            = -g
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
+    '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm 
+        CT_GRIND_SHAREDLIB_PATH = /usr/lib/
+    
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{taint} 
+    '''
+    makefile_content_block_object_files = f'''
+    
+    all: $(BASE_DIR)/lib $(BASE_DIR)/build $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+    
+    $(BASE_DIR)/lib:
+    \tmake -C ../../../lib 
+    
+    $(BASE_DIR)/build:
+    \t-mkdir $(BASE_DIR)/build
+    
+    clean:
+    \t-rm -f  $(OBJ1)  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+    
+    
+   
+    $(BASE_DIR)/build/codec.o: $(BASE_DIR)/codec.c $(HEAD1)
+    \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/codec.o $(BASE_DIR)/codec.c
+    
+    $(BASE_DIR)/build/common.o: $(BASE_DIR)/common.c $(HEAD1)
+    \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/common.o $(BASE_DIR)/common.c
+    
+    $(BASE_DIR)/build/keygen_lll.o: $(BASE_DIR)/keygen_lll.cpp $(HEAD1)
+    \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/keygen_lll.o $(BASE_DIR)/keygen_lll.cpp
+    
+    $(BASE_DIR)/build/keygen.o: $(BASE_DIR)/keygen.c $(HEAD1)
+    \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/keygen.o $(BASE_DIR)/keygen.c
+    
+    $(BASE_DIR)/build/minors.o: $(BASE_DIR)/minors.c $(HEAD1)
+    \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/minors.o $(BASE_DIR)/minors.c
+    
+    
+    $(BASE_DIR)/build/normaldist.o: $(BASE_DIR)/normaldist.c $(HEAD1)
+    \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/normaldist.o $(BASE_DIR)/normaldist.c
+    
+    $(BASE_DIR)/build/param.o: $(BASE_DIR)/param.c $(HEAD1)
+    \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/param.o $(BASE_DIR)/param.c
+    
+    $(BASE_DIR)/build/sampler.o: $(BASE_DIR)/sampler.c $(HEAD1)
+    \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/sampler.o $(BASE_DIR)/sampler.c
+    
+    $(BASE_DIR)/build/shake.o: $(BASE_DIR)/shake.c $(HEAD1)
+    \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/shake.o $(BASE_DIR)/shake.c
+    
+    $(BASE_DIR)/build/sign.o: $(BASE_DIR)/sign.c $(HEAD1)
+    \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/sign.o $(BASE_DIR)/sign.c
+    
+    $(BASE_DIR)/build/vector.o: $(BASE_DIR)/vector.c $(HEAD1)
+    \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/vector.o $(BASE_DIR)/vector.c
+    '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+
+    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(HEAD1) $(BASE_DIR)/api.h 
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(CFLAGS) -I . -c -o $(BUILD)/$$(EXECUTABLE_KEYPAIR)  $(EXECUTABLE_KEYPAIR).c 
+    
+    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(HEAD1) $(BASE_DIR)/api.h 
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(CFLAGS) -I . -c -o $(BUILD)/$$(EXECUTABLE_SIGN)  $(EXECUTABLE_SIGN).c 
+    '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(HEAD1) $(BASE_DIR)/api.h 
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) -I . -c -o $(BUILD)/$$(EXECUTABLE_KEYPAIR)  $(EXECUTABLE_KEYPAIR).c -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+    
+    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(HEAD1) $(BASE_DIR)/api.h 
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) -I . -c -o $(BUILD)/$(EXECUTABLE_SIGN)  $(EXECUTABLE_SIGN).c -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl 
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content_block_Cflags_obj_files))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_object_files))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+
+def compile_run_squirrels(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
+
+
+
+
+
+#========= New generic =========================
+def add_cli_arguments_modif_22_sept(signature_type,candidate,optimized_imp_folder,rel_path_to_api = '""',rel_path_to_sign = '""',rel_path_to_rng = '""' ):
+    candidate_sub_parser = f'{candidate}_init_compile_run'
+    exec(f"{candidate_sub_parser}.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list,help = f'{candidate} tools')")
+    exec(f"{candidate_sub_parser}.add_argument('--signature_type', '-type',dest='type',type=str,default=f'{signature_type}',help=f'{candidate} type')")
+    exec(f"{candidate_sub_parser}.add_argument('--candidate', '-candidata',dest='candidate',type=str,default=f'{candidate}',help = f'{candidate} candidate')")
+    exec(f"{candidate_sub_parser}.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default=f'{optimized_imp_folder}')")
+    exec(f"{candidate_sub_parser}.add_argument('--instance_folders_list', nargs='+', default=f'{candidate}_default_list_of_folders')")
+    exec(f"{candidate_sub_parser}.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default=f'{rel_path_to_api}')")
+    exec(f"{candidate_sub_parser}.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default=f'{rel_path_to_sign}')")
+    exec(f"{candidate_sub_parser}.add_argument('--rel_path_to_rng', '-rng', dest='rng',type=str,default=f'{rel_path_to_rng}')")
+    exec(f"{candidate_sub_parser}.add_argument('--compile', '-c', dest='compile',default='Yes')")
+    exec(f"{candidate_sub_parser}.add_argument('--run', '-r', dest='run',default='Yes')")
+    exec(f"{candidate_sub_parser}.add_argument('--depth', '-depth', dest='depth',default='1000000',help = f'{candidate} depth')")
+    exec(f"{candidate_sub_parser}.add_argument('--build', '-build', dest='build',default='build')")
+    exec(f"{candidate_sub_parser}.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns,help = f'{candidate} algorithms_patterns')")
+
+def add_cli_arguments(signature_type,candidate,optimized_imp_folder,rel_path_to_api = '""',rel_path_to_sign = '""',rel_path_to_rng = '""' ):
+    candidate_sub_parser = f'{candidate}_init_compile_run'
+    candidate_default_list_of_folders = f'{candidate}_default_list_of_folders'
+    # print("~~~~~~~~~candidate_default_list_of_folders",f'{candidate_default_list_of_folders}')
+    # print("~~~~~~~~~candidate_default_list_of_folders",candidate_default_list_of_folders)
+    # t = f'{candidate_default_list_of_folders}'
+    # print("----t = ",t)
+    # print(exec(f'candidate_default_list_of_folders'))
+    exec(f"{candidate_sub_parser}.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list,help = f'{candidate} tools')")
+    exec(f"{candidate_sub_parser}.add_argument('--signature_type', '-type',dest='type',type=str,default=f'{signature_type}',help=f'{candidate} type')")
+    # sig_type = f"{candidate_sub_parser}.add_argument('--signature_type', '-type',dest='type',type=str,default=f'{signature_type}',help=f'{candidate} type')"
+    # exec(sig_type)
+    exec(f"{candidate_sub_parser}.add_argument('--candidate', '-candidata',dest='candidate',type=str,default=f'{candidate}',help = f'{candidate} candidate')")
+    exec(f"{candidate_sub_parser}.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default=f'{optimized_imp_folder}')")
+    exec(f"{candidate_sub_parser}.add_argument('--instance_folders_list', nargs='+', default=candidate_default_list_of_folders)")
+    exec(f"{candidate_sub_parser}.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default=f'{rel_path_to_api}',help = f'{rel_path_to_api} api')")
+    exec(f"{candidate_sub_parser}.add_argument('--rel_path_to_sign', '-sign', dest='sign',type=str,default=f'{rel_path_to_sign}',help = f'{rel_path_to_sign} sign')")
+    exec(f"{candidate_sub_parser}.add_argument('--rel_path_to_rng', '-rng', dest='rng',type=str,default=f'{rel_path_to_rng}')")
+    exec(f"{candidate_sub_parser}.add_argument('--compile', '-c', dest='compile',default='Yes')")
+    exec(f"{candidate_sub_parser}.add_argument('--run', '-r', dest='run',default='Yes')")
+    exec(f"{candidate_sub_parser}.add_argument('--depth', '-depth', dest='depth',default='1000000',help = f'{candidate} depth')")
+    exec(f"{candidate_sub_parser}.add_argument('--build', '-build', dest='build',default='build')")
+    exec(f"{candidate_sub_parser}.add_argument('--algorithms_patterns', nargs='+', default=default_binary_patterns,help = f'{candidate} algorithms_patterns')")
+
+
+def run_cli_candidate(candidate):
+    if args.binsec_test == f"compile_run_{candidate}":
+        tools_list = args.tools
+        signature_type = args.type
+        print("---type(signature_type) = ",type(signature_type))
+        print("---signature_type = ",signature_type)
+        candidate = args.candidate
+        optimization_folder = args.ref_opt
+        instance_folders_list = args.instance_folders_list
+        rel_path_to_api = args.api
+        rel_path_to_sign = args.sign
+        rel_path_to_rng = args.rng
+        compile = args.compile
+        run = args.run
+        depth = args.depth
+        build_folder = args.build
+        binary_patterns = args.algorithms_patterns
+        print("---AGAIN ----signature_type = ",signature_type)
+        test = f'compile_run_{candidate}({tools_list},{signature_type},{candidate},{optimization_folder},{instance_folders_list},{rel_path_to_api},{rel_path_to_sign},{compile},{run},{depth},{build_folder},{binary_patterns})'
+        print("--",test)
+        exec(test)
+    #exec(f'compile_run_{candidate}({tools_list},{signature_type},{candidate},{optimization_folder},{instance_folders_list},{rel_path_to_api},{rel_path_to_sign},{rel_path_to_rng},{compile},{run},{depth},{build_folder},{binary_patterns})')
+
+
+
+
+#=============================== HAETAE ==================================================================================
+def cmake_haetae(path_to_cmakelist,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    subfolder  = ""
+    path_to_cmakelist = path_to_cmakelist+'/CMakeLists.txt'
+
+def compile_run_haetae(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'yes'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
+
+
+
+
+
+#=========================================  MULTIVARIATE ====================================================================
+#=======================================================================================================================
+
+#=========================================  QR-UOV =====================================================================
+def run_qrUOV_makefile(path_to_qrUOV_makefile_folder):
+    cwd = os.getcwd()
+    os.chdir(path_to_qrUOV_makefile_folder)
+    cwd1 = os.getcwd()
+    cmd = ["make"]
+    subprocess.call(cmd, stdin=sys.stdin)
+    os.chdir(cwd)
+
+
+
+def main_makefile_qrUOV(tool_type,path_to_tool_folder,subfolder):
+    #path_to_makefile = path_to_binsec_folder+'/Makefile'
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    path_to_makefile = path_to_tool_folder+'/Makefile'
+    makefile_content = f'''
+    platform := portable64
+    
+    BASE_DIR = ../..
+    subdirs :={subfolder}
+    
+    .PHONY: all clean $(subdirs)
+    
+    #all: $(subdirs) 
+    
+    $(subdirs): $(BASE_DIR)/qruov_config.src
+    #\tmkdir -p $@/$(platform)
+    \tgrep $@ $(BASE_DIR)/qruov_config.src > $(platform)/qruov_config.txt 
+    \tsh -c "cd $(platform) ; ln -s ../$(BASE_DIR)/$(platform)/* . || true"
+    \tsh -c "cd $(platform) ; cp -R makefile_folder/Makefile . || true"
+    #\tsh -c "cd $(platform) ; rm -r makefile_folder || true"
+    \t$(MAKE) -C $(platform)   
+    
+    clean:
+    \trm -rf $(subdirs)
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
+def makefile_qruov(path_to_makefile_folder,subfolder):
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content = f'''
+    CC=gcc
+    CFLAGS=-O3 -fomit-frame-pointer -Wno-unused-result -Wno-aggressive-loop-optimizations -I. -fopenmp # -DQRUOV_HASH_LEGACY # -ggdb3 
+    LDFLAGS=-lcrypto -Wl,-Bstatic -lcrypto -Wl,-Bdynamic -lm
+    
+    BINSEC_STATIC_FLAG  = -static
+    DEBUG_G_FLAG = -g
+    BASE_DIR = ../../{subfolder}/portable64
+    
+    EXECUTABLE_KEYPAIR	    = ../qr_uov_keypair/test_harness_crypto_sign_keypair
+    EXECUTABLE_SIGN		    = ../qr_uov_sign/test_harness_crypto_sign
+    
+    
+    OBJS=$(BASE_DIR)/Fql.o $(BASE_DIR)/mgf.o  $(BASE_DIR)/qruov.o $(BASE_DIR)/rng.o $(BASE_DIR)/sign.o $(BASE_DIR)/matrix.o
+    
+    .SUFFIXES:
+    .SUFFIXES: .rsp .req .diff .c .o .h
+    
+    .PHONY: all clean
+    
+    all: $(BASE_DIR)/qruov_config.h $(BASE_DIR)/api.h 
+    #\t./PQCgenKAT_sign
+        
+    
+    $(BASE_DIR)/qruov_config.h: $(BASE_DIR)/qruov_config_h_gen.c
+    \t${{CC}} @$(BASE_DIR)/qruov_config.txt -DQRUOV_PLATFORM=portable64 -DQRUOV_CONFIG_H_GEN ${{CFLAGS}} ${{LDFLAGS}} $(BASE_DIR)/qruov_config_h_gen.c
+    \t./$(BASE_DIR)/a.out > $(BASE_DIR)/qruov_config.h
+    \trm $(BASE_DIR)/a.out
+    
+    $(BASE_DIR)/api.h: $(BASE_DIR)/api_h_gen.c
+    \t${{CC}} -DAPI_H_GEN ${{CFLAGS}} ${{LDFLAGS}} $(BASE_DIR)/api_h_gen.c
+    \t./$(BASE_DIR)/a.out > $(BASE_DIR)/api.h
+    \trm $(BASE_DIR)/a.out
+    
+    clean:
+    \trm -f $(BASE_DIR)/PQCgenKAT_sign PQCsignKAT_*.req $(BASE_DIR)/PQCsignKAT_*.rsp $(BASE_DIR)/${{OBJS}}
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
+#=========================================  snova ======================================================================
+def makefile_snova(path_to_makefile_folder,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content_block_cflags_obj_files = f'''
+    CC = gcc
+    
+    CFLAGS = -std=c99 -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -O3 -march=native -mtune=native
+
+    BASE_DIR = ../../{subfolder}
+    
+    BUILD           = build
+    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN		= $(BUILD)/{candidate}_sign 
+    
+    KEYPAIR_FOLDER 	= {candidate}_keypair
+    SIGN_FOLDER 	= {candidate}_sign
+    '''
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+        BINSEC_STATIC_FLAG  = -static
+        DEBUG_G_FLAG = -g
+        
+        # EXECUTABLE_KEYPAIR	    = {test_harness_kpair}
+        # EXECUTABLE_SIGN		    = {test_harness_sign}
+    
+        EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_harness_kpair}
+        EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
+
+        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
+        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
+        '''
+    makefile_content_block_creating_object_files = f'''
+    #BUILD_OUT_PATH = $(BASE_DIR)/build/
+    BUILD_OUT_PATH = $(BUILD)/
+    
+    OLIST = $(BUILD_OUT_PATH)rng.o $(BUILD_OUT_PATH)snova.o
+    
+    # snova params
+    SNOVA_V = 24
+    SNOVA_O = 5
+    SNOVA_L = 4
+    SK_IS_SEED = 0 # 0: sk = ssk; 1: sk = esk 
+    TURBO = 1
+    CRYPTO_ALGNAME = "SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)"
+    SNOVA_PARAMS = -D v_SNOVA=$(SNOVA_V) -D o_SNOVA=$(SNOVA_O) -D l_SNOVA=$(SNOVA_L) -D sk_is_seed=$(SK_IS_SEED) -D CRYPTO_ALGNAME=$(CRYPTO_ALGNAME) -D TURBO=$(TURBO)
+    
+    
+    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    # $(BASE_DIR)/build/rng.o:
+    # \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/rng.o $(BASE_DIR)/rng.c -lcrypto
+    # 
+    # $(BASE_DIR)/build/snova.o: $(BASE_DIR)/build/rng.o
+    # \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c -o $(BASE_DIR)/build/snova.o $(BASE_DIR)/snova.c -lcrypto
+    # 
+    # $(BASE_DIR)/build/sign.o: $(BASE_DIR)/build/snova.o
+    # \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c -o $(BASE_DIR)/build/sign.o $(BASE_DIR)/sign.c -lcrypto
+    
+    $(BUILD)/rng.o:
+    \t$(CC) $(CFLAGS) -c -o $(BUILD)/rng.o $(BASE_DIR)/rng.c -lcrypto
+    
+    $(BUILD)/snova.o: $(BUILD)/rng.o
+    \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c -o $(BUILD)/snova.o $(BASE_DIR)/snova.c -lcrypto
+    
+    $(BUILD)/sign.o: $(BUILD)/snova.o
+    \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c -o $(BUILD)/sign.o $(BASE_DIR)/sign.c -lcrypto 
+    '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(BUILD)/sign.o
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CFLAGS)  $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAGS) $(SNOVA_PARAMS) $(OLIST) $(BUILD)/sign.o $(EXECUTABLE_KEYPAIR).c -o $(BUILD)/$@ -lcrypto
+        
+        $(EXECUTABLE_SIGN): $(BUILD)/sign.o
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(BINSEC_STATIC_FLAGS) $(DEBUG_G_FLAG) $(OLIST) $(BUILD)/sign.o $(EXECUTABLE_SIGN).c -o $(BUILD)/$@ -lcrypto
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f'''    
+        $(EXECUTABLE_KEYPAIR): $(BUILD)/sign.o
+        \tmkdir -p $(BUILD_KEYPAIR) 
+        \t$(CC) $(CFLAGS)  $(CT_GRIND_FLAGS) $(SNOVA_PARAMS) $(OLIST) $(BUILD)/sign.o $(EXECUTABLE_KEYPAIR).c -o $(BUILD)/$@ -lcrypto $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+        
+        $(EXECUTABLE_SIGN): $(BUILD)/sign.o
+        \tmkdir -p $(BUILD_SIGN) 
+        \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(CT_GRIND_FLAGS) $(OLIST) $(BUILD)/sign.o $(EXECUTABLE_SIGN).c -o $(BUILD)/$@ -lcrypto $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+        
+        '''
+    makefile_content_block_clean = f'''
+    clean:
+    \trm -f $(BASE_DIR)/build/*.o *.a
+    \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    clean_all: 
+    \trm -f $(BASE_DIR)/build/*.o $(BASE_DIR)/*.a $(BASE_DIR)/*.log $(BASE_DIR)/*.req $(BASE_DIR)/*.rsp
+    
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content_block_cflags_obj_files))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+def compile_run_snova(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
+
+
+
+#=========================================  SYMMETRIC ====================================================================
+#=======================================================================================================================
+
+#=========================================  AIMER =====================================================================
+def makefile_aimer(path_to_makefile_folder,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content_block_cflags_obj_files = f'''
+    # SPDX-License-Identifier: MIT
+
+    CC = gcc
+    CFLAGS += -I. -O3 -g -Wall -Wextra -march=native -fomit-frame-pointer
+    NISTFLAGS = -Wno-sign-compare -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-result
+    AVX2FLAGS = -mavx2 -mpclmul
+    
+    BASE_DIR = ../../{subfolder}
+    
+    SHAKE_PATH = $(BASE_DIR)/shake
+    SHAKE_LIB = libshake.a
+    LDFLAGS = $(SHAKE_PATH)/$(SHAKE_LIB)
+    
+    
+    
+    BUILD           = build
+    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN		= $(BUILD)/{candidate}_sign 
+    
+    '''
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+        BINSEC_STATIC_FLAG  = -static
+        DEBUG_G_FLAG = -g
+        
+        EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_harness_kpair}
+        EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
+
+        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
+        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
+        '''
+    makefile_content_block_creating_object_files = f'''
+    
+    .PHONY: all
+    
+    all: $(SHAKE_LIB) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    $(BUILD)/.c.o:
+    \t$(CC) -c $(CFLAGS) $< -o $@
+    
+    $(SHAKE_LIB):
+    \t$(MAKE) -C $(SHAKE_PATH)
+    '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c $(BASE_DIR)/aim128.c $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
+        \tmkdir -p $(BUILD_KEYPAIR) 
+        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(AVX2FLAGS)  -D_AIMER_L=1 $^ $(LDFLAGS) -lcrypto -o $(BUILD)/$@
+        
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c $(BASE_DIR)/aim128.c $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
+        \tmkdir -p $(BUILD_SIGN) 
+        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(AVX2FLAGS)  -D_AIMER_L=1 $^ $(LDFLAGS) -lcrypto -o $(BUILD)/$@
+    '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c $(BASE_DIR)/aim128.c $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
+        \tmkdir -p $(BUILD_KEYPAIR) 
+        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $(AVX2FLAGS)  -D_AIMER_L=1 $^ $(LDFLAGS) -lcrypto $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl -o $(BUILD)/$@
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c $(BASE_DIR)/aim128.c $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
+        \tmkdir -p $(BUILD_SIGN) 
+        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $(AVX2FLAGS)  -D_AIMER_L=1 $^ $(LDFLAGS) -lcrypto $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl -o $(BUILD)/$@
+
+        '''
+    makefile_content_block_clean = f'''
+    clean:
+    \trm -f $(wildcard *.o) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+    \t$(MAKE) -C $(SHAKE_PATH) clean   
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content_block_cflags_obj_files))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+
+def compile_run_aimer(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
+#========================================== ascon_sign ======================================================================
+
+def makefile_Ascon_sign(path_to_makefile_folder,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content_block_header = f'''
+    THASH = robust
+
+    CC=/usr/bin/gcc
+    CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
+    
+    BASE_DIR = ../../../{subfolder}
+    
+    BUILD           = build
+    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN		= $(BUILD)/{candidate}_sign
+     
+      
+    SOURCES =  $(BASE_DIR)/address.c $(BASE_DIR)/randombytes.c $(BASE_DIR)/merkle.c $(BASE_DIR)/wots.c $(BASE_DIR)/wotsx1.c $(BASE_DIR)/utils.c $(BASE_DIR)/utilsx1.c $(BASE_DIR)/fors.c $(BASE_DIR)/sign.c
+    
+    SOURCES += $(BASE_DIR)/hash_ascon.c $(BASE_DIR)/ascon_opt64/ascon.c $(BASE_DIR)/ascon_opt64/permutations.c  $(BASE_DIR)/thash_ascon_$(THASH).c
+    
+    
+    DET_SOURCES = $(SOURCES:randombytes.%=rng.%)
+    '''
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+        BINSEC_STATIC_FLAG      = -static
+        DEBUG_G_FLAG          = -g
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
+        
+        default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+    
+        all:  $(EXECUTABLE_KEYPAIR)  $(EXECUTABLE_SIGN) 
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
+        
+        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
+        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
+    
+        default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+    
+        all:  $(EXECUTABLE_KEYPAIR)  $(EXECUTABLE_SIGN) 
+        '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto
+    
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $(DEBUG_G_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $(DEBUG_G_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+        
+            '''
+    makefile_content_block_clean = f'''
+    clean:
+    \t-$(RM)  $(EXECUTABLE_SIGN)
+    \t-$(RM)  $(EXECUTABLE_KEYPAIR) 
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content_block_header))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+
+def compile_run_Ascon_sign(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
+
+#========================================== faest ======================================================================
+
+def makefile_faest(path_to_makefile_folder,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content_block_header = f'''
+    CC?=gcc
+    CXX?=g++
+    CFLAGS+=-g -O2 -march=native -mtune=native -std=c11
+    CPPFLAGS+=-DHAVE_OPENSSL -DNDEBUG -MMD -MP -MF $*.d
+    
+    SRC_DIR = ../../{subfolder} 
+    BUILD           = build
+    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN		= $(BUILD)/{candidate}_sign
+    
+    SOURCES=$(filter-out  $(SRC_DIR)/PQCgenKAT_sign.c ,$(wildcard $(SRC_DIR)/*.c)) $(wildcard $(SRC_DIR)/*.s)
+    LIBFAEST=libfaest.a
+    '''
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+        \tBINSEC_STATIC_FLAG  = -static
+        \tDEBUG_G_FLAG = -g
+        
+        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_harness_kpair}
+        \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_harness_sign} 
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
+        
+        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{taint}
+        \tEXECUTABLE_SIGN		 = {candidate}_sign/{taint}  
+        '''
+    makefile_content_block_creating_object_files = f'''    
+    
+    all: $(LIBFAEST) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    .PHONY: all
+    
+    $(LIBFAEST): $(SOURCES:.c=.o) $(SOURCES:.s=.o)
+    \tar rcs $@ $^
+    '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(LIBFAEST)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(EXECUTABLE_KEYPAIR).c $(BINSEC_STATIC_FLAG) $(LIBFAEST)
+    
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(LIBFAEST)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -o $(BUILD)/$(EXECUTABLE_SIGN) $(EXECUTABLE_SIGN).c $(BINSEC_STATIC_FLAG) $(LIBFAEST)
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(LIBFAEST)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CT_GRIND_FLAGS) -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(EXECUTABLE_KEYPAIR).c  $(LIBFAEST) -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+    
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(LIBFAEST)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(CT_GRIND_FLAGS) -o $(BUILD)/$(EXECUTABLE_SIGN) $(EXECUTABLE_SIGN).c  $(LIBFAEST) -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+        
+        '''
+    makefile_content_block_clean = f'''
+    clean: 
+    \trm -f $(SRC_DIR)/*.d $(SRC_DIR)/*.o $(LIBFAEST) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    .PHONY: clean
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content_block_header))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+
+def compile_run_faest(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
+
+#========================================== Sphincs-alpha ======================================================================
+def makefile_sphincs_alpha(path_to_makefile_folder,subfolder,tool_type,candidate):
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content_block_header = f'''
+    PARAMS = {subfolder}
+    #PARAMS = sphincs-a-sha2-128f
+    THASH = simple
+    
+    CC=/usr/bin/gcc
+    CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
+    
+    BASE_DIR = ../../{subfolder}
+    '''
+    makefile_content_block_object_files = f'''
+    SOURCES =          $(BASE_DIR)/address.c $(BASE_DIR)/randombytes.c $(BASE_DIR)/merkle.c $(BASE_DIR)/wots.c $(BASE_DIR)/wotsx1.c $(BASE_DIR)/utils.c $(BASE_DIR)/utilsx1.c $(BASE_DIR)/fors.c $(BASE_DIR)/sign.c $(BASE_DIR)/uintx.c
+    HEADERS = $(BASE_DIR)/params.h $(BASE_DIR)/address.h $(BASE_DIR)/randombytes.h $(BASE_DIR)/merkle.h $(BASE_DIR)/wots.h $(BASE_DIR)/wotsx1.h $(BASE_DIR)/utils.h $(BASE_DIR)/utilsx1.h $(BASE_DIR)/fors.h $(BASE_DIR)/api.h  $(BASE_DIR)/hash.h $(BASE_DIR)/thash.h $(BASE_DIR)/uintx.h
+    
+    ifneq (,$(findstring shake,$(PARAMS)))
+    \tSOURCES += $(BASE_DIR)/fips202.c $(BASE_DIR)/hash_shake.c $(BASE_DIR)/thash_shake_$(THASH).c
+    \tHEADERS += $(BASE_DIR)/fips202.h
+    endif
+    ifneq (,$(findstring haraka,$(PARAMS)))
+    \tSOURCES += $(BASE_DIR)/haraka.c $(BASE_DIR)/hash_haraka.c $(BASE_DIR)/thash_haraka_$(THASH).c
+    \tHEADERS += $(BASE_DIR)/haraka.h
+    endif
+    ifneq (,$(findstring sha2,$(PARAMS)))
+    \tSOURCES += $(BASE_DIR)/sha2.c $(BASE_DIR)/hash_sha2.c $(BASE_DIR)/thash_sha2_$(THASH).c
+    \tHEADERS += $(BASE_DIR)/sha2.h
+    endif
+    
+    DET_SOURCES = $(SOURCES:randombytes.%=rng.%)
+    DET_HEADERS = $(HEADERS:randombytes.%=rng.%)
+    
+    BUILD           = build
+    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN		= $(BUILD)/{candidate}_sign
+    '''
+
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+        \tBINSEC_STATIC_FLAG  = -static
+        \tDEBUG_G_FLAG = -g
+        
+        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_harness_kpair}
+        \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_harness_sign} 
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
+        
+        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{taint}
+        \tEXECUTABLE_SIGN		 = {candidate}_sign/{taint}
+        
+        '''
+    makefile_content_block_all_target = f''' 
+    .PHONY: clean 
+    
+    default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES) $(DET_HEADERS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CFLAGS) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto
+            
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES) $(DET_HEADERS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(CFLAGS) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES) $(DET_HEADERS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+            
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES) $(DET_HEADERS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN) 
+        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+        '''
+    makefile_content_block_clean = f''' 
+    clean:
+    \t-$(RM) $(EXECUTABLE_KEYPAIR)
+    \t-$(RM) $(EXECUTABLE_SIGN)
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content_block_header))
+        mfile.write(textwrap.dedent(makefile_content_block_object_files))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_all_target))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+def compile_run_sphincs_alpha(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
+#========================================== Sphincs-alpha ======================================================================
+def preon_subfolder_parser(subfolder):
+    subfold_basename = os.path.basename(subfolder)
+    subfold_basename_split = subfold_basename.split('Preon')
+    security_level_labeled = subfold_basename_split[-1]
+    security_level = security_level_labeled[:3]
+    return security_level,security_level_labeled
+
+def makefile_preon(path_to_makefile_folder,subfolder,tool_type,candidate):
+    security_level,security_level_labeled = preon_subfolder_parser(subfolder)
+    tool = GenericPatterns(tool_type)
+    test_harness_kpair = ""
+    test_harness_sign = ""
+    taint = ""
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content_block_header = f''' 
+    CC = cc
+    CFLAGS := ${{CFLAGS}} -DUSE_PREON{security_level_labeled} -DAES{security_level}=1 -DUSE_PRNG -O3
+    LFLAGS := ${{LFLAGS}} -lm -lssl -lcrypto
+    
+   
+    BASE_DIR = ../../../{subfolder}
+    
+    BUILD           = build
+    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+    SRC_FILES := $(filter-out  $(BASE_DIR)/PQCgenKAT_sign.c ,$(wildcard $(BASE_DIR)/*.c))
+    '''
+    makefile_content_block_tool_flags_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        test_harness_kpair = tool.binsec_test_harness_keypair
+        test_harness_sign = tool.binsec_test_harness_sign
+        makefile_content_block_tool_flags_binary_files = f'''
+        \tBINSEC_STATIC_FLAG  = -static
+        \tDEBUG_G_FLAG = -g
+        
+        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_harness_kpair}
+        \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_harness_sign} 
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        taint = tool.ctgrind_taint
+        makefile_content_block_tool_flags_binary_files = f'''
+        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
+        
+        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{taint}
+        \tEXECUTABLE_SIGN		 = {candidate}_sign/{taint}
+        '''
+    makefile_content_block_all_target_and_object_files = f'''
+    all:  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    
+    %.o: %.c
+    \t@$(CC) $(CFLAGS) -c $< -o $@
+    '''
+    makefile_content_block_binary_files = ""
+    if tool_type.lower() == 'binsec':
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(SRC_FILES)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG)  -o $(BUILD)/$@ $(SRC_FILES) $< $(LFLAGS)
+        
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(SRC_FILES)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG) -o $(BUILD)/$@ $(SRC_FILES) $< $(LFLAGS)
+        '''
+    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        makefile_content_block_binary_files = f'''
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(SRC_FILES)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS)  -o $(BUILD)/$@ $(SRC_FILES) $< $(LFLAGS) -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+        
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(SRC_FILES)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $(SRC_FILES) $< $(LFLAGS) -L. $(CT_GRIND_SHAREDLIB_PATH)libctgrind.so -lctgrind -lssl
+        '''
+    makefile_content_block_clean = f'''
+    .PHONY: clean  
+    
+    clean:
+    \t@rm -f $(BASE_DIR)/*.o 
+    \t@rm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content_block_header))
+        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_all_target_and_object_files))
+        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content_block_clean))
+
+
+def compile_run_preon(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,to_compile,to_run,depth,build_folder,binary_patterns):
+    add_includes = []
+    compile_with_cmake = 'no'
+    generic_compile_run_candidate(tools_list,signature_type,candidate,optimized_imp_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile_with_cmake,add_includes,to_compile,to_run,depth,build_folder,binary_patterns)
+
 
 #======================================= CLI: use argparse module ======================================================
 #=======================================================================================================================
 
 # Create a parser
-parser = argparse.ArgumentParser(prog="NIST-Signature" ,description="Constant-timeness Analysis with Binsec/Rel")
+parser = argparse.ArgumentParser(prog="NIST-Signature" ,description="Constant-timeness Analysis with Binsec/Rel",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+# parser = argparse.ArgumentParser(
+#     # ... other options ...
+#     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 # Create a sub-parser
-subparser = parser.add_subparsers(dest='binsec_test')
+subparser = parser.add_subparsers(help="",dest='binsec_test')
 
 
 
@@ -2415,7 +3505,7 @@ cross_init_compile_run = subparser.add_parser('compile_run_cross', help='cross: 
 mira_init_compile_run = subparser.add_parser('compile_run_mira', help='mira: create test harness, configuration files,\
                                     and required Makefile to compile   (and) run binsec )')
 mirith_init_compile_run = subparser.add_parser('compile_run_mirith', help='mirith: create test harness, configuration files,\
-                                    and required Makefile to compile   (and) run binsec )')
+                                    and required Makefile to compile   (and) run binsec )',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 perk_init_compile_run = subparser.add_parser('compile_run_perk', help='perk: create test harness, configuration files,\
                                     and required Makefile to compile   (and) run binsec )')
 mqom_init_compile_run = subparser.add_parser('compile_run_mqom', help='mqom: create test harness, configuration files,\
@@ -2424,10 +3514,40 @@ ryde_init_compile_run = subparser.add_parser('compile_run_ryde', help='ryde: cre
                                     and required Makefile to compile   (and) run binsec )')
 
 #********************** CODE *******************************************************************************************
-pqsigrm_init_compile_run = subparser.add_parser('compile_run_pqsigRM', help='pqsigRM: create test harness, configuration files,\
+pqsigrm_init_compile_run = subparser.add_parser('compile_run_pqsigRM', help='pqsigrm: create test harness, configuration files,\
                                     and required Makefile to compile   (and) run binsec )')
 less_init_compile_run = subparser.add_parser('compile_run_less', help='less: create test harness, configuration files,\
                                     and required Makefile to compile   (and) run binsec )')
+
+
+#********************** LATTICE *******************************************************************************************
+squirrels_init_compile_run = subparser.add_parser('compile_run_squirrels', help='squirrels: create test harness, configuration files,\
+                                    and required Makefile to compile   (and) run binsec )',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+haetae_init_compile_run = subparser.add_parser('compile_run_haetae', help='haetae: create test harness, configuration files,\
+                                    and required CMakeLists to compile   (and) run binsec )',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+
+#********************** MULTIVARIATE *******************************************************************************************
+snova_init_compile_run = subparser.add_parser('compile_run_snova', help='snova: create test harness, configuration files,\
+                                    and required Makefile to compile   (and) run binsec )',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+#********************** SYMMETRIC *******************************************************************************************
+aimer_init_compile_run = subparser.add_parser('compile_run_aimer', help='aimer: create test harness, configuration files,\
+                                    and required Makefile to compile   (and) run binsec )',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+Ascon_sign_init_compile_run = subparser.add_parser('compile_run_Ascon_sign', help='ascon_sign: create test harness, configuration files,\
+                                    and required Makefile to compile   (and) run binsec )',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+faest_init_compile_run = subparser.add_parser('compile_run_faest', help='faest: create test harness, configuration files,\
+                                    and required Makefile to compile   (and) run binsec )',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+sphincs_alpha_init_compile_run = subparser.add_parser('compile_run_sphincs_alpha', help='sphincs: create test harness, configuration files,\
+                                    and required Makefile to compile   (and) run binsec )')
+
+#********************** OTHER *******************************************************************************************
+preon_init_compile_run = subparser.add_parser('compile_run_preon', help='preon: create test harness, configuration files,\
+                                    and required Makefile to compile   (and) run binsec )',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 
 #********************** MPC-IN-THE-HEAD ********************************************************************************
@@ -2483,7 +3603,7 @@ if 'ct_grind' in mirith_default_list_of_folders:
     mirith_default_list_of_folders.remove('ct_grind')
 
 
-mirith_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
+mirith_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list,help = 'Mirith tools')
 mirith_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='mpc-in-the-head')
 mirith_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='mirith')
 mirith_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
@@ -2576,11 +3696,11 @@ ryde_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=d
 
 
 #********************** CODE *******************************************************************************************
-#===================== pqsigRM ============================================================================================
+#===================== pqsigrm ============================================================================================
 pqsigrm_default_list_of_folders = []
 pqsigrm_init_compile_run.add_argument('--tools','-tools' ,dest='tools', nargs='+', default=default_tools_list)
 pqsigrm_init_compile_run.add_argument('--signature_type', '-type',dest='type',type=str,default='code')
-pqsigrm_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='pqsigRM')
+pqsigrm_init_compile_run.add_argument('--candidate', '-candidata',dest='candidate',type=str,default='pqsigrm')
 pqsigrm_init_compile_run.add_argument('--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default='Optimized_Implementation')
 pqsigrm_init_compile_run.add_argument('--instance_folders_list', nargs='+', default=pqsigrm_default_list_of_folders)
 pqsigrm_init_compile_run.add_argument('--rel_path_to_api', '-api',dest='api',type=str, default='"../../pqsigrm613/src/api.h"')
@@ -2608,8 +3728,142 @@ less_init_compile_run.add_argument('--algorithms_patterns', nargs='+', default=d
 
 
 
+
+#********************** LATTICE ****************************************************************************************
+#===================== squirrels =======================================================================================
+squirrels_opt_folder = "lattice/squirrels/Optimized_Implementation"
+squirrels_default_list_of_folders = os.listdir(squirrels_opt_folder)
+if 'binsec' in squirrels_default_list_of_folders:
+    squirrels_default_list_of_folders.remove('binsec')
+if 'ctgrind' in squirrels_default_list_of_folders:
+    squirrels_default_list_of_folders.remove('ctgrind')
+if 'ct_grind' in ryde_default_list_of_folders:
+    squirrels_default_list_of_folders.remove('ct_grind')
+#print("---------GLOBAL: squirrels_default_list_of_folders",squirrels_default_list_of_folders)
+squirrels_signature_type = 'lattice'
+add_cli_arguments('lattice','squirrels','Optimized_Implementation','"../../../api.h"')
+
+
+#===================== haetae =======================================================================================
+
+haetae_default_list_of_folders = []
+print("---------GLOBAL: haetae_default_list_of_folders",haetae_default_list_of_folders)
+# if 'binsec' in haetae_default_list_of_folders:
+#     haetae_default_list_of_folders.remove('binsec')
+# if 'ctgrind' in haetae_default_list_of_folders:
+#     haetae_default_list_of_folders.remove('ctgrind')
+# if 'ct_grind' in haetae_default_list_of_folders:
+#     haetae_default_list_of_folders.remove('ct_grind')
+add_cli_arguments('lattice','haetae','Optimized_Implementation','"../../include/api.h"')
+
+
+
+#********************** MULTIVARIATE ********************************************************************************
+#===================== snova =======================================================================================
+snova_opt_folder = "multivariate/snova/Optimized_Implementation"
+snova_default_list_of_folders = os.listdir(snova_opt_folder)
+if 'binsec' in snova_default_list_of_folders:
+    snova_default_list_of_folders.remove('binsec')
+if 'ctgrind' in snova_default_list_of_folders:
+    snova_default_list_of_folders.remove('ctgrind')
+if 'ct_grind' in snova_default_list_of_folders:
+    snova_default_list_of_folders.remove('ct_grind')
+
+add_cli_arguments('multivariate','snova','Optimized_Implementation','"../../../api.h"')
+
+
+#********************** SYMMETRIC ********************************************************************************
+#===================== aimer =======================================================================================
+aimer_opt_folder = "symmetric/aimer/AIMer_submission/Optimized_Implementation"
+aimer_default_list_of_folders = os.listdir(aimer_opt_folder)
+if 'binsec' in aimer_default_list_of_folders:
+    aimer_default_list_of_folders.remove('binsec')
+if 'ctgrind' in aimer_default_list_of_folders:
+    aimer_default_list_of_folders.remove('ctgrind')
+if 'ct_grind' in aimer_default_list_of_folders:
+    aimer_default_list_of_folders.remove('ct_grind')
+
+add_cli_arguments('symmetric','aimer','AIMer_submission/Optimized_Implementation','"../../../api.h"')
+
+#===================== ascon_sign =======================================================================================
+ascon_opt_folder = "symmetric/ascon_sign/Optimized_Implementation"
+ascon_default_robust_and_simple_folders = os.listdir(ascon_opt_folder)
+ascon_default_robust_and_simple_folders.remove('Readme')
+if 'binsec' in ascon_default_robust_and_simple_folders:
+    ascon_default_robust_and_simple_folders.remove('binsec')
+if 'ctgrind' in ascon_default_robust_and_simple_folders:
+    ascon_default_robust_and_simple_folders.remove('ctgrind')
+if 'ct_grind' in ascon_default_robust_and_simple_folders:
+    ascon_default_robust_and_simple_folders.remove('ct_grind')
+
+ascon_robust = ascon_default_robust_and_simple_folders[0]
+ascon_simple = ascon_default_robust_and_simple_folders[1]
+ascon_default_list_of_folders = []
+abs_path_to_ascon_robust = ascon_opt_folder+"/"+ascon_robust
+abs_path_to_ascon_simple = ascon_opt_folder+"/"+ascon_simple
+ascon_default_list_of_folders.extend([ascon_robust+"/"+subfold for subfold in os.listdir(abs_path_to_ascon_robust)])
+ascon_default_list_of_folders.extend([ascon_simple+"/"+subfold for subfold in os.listdir(abs_path_to_ascon_simple)])
+
+add_cli_arguments('symmetric','ascon_sign','Optimized_Implementation','"../../../../api.h"')
+
+
+#===================== faest =======================================================================================
+faest_opt_folder = "symmetric/faest/Additional_Implementations/avx2"
+faest_default_list_of_folders = os.listdir(faest_opt_folder)
+if 'binsec' in faest_default_list_of_folders:
+    faest_default_list_of_folders.remove('binsec')
+if 'ctgrind' in faest_default_list_of_folders:
+    faest_default_list_of_folders.remove('ctgrind')
+if 'ct_grind' in faest_default_list_of_folders:
+    faest_default_list_of_folders.remove('ct_grind')
+
+add_cli_arguments('symmetric','faest','Additional_Implementations/avx2','"../../../api.h"')
+
+#===================== Sphincs ============================================================================================
+sphincs_opt_folder = "symmetric/sphincs_alpha/Optimized_Implementation"
+sphincs_default_list_of_folders = os.listdir(sphincs_opt_folder)
+if 'binsec' in sphincs_default_list_of_folders:
+    sphincs_default_list_of_folders.remove('binsec')
+if 'ctgrind' in sphincs_default_list_of_folders:
+    sphincs_default_list_of_folders.remove('ctgrind')
+if 'ct_grind' in sphincs_default_list_of_folders:
+    sphincs_default_list_of_folders.remove('ct_grind')
+
+add_cli_arguments('symmetric','sphincs_alpha','Optimized_Implementation','"../../../api.h"')
+
+
+#********************** OTHER *******************************************************************************************
+#===================== preon ============================================================================================
+preon_opt_folder = "other/preon/Optimized_Implementation"
+preon_default_128_192_256_folders = os.listdir(preon_opt_folder)
+if 'binsec' in preon_default_128_192_256_folders:
+    preon_default_128_192_256_folders.remove('binsec')
+if 'ctgrind' in preon_default_128_192_256_folders:
+    preon_default_128_192_256_folders.remove('ctgrind')
+if 'ct_grind' in preon_default_128_192_256_folders:
+    preon_default_128_192_256_folders.remove('ct_grind')
+
+preon_128 = preon_default_128_192_256_folders[0]
+preon_192 = preon_default_128_192_256_folders[1]
+preon_256 = preon_default_128_192_256_folders[2]
+preon_default_list_of_folders = []
+abs_path_to_preon_128 = preon_opt_folder+"/"+preon_128
+abs_path_to_ascon_192 = preon_opt_folder+"/"+preon_192
+abs_path_to_ascon_256 = preon_opt_folder+"/"+preon_256
+preon_default_list_of_folders.extend([preon_128+"/"+subfold for subfold in os.listdir(abs_path_to_preon_128)])
+preon_default_list_of_folders.extend([preon_192+"/"+subfold for subfold in os.listdir(abs_path_to_ascon_192)])
+preon_default_list_of_folders.extend([preon_256+"/"+subfold for subfold in os.listdir(abs_path_to_ascon_256)])
+
+add_cli_arguments('other','preon','Optimized_Implementation','"../../../../api.h"')
+
+
+
+
+
 #set all the command-line arguments into the object args
 args = parser.parse_args()
+
+
 if args.binsec_test == "compile_run_cross":
     tools_list = args.tools
     signature_type = args.type
@@ -2722,4 +3976,122 @@ if args.binsec_test == "compile_run_less":
     build_folder = args.build
     binary_patterns = args.algorithms_patterns
     compile_run_less(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+if args.binsec_test == "compile_run_squirrels":
+    #add_cli_arguments(squirrels_signature_type,'squirrels','Optimized_Implementation','"../../include/api.h"')
+    #run_cli_candidate('squirrels')
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_squirrels(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+if args.binsec_test == "compile_run_haetae":
+    #add_cli_arguments(squirrels_signature_type,'squirrels','Optimized_Implementation','"../../include/api.h"')
+    #run_cli_candidate('squirrels')
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_haetae(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+if args.binsec_test == "compile_run_snova":
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_snova(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+if args.binsec_test == "compile_run_aimer":
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_aimer(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+if args.binsec_test == "compile_run_Ascon_sign":
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_Ascon_sign(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+if args.binsec_test == "compile_run_faest":
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_faest(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+if args.binsec_test == "compile_run_sphincs_alpha":
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_sphincs_alpha(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+if args.binsec_test == "compile_run_preon":
+    tools_list = args.tools
+    signature_type = args.type
+    candidate = args.candidate
+    optimization_folder = args.ref_opt
+    instance_folders_list = args.instance_folders_list
+    rel_path_to_api = args.api
+    rel_path_to_sign = args.sign
+    compile = args.compile
+    run = args.run
+    depth = args.depth
+    build_folder = args.build
+    binary_patterns = args.algorithms_patterns
+    compile_run_preon(tools_list,signature_type,candidate,optimization_folder,instance_folders_list,rel_path_to_api,rel_path_to_sign,compile,run,depth,build_folder,binary_patterns)
+
+
 
