@@ -15,117 +15,6 @@ import tools as tool
 # ===============================================================
 
 # ================================ MIRITH ========================
-def makefile_mirith1(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
-    path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block1 = f'''
-    CC=gcc
-    CFLAGS=-std=c11 -Wall -Wextra -pedantic -mavx2 -g 
-    
-    BASE_DIR = ../../{subfolder}
-    
-    
-    DEPS=$(wildcard $(BASE_DIR)/*.h)
-    OBJ=$(patsubst $(BASE_DIR)/%.c,$(BASE_DIR)/%.o,$(wildcard $(BASE_DIR)/*.c)) 
-    OBJ+=$(patsubst $(BASE_DIR)/%.s,$(BASE_DIR)/%.o,$(wildcard $(BASE_DIR)/*.s))
-    
-    UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Linux)
-    \tASMFLAGS := ${{CFLAGS}}
-    endif
-    ifeq ($(UNAME_S),Darwin)
-    \tASMFLAGS := ${{CFLAGS}} -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1
-    endif
-    
-    BUILD					= build
-    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-    BUILD_SIGN			= $(BUILD)/{candidate}_sign
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG  = -static
-    
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        
-        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        CT_GRIND_FLAGS = -Wall -ggdb  -std=c99  -Wextra -lm
-        CT_GRIND_SHAREDLIB_PATH = /usr/lib/
-    
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        
-        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-        '''
-    if 'dudect' in tool_type.lower():
-        dude = tool.dudect_dude
-        makefile_content_block_tool_flags_binary_files = f'''
-        DUDECT_FLAGS = -std=c11
-        LIBS += -lm
-        
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{dude}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{dude}
-        
-        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-        '''
-    makefile_content_block_object_files = f'''
-    %.o: %.s
-    \t$(CC) -c $(ASMFLAGS) -o $@ $<
-    
-    %.o: %.c $(DEPS)
-    \t$(CC) -c $(CFLAGS) -o $@ $<
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).o $(OBJ)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(LIBDIR) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) $(BINSEC_STATIC_FLAG)
-        
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).o $(OBJ)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(LIBDIR) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) $(BINSEC_STATIC_FLAG)
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).o $(OBJ)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) ${{LIBDIR}} $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) -L. -lctgrind 
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).o $(OBJ)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) ${{LIBDIR}} $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) -L. -lctgrind  
-        '''
-    if 'dudect' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).o $(OBJ)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) ${{LIBDIR}} $(DUDECT_FLAGS) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) -L. -lctgrind 
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).o $(OBJ)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) ${{LIBDIR}} $(DUDECT_FLAGS) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) -L. -lctgrind  
-        '''
-    makefile_content_block_clean = f'''
-    .PHONY: clean
-      
-    clean:
-    \trm -f $(BASE_DIR)/*.o $(BASE_DIR)/*.su
-    \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
-    '''
-    with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block1))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
-
-
 def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate):
     tool_type = tool.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
@@ -187,12 +76,13 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate):
         mfile.write(textwrap.dedent(makefile_content))
 
 
-
 # ========================================== PERK ============================
-def makefile_perk(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block1 = f'''   
+    makefile_content = f'''   
     CC = gcc
     CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-all-loops -march=native 
     -Wimplicit-function-declaration -Wredundant-decls
@@ -208,34 +98,18 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_type, candidate):
     BIN_DIR:=$(BUILD_DIR)/bin
     LIB_DIR:=$(BASE_DIR)/lib
     SRC_DIR:=$(BASE_DIR)/src
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_FLAGS  = -static -g
-        
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        
-        BUILD					= $(BUILD_DIR)
-        BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN			= $(BUILD)/{candidate}_sign
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm 
     
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}  
-        
-        BUILD					= $(BUILD_DIR)
-        BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN			= $(BUILD)/{candidate}_sign  
-        '''
-    makefile_content_block_object_files = f'''    
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+    
+    BUILD					= $(BUILD_DIR)
+    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN			= $(BUILD)/{candidate}_sign
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+    
+      
     # exclude sources from "find"
     EXCL_SRC:=! -name $(notdir $(MAIN_PERK_SRC)) \
               ! -name $(notdir $(MAIN_KAT_SRC))
@@ -284,58 +158,37 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_type, candidate):
     $(PERK_OBJS): $(BUILD_DIR)/%$(EXT).o: %.c
     \t@echo -e "### Compiling perk-128-fast-3 file $@"
     \t@mkdir -p $(dir $@)
-    \t$(CC) $(CFLAGS) -c $< $(PERK_INCLUDE) -o $@'''
-
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        # main targets
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c  $(PERK_OBJS) $(LIB_OBJS)
-        \t@echo -e "### Compiling PERK Test harness keypair"
-        \t@mkdir -p $(dir $@)
-        \tmkdir -p $(BUILD_KEYPAIR) 
-        \t$(CC) $(CFLAGS) $(BINSEC_FLAGS) -Wno-strict-prototypes -Wno-unused-result \
-            $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $(LDFLAGS)
-            
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c  $(PERK_OBJS) $(LIB_OBJS)
-        \t@echo -e "### Compiling PERK Test harness sign"
-        \t@mkdir -p $(dir $@) 
-        \tmkdir -p $(BUILD_SIGN) 
-        \t$(CC) $(CFLAGS) $(BINSEC_FLAGS) -Wno-strict-prototypes -Wno-unused-result \
-            $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $(LDFLAGS)
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''    
-        # main targets
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c  $(PERK_OBJS) $(LIB_OBJS)
-        \t@echo -e "### Compiling PERK Taint keypair"
-        \t@mkdir -p $(dir $@)
-        \tmkdir -p $(BUILD_KEYPAIR) 
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $^ $(LDFLAGS) -L. -lctgrind 
-            
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c  $(PERK_OBJS) $(LIB_OBJS)
-        \t@echo -e "### Compiling PERK Taint sign"
-        \t@mkdir -p $(dir $@)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $^ $(LDFLAGS) -L. -lctgrind
-        '''
-    makefile_content_block_clean = f'''
+    \t$(CC) $(CFLAGS) -c $< $(PERK_INCLUDE) -o $@
+    
+    # main targets
+    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c  $(PERK_OBJS) $(LIB_OBJS)
+    \t@echo -e "### Compiling PERK Test harness keypair"
+    \t@mkdir -p $(dir $@)
+    \tmkdir -p $(BUILD_KEYPAIR) 
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) $(TOOL_LIBS) -Wno-strict-prototypes -Wno-unused-result \
+        $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $(LDFLAGS)
+        
+    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c  $(PERK_OBJS) $(LIB_OBJS)
+    \t@echo -e "### Compiling PERK Test harness sign"
+    \t@mkdir -p $(dir $@) 
+    \tmkdir -p $(BUILD_SIGN) 
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) $(TOOL_LIBS) -Wno-strict-prototypes -Wno-unused-result \
+        $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $(LDFLAGS)
+    
     clean:
     \trm -rf $(BUILD_DIR) 
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block1))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # ============================== MQOM ================================
-def makefile_mqom(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags_obj_files = f'''    
+    makefile_content = f'''    
     CC?=gcc
     ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow 
     -DPARAM_HYPERCUBE_7R -DPARAM_GF31 -DPARAM_L1 -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4 
@@ -354,42 +207,17 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_type, candidate):
     HASH_PATH=$(BASE_DIR)/sha3
     HASH_MAKE_OPTIONS=PLATFORM=avx2 
     HASH_INCLUDE=-I$(BASE_DIR)/sha3 -I. -I$(BASE_DIR)/sha3/avx2
-    '''
-
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG  = -static
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        
-        EXECUTABLE_KEYPAIR_OBJ	    = {candidate}keypair/{test_harness_kpair}.o $(BASE_DIR)/generator/rng.o
-        EXECUTABLE_SIGN_OBJ		    = {candidate}_sign/{test_harness_sign}.o $(BASE_DIR)/generator/rng.o
-        
-        BUILD					= build
-        BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN			= $(BUILD)/{candidate}_sign 
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm 
-        CT_GRIND_SHAREDLIB_PATH = /usr/lib/
     
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}  
-        
-        EXECUTABLE_KEYPAIR_OBJ	    = {candidate}_keypair/{taint}.o $(BASE_DIR)/generator/rng.o
-        EXECUTABLE_SIGN_OBJ		    = {candidate}_sign/{taint}.o $(BASE_DIR)/generator/rng.o
-        
-        BUILD					= build
-        BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN			= $(BUILD)/{candidate}_sign  
-        '''
-
-    makefile_content_block_object_files = f'''
+    BUILD					= $(BUILD_DIR)
+    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN			= $(BUILD)/{candidate}_sign
+    
+    EXECUTABLE_KEYPAIR_OBJ	    = {candidate}keypair/{test_keypair}.o $(BASE_DIR)/generator/rng.o
+    EXECUTABLE_SIGN_OBJ		    = {candidate}_sign/{test_sign}.o $(BASE_DIR)/generator/rng.o
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+    
     
     %.o : %.c
     \t$(CC) -c $(ALL_FLAGS) $(HASH_INCLUDE) -I. $< -o $@
@@ -398,38 +226,19 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     libhash:
     \t$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH)
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
-        \tmkdir -p $(BUILD) 
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(EXECUTABLE_KEYPAIR_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) \
-        $(BINSEC_STATIC_FLAG) $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto -o $(BUILD)/$@
-        
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(BINSEC_STATIC_FLAG)\
-         $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto -o $(BUILD)/$@
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(EXECUTABLE_KEYPAIR_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(CT_GRIND_FLAGS) \
-        $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto -lctgrind -o $(BUILD)/$@
-        
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(CT_GRIND_FLAGS) \
-        $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto -lctgrind -o $(BUILD)/$@
-        # Cleaning
-        '''
-    makefile_content_block_clean = f'''
+    
+    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
+    \tmkdir -p $(BUILD) 
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(EXECUTABLE_KEYPAIR_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) \
+    $(TOOL_FLAGS) $(ALL_FLAGS) -L$(HASH_PATH) -L. $(TOOL_LIBS) -lhash -lcrypto -o $(BUILD)/$@
+    
+    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(TOOL_FLAGS)\
+         $(ALL_FLAGS) -L$(HASH_PATH) -L. $(TOOL_LIBS) -lhash -lcrypto -o $(BUILD)/$@
+
     clean:
     \trm -f $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ)
     \trm -f $(EXECUTABLE_KEYPAIR_OBJ) $(EXECUTABLE_SIGN_OBJ)  
@@ -437,21 +246,16 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_type, candidate):
     \t$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH) clean
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags_obj_files))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # ============================= RYDE ===========================================
-def makefile_ryde(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
-    test_harness_kpair = ""
-    test_harness_sign = ""
-    taint = ""
+def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags_obj_files = f''' 
+    makefile_content = f''' 
     SCRIPT_VERSION=v1.0
     SCRIPT_AUTHOR=RYDE team
     
@@ -487,42 +291,20 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_type, candidate):
     #BIN:=bin
     BUILD:=build
     BIN:=build/bin
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tBINSEC_STATIC_FLAG  = -static
-        \tDEBUG_G_FLAG = -g
+    
+    
+    \tEXECUTABLE_KEYPAIR	    = {test_keypair}
+    \tEXECUTABLE_SIGN		    = {test_sign}
+    
+    \tBUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+    \tBUILD_SIGN			= $(BUILD)/{candidate}_sign
+    
+    \tSRC_KEYPAIR	    	= {candidate}_keypair/{test_keypair}.c
+    \tSRC_SIGN		    	= {candidate}_sign/{test_keypair}.c
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
         
-        \tKEYPAIR_FOLDER 			= {candidate}_keypair
-        \tSIGN_FOLDER 			= {candidate}_sign
-        \tEXECUTABLE_KEYPAIR	    = {test_harness_kpair}
-        \tEXECUTABLE_SIGN		    = {test_harness_sign}
-        
-        \tSRC_KEYPAIR	    		= {candidate}_keypair/{test_harness_kpair}.c
-        \tSRC_SIGN		    	= {candidate}_sign/{test_harness_sign}.c
-        
-        \tBUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-        \tBUILD_SIGN			= $(BUILD)/{candidate}_sign
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
-        
-        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        
-        \tSRC_KEYPAIR	    	= {candidate}_keypair/{taint}.c
-        \tSRC_SIGN		    	= {candidate}_sign/{taint}.c  
-        
-        \tBUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-        \tBUILD_SIGN			= $(BUILD)/{candidate}_sign 
-        '''
-    makefile_content_block_creating_folders = f'''
     folders:
     \t@echo -e "### Creating build folders"
     \tmkdir -p $(BUILD)
@@ -547,45 +329,24 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     %.o: $(SRC)/%.c | folders
     \t@echo -e "### Compiling $@"
-    \t$(CC) $(C_FLAGS) -c $< $(INCLUDE) -o $(BIN)/$@ '''
+    \t$(CC) $(C_FLAGS) -c $< $(INCLUDE) -o $(BIN)/$@ 
 
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
-        
+    default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
     
-        $(EXECUTABLE_KEYPAIR): $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build build {test_harness_kpair}
-        \t@echo -e "### Compiling test harness keypair"
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG) $(C_FLAGS) $(SRC_KEYPAIR) $(addprefix $(BIN)/, $^) \
-        $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@
+
+    $(EXECUTABLE_KEYPAIR): $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build build {test_keypair}
+    \t@echo -e "### Compiling test harness keypair"
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(TOOL_FLAGS) $(TOOL_LIBS) $(C_FLAGS) $(SRC_KEYPAIR) $(addprefix $(BIN)/, $^) \
+    $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@
+
+    $(EXECUTABLE_SIGN): $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build build {test_sign}
+    \t@echo -e "### Compiling test harness sign"
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(TOOL_FLAG) $(TOOL_LIBS) $(C_FLAGS) $(SRC_SIGN) $(addprefix $(BIN)/, $^) \
+    $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@
     
-        $(EXECUTABLE_SIGN): $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build build {test_harness_sign}
-        \t@echo -e "### Compiling test harness sign"
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG) $(C_FLAGS) $(SRC_SIGN) $(addprefix $(BIN)/, $^) \
-        $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)   
-        
-        $(EXECUTABLE_KEYPAIR): $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build build {test_harness_kpair}
-        \t@echo -e "### Compiling {taint} for keypair"
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(SRC_KEYPAIR) $(addprefix $(BIN)/, $^) $(INCLUDE) $(XKCP_LINKER)\
-            -o $(BUILD)/$@ -L. -lctgrind 
-    
-        $(EXECUTABLE_SIGN): $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build build {test_harness_sign}
-        \t@echo -e "### Compiling {taint} for sign"
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(SRC_SIGN) $(addprefix $(BIN)/, $^) $(INCLUDE) $(XKCP_LINKER)\
-            -o $(BUILD)/$@ -L. -lctgrind 
-        '''
-    makefile_content_block_clean = f'''
     .PHONY: clean
     clean: ##@Miscellaneous Clean data
     \tmake -C $(XKCP_SRC) clean
@@ -594,21 +355,16 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_type, candidate):
     \trm -rf $(BIN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags_obj_files))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_folders))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # =============================== MIRA =================================
 def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate):
-    print("-------path_to_makefile_folder",path_to_makefile_folder)
-    type(path_to_makefile_folder)
-    #tool = gen_funct.GenericPatterns(tool_type)
     tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_header = f'''
+    makefile_content = f'''
     SCRIPT_VERSION=v1.0
     SCRIPT_AUTHOR=MIRA team
     
@@ -643,38 +399,14 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate):
     BIN:=build/bin
     BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
     BUILD_SIGN			= $(BUILD)/{candidate}_sign
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_name.lower() == 'binsec':
-        test_harness_kpair, test_harness_sign = tool_type.get_tool_test_file_name()
-        # test_harness_kpair = tool.binsec_test_harness_keypair
-        # test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG      = -static
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
-        #taint = tool.ctgrind_taint
-        taint_kpair, taint_sign = tool_type.get_tool_test_file_name()
-        makefile_content_block_tool_flags_binary_files = f'''
-        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        CT_GRIND_SHAREDLIB_PATH = /usr/lib/
-        
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint_sign}
-        '''
-    if 'dudect' in tool_name.lower():
-        #dude = tool.dudect_dude
-        dude_kpair, dude_sign = tool_type.get_tool_test_file_name()
-        makefile_content_block_tool_flags_binary_files = f'''
-        DUDECT_FLAGS = -std=c11
-        LIBS += -lm
-        
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{dude_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{dude_sign}
-        '''
-    makefile_content_block_creating_folders_and_object_files = f'''
+
+    BINSEC_STATIC_FLAG      = -static
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+    
+    TOOL_FLAGS = {tool_flags}
+    TOOL_LIBS = {tool_libs}
+    
     folders:
     \t@echo -e "### Creating build/bin folders"
     \tmkdir -p $(BUILD)
@@ -707,46 +439,18 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate):
     
     
     all:  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)  ##@Build Build all the project
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_name.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
-        \t@echo -e "### Compiling MIRA-128F (test harness keypair)"
-        \t$(CC) $(BINSEC_STATIC_FLAG) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^)\
-         $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@
-        
-        $(EXECUTABLE_SIGN): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
-        \t@echo -e "### Compiling MIRA-128F (test harness sign)"
-        \t$(CC) $(BINSEC_STATIC_FLAG) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^)\
-         $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@
-        '''
-    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
-        \t@echo -e "### Compiling MIRA-128F (taint keypair)"
-        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^)\
-         $(INCLUDE) $(XKCP_LINKER) -L. -lctgrind -o $(BUILD)/$@ 
-
-        $(EXECUTABLE_SIGN): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
-        \t@echo -e "### Compiling MIRA-128F (taint sign)"
-        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^) \
-        $(INCLUDE) $(XKCP_LINKER) -L. -lctgrind -o $(BUILD)/$@
-        '''
-    if 'dudect' in tool_name.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
-        \t@echo -e "### Compiling MIRA-128F (taint keypair)"
-        \t$(CC) $(DUDECT_FLAGS) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^)\
-         $(INCLUDE) $(XKCP_LINKER) -L. $(LIBS) -o $(BUILD)/$@ 
-
-        $(EXECUTABLE_SIGN): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
-        \t@echo -e "### Compiling MIRA-128F (taint sign)"
-        \t$(CC) $(DUDECT_FLAGS) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^) \
-        $(INCLUDE) $(XKCP_LINKER) -L. $(LIBS) -o $(BUILD)/$@
-        '''
-
-    makefile_content_block_clean = f'''
+    
+    $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
+    \t@echo -e "### Compiling MIRA-128F (test harness keypair)"
+    \t$(CC) $(TOOL_FLAGS) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^)\
+     $(INCLUDE) $(XKCP_LINKER) $(TOOL_LIBS) -o $(BUILD)/$@
+    
+    $(EXECUTABLE_SIGN): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
+    \t@echo -e "### Compiling MIRA-128F (test harness sign)"
+    \t$(CC) $(TOOL_FLAGS) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^)\
+     $(INCLUDE) $(XKCP_LINKER) $(TOOL_LIBS) -o $(BUILD)/$@
+     
+     
     .PHONY: clean
     clean:
     \tmake -C $(XKCP_SRC) clean
@@ -755,18 +459,16 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate):
     \trm -rf $(BUILD)/bin
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_header))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_folders_and_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # =================================== SDITH ====================================
-def makefile_sdith(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_sdith(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_header = f'''
+    makefile_content = f'''
     SCRIPT_VERSION=v1.0
     SCRIPT_AUTHOR=MIRA team
     
@@ -801,26 +503,14 @@ def makefile_sdith(path_to_makefile_folder, subfolder, tool_type, candidate):
     BIN:=build/bin
     BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
     BUILD_SIGN			= $(BUILD)/{candidate}_sign
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG      = -static
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        CT_GRIND_SHAREDLIB_PATH = /usr/lib/
-        
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_creating_folders_and_object_files = f'''
+    
+    BINSEC_STATIC_FLAG      = -static
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+    
     folders:
     \t@echo -e "### Creating build/bin folders"
     \tmkdir -p $(BUILD)
@@ -853,34 +543,17 @@ def makefile_sdith(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     
     all:  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)  ##@Build Build all the project
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
-        \t@echo -e "### Compiling MIRA-128F (test harness keypair)"
-        \t$(CC) $(BINSEC_STATIC_FLAG) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^)\
-         $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@
-        
-        $(EXECUTABLE_SIGN): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
-        \t@echo -e "### Compiling MIRA-128F (test harness sign)"
-        \t$(CC) $(BINSEC_STATIC_FLAG) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^) \
-        $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
-        \t@echo -e "### Compiling MIRA-128F (taint keypair)"
-        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^)\
-         $(INCLUDE) $(XKCP_LINKER) -L. -lctgrind -o $(BUILD)/$@ 
-
-        $(EXECUTABLE_SIGN): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders 
-        \t@echo -e "### Compiling MIRA-128F (taint sign)"
-        \t$(CC) $(CT_GRIND_FLAGS) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^)\
-         $(INCLUDE) $(XKCP_LINKER) -L. -lctgrind -o $(BUILD)/$@
-        '''
-
-    makefile_content_block_clean = f'''
+    
+    $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
+    \t@echo -e "### Compiling MIRA-128F (test harness keypair)"
+    \t$(CC) $(TOOL_FLAGs) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^)\
+     $(INCLUDE) $(XKCP_LINKER) $(TOOL_LIBS) -o $(BUILD)/$@
+    
+    $(EXECUTABLE_SIGN): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
+    \t@echo -e "### Compiling MIRA-128F (test harness sign)"
+    \t$(CC) $(TOOL_FLAGs) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^) \
+    $(INCLUDE) $(XKCP_LINKER) $(TOOL_LIBS) -o $(BUILD)/$@
+    
     .PHONY: clean
     clean:
     \tmake -C $(XKCP_SRC) clean
@@ -889,17 +562,15 @@ def makefile_sdith(path_to_makefile_folder, subfolder, tool_type, candidate):
     \trm -rf $(BUILD)/bin
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_header))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_folders_and_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # =============================== CROSS =========================================
-
-def cmake_cross(path_to_cmake_lists, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+# [TODO: Modify and remove if condition ]
+def cmake_cross(path_to_cmake_lists, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     cmake_file_content_src_block1 = f'''
     cmake_minimum_required(VERSION 3.7)
     project(CROSS C)
@@ -926,16 +597,11 @@ def cmake_cross(path_to_cmake_lists, tool_type, candidate):
     endif()
     '''
     cmake_file_content_find_ctgrind_lib = ""
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
         cmake_file_content_find_ctgrind_lib = f'''
         find_library(CT_GRIND_LIB ctgrind)
         if(NOT CT_GRIND_LIB)
         \tmessage("${{CT_GRIND_LIB}} library not found")
-        endif()
-        find_library(CT_GRIND_SHARED_LIB ctgrind.so)
-        if(NOT CT_GRIND_SHARED_LIB)
-        \tmessage("${{CT_GRIND_SHARED_LIB}} library not found")
-        \tset(CT_GRIND_SHARED_LIB /usr/lib/libctgrind.so)
         endif()
         '''
     cmake_file_content_src_block2 = f'''
@@ -1010,26 +676,24 @@ def cmake_cross(path_to_cmake_lists, tool_type, candidate):
             foreach(optimiz_target ${{PARAM_TARGETS}})
             '''
     cmake_file_content_loop_content_block_keypair = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
+    if tool_name.lower() == 'binsec':
         cmake_file_content_loop_content_block_keypair = f'''
                  #crypto_sign_keypair test harness binary
-                 set(TARGET_BINARY_NAME {test_harness_kpair}_${{category}}_${{RSDP_VARIANT}}_${{optimiz_target}}) 
+                 set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{RSDP_VARIANT}}_${{optimiz_target}}) 
                  add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                                    ./{candidate}_keypair/{test_harness_kpair}.c)
+                                    ./{candidate}_keypair/{test_keypair}.c)
                 target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static) 
                 target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                                             ${{BASE_DIR}}/include
                                             ./include) 
                  target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
                 '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
         cmake_file_content_loop_content_block_keypair = f'''
                  #crypto_sign_keypair taint binary
-                 set(TARGET_BINARY_NAME {taint}_${{category}}_${{RSDP_VARIANT}}_${{optimiz_target}}) 
+                 set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{RSDP_VARIANT}}_${{optimiz_target}}) 
                  add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                                    ./{candidate}_keypair/{taint}.c)
+                                    ./{candidate}_keypair/{test_keypair}.c)
                  target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                                             ${{BASE_DIR}}/include
                                             ./include) 
@@ -1043,28 +707,26 @@ def cmake_cross(path_to_cmake_lists, tool_type, candidate):
                       -D${{HASH_ALGO}}=1 -D${{RSDP_VARIANT}}=1 ${{KECCAK_EXTERNAL_ENABLE}} ")
                 '''
     cmake_file_content_loop_content_block_sign = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_sign = tool.binsec_test_harness_sign
+    if tool_name.lower() == 'binsec':
         cmake_file_content_loop_content_block_sign = f'''            
                  #crypto_sign test harness binary
-                 set(TARGET_BINARY_NAME {test_harness_sign}_${{category}}_${{RSDP_VARIANT}}_${{optimiz_target}}) 
+                 set(TARGET_BINARY_NAME {test_sign}_${{category}}_${{RSDP_VARIANT}}_${{optimiz_target}}) 
                  
                  add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                                    ./{candidate}_sign/{test_harness_sign}.c)
+                                    ./{candidate}_sign/{test_sign}.c)
                  target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
                  target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                                             ${{BASE_DIR}}/include
                                             ./include) 
                  target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
             '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
         cmake_file_content_loop_content_block_sign = f'''
                  #crypto_sign test harness binary
-                 set(TARGET_BINARY_NAME {taint}_sign_${{category}}_${{RSDP_VARIANT}}_${{optimiz_target}}) 
+                 set(TARGET_BINARY_NAME {test_sign}_${{category}}_${{RSDP_VARIANT}}_${{optimiz_target}}) 
                  
                  add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                                    ./{candidate}_sign/{taint}.c)
+                                    ./{candidate}_sign/{test_sign}.c)
                  target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                                             ${{BASE_DIR}}/include
                                             ./include) 
@@ -1084,7 +746,7 @@ def cmake_cross(path_to_cmake_lists, tool_type, candidate):
     '''
     with open(path_to_cmake_lists, "w") as cmake_file:
         cmake_file.write(textwrap.dedent(cmake_file_content_src_block1))
-        if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
             cmake_file.write(textwrap.dedent(cmake_file_content_find_ctgrind_lib))
         cmake_file.write(textwrap.dedent(cmake_file_content_src_block2))
         cmake_file.write(textwrap.dedent(cmake_file_content_block_loop))
@@ -1099,18 +761,19 @@ def cmake_cross(path_to_cmake_lists, tool_type, candidate):
 # ===========================================================================
 
 # ===============================  PQSIGRM ==================================
-def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_type,candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     subfolder = 'pqsigrm613'
-    src_folder = subfolder
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags = f'''
+    makefile_content = f'''
     CC = gcc
     LDFLAGS =  -L/usr/local/lib
     CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
     LIBFLAGS = -lcrypto -lssl -lm
     
-    BASE_DIR = ../{src_folder}
+    BASE_DIR = ../{subfolder}
      
     
     CFILES := $(shell find $(BASE_DIR)/src -name '*.c' | sed -e 's/\.c/\.o/')
@@ -1120,26 +783,15 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_type,candidate):
     BUILD					= build
     BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
     BUILD_SIGN			= $(BUILD)/{candidate}_sign
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
+    
         
-        BINSEC_STATIC_FLAG  = -static
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_object_files = f'''
+    BINSEC_STATIC_FLAG  = -static
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+    
     ifeq ($(DEBUG), 1)
     \tDBG_FLAGS = -g -O0 -DDEBUG
     else
@@ -1150,41 +802,22 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_type,candidate):
     
     %.o : %.c
     \t$(CC) $(CFLAGS) $(DBG_FLAGS) -o $@ -c $<
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
+    
+    
     $(EXECUTABLE_KEYPAIR): ${{OBJS}} {candidate}_keypair/$(EXECUTABLE_KEYPAIR).c
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_KEYPAIR)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
     
     $(EXECUTABLE_SIGN): ${{OBJS}} {candidate}_sign/$(EXECUTABLE_SIGN).c
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_SIGN)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
     
     matrix.o : matrix.h
     rng.o : rng.h
     api.o : api.h
-    '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): ${{OBJS}} $(EXECUTABLE_KEYPAIR).c
-        \tmkdir -p $(BUILD)  
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) -lctgrind -lssl
     
-        $(EXECUTABLE_SIGN): ${{OBJS}} $(EXECUTABLE_SIGN).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) -lctgrind -lssl
-    
-        matrix.o : matrix.h
-        rng.o : rng.h
-        api.o : api.h
-        '''
-    makefile_content_block_clean = f'''
     clean:
     \tcd  $(BASE_DIR)/src; rm -f *.o; cd ..
     \trm -f *.o
@@ -1192,16 +825,15 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_type,candidate):
     \trm -f  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # =========================== LESS ==============================================
-def cmake_less(path_to_cmakelist, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+# [TODO: Modify and remove if condition]
+def cmake_less(path_to_cmakelist, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     subfolder = ""
     path_to_cmakelist = path_to_cmakelist+'/CMakeLists.txt'
     cmake_file_content_src_block1 = f'''
@@ -1286,7 +918,7 @@ def cmake_less(path_to_cmakelist, subfolder, tool_type, candidate):
     
     '''
     cmake_file_content_find_ctgrind_lib = ""
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
         cmake_file_content_find_ctgrind_lib = f'''
         find_library(CT_GRIND_LIB ctgrind)
         if(NOT CT_GRIND_LIB)
@@ -1323,27 +955,24 @@ def cmake_less(path_to_cmakelist, subfolder, tool_type, candidate):
         foreach(optimiz_target ${{PARAM_TARGETS}})
         '''
     cmake_file_content_loop_content_block_keypair = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+    if tool_name.lower() == 'binsec':
         cmake_file_content_loop_content_block_keypair = f'''
-            set(TEST_HARNESS ./{tool_type}/{candidate}_keypair/{test_harness_kpair}.c \
-            ./{tool_type}/{candidate}_sign/{test_harness_sign}.c)
-            set(TARGET_BINARY_NAME {test_harness_kpair}_${{category}}_${{optimiz_target}})  
+            set(TEST_HARNESS ./{tool_type}/{candidate}_keypair/{test_keypair}.c \
+            ./{tool_name}/{candidate}_sign/{test_sign}.c)
+            set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{optimiz_target}})  
             add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_keypair/{test_harness_kpair}.c)
+                    ./{candidate}_keypair/{test_keypair}.c)
             target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
             target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                     ${{BASE_DIR}}/include
                     ./include)
             target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
             '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
         cmake_file_content_loop_content_block_keypair = f'''
-        set(TARGET_BINARY_NAME {taint}_${{category}}_${{optimiz_target}})  
+        set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{optimiz_target}})  
             add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_keypair/{taint}.c)
+                    ./{candidate}_keypair/{test_keypair}.c)
             target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                     ${{BASE_DIR}}/include
                     ./include)
@@ -1357,26 +986,24 @@ def cmake_less(path_to_cmakelist, subfolder, tool_type, candidate):
                     COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}} ")
             '''
     cmake_file_content_loop_content_block_sign = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_sign = tool.binsec_test_harness_sign
+    if tool_name.lower() == 'binsec':
         cmake_file_content_loop_content_block_sign = f'''
             #Test harness for crypto_sign
-            set(TARGET_BINARY_NAME {test_harness_sign}_${{category}}_${{optimiz_target}})
+            set(TARGET_BINARY_NAME {test_sign}_${{category}}_${{optimiz_target}})
             add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_sign/{test_harness_sign}.c)   
+                    ./{candidate}_sign/{test_sign}.c)   
             target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
             target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                     ${{BASE_DIR}}/include
                     ./include)
             target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
             '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
         cmake_file_content_loop_content_block_sign = f'''    
         #Test harness for crypto_sign
-            set(TARGET_BINARY_NAME {taint}_sign_${{category}}_${{optimiz_target}})
+            set(TARGET_BINARY_NAME {test_sign}_sign_${{category}}_${{optimiz_target}})
             add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_sign/{taint}.c)   
+                    ./{candidate}_sign/{test_sign}.c)   
             target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                     ${{BASE_DIR}}/include
                     ./include)
@@ -1395,7 +1022,7 @@ def cmake_less(path_to_cmakelist, subfolder, tool_type, candidate):
     '''
     with open(path_to_cmakelist, "w") as cmake_file:
         cmake_file.write(textwrap.dedent(cmake_file_content_src_block1))
-        if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
             cmake_file.write(textwrap.dedent(cmake_file_content_find_ctgrind_lib))
         cmake_file.write(textwrap.dedent(cmake_file_content_src_block2))
         cmake_file.write(textwrap.dedent(cmake_file_content_block_loop))
@@ -1408,12 +1035,14 @@ def cmake_less(path_to_cmakelist, subfolder, tool_type, candidate):
 
 # ========================== FULEECA ========================================
 # [TODO]
-def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     subfolder = ""
     src_folder = 'pqsigrm613'
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags = f'''
+    makefile_content = f'''
     CC = gcc
     LDFLAGS =  -L/usr/local/lib
     CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
@@ -1429,26 +1058,14 @@ def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_type, candidate):
     BUILD					= build
     BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
     BUILD_SIGN			= $(BUILD)/{candidate}_sign
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
         
-        BINSEC_STATIC_FLAG  = -static
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_object_files = f'''
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+    
+    
     ifeq ($(DEBUG), 1)
     \tDBG_FLAGS = -g -O0 -DDEBUG
     else
@@ -1459,41 +1076,23 @@ def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     %.o : %.c
     \t$(CC) $(CFLAGS) $(DBG_FLAGS) -o $@ -c $<
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
+    
+    
     $(EXECUTABLE_KEYPAIR): ${{OBJS}} {candidate}_keypair/$(EXECUTABLE_KEYPAIR).c
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_KEYPAIR)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
     
     $(EXECUTABLE_SIGN): ${{OBJS}} {candidate}_sign/$(EXECUTABLE_SIGN).c
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_SIGN)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
     
     matrix.o : matrix.h
     rng.o : rng.h
     api.o : api.h
-    '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): ${{OBJS}} $(EXECUTABLE_KEYPAIR).c
-        \tmkdir -p $(BUILD)  
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) -lctgrind -lssl
     
-        $(EXECUTABLE_SIGN): ${{OBJS}} $(EXECUTABLE_SIGN).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) -lctgrind -lssl
     
-        matrix.o : matrix.h
-        rng.o : rng.h
-        api.o : api.h
-        '''
-    makefile_content_block_clean = f'''
     clean:
     \tcd  $(BASE_DIR)/src; rm -f *.o; cd ..
     \trm -f *.o
@@ -1501,21 +1100,19 @@ def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_type, candidate):
     \trm -f  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # ============================= MEDS =====================================
 # [TODO]
-def makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     subfolder = ""
     src_folder = 'pqsigrm613'
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags = f'''
+    makefile_content = f'''
     CC = gcc
     LDFLAGS =  -L/usr/local/lib
     CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
@@ -1531,26 +1128,13 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate):
     BUILD					= build
     BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
     BUILD_SIGN			= $(BUILD)/{candidate}_sign
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        
-        BINSEC_STATIC_FLAG  = -static
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_object_files = f'''
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+    
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+    
     ifeq ($(DEBUG), 1)
     \tDBG_FLAGS = -g -O0 -DDEBUG
     else
@@ -1561,41 +1145,21 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     %.o : %.c
     \t$(CC) $(CFLAGS) $(DBG_FLAGS) -o $@ -c $<
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
+    
     $(EXECUTABLE_KEYPAIR): ${{OBJS}} {candidate}_keypair/$(EXECUTABLE_KEYPAIR).c
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_KEYPAIR)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
     
     $(EXECUTABLE_SIGN): ${{OBJS}} {candidate}_sign/$(EXECUTABLE_SIGN).c
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_SIGN)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
+    \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
     
     matrix.o : matrix.h
     rng.o : rng.h
     api.o : api.h
-    '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): ${{OBJS}} $(EXECUTABLE_KEYPAIR).c
-        \tmkdir -p $(BUILD)  
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) -lctgrind -lssl
     
-        $(EXECUTABLE_SIGN): ${{OBJS}} $(EXECUTABLE_SIGN).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) -lctgrind -lssl
-    
-        matrix.o : matrix.h
-        rng.o : rng.h
-        api.o : api.h
-        '''
-    makefile_content_block_clean = f'''
     clean:
     \tcd  $(BASE_DIR)/src; rm -f *.o; cd ..
     \trm -f *.o
@@ -1603,18 +1167,16 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate):
     \trm -f  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # =================================== WAVE ======================================
-def makefile_wave(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_wave(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_header = f'''
+    makefile_content = f'''
     CC=gcc
     CFLAGS=-I. -O3 -Wall -march=native
     LDFLAGS=-lcrypto
@@ -1631,75 +1193,41 @@ def makefile_wave(path_to_makefile_folder, subfolder, tool_type, candidate):
     $(BASE_DIR)/util/djbsort_portable.o $(BASE_DIR)/util/gauss.o $(BASE_DIR)/util/hash.o \
     $(BASE_DIR)/util/mf3permut.o $(BASE_DIR)/util/tritstream.o $(BASE_DIR)/verify.o \
     $(BASE_DIR)/wave/decode.o $(BASE_DIR)/wave/randperm.o $(BASE_DIR)/wave/reject.o $(BASE_DIR)/wave/sample.o
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG      = -static
-        DEBUG_G_FLAG          = -g
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+    
         
-        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-
-    makefile_content_block_creating_object_files = f'''  
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+      
     .PHONY: all
     all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
 
     $(BASE_DIR)/prng/prng-nist.o:
     \t$(CC) $(CFLAGS) -DNIST_KAT -c -o $(BASE_DIR)/prng/prng-nist.o $(BASE_DIR)/prng/prng.c
-    '''
-
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(OBJS) $(BASE_DIR)/prng/prng-nist.o $(BASE_DIR)/NIST-kat/rng.o $(EXECUTABLE_KEYPAIR).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG) $^ -o $(BUILD)/$@ $(LDFLAGS)
-        
-        $(EXECUTABLE_SIGN): $(OBJS) $(BASE_DIR)/prng/prng-nist.o $(BASE_DIR)/NIST-kat/rng.o $(EXECUTABLE_SIGN).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG) $^ -o $(BUILD)/$@ $(LDFLAGS)
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(OBJS) $(BASE_DIR)/prng/prng-nist.o $(BASE_DIR)/NIST-kat/rng.o $(EXECUTABLE_KEYPAIR).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $^ -o $(BUILD)/$@ $(LDFLAGS) -lctgrind
-        
-        $(EXECUTABLE_SIGN): $(OBJS) $(BASE_DIR)/prng/prng-nist.o $(BASE_DIR)/NIST-kat/rng.o $(EXECUTABLE_SIGN).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $^ -o $(BUILD)/$@ $(LDFLAGS) -lctgrind
-        '''
-    makefile_content_block_clean = f'''
+    
+    $(EXECUTABLE_KEYPAIR): $(OBJS) $(BASE_DIR)/prng/prng-nist.o $(BASE_DIR)/NIST-kat/rng.o $(EXECUTABLE_KEYPAIR).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) $^ -o $(BUILD)/$@ $(LDFLAGS) $(TOOL_LIBS)
+    
+    $(EXECUTABLE_SIGN): $(OBJS) $(BASE_DIR)/prng/prng-nist.o $(BASE_DIR)/NIST-kat/rng.o $(EXECUTABLE_SIGN).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) $^ -o $(BUILD)/$@ $(LDFLAGS) $(TOOL_LIBS)
+    
     clean:
     \t-rm $(OBJS) $(BASE_DIR)/prng/prng.o $(BASE_DIR)/prng/prng-nist.o $(BASE_DIR)/NIST-kat/rng.o    
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_header))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # =============================== LATTICE ======================================
 # ==============================================================================
 # ===============================  SQUIRRELS ===================================
-# [TODO]
+
 def squirrels_level(subfolder):
     subfolder_split = subfolder.split("-")
     level_roman_digest = subfolder_split[-1]
@@ -1716,11 +1244,13 @@ def squirrels_level(subfolder):
     return level
 
 
-def makefile_squirrels(path_to_makefile_folder, subfolder, tool_type, candidate):
+def makefile_squirrels(path_to_makefile_folder, subfolder, tool_name, candidate):
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     level = squirrels_level(subfolder)
-    tool = gen_funct.GenericPatterns(tool_type)
-    makefile_content_block_cflags_obj_files = f'''
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    makefile_content = f'''
     .POSIX:
 
     NIST_LEVEL?={level}
@@ -1752,26 +1282,12 @@ def makefile_squirrels(path_to_makefile_folder, subfolder, tool_type, candidate)
     BUILD					= build
     BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
     BUILD_SIGN			= $(BUILD)/{candidate}_sign 
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-    BINSEC_STATIC_FLAGS     = -static
-    DEBUG_G_FLAG            = -g
-    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-    EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-    '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
     
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint} 
-    '''
-    makefile_content_block_object_files = f'''
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
     
     all: $(BASE_DIR)/lib $(BASE_DIR)/build $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
     
@@ -1819,45 +1335,30 @@ def makefile_squirrels(path_to_makefile_folder, subfolder, tool_type, candidate)
     
     $(BASE_DIR)/build/vector.o: $(BASE_DIR)/vector.c $(HEAD1)
     \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/vector.o $(BASE_DIR)/vector.c
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
+    
 
     $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(HEAD1) $(BASE_DIR)/api.h 
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_KEYPAIR)
-    \t$(CC) $(CFLAGS) -I . -c -o $(BUILD)/$$(EXECUTABLE_KEYPAIR)  $(EXECUTABLE_KEYPAIR).c 
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) $(TOOL_LIBS) -I . -c -o $(BUILD)/$$(EXECUTABLE_KEYPAIR)  $(EXECUTABLE_KEYPAIR).c 
     
     $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(HEAD1) $(BASE_DIR)/api.h 
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_SIGN)
-    \t$(CC) $(CFLAGS) -I . -c -o $(BUILD)/$$(EXECUTABLE_SIGN)  $(EXECUTABLE_SIGN).c 
-    '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(HEAD1) $(BASE_DIR)/api.h 
-    \tmkdir -p $(BUILD)
-    \tmkdir -p $(BUILD_KEYPAIR)
-    \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) -I . -c -o $(BUILD)/$$(EXECUTABLE_KEYPAIR)  $(EXECUTABLE_KEYPAIR).c\
-     -L. -lctgrind 
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS)  $(TOOL_LIBS) -I . -c -o $(BUILD)/$$(EXECUTABLE_SIGN)  $(EXECUTABLE_SIGN).c 
     
-    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(HEAD1) $(BASE_DIR)/api.h 
-    \tmkdir -p $(BUILD)
-    \tmkdir -p $(BUILD_SIGN)
-    \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) -I . -c -o $(BUILD)/$(EXECUTABLE_SIGN)  $(EXECUTABLE_SIGN).c -L. -lctgrind  
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags_obj_files))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # =============================== HAETAE ===================================
+# [TODO: Modify and remove if condition]
 
-def cmake_haetae(path_to_cmakelist, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def cmake_haetae(path_to_cmakelist, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_cmakelist = path_to_cmakelist+'/CMakeLists.txt'
     cmake_file_content_src_block = f'''
     cmake_minimum_required(VERSION 3.16)
@@ -1949,33 +1450,30 @@ def cmake_haetae(path_to_cmakelist, subfolder, tool_type, candidate):
     set(BUILD_SIGN {candidate}_sign)
     '''
     cmake_file_content_loop_content_block_executables = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+    if tool_name.lower() == 'binsec':
         cmake_file_content_loop_content_block_executables = f'''
         foreach(category RANGE 2 3 5)
-            \t\tset(TARGET_KEYPAIR_BINARY_NAME {test_harness_kpair}_${{category}})
-            \t\tadd_executable(${{TARGET_KEYPAIR_BINARY_NAME}} ./{candidate}_keypair/{test_harness_kpair}.c)
+            \t\tset(TARGET_KEYPAIR_BINARY_NAME {test_keypair}_${{category}})
+            \t\tadd_executable(${{TARGET_KEYPAIR_BINARY_NAME}} ./{candidate}_keypair/{test_keypair}.c)
             \t\ttarget_link_libraries(${{TARGET_KEYPAIR_BINARY_NAME}}  ${{LIB_NAME${{category}}}} OpenSSL::Crypto)
             \t\ttarget_include_directories(${{TARGET_KEYPAIR_BINARY_NAME}} PUBLIC ../include)
             \t\ttarget_compile_definitions(${{TARGET_KEYPAIR_BINARY_NAME}} PUBLIC HAETAE_MODE=${{category}})
             \t\tset_target_properties(${{TARGET_KEYPAIR_BINARY_NAME}} PROPERTIES \
             RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
             
-            \t\tset(TARGET_SIGN_BINARY_NAME {test_harness_sign}_${{category}})
-            \t\tadd_executable(${{TARGET_SIGN_BINARY_NAME}} ./{candidate}_sign/{test_harness_sign}.c)
+            \t\tset(TARGET_SIGN_BINARY_NAME {test_sign}_${{category}})
+            \t\tadd_executable(${{TARGET_SIGN_BINARY_NAME}} ./{candidate}_sign/{test_sign}.c)
             \t\ttarget_include_directories(${{TARGET_SIGN_BINARY_NAME}} PUBLIC ../include)
             \t\ttarget_compile_definitions(${{TARGET_SIGN_BINARY_NAME}} PUBLIC HAETAE_MODE=${{category}})
             \t\ttarget_link_libraries(${{TARGET_SIGN_BINARY_NAME}}  ${{LIB_NAME${{category}}}} OpenSSL::Crypto)
         endforeach(category) 
         '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
         cmake_file_content_loop_content_block_executables = f'''
         find_library(CT_GRIND_LIB ctgrind)
         foreach(category RANGE 2 3 5)
-        \t\tset(TARGET_KEYPAIR_BINARY_NAME {taint}_${{category}})
-        \t\tadd_executable(${{TARGET_KEYPAIR_BINARY_NAME}} ./{candidate}_keypair/{taint}.c)
+        \t\tset(TARGET_KEYPAIR_BINARY_NAME {test_sign}_${{category}})
+        \t\tadd_executable(${{TARGET_KEYPAIR_BINARY_NAME}} ./{candidate}_keypair/{test_sign}.c)
         \t\ttarget_link_libraries(${{TARGET_KEYPAIR_BINARY_NAME}}  ${{LIB_NAME${{category}}}}\
          ${{CT_GRIND_LIB}} OpenSSL::Crypto)
         \t\ttarget_include_directories(${{TARGET_KEYPAIR_BINARY_NAME}} PUBLIC ../include)
@@ -1983,8 +1481,8 @@ def cmake_haetae(path_to_cmakelist, subfolder, tool_type, candidate):
         \t\tset_target_properties(${{TARGET_KEYPAIR_BINARY_NAME}} PROPERTIES\
          RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
         
-        \t\tset(TARGET_SIGN_BINARY_NAME {taint}_${{category}}_1)
-        \t\tadd_executable(${{TARGET_SIGN_BINARY_NAME}} ./{candidate}_sign/{taint}.c)
+        \t\tset(TARGET_SIGN_BINARY_NAME {test_sign}_${{category}}_1)
+        \t\tadd_executable(${{TARGET_SIGN_BINARY_NAME}} ./{candidate}_sign/{test_sign}.c)
         \t\ttarget_include_directories(${{TARGET_SIGN_BINARY_NAME}} PUBLIC ../include)
         \t\ttarget_compile_definitions(${{TARGET_SIGN_BINARY_NAME}} PUBLIC HAETAE_MODE=${{category}})
         \t\ttarget_link_libraries(${{TARGET_SIGN_BINARY_NAME}}  ${{LIB_NAME${{category}}}}\
@@ -2202,11 +1700,12 @@ def makefile_ehtv3v4(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 
 # =========================== HAWK ============================================
-# [TODO]
-def makefile_hawk(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_hawk(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags = f'''
+    makefile_content = f'''
     CC = c99
     CFLAGS = -Wall -Wextra -Wshadow -Wundef -O2
     LD = $(CC)
@@ -2218,6 +1717,9 @@ def makefile_hawk(path_to_makefile_folder, subfolder, tool_type, candidate):
     BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
     BUILD_SIGN			= $(BUILD)/{candidate}_sign
     
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+    
     OBJCORE = $(BASE_DIR)/hawk_kgen.o $(BASE_DIR)/hawk_sign.o $(BASE_DIR)/hawk_vrfy.o $(BASE_DIR)/ng_fxp.o\
      $(BASE_DIR)/ng_hawk.o $(BASE_DIR)/ng_mp31.o $(BASE_DIR)/ng_ntru.o $(BASE_DIR)/ng_poly.o \
      $(BASE_DIR)/ng_zint31.o $(BASE_DIR)/sha3.o
@@ -2226,28 +1728,10 @@ def makefile_hawk(path_to_makefile_folder, subfolder, tool_type, candidate):
     OBJAPI = $(BASE_DIR)/api.o
     OBJEXTRA_KEYPAIR = $(BASE_DIR)/rng.o $(EXECUTABLE_KEYPAIR).o
     OBJEXTRA_SIGN = $(BASE_DIR)/rng.o $(EXECUTABLE_SIGN).o
+   
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
     
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        
-        BINSEC_STATIC_FLAG  = -static
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        CT_GRIND_SHAREDLIB_PATH = /usr/lib/
-        
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_object_files = f'''
     $(BASE_DIR)/hawk_kgen.o: $(BASE_DIR)/hawk_kgen.c $(HEAD)
     \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/hawk_kgen.o $(BASE_DIR)/hawk_kgen.c
 
@@ -2291,46 +1775,24 @@ def makefile_hawk(path_to_makefile_folder, subfolder, tool_type, candidate):
     \t$(CC) $(CFLAGS) -c -o $(EXECUTABLE_SIGN).o $(EXECUTABLE_SIGN).c
     
     all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+      
+    $(EXECUTABLE_KEYPAIR): $(OBJCORE) $(OBJAPI) $(OBJEXTRA_KEYPAIR)
+    \tmkdir -p $(BUILD)  
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(LD) $(LDFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(OBJCORE)\
+     $(OBJAPI) $(OBJEXTRA_KEYPAIR) $(LIBS) $(TOOL_LIBS)
     
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''    
-        $(EXECUTABLE_KEYPAIR): $(OBJCORE) $(OBJAPI) $(OBJEXTRA_KEYPAIR)
-        \tmkdir -p $(BUILD)  
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(LD) $(LDFLAGS) $(BINSEC_STATIC_FLAGS) $(DEBUG_G_FLAG) -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(OBJCORE)\
-         $(OBJAPI) $(OBJEXTRA_KEYPAIR) $(LIBS)
+    $(EXECUTABLE_SIGN): $(OBJCORE) $(OBJAPI) $(OBJEXTRA_SIGN)
+    \tmkdir -p $(BUILD)  
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(LD) $(LDFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$(EXECUTABLE_SIGN) $(OBJCORE)\
+     $(OBJAPI) $(OBJEXTRA_SIGN) $(LIBS) $(TOOL_LIBS)
         
-        $(EXECUTABLE_SIGN): $(OBJCORE) $(OBJAPI) $(OBJEXTRA_SIGN)
-        \tmkdir -p $(BUILD)  
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(LD) $(LDFLAGS) $(BINSEC_STATIC_FLAGS) $(DEBUG_G_FLAG) -o $(BUILD)/$(EXECUTABLE_SIGN) $(OBJCORE)\
-         $(OBJAPI) $(OBJEXTRA_SIGN) $(LIBS)
-        
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(OBJCORE) $(OBJAPI) $(OBJEXTRA_KEYPAIR)
-        \tmkdir -p $(BUILD)  
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(LD) $(LDFLAGS) $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $(OBJCORE) $(OBJAPI) $(OBJEXTRA_KEYPAIR) $(LIBS) -lctgrind
-        
-        $(EXECUTABLE_SIGN): $(OBJCORE) $(OBJAPI) $(OBJEXTRA_SIGN)
-        \tmkdir -p $(BUILD)  
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(LD) $(LDFLAGS) $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $(OBJCORE) $(OBJAPI) $(OBJEXTRA_SIGN) $(LIBS) -lctgrind
-        '''
-    makefile_content_block_clean = f'''
     clean:
     \t-rm -f $(OBJCORE) $(OBJAPI) $(OBJEXTRA_KEYPAIR) $(OBJEXTRA_SIGN) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # ========================= HUFU ====================================
@@ -2436,59 +1898,29 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 
 # =========================== RACCOON =============================
-# [TODO:Shell script compilation]
-
-def sh_build_raccoon(path_to_sh_script_folder, sh_script, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
-    binsec_static_flag = ""
-    dbg_flags = ""
-    ct_grind_flags = ""
-    executable_keypair = ""
-    executable_sign = ""
+def sh_build_raccoon(path_to_sh_script_folder, sh_script, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    executable_keypair = f'{candidate}_keypair/{test_keypair}'
+    executable_sign = f'{candidate}_sign/{test_sign}'
     path_to_sh_script = f'{path_to_sh_script_folder}/{sh_script}.sh'
     base_dir = f'../../{subfolder}'
     build = f'build'
     build_keypair = f'{build}/{candidate}_keypair'
     build_sign = f'{build}/{candidate}_sign'
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        binsec_static_flag = f'-static'
-        dbg_flags = f'-g'
-        executable_keypair = f'{candidate}_keypair/{test_harness_kpair}'
-        executable_sign = f'{candidate}_sign/{test_harness_sign}'
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        ct_grind_flags = f'-g -Wall -ggdb  -std=c99  -Wextra -lm'
-        executable_keypair = f'{candidate}_keypair/{taint}'
-        executable_sign = f'{candidate}_sign/{taint}'
-    block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        block_binary_files = f'''
-        #!/bin/bash
-        mkdir -p {build}
-        mkdir -p {build_keypair}
-        gcc -o {build}/{executable_keypair} -Wall -O2 {binsec_static_flag} {dbg_flags} {executable_keypair}.c\
-        {base_dir}/*.c -lcrypto
-        
-        mkdir -p {build}
-        mkdir -p {build_sign}
-        gcc - -o {build}/{executable_sign} -Wall -O2 {binsec_static_flag} {dbg_flags} {executable_sign}.c \
-        {base_dir}/*.c -lcrypto
+    block_binary_files = f'''
+    #!/bin/bash
+    mkdir -p {build}
+    mkdir -p {build_keypair}
+    gcc -o {build}/{executable_keypair} -Wall -O2 {tool_flags} {executable_keypair}.c\
+    {base_dir}/*.c -lcrypto {tool_libs}
+    
+    mkdir -p {build}
+    mkdir -p {build_sign}
+    gcc - -o {build}/{executable_sign} -Wall -O2 {tool_flags} {executable_sign}.c \
+    {base_dir}/*.c -lcrypto {tool_libs}
     '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        block_binary_files = f'''
-        \t#!/bin/bash
-        \tmkdir -p {build}
-        \tmkdir -p {build_keypair}
-        \tgcc -o {build}/{executable_keypair} -Wall -O2 {ct_grind_flags}  {executable_keypair}.c \
-        {base_dir}/*.c -lcrypto -lctgrind
-        
-        \tmkdir -p {build}
-        \tmkdir -p {build_sign}
-        \tgcc - -o {build}/{executable_sign} -Wall -O2 {ct_grind_flags}  {executable_sign}.c \
-        {base_dir}/*.c -lcrypto -lctgrind
-        '''
     with open(path_to_sh_script, "w") as mfile:
         mfile.write(textwrap.dedent(block_binary_files))
 
@@ -2568,10 +2000,12 @@ def qr_uov_main_makefile(path_to_tool_folder, subfolder):
         mfile.write(textwrap.dedent(makefile_content))
 
 
-def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_header = f'''
+    makefile_content = f'''
     CC=gcc
     CFLAGS=-O3 -fomit-frame-pointer -Wno-unused-result -Wno-aggressive-loop-optimizations \
     -I. -fopenmp # -DQRUOV_HASH_LEGACY # -ggdb3 
@@ -2581,25 +2015,14 @@ def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_type, candidate):
     BUILD           = build
     BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
     BUILD_SIGN		= $(BUILD)/{candidate}_sign
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG  = -static
-        DEBUG_G_FLAG = -g
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_creating_object_files = f'''    
+    
+    
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+   
     OBJS=$(BASE_DIR)/Fql.o $(BASE_DIR)/mgf.o  $(BASE_DIR)/qruov.o $(BASE_DIR)/rng.o \
     $(BASE_DIR)/sign.o $(BASE_DIR)/matrix.o
     
@@ -2607,44 +2030,23 @@ def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
+    
     $(EXECUTABLE_KEYPAIR): Makefile $(EXECUTABLE_KEYPAIR).c ${{OBJS}}
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_KEYPAIR)
-    \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(BINSEC_STATIC_FLAG) ${{LDFLAGS}} $(EXECUTABLE_KEYPAIR).c -o $(BUILD)/$@
+    \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(TOOL_FLAGS) ${{LDFLAGS}} $(TOOL_LIBS) $(EXECUTABLE_KEYPAIR).c -o $(BUILD)/$@
 
     $(EXECUTABLE_SIGN): Makefile $(EXECUTABLE_SIGN).c ${{OBJS}}
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_SIGN)
-    \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(BINSEC_STATIC_FLAG) ${{LDFLAGS}} $(EXECUTABLE_SIGN).c -o $(BUILD)/$@
-    '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f''' 
-        $(EXECUTABLE_KEYPAIR): Makefile $(EXECUTABLE_KEYPAIR).c ${{OBJS}}
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(CT_GRIND_FLAGS) ${{LDFLAGS}} -L. -lctgrind $(EXECUTABLE_KEYPAIR).c\
-         -o $(BUILD)/$@
+    \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(TOOL_FLAGS) ${{LDFLAGS}} $(TOOL_LIBS) $(EXECUTABLE_SIGN).c -o $(BUILD)/$@
     
-        $(EXECUTABLE_SIGN): Makefile $(EXECUTABLE_SIGN).c ${{OBJS}}
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(CT_GRIND_FLAGS) ${{LDFLAGS}} -L. -lctgrind $(EXECUTABLE_SIGN).c \
-        -o $(BUILD)/$@
-        '''
-    makefile_content_block_clean = f'''
+    
     clean:
     \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_header))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 def custom_init_compile_qr_uov(custom_makefile_folder, instance_folders_list):
@@ -2682,10 +2084,12 @@ def compile_run_qr_uov(tools_list, signature_type, candidate,
 
 # ===============================  snova ==========================================
 # [TODO:error after running binsec. Make sure binary is static]
-def makefile_snova(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_snova(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags_obj_files = f'''
+    makefile_content = f'''
     CC = gcc
     
     CFLAGS = -std=c99 -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls -Wshadow -Wvla\
@@ -2699,30 +2103,13 @@ def makefile_snova(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     KEYPAIR_FOLDER 	= {candidate}_keypair
     SIGN_FOLDER 	= {candidate}_sign
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG  = -static
-        DEBUG_G_FLAG = -g
-        
-        # EXECUTABLE_KEYPAIR	    = {test_harness_kpair}
-        # EXECUTABLE_SIGN		    = {test_harness_sign}
     
-        EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+    EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN         = {candidate}_sign/{test_sign}
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
 
-        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_creating_object_files = f'''
     #BUILD_OUT_PATH = $(BASE_DIR)/build/
     BUILD_OUT_PATH = $(BUILD)/
     
@@ -2758,44 +2145,23 @@ def makefile_snova(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     $(BUILD)/sign.o: $(BUILD)/snova.o
     \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c -o $(BUILD)/sign.o $(BASE_DIR)/sign.c -lcrypto 
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(BUILD)/sign.o
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CFLAGS)  $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAGS) $(SNOVA_PARAMS) $(OLIST) $(BUILD)/sign.o \
-        $(EXECUTABLE_KEYPAIR).c -o $(BUILD)/$@ -lcrypto
-        
-        $(EXECUTABLE_SIGN): $(BUILD)/sign.o
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(BINSEC_STATIC_FLAGS) $(DEBUG_G_FLAG) $(OLIST) $(BUILD)/sign.o \
-        $(EXECUTABLE_SIGN).c -o $(BUILD)/$@ -lcrypto
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''    
-        $(EXECUTABLE_KEYPAIR): $(BUILD)/sign.o
-        \tmkdir -p $(BUILD_KEYPAIR) 
-        \t$(CC) $(CFLAGS)  $(CT_GRIND_FLAGS) $(SNOVA_PARAMS) $(OLIST) $(BUILD)/sign.o $(EXECUTABLE_KEYPAIR).c \
-        -o $(BUILD)/$@ -lcrypto -lctgrind
-        
-        $(EXECUTABLE_SIGN): $(BUILD)/sign.o
-        \tmkdir -p $(BUILD_SIGN) 
-        \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(CT_GRIND_FLAGS) $(OLIST) $(BUILD)/sign.o $(EXECUTABLE_SIGN).c \
-        -o $(BUILD)/$@ -lcrypto -lctgrind
-        
-        '''
-    makefile_content_block_clean = f'''
+    
+    $(EXECUTABLE_KEYPAIR): $(BUILD)/sign.o
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) $(SNOVA_PARAMS) $(OLIST) $(BUILD)/sign.o \
+    $(EXECUTABLE_KEYPAIR).c -o $(BUILD)/$@ -lcrypto $(TOOL_LIBS)
+    
+    $(EXECUTABLE_SIGN): $(BUILD)/sign.o
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(TOOL_FLAGS) $(OLIST) $(BUILD)/sign.o \
+    $(EXECUTABLE_SIGN).c -o $(BUILD)/$@ -lcrypto $(TOOL_LIBS)
+    
     clean:
     \trm -f $(BASE_DIR)/build/*.o *.a
     \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)    
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags_obj_files))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # ================================  BISCUIT ==============================================
@@ -3137,7 +2503,7 @@ def makefile_hppc(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 
 # ==================================  MAYO ===============================
-# [TODO]
+# [TODO: NON BROKEN ---> TO BE EDITED]
 def cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate):
     tool = gen_funct.GenericPatterns(tool_type)
     subfolder = ""
@@ -3346,10 +2712,12 @@ def cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate):
 
 # ==================================  PROV ===================================
 # [TODO]
-def makefile_prov(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_prov(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags_obj_files = f'''
+    makefile_content = f'''
     CC=gcc
     WARNING_FLAGS=-Wall -Wextra -Wpedantic
     
@@ -3369,28 +2737,13 @@ def makefile_prov(path_to_makefile_folder, subfolder, tool_type, candidate):
     BUILD           = build
     BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
     BUILD_SIGN		= $(BUILD)/{candidate}_sign 
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG  = -static
-        DEBUG_G_FLAG = -g
         
-        EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
-
-        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_creating_object_files = f'''
+    EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN         = {candidate}_sign/{test_sign}
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+    
     
     all: $(SHAKE) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     
@@ -3400,57 +2753,37 @@ def makefile_prov(path_to_makefile_folder, subfolder, tool_type, candidate):
     \t$(MAKE) -C $(SHAKE_PATH)
 
     $(BASE_DIR)/rng.o: $(BASE_DIR)/rng.c
-    \t$(CC) -c -O2 -I/usr/local/opt/openssl/include $< -o $@ 
+    \t$(CC) -c -O2 -I/usr/local/opt/openssl/include $< -o $@
     
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(KAT_OBJ) $(BASE_DIR)/rng.o
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(@).c $(CFLAGS) $(KATFLAGS) $(KAT_OBJ) $(SHAKE_OBJ) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAGS)\
-         -o $(BUILD)/$@ $(LDFLAGS) -lssl -lcrypto
-                
-        $(EXECUTABLE_SIGN): $(KAT_OBJ) $(BASE_DIR)/rng.o
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(@).c $(CFLAGS) $(KATFLAGS) $(KAT_OBJ) $(SHAKE_OBJ) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAGS)\
-         -o $(BUILD)/$@ $(LDFLAGS) -lssl -lcrypto
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''    
-        $(EXECUTABLE_KEYPAIR): $(KAT_OBJ) $(BASE_DIR)/rng.o
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(@).c $(CFLAGS) $(KATFLAGS) $(KAT_OBJ) $(SHAKE_OBJ) $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $(LDFLAGS)\
-         -lssl -lcrypto -lctgrind
-                
-        $(EXECUTABLE_SIGN): $(KAT_OBJ) $(BASE_DIR)/rng.o
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(@).c $(CFLAGS) $(KATFLAGS) $(KAT_OBJ) $(SHAKE_OBJ) $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $(LDFLAGS) \
-        -lssl -lcrypto -lctgrind
-        '''
-    makefile_content_block_clean = f'''
+    
+    $(EXECUTABLE_KEYPAIR): $(KAT_OBJ) $(BASE_DIR)/rng.o
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(@).c $(CFLAGS) $(KATFLAGS) $(KAT_OBJ) $(SHAKE_OBJ) $(TOOL_FLAGS)\
+     -o $(BUILD)/$@ $(LDFLAGS) -lssl -lcrypto $(TOOL_LIBS)
+            
+    $(EXECUTABLE_SIGN): $(KAT_OBJ) $(BASE_DIR)/rng.o
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(@).c $(CFLAGS) $(KATFLAGS) $(KAT_OBJ) $(SHAKE_OBJ) $(TOOL_FLAGS)\
+     -o $(BUILD)/$@ $(LDFLAGS) -lssl -lcrypto $(TOOL_LIBS)
+     
     clean:
     \trm -f $(BASE_DIR)/*.o $(BASE_DIR)/*.a
     \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags_obj_files))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # =================================  TUOV =================================
 # [TODO]
-def makefile_tuov(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_tuov(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags_obj_files = f'''
+    makefile_content = f'''
     CC=    gcc
     LD=    gcc
     
@@ -3528,29 +2861,12 @@ def makefile_tuov(path_to_makefile_folder, subfolder, tool_type, candidate):
     SIGN_FOLDER 	= {candidate}_sign
     
     BUILD_DIRS_ALL = $(BUILD) $(BUILD_KEYPAIR) $(BUILD_SIGN)
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG  = -static
-        DEBUG_G_FLAG = -g
         
-        EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
-
-        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_creating_object_files = f'''
+    EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN         = {candidate}_sign/{test_sign}
     
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
     
     all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     
@@ -3563,46 +2879,24 @@ def makefile_tuov(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     $(BUILD_DIRS_ALL): %:
     \tmkdir -p $@
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(OBJ) $(EXECUTABLE_KEYPAIR).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t${{hide}}$(CC) $(CFLAGS) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^\
-         -o $(BUILD)/$@ $(LIBS)
-        
-        $(EXECUTABLE_SIGN): $(OBJ) $(EXECUTABLE_SIGN).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t${{hide}}$(CC) $(CFLAGS) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^ \
-        -o $(BUILD)/$@ $(LIBS)
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(OBJ) $(EXECUTABLE_KEYPAIR).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t${{hide}}$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^ \
-        -o $(BUILD)/$@ $(LIBS) -lctgrind
-        
-        $(EXECUTABLE_SIGN): $(OBJ) $(EXECUTABLE_SIGN).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t${{hide}}$(CC) $(CFLAGS)  $(CT_GRIND_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^ \
-        -o $(BUILD)/$@ $(LIBS) -lctgrind
-        '''
-    makefile_content_block_clean = f'''
+    
+    $(EXECUTABLE_KEYPAIR): $(OBJ) $(EXECUTABLE_KEYPAIR).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t${{hide}}$(CC) $(CFLAGS) $(TOOL_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^\
+     -o $(BUILD)/$@ $(LIBS) $(TOOL_LIBS)
+    
+    $(EXECUTABLE_SIGN): $(OBJ) $(EXECUTABLE_SIGN).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t${{hide}}$(CC) $(CFLAGS) $(TOOL_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^ \
+    -o $(BUILD)/$@ $(LIBS) $(TOOL_LIBS)
+    
     clean:
     \t ${{hide}}-rm -f build/*.o $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags_obj_files))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # =================================  UOV =======================================
@@ -3621,13 +2915,15 @@ def get_uov_additional_cflags_and_ld(subfolder):
     return additional_cflags, ld
 
 
-def makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     additional_cflags, loader = get_uov_additional_cflags_and_ld(subfolder)
     subfolder_split = subfolder.split('/')
     architecture = subfolder_split[0]
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags_obj_files = f'''
+    makefile_content = f'''
     CC ?=    clang
     LD =    {loader}
     
@@ -3672,28 +2968,13 @@ def makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate):
     SIGN_FOLDER 	= {candidate}_sign
     
     BUILD_DIRS_ALL = $(BUILD) $(BUILD_KEYPAIR) $(BUILD_SIGN)
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG  = -static
-        DEBUG_G_FLAG = -g
+    
         
-        EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
-
-        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_creating_object_files = f'''
+    EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN         = {candidate}_sign/{test_sign}
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
     
     .INTERMEDIATE:  $(OBJ)
     .PHONY: all clean
@@ -3709,54 +2990,34 @@ def makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     $(BUILD_DIRS_ALL): %:
     \tmkdir -p $@
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(OBJ) $(EXECUTABLE_KEYPAIR).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t${{hide}}$(CC) $(CFLAGS) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^ \
-        -o $(BUILD)/$@ $(LIBS)
-        
-        $(EXECUTABLE_SIGN): $(OBJ) $(EXECUTABLE_SIGN).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t${{hide}}$(CC) $(CFLAGS) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^ \
-        -o $(BUILD)/$@ $(LIBS)
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(OBJ) $(EXECUTABLE_KEYPAIR).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t${{hide}}$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^ -o $(BUILD)/$@ $(LIBS)\
-         -L. -lctgrind
-        
-        $(EXECUTABLE_SIGN): $(OBJ) $(EXECUTABLE_SIGN).c
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t${{hide}}$(CC) $(CFLAGS)  $(CT_GRIND_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^ -o $(BUILD)/$@ $(LIBS) \
-        -L. -lctgrind
-        '''
-    makefile_content_block_clean = f'''
+    
+    $(EXECUTABLE_KEYPAIR): $(OBJ) $(EXECUTABLE_KEYPAIR).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t${{hide}}$(CC) $(CFLAGS) $(TOOL_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^ \
+    -o $(BUILD)/$@ $(LIBS) $(TOOL_LIBS)
+    
+    $(EXECUTABLE_SIGN): $(OBJ) $(EXECUTABLE_SIGN).c
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t${{hide}}$(CC) $(CFLAGS) $(TOOL_FLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^ \
+    -o $(BUILD)/$@ $(LIBS) $(TOOL_LIBS)
+    
     clean:
     \t ${{hide}}-rm -f build/*.o $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags_obj_files))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # ===============================  VOX =====================================
 # [TODO]
-def makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags_obj_files = f'''
+    makefile_content = f'''
     # select parameter set (one of: VOX128 VOX192 VOX256)
     PARAM ?= VOX256
     
@@ -3792,31 +3053,14 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     KEYPAIR_FOLDER 	= {candidate}_keypair
     SIGN_FOLDER 	= {candidate}_sign
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG  = -static
-        DEBUG_G_FLAG = -g
-        
-        # EXECUTABLE_KEYPAIR	    = {test_harness_kpair}
-        # EXECUTABLE_SIGN		    = {test_harness_sign}
     
-        EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
-
-        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_creating_object_files = f'''
+    
+    EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN         = {candidate}_sign/{test_sign}
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+    
     all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     
     .PHONY: all
@@ -3828,150 +3072,29 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate):
     \tmkdir -p $@
 
     .SECONDARY: $(OBJ)
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(OBJ)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -o $(BUILD)/$@ $^ $(CFLAGS) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAGS) -I. -Irng/ $(LIBS)
-        
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(OBJ)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -o $(BUILD)/$@ $^ $(CFLAGS) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAGS) -I. -Irng/ $(LIBS)
-         '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f''' 
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(OBJ)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -o $(BUILD)/$@ $^ $(CFLAGS) $(CT_GRIND_FLAGS) -I. -Irng/ $(LIBS) -lctgrind
-        
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(OBJ)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -o $(BUILD)/$@ $^ $(CFLAGS) $(CT_GRIND_FLAGS) -I. -Irng/ $(LIBS) -lctgrind
-           
-        '''
-    makefile_content_block_clean = f'''
+    
+    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(OBJ)
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) -o $(BUILD)/$@ $^ $(CFLAGS) $(TOOL_FLAGS) -I. -Irng/ $(LIBS) $(TOOL_LIBS)
+    
+    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(OBJ)
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) -o $(BUILD)/$@ $^ $(CFLAGS) $(TOOL_FLAGS) -I. -Irng/ $(LIBS) $(TOOL_LIBS)
+    
     clean:
     \t-rm -rf $(BASE_DIR)/$(BUILD_DIR)
     \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags_obj_files))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # ============================ SYMMETRIC =======================================
 # ==============================================================================
 
 # =============================  AIMER =========================================
-def makefile_aimer1(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool1 = gen_funct.GenericPatterns(tool_type)
-    path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags_obj_files = f'''
-    # SPDX-License-Identifier: MIT
-
-    CC = gcc
-    CFLAGS += -I. -O3 -g -Wall -Wextra -march=native -fomit-frame-pointer
-    NISTFLAGS = -Wno-sign-compare -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-result
-    AVX2FLAGS = -mavx2 -mpclmul
-    
-    BASE_DIR = ../../{subfolder}
-    
-    SHAKE_PATH = $(BASE_DIR)/shake
-    SHAKE_LIB = libshake.a
-    LDFLAGS = $(SHAKE_PATH)/$(SHAKE_LIB)
-    
-    
-    
-    BUILD           = build
-    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
-    BUILD_SIGN		= $(BUILD)/{candidate}_sign 
-    
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool1.binsec_test_harness_keypair
-        test_harness_sign = tool1.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG  = -static
-        DEBUG_G_FLAG = -g
-        
-        EXECUTABLE_KEYPAIR      = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool1.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
-
-        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_creating_object_files = f'''
-    
-    .PHONY: all
-    
-    all: $(SHAKE_LIB) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-    
-    $(BUILD)/.c.o:
-    \t$(CC) -c $(CFLAGS) $< -o $@
-    
-    $(SHAKE_LIB):
-    \t$(MAKE) -C $(SHAKE_PATH)
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c\
-         $(BASE_DIR)/aim128.c $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c \
-         $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
-        \tmkdir -p $(BUILD_KEYPAIR) 
-        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(AVX2FLAGS)  -D_AIMER_L=1 $^ $(LDFLAGS) -lcrypto -o $(BUILD)/$@
-        
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c $(BASE_DIR)/aim128.c \
-        $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c \
-        $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
-        \tmkdir -p $(BUILD_SIGN) 
-        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(AVX2FLAGS)  -D_AIMER_L=1 $^ $(LDFLAGS) -lcrypto -o $(BUILD)/$@
-    '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c \
-        $(BASE_DIR)/aim128.c $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c\
-         $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
-        \tmkdir -p $(BUILD_KEYPAIR) 
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $(AVX2FLAGS)  -D_AIMER_L=1 $^ $(LDFLAGS) -lcrypto\
-         -lctgrind -o $(BUILD)/$@
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c $(BASE_DIR)/aim128.c\
-         $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c \
-         $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
-        \tmkdir -p $(BUILD_SIGN) 
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $(AVX2FLAGS)  -D_AIMER_L=1 $^ $(LDFLAGS) -lcrypto\
-         -lctgrind -o $(BUILD)/$@
-
-        '''
-    makefile_content_block_clean = f'''
-    clean:
-    \trm -f $(wildcard *.o) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
-    \t$(MAKE) -C $(SHAKE_PATH) clean   
-    '''
-    with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags_obj_files))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
-
-
 def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
     tool_type = tool.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
@@ -4038,14 +3161,14 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
         mfile.write(textwrap.dedent(makefile_content))
 
 
-
-
 # ================================ ascon_sign ===================================
 
-def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_header = f'''
+    makefile_content = f'''
     THASH = robust
 
     CC=/usr/bin/gcc
@@ -4066,71 +3189,41 @@ def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_type, candidate
     
     
     DET_SOURCES = $(SOURCES:randombytes.%=rng.%)
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        BINSEC_STATIC_FLAG      = -static
-        DEBUG_G_FLAG          = -g
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
+    
+    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
         
-        default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+    default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+
+    all:  $(EXECUTABLE_KEYPAIR)  $(EXECUTABLE_SIGN) 
+       
+    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto $(TOOL_LIBS)
+
+    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto $(TOOL_LIBS)
     
-        all:  $(EXECUTABLE_KEYPAIR)  $(EXECUTABLE_SIGN) 
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        
-        \tEXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-    
-        default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
-    
-        all:  $(EXECUTABLE_KEYPAIR)  $(EXECUTABLE_SIGN) 
-        '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto
-    
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $(DEBUG_G_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto -lctgrind
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) $(DEBUG_G_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto -lctgrind
-            '''
-    makefile_content_block_clean = f'''
     clean:
     \t-$(RM)  $(EXECUTABLE_SIGN)
     \t-$(RM)  $(EXECUTABLE_KEYPAIR) 
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_header))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # ================================= faest ========================================
 
-def makefile_faest(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_header = f'''
+    makefile_content = f'''
     CC?=gcc
     CXX?=g++
     CFLAGS+=-g -O2 -march=native -mtune=native -std=c11
@@ -4143,182 +3236,40 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_type, candidate):
     
     SOURCES=$(filter-out  $(SRC_DIR)/PQCgenKAT_sign.c ,$(wildcard $(SRC_DIR)/*.c)) $(wildcard $(SRC_DIR)/*.s)
     LIBFAEST=libfaest.a
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tBINSEC_STATIC_FLAG  = -static
-        \tDEBUG_G_FLAG = -g
-        
-        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_harness_kpair}
-        \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_harness_sign} 
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        
-        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		 = {candidate}_sign/{taint}  
-        '''
-    makefile_content_block_creating_object_files = f'''    
+    
+    \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_keypair}
+    \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_sign} 
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
+      
     
     all: $(LIBFAEST) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     .PHONY: all
     
     $(LIBFAEST): $(SOURCES:.c=.o) $(SOURCES:.s=.o)
     \tar rcs $@ $^
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(LIBFAEST)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(EXECUTABLE_KEYPAIR).c $(BINSEC_STATIC_FLAG) $(LIBFAEST)
     
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(LIBFAEST)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -o $(BUILD)/$(EXECUTABLE_SIGN) $(EXECUTABLE_SIGN).c $(BINSEC_STATIC_FLAG) $(LIBFAEST)
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(LIBFAEST)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CT_GRIND_FLAGS) -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(EXECUTABLE_KEYPAIR).c  $(LIBFAEST) -L. -lctgrind
+    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(LIBFAEST)
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(EXECUTABLE_KEYPAIR).c $(TOOL_FLAGS) $(LIBFAEST) $(TOOL_LIBS)
+
+    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(LIBFAEST)
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) -o $(BUILD)/$(EXECUTABLE_SIGN) $(EXECUTABLE_SIGN).c $(TOOL_FLAGS) $(LIBFAEST) $(TOOL_LIBS)
     
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(LIBFAEST)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CT_GRIND_FLAGS) -o $(BUILD)/$(EXECUTABLE_SIGN) $(EXECUTABLE_SIGN).c  $(LIBFAEST) -L. -lctgrind
-        
-        '''
-    makefile_content_block_clean = f'''
+    
     clean: 
     \trm -f $(SRC_DIR)/*.d $(SRC_DIR)/*.o $(LIBFAEST) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     .PHONY: clean
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_header))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_creating_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # =================================== Sphincs-alpha ===========================
-def makefile_sphincs_alpha1(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
-    path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_header = f'''
-    PARAMS = {subfolder}
-    #PARAMS = sphincs-a-sha2-128f
-    THASH = simple
-    
-    CC=/usr/bin/gcc
-    CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
-    
-    BASE_DIR = ../../{subfolder}
-    '''
-    makefile_content_block_object_files = f'''
-    SOURCES =  $(BASE_DIR)/address.c $(BASE_DIR)/randombytes.c $(BASE_DIR)/merkle.c $(BASE_DIR)/wots.c \
-                $(BASE_DIR)/wotsx1.c $(BASE_DIR)/utils.c $(BASE_DIR)/utilsx1.c $(BASE_DIR)/fors.c \
-                $(BASE_DIR)/sign.c $(BASE_DIR)/uintx.c
-    HEADERS = $(BASE_DIR)/params.h $(BASE_DIR)/address.h $(BASE_DIR)/randombytes.h $(BASE_DIR)/merkle.h \
-                $(BASE_DIR)/wots.h $(BASE_DIR)/wotsx1.h $(BASE_DIR)/utils.h $(BASE_DIR)/utilsx1.h \
-                $(BASE_DIR)/fors.h $(BASE_DIR)/api.h  $(BASE_DIR)/hash.h $(BASE_DIR)/thash.h $(BASE_DIR)/uintx.h
-    
-    ifneq (,$(findstring shake,$(PARAMS)))
-    \tSOURCES += $(BASE_DIR)/fips202.c $(BASE_DIR)/hash_shake.c $(BASE_DIR)/thash_shake_$(THASH).c
-    \tHEADERS += $(BASE_DIR)/fips202.h
-    endif
-    ifneq (,$(findstring haraka,$(PARAMS)))
-    \tSOURCES += $(BASE_DIR)/haraka.c $(BASE_DIR)/hash_haraka.c $(BASE_DIR)/thash_haraka_$(THASH).c
-    \tHEADERS += $(BASE_DIR)/haraka.h
-    endif
-    ifneq (,$(findstring sha2,$(PARAMS)))
-    \tSOURCES += $(BASE_DIR)/sha2.c $(BASE_DIR)/hash_sha2.c $(BASE_DIR)/thash_sha2_$(THASH).c
-    \tHEADERS += $(BASE_DIR)/sha2.h
-    endif
-    
-    DET_SOURCES = $(SOURCES:randombytes.%=rng.%)
-    DET_HEADERS = $(HEADERS:randombytes.%=rng.%)
-    
-    BUILD           = build
-    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
-    BUILD_SIGN		= $(BUILD)/{candidate}_sign
-    '''
-
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tBINSEC_STATIC_FLAG  = -static
-        \tDEBUG_G_FLAG = -g
-        
-        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_harness_kpair}
-        \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_harness_sign} 
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
-        
-        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		 = {candidate}_sign/{taint}
-        
-        '''
-    makefile_content_block_all_target = f''' 
-    .PHONY: clean 
-    
-    default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-    
-    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES) $(DET_HEADERS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CFLAGS) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto
-            
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES) $(DET_HEADERS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(DEBUG_G_FLAG) $(BINSEC_STATIC_FLAG) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES) $(DET_HEADERS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto -L. -lctgrind
-            
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES) $(DET_HEADERS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN) 
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto -L. -lctgrind
-        '''
-    makefile_content_block_clean = f''' 
-    clean:
-    \t-$(RM) $(EXECUTABLE_KEYPAIR)
-    \t-$(RM) $(EXECUTABLE_SIGN)
-    '''
-    with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_header))
-        mfile.write(textwrap.dedent(makefile_content_block_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_all_target))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
-
 
 def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candidate):
     tool_type = tool.Tools(tool_name)
@@ -4393,8 +3344,6 @@ def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candid
         mfile.write(textwrap.dedent(makefile_content))
 
 
-
-
 # ==============================  OTHER =================================
 # =======================================================================
 # ============================== PREON ==================================
@@ -4406,11 +3355,13 @@ def preon_subfolder_parser(subfolder):
     return security_level, security_level_labeled
 
 
-def makefile_preon(path_to_makefile_folder, subfolder, tool_type, candidate):
+def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate):
     security_level, security_level_labeled = preon_subfolder_parser(subfolder)
-    tool = gen_funct.GenericPatterns(tool_type)
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_header = f''' 
+    makefile_content = f''' 
     CC = cc
     CFLAGS := ${{CFLAGS}} -DUSE_PREON{security_level_labeled} -DAES{security_level}=1 -DUSE_PRNG -O3
     LFLAGS := ${{LFLAGS}} -lm -lssl -lcrypto
@@ -4421,61 +3372,30 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_type, candidate):
     BUILD           = build
     BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
     BUILD_SIGN		= $(BUILD)/{candidate}_sign
+    
+    TOOL_LIBS = {tool_libs}
+    TOOL_FLAGS = {tool_flags}
         
     SRC_FILES := $(filter-out  $(BASE_DIR)/PQCgenKAT_sign.c ,$(wildcard $(BASE_DIR)/*.c))
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tBINSEC_STATIC_FLAG  = -static
-        \tDEBUG_G_FLAG = -g
         
-        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_harness_kpair}
-        \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_harness_sign} 
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
-        \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
+    \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_keypair}
+    \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_sign} 
         
-        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{taint}
-        \tEXECUTABLE_SIGN		 = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_all_target_and_object_files = f'''
     all:  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     
     %.o: %.c
     \t@$(CC) $(CFLAGS) -c $< -o $@
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(SRC_FILES)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG)  -o $(BUILD)/$@ $(SRC_FILES) $< $(LFLAGS)
-        
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(SRC_FILES)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(BINSEC_STATIC_FLAG) $(DEBUG_G_FLAG) -o $(BUILD)/$@ $(SRC_FILES) $< $(LFLAGS)
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(SRC_FILES)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS)  -o $(BUILD)/$@ $(SRC_FILES) $< $(LFLAGS) -L. -lctgrind
-        
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(SRC_FILES)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(CT_GRIND_FLAGS) -o $(BUILD)/$@ $(SRC_FILES) $< $(LFLAGS) -L. -lctgrind
-        '''
-    makefile_content_block_clean = f'''
+    
+    $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(SRC_FILES)
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(SRC_FILES) $< $(LFLAGS) $(TOOL_LIBS)
+    
+    $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(SRC_FILES)
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(SRC_FILES) $< $(LFLAGS) $(TOOL_LIBS)
+    
     .PHONY: clean  
     
     clean:
@@ -4483,11 +3403,7 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_type, candidate):
     \t@rm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     '''
     with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_header))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_all_target_and_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 # ============================== ALTEQ ==========================================
@@ -4937,9 +3853,11 @@ def makefile_xifrat(path_to_makefile_folder, subfolder, tool_type, candidate):
 # ==========================  ISOGENY ========================================
 # ============================================================================
 # =========================== sqisign ========================================
-# [TODO]
-def cmake_sqisign(path_to_cmakelist, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
+# [TODO: Put the correct CMakeLists.txt and remove if condition]
+def cmake_sqisign(path_to_cmakelist, subfolder, tool_name, candidate):
+    tool_type = tool.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     subfolder = ""
     path_to_cmakelist = path_to_cmakelist+'/CMakeLists.txt'
     cmake_file_content_src_block1 = f'''
@@ -5024,7 +3942,7 @@ def cmake_sqisign(path_to_cmakelist, subfolder, tool_type, candidate):
     
     '''
     cmake_file_content_find_ctgrind_lib = ""
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
         cmake_file_content_find_ctgrind_lib = f'''
         find_library(CT_GRIND_LIB ctgrind)
         if(NOT CT_GRIND_LIB)
@@ -5061,27 +3979,24 @@ def cmake_sqisign(path_to_cmakelist, subfolder, tool_type, candidate):
         foreach(optimiz_target ${{PARAM_TARGETS}})
         '''
     cmake_file_content_loop_content_block_keypair = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+    if tool_name.lower() == 'binsec':
         cmake_file_content_loop_content_block_keypair = f'''
-            set(TEST_HARNESS ./{tool_type}/{candidate}_keypair/{test_harness_kpair}.c \
-            ./{tool_type}/{candidate}_sign/{test_harness_sign}.c)
-            set(TARGET_BINARY_NAME {test_harness_kpair}_${{category}}_${{optimiz_target}})  
+            set(TEST_HARNESS ./{tool_name}/{candidate}_keypair/{test_keypair}.c \
+            ./{tool_name}/{candidate}_sign/{test_sign}.c)
+            set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{optimiz_target}})  
             add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_keypair/{test_harness_kpair}.c)
+                    ./{candidate}_keypair/{test_keypair}.c)
             target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
             target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                     ${{BASE_DIR}}/include
                     ./include)
             target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
             '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
         cmake_file_content_loop_content_block_keypair = f'''
-        set(TARGET_BINARY_NAME {taint}_${{category}}_${{optimiz_target}})  
+        set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{optimiz_target}})  
             add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_keypair/{taint}.c)
+                    ./{candidate}_keypair/{test_keypair}.c)
             target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                     ${{BASE_DIR}}/include
                     ./include)
@@ -5095,26 +4010,24 @@ def cmake_sqisign(path_to_cmakelist, subfolder, tool_type, candidate):
                     COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}} ")
             '''
     cmake_file_content_loop_content_block_sign = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_sign = tool.binsec_test_harness_sign
+    if tool_name.lower() == 'binsec':
         cmake_file_content_loop_content_block_sign = f'''
             #Test harness for crypto_sign
-            set(TARGET_BINARY_NAME {test_harness_sign}_${{category}}_${{optimiz_target}})
+            set(TARGET_BINARY_NAME {test_sign}_${{category}}_${{optimiz_target}})
             add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_sign/{test_harness_sign}.c)   
+                    ./{candidate}_sign/{test_sign}.c)   
             target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
             target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                     ${{BASE_DIR}}/include
                     ./include)
             target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
             '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
         cmake_file_content_loop_content_block_sign = f'''    
         #Test harness for crypto_sign
-            set(TARGET_BINARY_NAME {taint}_sign_${{category}}_${{optimiz_target}})
+            set(TARGET_BINARY_NAME {test_sign}_sign_${{category}}_${{optimiz_target}})
             add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_sign/{taint}.c)   
+                    ./{candidate}_sign/{test_sign}.c)   
             target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                     ${{BASE_DIR}}/include
                     ./include)
@@ -5133,7 +4046,7 @@ def cmake_sqisign(path_to_cmakelist, subfolder, tool_type, candidate):
     '''
     with open(path_to_cmakelist, "w") as cmake_file:
         cmake_file.write(textwrap.dedent(cmake_file_content_src_block1))
-        if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
+        if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
             cmake_file.write(textwrap.dedent(cmake_file_content_find_ctgrind_lib))
         cmake_file.write(textwrap.dedent(cmake_file_content_src_block2))
         cmake_file.write(textwrap.dedent(cmake_file_content_block_loop))
