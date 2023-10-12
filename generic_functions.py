@@ -873,12 +873,12 @@ def dudect_keypair_dude_content(taint_file, api,
     \t{args_types[0]} {args_names[0]}[CRYPTO_PUBLICKEYBYTES] = {{0}};;
     \t{args_types[1]} {args_names[1]}[CRYPTO_SECRETKEYBYTES] = {{0}};;
     
-    {function_return_type} \tresult = {function_name}({args_names[0]},{args_names[1]});
+    \t{function_return_type} result = {function_name}({args_names[0]},{args_names[1]});
     \treturn result;
     }}
     
     void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
-    \trandombytes(input_data, c->number_measurements * c->chunk_size);
+    \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
     \tfor (size_t i = 0; i < c->number_measurements; i++) {{
     \t\tclasses[i] = randombit();
     \t\t\tif (classes[i] == 0) {{
@@ -896,7 +896,7 @@ def dudect_keypair_dude_content(taint_file, api,
 
     \tdudect_config_t config = {{
     \t\t.chunk_size = 32,
-    \t\t.number_measurements = 1e3,
+    \t\t.number_measurements = 100,
     \t}};
     \tdudect_ctx_t ctx;
 
@@ -953,22 +953,28 @@ def dudect_sign_dude_content(taint_file, api,
     uint8_t do_one_computation(uint8_t *data) {{
     \t{args_types[0]} *{sig_msg};
     \t{args_types[1]} {sig_msg_len};
-    \t{type_msg} *{msg};
-    \t{args_types[3]} {msg_len};
+    \t//{type_msg} *{msg};
+    \t{args_types[3]} {msg_len} = 3300;
+    \t{type_msg} {msg}[3300] = {{2,0xe1,8,4,0xd2,0xea,3,4}}; 
+    \t//{args_types[3]} {msg_len};
     \t{type_sk} {sk}[CRYPTO_SECRETKEYBYTES]= {{0}};
+    \t/* We can either fix msg and msg_len or generate them randomly from <data>
+    \t1. Fix msg and msg_len: chunk_size = CRYPTO_SECRETKEYBYTES
+    \t2. Generate randomly msg and msg_len: chunk_size = CRYPTO_SECRETKEYBYTES + msg_len + NUMBER_BYTES(msg_len)
+    \t*/
+    \t//uint8_t length ;
+    \t//memcpy(length, data, 1);
+    \tmsg_len = 3300 ; //length+(length>>2); // See how to generate randomly the message length 
+    \t//memcpy({msg}, data+1, {msg_len});
+    \t//memcpy({sk}, data+{msg_len}, CRYPTO_SECRETKEYBYTES);
+    \tmemcpy({sk}, data, CRYPTO_SECRETKEYBYTES);
     
-    \tuint8_t length ;
-    \tmemcpy(length, data, 1);
-    \tmsg_len = length+(length>>2) # See how to generate randomly the message length 
-    \tmemcpy({msg}, data+1, {msg_len});
-    \tmemcpy({sk}, data+{msg_len}, CRYPTO_SECRETKEYBYTES);
-    
-    \t\t{ret_type} result = {function_name}({sig_msg}, &{sig_msg_len}, {msg}, {msg_len}, {sk});
+    \t{ret_type} result = {function_name}({sig_msg}, &{sig_msg_len}, {msg}, {msg_len}, {sk});
     \treturn result;
     }}
     
     void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
-    \trandombytes(input_data, c->number_measurements * c->chunk_size);
+    \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
     \tfor (size_t i = 0; i < c->number_measurements; i++) {{
     \t\tclasses[i] = randombit();
     \t\t\tif (classes[i] == 0) {{
@@ -985,8 +991,8 @@ def dudect_sign_dude_content(taint_file, api,
     \t(void)argv;
 
     \tdudect_config_t config = {{
-    \t\t.chunk_size = 32,
-    \t\t.number_measurements = 1e3,
+    \t\t.chunk_size = CRYPTO_SECRETKEYBYTES,
+    \t\t.number_measurements = 100,
     \t}};
     \tdudect_ctx_t ctx;
 
@@ -1002,6 +1008,98 @@ def dudect_sign_dude_content(taint_file, api,
     '''
     print("---------sign:", sign)
     print("---------api:", api)
+    with open(taint_file, "w") as t_file:
+        t_file.write(textwrap.dedent(taint_file_content_block_include))
+        if not add_includes == []:
+            for include in add_includes:
+                t_file.write(f'#include {include}\n')
+        if not sign == '""':
+            t_file.write(f'#include {sign}\n')
+        if not api == '""':
+            t_file.write(f'#include {api}\n')
+        t_file.write(textwrap.dedent(taint_file_content_block_main))
+
+
+
+def dudect_sign_dude_content1(taint_file, api,
+                             sign, add_includes,
+                             function_return_type,
+                             function_name,
+                             args_types,
+                             args_names):
+    taint_file_content_block_include = f'''
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    #include <string.h>
+    #include <stdlib.h>
+    
+    #define DUDECT_IMPLEMENTATION
+    #include <dudect.h>
+    
+    
+    '''
+    type_msg = args_types[2].replace('const', '')
+    type_msg = type_msg.strip()
+    type_sk = args_types[4].replace('const', '')
+    type_sk = type_sk.strip()
+    sig_msg = args_names[0]
+    sig_msg_len = args_names[1]
+    msg = args_names[2]
+    msg_len = args_names[3]
+    sk = args_names[4]
+    ret_type = function_return_type
+    taint_file_content_block_main = f'''
+    #define DUDECT_MEASUREMENTS 1e6     // Number of executions each iteration of dudect
+    #define DUDECT_TIMEOUT 600          // How long dudect should run for
+    
+    const size_t chunk_size = 32;
+    const size_t number_measurements = DUDECT_MEASUREMENTS;
+    
+    {args_types[0]} *{sig_msg};
+    {args_types[1]} {sig_msg_len};
+    {type_msg} *{msg};
+    {args_types[3]} {msg_len};
+    {type_sk} {sk}[CRYPTO_SECRETKEYBYTES]= {{0}};
+    
+    
+    uint8_t do_one_computation(uint8_t *data) {{
+    \t\t{ret_type} result = {function_name}({sig_msg}, &{sig_msg_len}, {msg}, {msg_len}, {sk});
+    \treturn result;
+    }}
+    
+    void generate_test_vectors() {{
+    \t//Fill randombytes
+    \tuint8_t length;
+    \t{args_names[2]} = ({args_types[2]} *)calloc({args_names[3]}, sizeof({args_types[2]}));
+    \t{args_types[4]} {args_names[4]}[CRYPTO_SECRETKEYBYTES];
+    
+    \trandombytes_dudect(&length, 1);
+    \tmsg_len = length+(length>>2)  ;// See how to generate randomly the message length 
+    \trandombytes_dudect({args_names[2]}, {args_names[3]});
+    \trandombytes_dudect({args_names[4]}, CRYPTO_SECRETKEYBYTES);
+    }} 
+    
+    void init_dut(void) {{
+    \tprintf("Generating test vectors\\n");
+    \tgenerate_test_vectors();
+
+    \tprintf("Starting dudect\\n");
+    }}
+    
+    
+    void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
+    \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
+    \tfor (size_t i = 0; i < c->number_measurements; i++) {{
+    \t\tclasses[i] = randombit();
+    \t\t\tif (classes[i] == 0) {{
+    \t\t\t\tmemset(input_data + (size_t)i * c->chunk_size, 0x00, c->chunk_size);
+    \t\t\t}} else {{
+        // leave random
+    \t\t\t}}
+    \t\t}}
+    \t}}
+    '''
     with open(taint_file, "w") as t_file:
         t_file.write(textwrap.dedent(taint_file_content_block_include))
         if not add_includes == []:
@@ -1589,30 +1687,6 @@ def ctgrind_initialize_candidate(path_to_opt_src_folder,
     ctgrind_sign_taint_content(taint_sign, api, sign, rng,
                                add_includes, return_type,
                                f_basename, args_types, args_names)
-
-
-
-
-# api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
-#                                                                 rel_path_to_api,
-#                                                                 rel_path_to_sign,
-#                                                                 rel_path_to_rng,
-#                                                                 rng_outside_instance_folder)
-# path_to_opt_src_folder = "mpc-in-the-head/mira/Optimized_Implementation"
-# path_to_tool_folder = f'{path_to_opt_src_folder}/binsec'
-# path_to_tool_keypair_folder = f'{path_to_tool_folder}/MIRA-128f/mira_keypair'
-# path_to_tool_sign_folder = f'{path_to_tool_folder}/MIRA-128f/mira_sign'
-# api = '"../../MIRA-128f/src/api.h"'
-# sign = '""'
-# rng = '"../../MIRA-128f/lib/randombytes/randombytes.h"'
-# add_includes = []
-#
-#
-# tool_initialize_candidate(path_to_opt_src_folder,
-#                           path_to_tool_folder,
-#                           path_to_tool_keypair_folder,
-#                           path_to_tool_sign_folder, api,
-#                           sign, rng, add_includes)
 
 
 
