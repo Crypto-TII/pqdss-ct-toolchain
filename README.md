@@ -32,7 +32,7 @@ This README would normally document whatever steps are necessary to get your app
 [TO DO] : Complete dockerfile to have also all the instructions for and upcoming tools (Only binsec and valgrind/ctgrind are available now)
 
 ```
-docker build .-t toolchain
+docker build . -t toolchain
 ```
 ## Create a docker container from the docker image we created
 ```
