@@ -29,7 +29,19 @@ fi
 # Install Valgrind.
 cd $TMP_DIR/valgrind-3.16.1 || exit
 
-if ! ./configure --prefix=/usr/share/valgrind && make -j$NUM_PROCESSORS && make install
+if ! ./configure --prefix=/usr/share/valgrind
+then
+  echo 'Valgrind could not be configured.'
+  exit 1
+fi
+
+if ! make -j$NUM_PROCESSORS
+then
+  echo 'Valgrind could not be built.'
+  exit 1
+fi
+
+if ! make install
 then
   echo 'Valgrind could not be installed.'
   exit 1

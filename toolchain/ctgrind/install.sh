@@ -10,7 +10,7 @@ then
 fi
 
 # Build and install ctgrind.
-CTGRIND_SHARE_DIR=/usr/share/ctgrind 
+CTGRIND_SHARE_DIR=/usr/share/ctgrind
 CTGRIND_TMP_DIR=/tmp/ctgrind
 INCLUDE_DIR=/usr/include
 TMP_DIR=/tmp
