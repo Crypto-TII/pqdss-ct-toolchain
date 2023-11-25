@@ -8,14 +8,16 @@ ARG NUM_PROCESSORS=8
 
 #Since binsec image is not working root as user we need to specify it so that it can run the packages
 USER root
-#Install required libraries for all the tools
+########################################
+#Install required packages for all the tools
 RUN apt-get update && \
     apt-get install -y --no-install-recommends graphviz bzip2 libc6-dbg gcc wget git make clang g++ build-essential libssl-dev libffi-dev python cmake flex bison xz-utils python3-pip llvm
 #For libfuzzer the only requirement is to install llvm and clang
+########################################
 # Valgrind
 RUN wget -O /tmp/valgrind.tar.bz2 "https://sourceware.org/pub/valgrind/valgrind-3.16.1.tar.bz2" && \
     tar -xf /tmp/valgrind.tar.bz2 -C /tmp/
-
+########################################
 # Libraries for ctgrind
 RUN mkdir /usr/share/ctgrind
 COPY valgrind_need/ctgrind.h /usr/share/ctgrind/
@@ -26,7 +28,7 @@ RUN cd /usr/share/ctgrind && \
     cp libctgrind.so /usr/lib/ && \
     cd /usr/lib/ && \
     ln -s libctgrind.so libctgrind.so.1
-
+########################################
 # Patch with ctgrind
 COPY valgrind_need/valgrind.patch /tmp/valgrind.patch
 RUN cd /tmp/ && \
@@ -42,7 +44,11 @@ ENV PATH="/usr/share/valgrind/bin:$PATH"
 # Dudect
 RUN git clone https://github.com/oreparaz/dudect.git /usr/share/dudect
 RUN cd /usr/share/dudect && make
-#RUN COPY src/dudect.h /usr/include/dudect.h
+# Replace all occurences of function randombytes in dudect.h by randombytes_dudect
+#RUN sed -i "s/randombytes/randombytes_dudect/g" "/usr/share/dudect"/src/dudect.h
+# If this step is not done you might not find dudect.h
+RUN cp /usr/share/dudect/src/dudect.h /usr/include/dudect.h
+########################################
 # Flow Tracker
 RUN wget -O /tmp/llvm.src.tar.xz "https://www.llvm.org/releases/3.7.1/llvm-3.7.1.src.tar.xz"
 RUN tar -xf /tmp/llvm.src.tar.xz -C $HOME
@@ -71,7 +77,7 @@ RUN cd $HOME/llvm-3.7.1.src/build/lib/Transforms/bSSA2 && \
   make -j${NUM_PROCESSORS}
 RUN cd $HOME/llvm-3.7.1.src/build/lib/Transforms/bSSA2 && \
   g++ -shared -o parserXML.so -fPIC parserXML.cpp tinyxml2.cpp
-
+########################################
 #Exiting root privilege
 USER binsec
 

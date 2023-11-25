@@ -1,0 +1,16 @@
+
+<functions>
+    <sources>
+        <function>
+            <name>call_compare</name>
+            <return>false</return>
+            <public>
+                <parameter>array1</parameter>
+                <parameter>len</parameter>
+            </public>
+            <secret>
+                <parameter>array2</parameter>       <!--Secret key-->
+            </secret>
+        </function>
+    </sources>
+</functions>

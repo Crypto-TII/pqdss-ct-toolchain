@@ -1,0 +1,16 @@
+
+<functions>
+    <sources>
+        <function>
+            <name>ct_compare_two_byte_arrays</name>
+            <return>false</return>
+            <public>
+                <parameter>a</parameter>
+                <parameter>len</parameter>
+            </public>
+            <secret>
+                <parameter>b</parameter>       <!--Secret key-->
+            </secret>
+        </function>
+    </sources>
+</functions>
