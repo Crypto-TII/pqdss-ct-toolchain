@@ -1,4 +1,4 @@
-
+#dockerfile for constant-time checking tools: binsec/valgrind/ctgrind/dudect/Flow Tracker AND fuzzing tool: libfuzzer
 #FROM ubuntu:16.04
 #FROM ubuntu:22.04
 #FROM ubuntu:20.04
@@ -8,10 +8,11 @@ ARG NUM_PROCESSORS=8
 
 #Since binsec image is not working root as user we need to specify it so that it can run the packages
 USER root
-# Valgrind
+#Install required libraries for all the tools
 RUN apt-get update && \
-    apt-get install -y bzip2 libc6-dbg gcc wget git make clang g++ build-essential libssl-dev libffi-dev python cmake flex bison xz-utils
-
+    apt-get install -y --no-install-recommends graphviz bzip2 libc6-dbg gcc wget git make clang g++ build-essential libssl-dev libffi-dev python cmake flex bison xz-utils python3-pip llvm
+#For libfuzzer the only requirement is to install llvm and clang
+# Valgrind
 RUN wget -O /tmp/valgrind.tar.bz2 "https://sourceware.org/pub/valgrind/valgrind-3.16.1.tar.bz2" && \
     tar -xf /tmp/valgrind.tar.bz2 -C /tmp/
 
@@ -70,18 +71,8 @@ RUN cd $HOME/llvm-3.7.1.src/build/lib/Transforms/bSSA2 && \
   make -j${NUM_PROCESSORS}
 RUN cd $HOME/llvm-3.7.1.src/build/lib/Transforms/bSSA2 && \
   g++ -shared -o parserXML.so -fPIC parserXML.cpp tinyxml2.cpp
-########################################
+
 #Exiting root privilege
 USER binsec
-
-#Script to execute test
-
-#COPY test.c /usr/share/ctgrind/test.c
-
-#RUN cd /usr/share/ctgrind && \
-#    gcc test.c libctgrind.so -o test.o -ggdb -std=c99 -Wall -Wextra -lm && \
-#    valgrind ./test.o
-
-#RUN rm -rf /var/lib/apt/lists/*
 
 CMD ["bash"]
