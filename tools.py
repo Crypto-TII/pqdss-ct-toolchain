@@ -46,9 +46,9 @@ def run_ctgrind(binary_file, output_file):
     cmd_args_lst = command.split()
     subprocess.call(cmd_args_lst, stdin=sys.stdin)
 
-
 def run_dudect(binary_file, output_file):
-    command = f'./{binary_file}'
+    command = f'timeout 60 ./{binary_file}'
+    print("::::::::Running current command: ", command)
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
     output, error = execution.communicate()
@@ -57,6 +57,46 @@ def run_dudect(binary_file, output_file):
         for line in output_decode.split('\n'):
             file.write(line + '\n')
 
+
+def run_flowtracker(rbc_file, xml_file, output_file):
+    command = f'''opt -basicaa -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2 \
+            -xmlfile {xml_file} {rbc_file} 2> {output_file}.out
+        '''
+    cmd_args_lst = command.split()
+    subprocess.call(cmd_args_lst, stdin=sys.stdin)
+
+
+def compile_for_flowtracker(target_src_file, output_directory=".", target_dependencies="", target_includes=""):
+    target_src_file_basename = target_src_file.split(".c")[0]
+    output_bc_file = ""  # compile src c file to llvm
+    if output_directory == ".":
+        output_bc_file = target_src_file_basename
+    else:
+        output_bc_file = f'{output_directory}/{target_src_file_basename}'
+    command = f'''clang -emit-llvm {target_dependencies} -I{target_includes} -c -g {target_src_file} \
+     -o {output_bc_file}.bc'''
+    cmd_args_lst = command.split()
+    subprocess.call(cmd_args_lst, stdin=sys.stdin)
+    compiled_file = ""
+    command = f'''opt -instnamer -mem2reg {output_bc_file}.bc > {compiled_file}.rbc'''
+    cmd_args_lst = command.split()
+    subprocess.call(cmd_args_lst, stdin=sys.stdin)
+
+
+# clang -emit-llvm -c -g sign.c -o sign.bc opt -instnamer -mem2reg sign.bc > sign.rbc opt -basicaa
+# -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2 -xmlfile xml_crypto_sign_keypair.xml sign.rbc
+
+
+# def compile_flowtracker(xml_file):
+#     # Compile encrypt.c with flowtracker
+#     printf "Compiling with flowtracker\n"
+#
+#     FLOWTRACKER_BC="${COMPILED_DIR}/flowtracker.bc"
+#     FLOWTRACKER_COMPILED="${COMPILED_DIR}/flowtracker.rbc"
+#     clang -emit-llvm -I${COMPILED_DIR} -I$COMMON_DIR -g -c $ENCRYPT -o $FLOWTRACKER_BC
+#     [ $? -ne 0 ] && error "Error compiling provided src to llvm"
+#     opt -instnamer -mem2reg $FLOWTRACKER_BC > $FLOWTRACKER_COMPILED
+#     [ $? -ne 0 ] && error "Error compiling provided src with flowtracker"
 
 # Take into account the case in which one have a pointer input
 # that points to just one value (not really as an array)
@@ -282,19 +322,6 @@ class Target(object):
     def target_arguments_declaration(self):
         return self.target_args_declaration
 
-    def binsec_compile_target(self, folder):
-        cand_src_file = glob.glob(folder + '/binsec_' + '*' + '*.c')[0]
-        target_src_file = os.path.basename(cand_src_file)
-        target_executable_file = "target_exec"
-        t_harness = find_starting_pattern(folder, "test_h")
-        target_exec = target_executable_file
-        if self.cmd_binsec_compilation_target:
-            subprocess.call(self.cmd_binsec_compilation_target)
-        else:
-            cmd_str = f'gcc -g -m32 -static {t_harness} {folder}/{target_src_file} -o {folder}/{target_exec}'
-            cmd = cmd_str.split()
-            subprocess.call(cmd)
-
     def binsec_run_target(self, folder):
         target_executable_file = find_ending_pattern(folder, "_exec")
         config_file = glob.glob(folder + '/*.cfg')[0]
@@ -323,6 +350,9 @@ class Tools(object):
 
     def run_binsec(self, config_file, executable_file, output_file,
                    sse_depth=1000, stats_file="", additonal_flags=None):
+        # cmd_str = f'''binsec -sse -checkct -sse-depth  {sse_depth} -sse-script {config_file}
+        # -checkct-stats-file {stats_file} {executable_file}'''
+        # more_flags = ""
         cmd_str = f'''binsec -sse -checkct -sse-depth  {sse_depth} -sse-script {config_file} 
         -checkct-stats-file {stats_file} {executable_file}'''
         more_flags = ""
@@ -347,7 +377,7 @@ class Tools(object):
         subprocess.call(cmd_args_lst, stdin=sys.stdin)
 
     def run_dudect(self, executable_file, output_file):
-        command = f'./{executable_file}'
+        command = f'timeout 120 ./{executable_file}'
         cmd_args_lst = command.split()
         execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
         output, error = execution.communicate()
@@ -356,8 +386,12 @@ class Tools(object):
             for line in output_decode.split('\n'):
                 file.write(line + '\n')
 
-    def run_flowtracker(self, executable_file, output_file):
-        pass
+    def run_flowtracker(self, rbc_file, xml_file, output_file):
+        command = f'''opt -basicaa -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2 \
+            -xmlfile {xml_file} {rbc_file} 2> {output_file}.out
+        '''
+        cmd_args_lst = command.split()
+        subprocess.call(cmd_args_lst, stdin=sys.stdin)
 
     def get_tool_flags_and_libs(self):
         if self.tool_name == 'binsec':
@@ -372,6 +406,8 @@ class Tools(object):
             self.tool_libs = "-lm"
             return self.tool_flags, self.tool_libs
         if self.tool_name == 'flowtracker':
+            self.tool_flags = "-emit-llvm -g"
+            self.tool_libs = ""
             return self.tool_flags, self.tool_libs
 
     def get_tool_test_file_name(self):

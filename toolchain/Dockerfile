@@ -6,8 +6,14 @@ USER root
 RUN apt-get update                                   && \
     apt-get install -y --no-install-recommends          \
         bzip2 libc6-dbg gcc g++ wget xz-utils python    \
+<<<<<<< HEAD
         git make wget build-essential libssl-dev graphviz   \
         libffi-dev python3-pip cmake flex bison clang llvm    && \
+=======
+        git make wget build-essential libssl-dev        \
+        libffi-dev python3-pip cmake flex bison         \
+        clang-format                                 && \
+>>>>>>> 0b67086edf10ce40ab481afe2c79623fafe956bc
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install valgrind.

@@ -93,4 +93,4 @@ python3 toolchain_script.py mirith --tools ctgrind --instance_folders_list mirit
 3. `toolchain_script.py`: write a function`compile_run_CANDIDATE` as in function `compile_run_cross`.
    - compile_with_cmake = 'yes' if the candidate is to be compiled with a CMakeLists.tx
    - compile_with_cmake = 'yes' otherwise (with a Makefile)
-4. `toolchain_script.py`: add `generic.add_cli_arguments`: See the part: `# Create a parser for every function in the sub-parser namespace`
+4. `toolchain_script.py`: add `generic.add_cli_arguments`: See the part: `# Create a parser for every function in the sub-parser name

@@ -38,7 +38,7 @@ then
 fi
 
 
-if ! sudo cp $DUDECT_SHARE_DIR/src/dudect.h /usr/include/dudect.h
+if ! cp $DUDECT_SHARE_DIR/src/dudect.h /usr/include/dudect.h
   then
     echo "Could not find $DUDECT_SHARE_DIR/scr/dudect.h"
     exit 1

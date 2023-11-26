@@ -31,6 +31,7 @@ cd $TMP_DIR/valgrind-3.16.1 || exit
 
 if ! ./configure --prefix=/usr/share/valgrind
 then
+<<<<<<< HEAD
   echo 'Valgrind could not be configure.'
   exit 1ccc
 fi
@@ -42,6 +43,19 @@ then
 fi
 
 if !  make install
+=======
+  echo 'Valgrind could not be configured.'
+  exit 1
+fi
+
+if ! make -j$NUM_PROCESSORS
+then
+  echo 'Valgrind could not be built.'
+  exit 1
+fi
+
+if ! make install
+>>>>>>> 0b67086edf10ce40ab481afe2c79623fafe956bc
 then
   echo 'Valgrind could not be installed.'
   exit 1

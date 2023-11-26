@@ -938,6 +938,8 @@ def dudect_sign_dude_content(taint_file, api,
     #define DUDECT_IMPLEMENTATION
     #include <dudect.h>
     
+    #define MESSAGE_LENGTH 3300
+    
     '''
     type_msg = args_types[2].replace('const', '')
     type_msg = type_msg.strip()
@@ -951,22 +953,15 @@ def dudect_sign_dude_content(taint_file, api,
     ret_type = function_return_type
     taint_file_content_block_main = f'''
     uint8_t do_one_computation(uint8_t *data) {{
-    \t{args_types[0]} *{sig_msg};
-    \t{args_types[1]} {sig_msg_len};
-    \t//{type_msg} *{msg};
-    \t{args_types[3]} {msg_len} = 3300;
-    \t{type_msg} {msg}[3300] = {{2,0xe1,8,4,0xd2,0xea,3,4}}; 
-    \t//{args_types[3]} {msg_len};
+    \t{args_types[1]} {sig_msg_len} = MESSAGE_LENGTH+CRYPTO_BYTES;
+    \t{args_types[0]} {sig_msg}[MESSAGE_LENGTH+CRYPTO_BYTES] = {{0x00}};
+    \t{args_types[3]} {msg_len} = MESSAGE_LENGTH; // // See how to generate randomly the message length 
+    \t{type_msg} {msg}[MESSAGE_LENGTH] = {{2,0xe1,8,4,0xd2,0xea,3,4}}; 
     \t{type_sk} {sk}[CRYPTO_SECRETKEYBYTES]= {{0}};
     \t/* We can either fix msg and msg_len or generate them randomly from <data>
     \t1. Fix msg and msg_len: chunk_size = CRYPTO_SECRETKEYBYTES
     \t2. Generate randomly msg and msg_len: chunk_size = CRYPTO_SECRETKEYBYTES + msg_len + NUMBER_BYTES(msg_len)
     \t*/
-    \t//uint8_t length ;
-    \t//memcpy(length, data, 1);
-    \tmsg_len = 3300 ; //length+(length>>2); // See how to generate randomly the message length 
-    \t//memcpy({msg}, data+1, {msg_len});
-    \t//memcpy({sk}, data+{msg_len}, CRYPTO_SECRETKEYBYTES);
     \tmemcpy({sk}, data, CRYPTO_SECRETKEYBYTES);
     
     \t{ret_type} result = {function_name}({sig_msg}, &{sig_msg_len}, {msg}, {msg_len}, {sk});
@@ -992,7 +987,7 @@ def dudect_sign_dude_content(taint_file, api,
 
     \tdudect_config_t config = {{
     \t\t.chunk_size = CRYPTO_SECRETKEYBYTES,
-    \t\t.number_measurements = 100,
+    \t\t.number_measurements = 1000,
     \t}};
     \tdudect_ctx_t ctx;
 
@@ -1006,8 +1001,6 @@ def dudect_sign_dude_content(taint_file, api,
     \treturn (int)state;
     }}
     '''
-    print("---------sign:", sign)
-    print("---------api:", api)
     with open(taint_file, "w") as t_file:
         t_file.write(textwrap.dedent(taint_file_content_block_include))
         if not add_includes == []:
@@ -1333,8 +1326,10 @@ def run_binsec_deprecated(executable_file, cfg_file, stats_files, output_file, d
 
 
 def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
-    command = f'''binsec -sse -checkct -sse-depth  {depth} {cfg_file}
-        -checkct-stats-file   {stats_files}  {executable_file} '''
+    # command = f'''binsec -sse -checkct -sse-depth  {depth} {cfg_file}
+    #     -checkct-stats-file   {stats_files}  {executable_file} '''
+    command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth}
+          {executable_file} '''
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
     output, error = execution.communicate()
@@ -1352,7 +1347,8 @@ def run_ctgrind(binary_file, output_file):
 
 
 def run_dudect(executable_file, output_file):
-    command = f'./{executable_file}'
+    command = f'timeout 60 ./{executable_file}'
+    print("::::::Executing current command: ", command)
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
     output, error = execution.communicate()
