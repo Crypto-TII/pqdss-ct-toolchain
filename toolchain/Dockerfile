@@ -1,5 +1,5 @@
 FROM binsec/binsec:0.8.0
-
+#FROM binsec/binsec:rel-2023-02-14
 USER root
 
 # Install common packages.
