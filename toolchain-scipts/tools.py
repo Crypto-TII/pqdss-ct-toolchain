@@ -48,7 +48,7 @@ def run_ctgrind(binary_file, output_file):
 
 
 def run_dudect(binary_file, output_file):
-    command = f'timeout 60 ./{binary_file}'
+    command = f'./{binary_file}'
     print("::::::::Running current command: ", command)
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
@@ -394,7 +394,8 @@ class Tools(object):
         subprocess.call(cmd_args_lst, stdin=sys.stdin)
 
     def run_dudect(self, executable_file, output_file):
-        command = f'timeout 120 ./{executable_file}'
+        command = f'./{executable_file}'
+        # command = f'timeout 120 ./{executable_file}'
         cmd_args_lst = command.split()
         execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
         output, error = execution.communicate()

@@ -1185,19 +1185,32 @@ generic.add_cli_arguments(subparser, 'multivariate', 'uov',
 
 
 # ==================================================== vox =======================================
-vox_opt_folder = "multivariate/vox/Additional_Implementations"
-vox_avx2_flint_folders = os.listdir(vox_opt_folder)
-vox_avx2_flint_folders = generic.get_default_list_of_folders(vox_avx2_flint_folders,
-                                                             default_tools_list)
-
-vox_default_list_of_folders = ["multivariate/vox/Additional_Implementations/avx2/vox_sign",
-                               "multivariate/vox/Additional_Implementations/flint/vox_sign"]
+# vox_opt_folder = "multivariate/vox/Reference_Implementations"
+# vox_avx2_flint_folders = os.listdir(vox_opt_folder)
+# vox_avx2_flint_folders = generic.get_default_list_of_folders(vox_avx2_flint_folders,
+#                                                              default_tools_list)
+#
+# vox_default_list_of_folders = ["multivariate/vox/Reference_Implementations/avx2/vox_sign",
+#                                "multivariate/vox/Referencel_Implementations/flint/vox_sign"]
 
 generic.add_cli_arguments(subparser, 'multivariate', 'vox',
-                          'Additional_Implementations',
+                          'Reference_Implementation/vox_sign',
                           '"../../../../api.h"', '""',
                           '"../../../../rng/rng.h"')
 
+
+# vox_opt_folder = "multivariate/vox/Additional_Implementations"
+# vox_avx2_flint_folders = os.listdir(vox_opt_folder)
+# vox_avx2_flint_folders = generic.get_default_list_of_folders(vox_avx2_flint_folders,
+#                                                              default_tools_list)
+#
+# vox_default_list_of_folders = ["multivariate/vox/Additional_Implementations/avx2/vox_sign",
+#                                "multivariate/vox/Additional_Implementations/flint/vox_sign"]
+#
+# generic.add_cli_arguments(subparser, 'multivariate', 'vox',
+#                           'Additional_Implementations',
+#                           '"../../../../api.h"', '""',
+#                           '"../../../../rng/rng.h"')
 
 # ==================================================== SYMMETRIC ==================================
 # ==================================================== aimer ======================================
@@ -1236,15 +1249,26 @@ generic.add_cli_arguments(subparser, 'symmetric', 'ascon_sign',
 
 
 # ============================================== faest ===========================================
-faest_opt_folder = "symmetric/faest/Additional_Implementations/avx2"
+# faest_opt_folder = "symmetric/faest/Additional_Implementations/avx2"
+# faest_default_list_of_folders = os.listdir(faest_opt_folder)
+# faest_default_list_of_folders = generic.get_default_list_of_folders(faest_default_list_of_folders,
+#                                                                     default_tools_list)
+#
+# generic.add_cli_arguments(subparser, 'symmetric', 'faest',
+#                           'Additional_Implementations/avx2',
+#                           '"../../../api.h"', '""',
+#                           '"../../../NIST-KATs/rng.h"')
+
+faest_opt_folder = "symmetric/faest/Reference_Implementation"
 faest_default_list_of_folders = os.listdir(faest_opt_folder)
 faest_default_list_of_folders = generic.get_default_list_of_folders(faest_default_list_of_folders,
                                                                     default_tools_list)
 
 generic.add_cli_arguments(subparser, 'symmetric', 'faest',
-                          'Additional_Implementations/avx2',
+                          'Reference_Implementation',
                           '"../../../api.h"', '""',
                           '"../../../NIST-KATs/rng.h"')
+
 
 
 # =============================================== Sphincs_alpha ==================================

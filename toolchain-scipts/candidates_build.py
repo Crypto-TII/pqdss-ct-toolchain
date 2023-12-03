@@ -181,9 +181,9 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
     else:
         makefile_content = f'''   
         CC = gcc
-        CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-all-loops -march=native 
-        -Wimplicit-function-declaration -Wredundant-decls
-             -Wundef -Wshadow  -mavx2 -mpclmul -msse4.2 -maes
+        CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-all-loops -march=native \
+        \t-Wimplicit-function-declaration -Wredundant-decls \
+        \t-Wundef -Wshadow  -mavx2 -mpclmul -msse4.2 -maes
             #-Wno-newline-eof
         ASMFLAGS := -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1
         LDFLAGS:= -lcrypto
@@ -206,7 +206,10 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
         TOOL_LIBS = {tool_libs}
         TOOL_FLAGS = {tool_flags}
         
-          
+        # Exclude main.c and PQCgenKAT_sign.c 
+        MAIN_PERK_SRC:=$(SRC_DIR)/main.c
+        MAIN_KAT_SRC:=$(SRC_DIR)/PQCgenKAT_sign.c
+        
         # exclude sources from "find"
         EXCL_SRC:=! -name $(notdir $(MAIN_PERK_SRC)) \
                   ! -name $(notdir $(MAIN_KAT_SRC))
@@ -262,15 +265,15 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
         \t@echo -e "### Compiling PERK Test harness keypair"
         \t@mkdir -p $(dir $@)
         \tmkdir -p $(BUILD_KEYPAIR) 
-        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) $(TOOL_LIBS) -Wno-strict-prototypes -Wno-unused-result \
-            $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $(LDFLAGS)
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -Wno-strict-prototypes -Wno-unused-result \
+             $(PERK_INCLUDE) -o $(BUILD)/$@ $^ $(LDFLAGS) $(TOOL_LIBS)
             
         $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c  $(PERK_OBJS) $(LIB_OBJS)
         \t@echo -e "### Compiling PERK Test harness sign"
         \t@mkdir -p $(dir $@) 
         \tmkdir -p $(BUILD_SIGN) 
-        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) $(TOOL_LIBS) -Wno-strict-prototypes -Wno-unused-result \
-            $^ $(PERK_INCLUDE) -o $(BUILD)/$@ $(LDFLAGS)
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -Wno-strict-prototypes -Wno-unused-result \
+             $(PERK_INCLUDE) -o $(BUILD)/$@ $^ $(LDFLAGS) $(TOOL_LIBS)
         
         clean:
         \trm -rf $(BUILD_DIR) 
@@ -314,7 +317,7 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_KEYPAIR_BC): $(KEYGEN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        \t$(CC) -emit-llvm -c -g $(KEYGEN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
         
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
@@ -336,9 +339,8 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
     else:
         makefile_content = f'''    
         CC?=gcc
-        ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow 
-        -DPARAM_HYPERCUBE_7R -DPARAM_GF31 -DPARAM_L1 -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4 
-        -DPRGX4 -DNDEBUG -mavx
+        ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow \
+        \t-DPARAM_HYPERCUBE_7R -DPARAM_GF31 -DPARAM_L1 -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4  -DPRGX4 -DNDEBUG -mavx
         
         ALL_FLAGS+=$(EXTRA_ALL_FLAGS) -g 
         
@@ -347,19 +349,22 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
         SYM_OBJ= $(BASE_DIR)/rnd.o $(BASE_DIR)/hash.o $(BASE_DIR)/xof.o
         ARITH_OBJ= $(BASE_DIR)/gf31-matrix.o $(BASE_DIR)/gf31.o
         MPC_OBJ= $(BASE_DIR)/mpc.o $(BASE_DIR)/witness.o $(BASE_DIR)/serialization-specific.o $(BASE_DIR)/precomputed.o
-        CORE_OBJ= $(BASE_DIR)/keygen.o $(BASE_DIR)/sign.o $(BASE_DIR)/views.o $(BASE_DIR)/commit.o 
-            $(BASE_DIR)/sign-mpcith-hypercube.o $(BASE_DIR)/tree.o
+        CORE_OBJ= $(BASE_DIR)/keygen.o $(BASE_DIR)/sign.o $(BASE_DIR)/views.o $(BASE_DIR)/commit.o \
+        \t$(BASE_DIR)/sign-mpcith-hypercube.o $(BASE_DIR)/tree.o
         
         HASH_PATH=$(BASE_DIR)/sha3
         HASH_MAKE_OPTIONS=PLATFORM=avx2 
         HASH_INCLUDE=-I$(BASE_DIR)/sha3 -I. -I$(BASE_DIR)/sha3/avx2
         
-        BUILD					= $(BUILD_DIR)
+        BUILD					= build
         BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
         BUILD_SIGN			= $(BUILD)/{candidate}_sign
         
-        EXECUTABLE_KEYPAIR_OBJ	    = {candidate}keypair/{test_keypair}.o $(BASE_DIR)/generator/rng.o
+        EXECUTABLE_KEYPAIR_OBJ	    = {candidate}_keypair/{test_keypair}.o $(BASE_DIR)/generator/rng.o
         EXECUTABLE_SIGN_OBJ		    = {candidate}_sign/{test_sign}.o $(BASE_DIR)/generator/rng.o
+        
+        EXECUTABLE_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN     = {candidate}_sign/{test_sign}
         
         TOOL_LIBS = {tool_libs}
         TOOL_FLAGS = {tool_flags}
@@ -377,13 +382,13 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
         \tmkdir -p $(BUILD) 
         \tmkdir -p $(BUILD_KEYPAIR)
         \t$(CC) $(EXECUTABLE_KEYPAIR_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) \
-        $(TOOL_FLAGS) $(ALL_FLAGS) -L$(HASH_PATH) -L. $(TOOL_LIBS) -lhash -lcrypto -o $(BUILD)/$@
+        \t$(TOOL_FLAGS) $(ALL_FLAGS) -L$(HASH_PATH) -L. $(TOOL_LIBS) -lhash -lcrypto -o $(BUILD)/$@
         
         $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(TOOL_FLAGS)\
-             $(ALL_FLAGS) -L$(HASH_PATH) -L. $(TOOL_LIBS) -lhash -lcrypto -o $(BUILD)/$@
+        \t$(CC) $(EXECUTABLE_SIGN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(TOOL_FLAGS) \
+        \t$(ALL_FLAGS) -L$(HASH_PATH) -L. $(TOOL_LIBS) -lhash -lcrypto -o $(BUILD)/$@
     
         clean:
         \trm -f $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ)
@@ -494,7 +499,7 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate):
         \tBUILD_SIGN			= $(BUILD)/{candidate}_sign
         
         \tSRC_KEYPAIR	    	= {candidate}_keypair/{test_keypair}.c
-        \tSRC_SIGN		    	= {candidate}_sign/{test_keypair}.c
+        \tSRC_SIGN		    	= {candidate}_sign/{test_sign}.c
         
         TOOL_LIBS = {tool_libs}
         TOOL_FLAGS = {tool_flags}
@@ -532,14 +537,14 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_KEYPAIR): $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build build {test_keypair}
         \t@echo -e "### Compiling test harness keypair"
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(TOOL_FLAGS) $(TOOL_LIBS) $(C_FLAGS) $(SRC_KEYPAIR) $(addprefix $(BIN)/, $^) \
-        $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@
+        \t$(CC) $(TOOL_FLAGS) $(C_FLAGS) $(SRC_KEYPAIR) $(addprefix $(BIN)/, $^) \
+        $(INCLUDE) $(XKCP_LINKER) -o $(BUILD_KEYPAIR)/$@ $(TOOL_LIBS)
     
         $(EXECUTABLE_SIGN): $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build build {test_sign}
         \t@echo -e "### Compiling test harness sign"
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(TOOL_FLAG) $(TOOL_LIBS) $(C_FLAGS) $(SRC_SIGN) $(addprefix $(BIN)/, $^) \
-        $(INCLUDE) $(XKCP_LINKER) -o $(BUILD)/$@
+        \t$(CC) $(TOOL_FLAG) $(C_FLAGS) $(SRC_SIGN) $(addprefix $(BIN)/, $^) \
+        $(INCLUDE) $(XKCP_LINKER) -o $(BUILD_SIGN)/$@ $(TOOL_LIBS)
         
         .PHONY: clean
         clean: ##@Miscellaneous Clean data
@@ -1284,12 +1289,13 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate):
         makefile_content = f'''
         CC = clang
         
-        BASE_DIR = ../../{subfolder}/src
+        BASE_DIR = ../{subfolder}/src
         
         INCS = $(wildcard $(BASE_DIR)/*.h)
         #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
         SRC  = $(filter-out  $(SRC_DIR)/sign.c $(SRC_DIR)/PQCgenKAT_sign.c,$(wildcard $(SRC_DIR)/*.c))
-        SIGN = $(BASE_DIR)/sqisign.c
+        SIGN = $(BASE_DIR)/sign.c
+        KEY_PAIR = $(BASE_DIR)/keypair.c
         
         BUILD			= build
         BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
@@ -1304,10 +1310,10 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate):
          
         
         
-        $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
+        $(EXECUTABLE_KEYPAIR_BC): $(KEY_PAIR) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        \t$(CC) -emit-llvm -c -g $(KEY_PAIR) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
         
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
@@ -1338,14 +1344,13 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate):
         
         CFILES := $(shell find $(BASE_DIR)/src -name '*.c' | sed -e 's/\.c/\.o/')
         
-        OBJS = ${{CFILES}}
+        OBJS = $(CFILES)
         
         BUILD					= build
         BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
         BUILD_SIGN			= $(BUILD)/{candidate}_sign
         
-            
-        BINSEC_STATIC_FLAG  = -static
+        
         EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
         EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
         
@@ -1364,19 +1369,19 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate):
         \t$(CC) $(CFLAGS) $(DBG_FLAGS) -o $@ -c $<
         
         
-        $(EXECUTABLE_KEYPAIR): ${{OBJS}} {candidate}_keypair/$(EXECUTABLE_KEYPAIR).c
+        $(EXECUTABLE_KEYPAIR): $(OBJS) $(EXECUTABLE_KEYPAIR).c
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
         \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
         
-        $(EXECUTABLE_SIGN): ${{OBJS}} {candidate}_sign/$(EXECUTABLE_SIGN).c
+        $(EXECUTABLE_SIGN): $(OBJS) $(EXECUTABLE_SIGN).c
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
         \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
         
-        matrix.o : matrix.h
-        rng.o : rng.h
-        api.o : api.h
+        matrix.o : $(BASE_DIR)/matrix.h
+        rng.o : $(BASE_DIR)/rng.h
+        api.o : $(BASE_DIR)/api.h
         
         clean:
         \tcd  $(BASE_DIR)/src; rm -f *.o; cd ..
@@ -2734,15 +2739,15 @@ def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
     all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
     
-    $(EXECUTABLE_KEYPAIR): Makefile $(EXECUTABLE_KEYPAIR).c ${{OBJS}}
+    $(EXECUTABLE_KEYPAIR): Makefile $(EXECUTABLE_KEYPAIR).c $(OBJS)
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_KEYPAIR)
-    \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(TOOL_FLAGS) ${{LDFLAGS}} $(TOOL_LIBS) $(EXECUTABLE_KEYPAIR).c -o $(BUILD)/$@
+    \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(TOOL_FLAGS) ${{LDFLAGS}} $(EXECUTABLE_KEYPAIR).c -o $(BUILD)/$@ $(TOOL_LIBS)
 
-    $(EXECUTABLE_SIGN): Makefile $(EXECUTABLE_SIGN).c ${{OBJS}}
+    $(EXECUTABLE_SIGN): Makefile $(EXECUTABLE_SIGN).c $(OBJS)
     \tmkdir -p $(BUILD)
     \tmkdir -p $(BUILD_SIGN)
-    \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(TOOL_FLAGS) ${{LDFLAGS}} $(TOOL_LIBS) $(EXECUTABLE_SIGN).c -o $(BUILD)/$@
+    \t${{CC}} ${{OBJS}} ${{CFLAGS}} $(TOOL_FLAGS) ${{LDFLAGS}} $(EXECUTABLE_SIGN).c -o $(BUILD)/$@ $(TOOL_LIBS)
     
     
     clean:
@@ -2908,7 +2913,7 @@ def makefile_snova(path_to_makefile_folder, subfolder, tool_name, candidate):
         
         clean:
         \trm -f $(BASE_DIR)/build/*.o *.a
-        \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)    
+        \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
         '''
     with open(path_to_makefile, "w") as mfile:
         mfile.write(textwrap.dedent(makefile_content))
@@ -3615,7 +3620,7 @@ def makefile_tuov(path_to_makefile_folder, subfolder, tool_name, candidate):
         SRC  = $(filter-out  $(SRC_DIR)/sign.c ,$(wildcard $(SRC_DIR)/*.c))
         RNG	 = $(BASE_DIR)/nistkat/rng.c
         SRC  += $(RNG)
-        SIGN = $(SRC_DIR)/api.c
+        SIGN = $(SRC_DIR)/sign.c
         
         BUILD			= build
         BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
@@ -4086,7 +4091,7 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
         makefile_content = f'''
         CC = clang
         
-        BASE_DIR = ../../{subfolder}/src
+        BASE_DIR = ../../{subfolder}
         
         INCS = $(wildcard $(BASE_DIR)/*.h)
         #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
@@ -4351,7 +4356,7 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate):
         CFLAGS+=-g -O2 -march=native -mtune=native -std=c11
         CPPFLAGS+=-DHAVE_OPENSSL -DNDEBUG -MMD -MP -MF $*.d
         
-        SRC_DIR = ../../{subfolder} 
+        SRC_DIR = ../../{subfolder}
         BUILD           = build
         BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
         BUILD_SIGN		= $(BUILD)/{candidate}_sign
@@ -4359,8 +4364,8 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate):
         SOURCES=$(filter-out  $(SRC_DIR)/PQCgenKAT_sign.c ,$(wildcard $(SRC_DIR)/*.c)) $(wildcard $(SRC_DIR)/*.s)
         LIBFAEST=libfaest.a
         
-        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_keypair}
-        \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_sign} 
+        EXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		 = {candidate}_sign/{test_sign}
         
         TOOL_LIBS = {tool_libs}
         TOOL_FLAGS = {tool_flags}
@@ -4593,8 +4598,9 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate):
             
         SRC_FILES := $(filter-out  $(BASE_DIR)/PQCgenKAT_sign.c ,$(wildcard $(BASE_DIR)/*.c))
             
-        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_keypair}
-        \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_sign} 
+        EXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		 = {candidate}_sign/{test_sign}
+        
             
         all:  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
         
@@ -4752,7 +4758,7 @@ def makefile_emle2_0(path_to_makefile_folder, subfolder, tool_type, candidate):
     #PARAMS = sphincs-a-sha2-128f
     THASH = simple
     
-    CC=/usr/bin/gcc
+    CC=/usr/bin/gcck
     CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
     
     BASE_DIR = ../../{subfolder}

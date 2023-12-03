@@ -185,6 +185,10 @@ def makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate):
     build_cand.makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate)
 
 
+# ==================================  QR_UOV ==============================================
+def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
+    build_cand.makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate)
+
 # ===================================== VOX ================================================
 # [TODO]
 def makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate):
@@ -1343,8 +1347,7 @@ def run_ctgrind(binary_file, output_file):
 
 
 def run_dudect(executable_file, output_file):
-    command = f'timeout 60 ./{executable_file}'
-    print("::::::Executing current command: ", command)
+    command = f'timeout 120 ./{executable_file}'
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
     output, error = execution.communicate()
@@ -1714,7 +1717,7 @@ def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_
     return api_relative, sign_relative, rng_relative
 
 
-def find_api_sign_abs_path(path_to_opt_src_folder, api, sign, opt_implementation_name,
+def find_api_sign_abs_path_modif_3_02_2023(path_to_opt_src_folder, api, sign, opt_implementation_name,
                            ref_implementation_name="Reference_Implementation"):
     folder = path_to_opt_src_folder
     ref_implementation_name.strip()
@@ -1736,6 +1739,36 @@ def find_api_sign_abs_path(path_to_opt_src_folder, api, sign, opt_implementation
         candidate_folder_list = abs_path_to_api_or_sign.split("/")
         if opt_implementation_name in candidate_folder_list:
             candidate_folder_list.remove(opt_implementation_name)
+        candidate_folder = "/".join(candidate_folder_list)
+        abs_path_to_api_or_sign = candidate_folder
+    return abs_path_to_api_or_sign
+
+
+def find_api_sign_abs_path(path_to_opt_src_folder, api, sign, opt_implementation_name,
+                           ref_implementation_name="Reference_Implementation"):
+    folder = path_to_opt_src_folder
+    ref_implementation_name.strip()
+    opt_implementation_name.strip()
+    abs_path_to_api_or_sign = ""
+    if not api == '""':
+        api_folder_split = api.split("../")
+        api_folder = api_folder_split[-1]
+        api_folder = api_folder.split('"')
+        api_folder = api_folder[0]
+        abs_path_to_api_or_sign = f'{folder}/{api_folder}'
+    if not sign == '""':
+        sign_folder_split = sign.split("../")
+        sign_folder = sign_folder_split[-1]
+        sign_folder = sign_folder.split('"')
+        sign_folder = sign_folder[0]
+        abs_path_to_api_or_sign = f'{folder}/{sign_folder}'
+    if ref_implementation_name in abs_path_to_api_or_sign:
+        candidate_folder_list = abs_path_to_api_or_sign.split("/")
+        if opt_implementation_name == ref_implementation_name:
+            abs_path_to_api_or_sign = "/".join(candidate_folder_list)
+        else:
+            if opt_implementation_name in candidate_folder_list:
+                candidate_folder_list.remove(opt_implementation_name)
         candidate_folder = "/".join(candidate_folder_list)
         abs_path_to_api_or_sign = candidate_folder
     return abs_path_to_api_or_sign
@@ -1849,6 +1882,8 @@ def tool_initialize_candidate(path_to_opt_src_folder,
     opt_implementation_name = os.path.basename(path_to_opt_src_folder)
     abth_p = find_api_sign_abs_path(path_to_opt_src_folder, api,
                                     sign, opt_implementation_name)
+    print("::::tool_initialize_candidate")
+    print("---abth_p: ", abth_p)
     abs_path_to_api_or_sign = abth_p
     tool_type = tool.Tools(tool_name)
     tes_keypair_basename, tes_sign_basename = tool_type.get_tool_test_file_name()
