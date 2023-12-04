@@ -23,7 +23,7 @@ import candidates_build as build_candidate
 def compile_run_mirith(tools_list, signature_type, candidate, optimized_imp_folder,
                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                       binary_patterns, rng_outside_instance_folder="no"):
+                       binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_mirith"""
     add_includes = []
     with_cmake = 'no'
@@ -32,7 +32,7 @@ def compile_run_mirith(tools_list, signature_type, candidate, optimized_imp_fold
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ========================================== PERK ============================
@@ -41,7 +41,7 @@ def compile_run_perk(tools_list, signature_type, candidate,
                      optimized_imp_folder, instance_folders_list,
                      rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                      to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_perk"""
     add_includes = []
     with_cmake = 'no'
@@ -50,7 +50,7 @@ def compile_run_perk(tools_list, signature_type, candidate,
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run, depth,
                                           build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ============================== MQOM ================================
@@ -60,7 +60,7 @@ def compile_run_mqom(tools_list, signature_type, candidate,
                      optimized_imp_folder, instance_folders_list,
                      rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                      to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_mqom"""
     add_includes = []
     with_cmake = 'no'
@@ -69,7 +69,7 @@ def compile_run_mqom(tools_list, signature_type, candidate,
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ========================= RYDE =========================================
@@ -79,7 +79,7 @@ def compile_run_ryde(tools_list, signature_type, candidate,
                      optimized_imp_folder, instance_folders_list,
                      rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                      to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_ryde"""
     add_includes = []
     with_cmake = 'no'
@@ -88,7 +88,7 @@ def compile_run_ryde(tools_list, signature_type, candidate,
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run, depth,
                                           build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ============================== MIRA ============================================
@@ -97,7 +97,7 @@ def compile_run_ryde(tools_list, signature_type, candidate,
 def compile_run_mira(tools_list, signature_type, candidate, optimized_imp_folder,
                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_mira"""
     add_includes = []
     with_cmake = 'no'
@@ -106,7 +106,7 @@ def compile_run_mira(tools_list, signature_type, candidate, optimized_imp_folder
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ============================= SDITH ===============================================
@@ -115,7 +115,7 @@ def compile_run_mira(tools_list, signature_type, candidate, optimized_imp_folder
 def compile_run_sdith(tools_list, signature_type, candidate, optimized_imp_folder,
                       instance_folders_list, rel_path_to_api, rel_path_to_sign,
                       rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no"):
+                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_sdith"""
     add_includes = []
     with_cmake = 'no'
@@ -124,7 +124,7 @@ def compile_run_sdith(tools_list, signature_type, candidate, optimized_imp_folde
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ============================CROSS ================================================
@@ -133,7 +133,7 @@ def compile_run_sdith(tools_list, signature_type, candidate, optimized_imp_folde
 def compile_run_cross(tools_list, signature_type, candidate, optimized_imp_folder,
                       instance_folders_list, rel_path_to_api, rel_path_to_sign,
                       rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no"):
+                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_cross"""
     add_includes = []
     with_cmake = 'yes'
@@ -144,7 +144,7 @@ def compile_run_cross(tools_list, signature_type, candidate, optimized_imp_folde
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ==============================  CODE ===========================================
@@ -156,7 +156,7 @@ def compile_run_cross(tools_list, signature_type, candidate, optimized_imp_folde
 def compile_run_pqsigrm(tools_list, signature_type, candidate, optimized_imp_folder,
                         instance_folders_list, rel_path_to_api, rel_path_to_sign,
                         rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no"):
+                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_pqsigrm"""
     add_includes = []
     with_cmake = 'no'
@@ -165,7 +165,7 @@ def compile_run_pqsigrm(tools_list, signature_type, candidate, optimized_imp_fol
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ========================= LESS ==============================================
@@ -174,7 +174,7 @@ def compile_run_pqsigrm(tools_list, signature_type, candidate, optimized_imp_fol
 def compile_run_less(tools_list, signature_type, candidate, optimized_imp_folder,
                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_less"""
     add_includes = []
     with_cmake = 'yes'
@@ -183,7 +183,7 @@ def compile_run_less(tools_list, signature_type, candidate, optimized_imp_folder
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # =========================== FULEECA =============================================
@@ -193,7 +193,7 @@ def compile_run_less(tools_list, signature_type, candidate, optimized_imp_folder
 def compile_run_fuleeca(tools_list, signature_type, candidate, optimized_imp_folder,
                         instance_folders_list, rel_path_to_api, rel_path_to_sign,
                         rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no"):
+                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_fuleeca"""
     add_includes = []
     with_cmake = 'no'
@@ -202,7 +202,7 @@ def compile_run_fuleeca(tools_list, signature_type, candidate, optimized_imp_fol
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ============================ MEDS ==========================================
@@ -212,7 +212,7 @@ def compile_run_fuleeca(tools_list, signature_type, candidate, optimized_imp_fol
 def compile_run_meds(tools_list, signature_type, candidate, optimized_imp_folder,
                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_meds"""
     add_includes = []
     with_cmake = 'no'
@@ -221,7 +221,7 @@ def compile_run_meds(tools_list, signature_type, candidate, optimized_imp_folder
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ================================= WAVE =====================================
@@ -230,7 +230,7 @@ def compile_run_meds(tools_list, signature_type, candidate, optimized_imp_folder
 def compile_run_wave(tools_list, signature_type, candidate, optimized_imp_folder,
                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_wave"""
     add_includes = []
     with_cmake = 'no'
@@ -239,7 +239,7 @@ def compile_run_wave(tools_list, signature_type, candidate, optimized_imp_folder
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ================================== LATTICE ===================================
@@ -251,7 +251,7 @@ def compile_run_wave(tools_list, signature_type, candidate, optimized_imp_folder
 def compile_run_squirrels(tools_list, signature_type, candidate, optimized_imp_folder,
                           instance_folders_list, rel_path_to_api, rel_path_to_sign,
                           rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                          binary_patterns, rng_outside_instance_folder="no"):
+                          binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_squirrels"""
     add_includes = []
     with_cmake = 'no'
@@ -260,7 +260,7 @@ def compile_run_squirrels(tools_list, signature_type, candidate, optimized_imp_f
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ============================ HAETAE ===========================================
@@ -269,7 +269,7 @@ def compile_run_squirrels(tools_list, signature_type, candidate, optimized_imp_f
 def compile_run_haetae(tools_list, signature_type, candidate, optimized_imp_folder,
                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                       binary_patterns, rng_outside_instance_folder="no"):
+                       binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_haetae"""
     add_includes = []
     with_cmake = 'yes'
@@ -278,7 +278,7 @@ def compile_run_haetae(tools_list, signature_type, candidate, optimized_imp_fold
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run, depth,
                                           build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ============================ EAGLESIGN ===================================
@@ -287,7 +287,7 @@ def compile_run_haetae(tools_list, signature_type, candidate, optimized_imp_fold
 def compile_run_eaglesign(tools_list, signature_type, candidate, optimized_imp_folder,
                           instance_folders_list, rel_path_to_api, rel_path_to_sign,
                           rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                          binary_patterns, rng_outside_instance_folder="no"):
+                          binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_eaglesign"""
     add_includes = []
     with_cmake = 'no'
@@ -296,7 +296,7 @@ def compile_run_eaglesign(tools_list, signature_type, candidate, optimized_imp_f
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # =============================== ehtv3v4 =======================================
@@ -306,7 +306,7 @@ def compile_run_eaglesign(tools_list, signature_type, candidate, optimized_imp_f
 def compile_run_ehtv3v4(tools_list, signature_type, candidate, optimized_imp_folder,
                         instance_folders_list, rel_path_to_api, rel_path_to_sign,
                         rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no"):
+                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_ehtv3v4"""
     add_includes = []
     with_cmake = 'no'
@@ -315,7 +315,7 @@ def compile_run_ehtv3v4(tools_list, signature_type, candidate, optimized_imp_fol
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ============================ HAWK =============================================
@@ -325,7 +325,7 @@ def compile_run_ehtv3v4(tools_list, signature_type, candidate, optimized_imp_fol
 def compile_run_hawk(tools_list, signature_type, candidate, optimized_imp_folder,
                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_hawk"""
     add_includes = []
     with_cmake = 'no'
@@ -334,7 +334,7 @@ def compile_run_hawk(tools_list, signature_type, candidate, optimized_imp_folder
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ============================ HUFU ==================================================
@@ -344,7 +344,7 @@ def compile_run_hawk(tools_list, signature_type, candidate, optimized_imp_folder
 def compile_run_hufu(tools_list, signature_type, candidate, optimized_imp_folder,
                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_hufu"""
     add_includes = []
     with_cmake = 'no'
@@ -353,7 +353,7 @@ def compile_run_hufu(tools_list, signature_type, candidate, optimized_imp_folder
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # =============================== RACCOON ===============================================
@@ -363,7 +363,7 @@ def compile_run_hufu(tools_list, signature_type, candidate, optimized_imp_folder
 def compile_run_raccoon(tools_list, signature_type, candidate, optimized_imp_folder,
                         instance_folders_list, rel_path_to_api, rel_path_to_sign,
                         rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no"):
+                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_raccoon"""
     add_includes = []
     sh_script = 'compile_raccoon'
@@ -373,7 +373,7 @@ def compile_run_raccoon(tools_list, signature_type, candidate, optimized_imp_fol
                                                  add_includes, build_folder, sh_script,
                                                  rng_outside_instance_folder)
     generic.generic_run(tools_list, signature_type, candidate, optimized_imp_folder,
-                        instance_folders_list, depth, build_folder, binary_patterns)
+                        instance_folders_list, depth, build_folder, binary_patterns, with_core_dump)
     if 'y' in to_compile.lower() and 'n' in to_run.lower():
         build_candidate.generic_init_compile_with_sh(tools_list, signature_type, candidate,
                                                      optimized_imp_folder, instance_folders_list,
@@ -382,8 +382,7 @@ def compile_run_raccoon(tools_list, signature_type, candidate, optimized_imp_fol
                                                      sh_script, rng_outside_instance_folder)
     if 'n' in to_compile.lower() and 'y' in to_run.lower():
         generic.generic_run(tools_list, signature_type, candidate, optimized_imp_folder,
-                            instance_folders_list, depth, build_folder, binary_patterns)
-
+                            instance_folders_list, depth, build_folder, binary_patterns, with_core_dump)
 
 
 # ===================================  MULTIVARIATE =============================
@@ -395,7 +394,7 @@ def compile_run_raccoon(tools_list, signature_type, candidate, optimized_imp_fol
 def compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                       binary_patterns, rng_outside_instance_folder="no"):
+                       binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_qr_uov"""
 
     build_candidate.compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
@@ -411,7 +410,7 @@ def compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_fold
 def compile_run_snova(tools_list, signature_type, candidate, optimized_imp_folder,
                       instance_folders_list, rel_path_to_api, rel_path_to_sign,
                       rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no"):
+                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_snova"""
     add_includes = []
     with_cmake = 'no'
@@ -420,7 +419,7 @@ def compile_run_snova(tools_list, signature_type, candidate, optimized_imp_folde
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ================================  BISCUIT =========================================
@@ -430,7 +429,7 @@ def compile_run_snova(tools_list, signature_type, candidate, optimized_imp_folde
 def compile_run_biscuit(tools_list, signature_type, candidate, optimized_imp_folder,
                         instance_folders_list, rel_path_to_api, rel_path_to_sign,
                         rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no"):
+                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_biscuit"""
     add_includes = []
     with_cmake = 'no'
@@ -439,7 +438,7 @@ def compile_run_biscuit(tools_list, signature_type, candidate, optimized_imp_fol
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # =================================  dme_sign =======================================
@@ -449,7 +448,7 @@ def compile_run_biscuit(tools_list, signature_type, candidate, optimized_imp_fol
 def compile_run_dme_sign(tools_list, signature_type, candidate, optimized_imp_folder,
                          instance_folders_list, rel_path_to_api, rel_path_to_sign,
                          rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                         binary_patterns, rng_outside_instance_folder="no"):
+                         binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_dme_sign"""
     add_includes = []
     with_cmake = 'no'
@@ -458,7 +457,7 @@ def compile_run_dme_sign(tools_list, signature_type, candidate, optimized_imp_fo
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ==================================  hppc ===========================================
@@ -468,7 +467,7 @@ def compile_run_dme_sign(tools_list, signature_type, candidate, optimized_imp_fo
 def compile_run_hppc(tools_list, signature_type, candidate, optimized_imp_folder,
                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_hppc"""
     add_includes = []
     with_cmake = 'no'
@@ -477,7 +476,7 @@ def compile_run_hppc(tools_list, signature_type, candidate, optimized_imp_folder
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ====================================  MAYO =======================================
@@ -487,7 +486,7 @@ def compile_run_hppc(tools_list, signature_type, candidate, optimized_imp_folder
 def compile_run_mayo(tools_list, signature_type, candidate, optimized_imp_folder,
                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_mayo"""
     add_includes = []
     with_cmake = 'yes'
@@ -496,7 +495,7 @@ def compile_run_mayo(tools_list, signature_type, candidate, optimized_imp_folder
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ==================================  PROV ===============================================
@@ -506,7 +505,7 @@ def compile_run_mayo(tools_list, signature_type, candidate, optimized_imp_folder
 def compile_run_prov(tools_list, signature_type, candidate, optimized_imp_folder,
                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no"):
+                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_prov"""
     add_includes = []
     with_cmake = 'no'
@@ -515,7 +514,7 @@ def compile_run_prov(tools_list, signature_type, candidate, optimized_imp_folder
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # =================================== TUOV =============================================
@@ -525,7 +524,7 @@ def compile_run_prov(tools_list, signature_type, candidate, optimized_imp_folder
 def compile_run_tuov(tools_list, signature_type, candidate, optimized_imp_folder,
                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="yes"):
+                     binary_patterns, rng_outside_instance_folder="yes", with_core_dump="no"):
     """ Function: compile_run_tuov"""
     add_includes = []
     with_cmake = 'no'
@@ -534,7 +533,7 @@ def compile_run_tuov(tools_list, signature_type, candidate, optimized_imp_folder
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ==================================  UOV ==============================================
@@ -544,7 +543,7 @@ def compile_run_tuov(tools_list, signature_type, candidate, optimized_imp_folder
 def compile_run_uov(tools_list, signature_type, candidate, optimized_imp_folder,
                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                    binary_patterns, rng_outside_instance_folder="yes"):
+                    binary_patterns, rng_outside_instance_folder="yes", with_core_dump="no"):
     """ Function: compile_run_uov"""
     add_includes = []
     with_cmake = 'no'
@@ -553,7 +552,7 @@ def compile_run_uov(tools_list, signature_type, candidate, optimized_imp_folder,
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ===================================== VOX ================================================
@@ -563,7 +562,7 @@ def compile_run_uov(tools_list, signature_type, candidate, optimized_imp_folder,
 def compile_run_vox(tools_list, signature_type, candidate, optimized_imp_folder,
                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                    binary_patterns, rng_outside_instance_folder="no"):
+                    binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_vox"""
     add_includes = []
     with_cmake = 'no'
@@ -572,7 +571,7 @@ def compile_run_vox(tools_list, signature_type, candidate, optimized_imp_folder,
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ================================  SYMMETRIC =====================================
@@ -584,7 +583,7 @@ def compile_run_vox(tools_list, signature_type, candidate, optimized_imp_folder,
 def compile_run_aimer(tools_list, signature_type, candidate, optimized_imp_folder,
                       instance_folders_list, rel_path_to_api, rel_path_to_sign,
                       rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no"):
+                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_aimer"""
     add_includes = []
     with_cmake = 'no'
@@ -593,7 +592,7 @@ def compile_run_aimer(tools_list, signature_type, candidate, optimized_imp_folde
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ================================= ascon_sign ====================================
@@ -602,7 +601,7 @@ def compile_run_aimer(tools_list, signature_type, candidate, optimized_imp_folde
 def compile_run_ascon_sign(tools_list, signature_type, candidate, optimized_imp_folder,
                            instance_folders_list, rel_path_to_api, rel_path_to_sign,
                            rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                           binary_patterns, rng_outside_instance_folder="no"):
+                           binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_ascon_sign"""
     add_includes = []
     with_cmake = 'no'
@@ -611,7 +610,7 @@ def compile_run_ascon_sign(tools_list, signature_type, candidate, optimized_imp_
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # =================================== faest ========================================
@@ -620,7 +619,7 @@ def compile_run_ascon_sign(tools_list, signature_type, candidate, optimized_imp_
 def compile_run_faest(tools_list, signature_type, candidate, optimized_imp_folder,
                       instance_folders_list, rel_path_to_api, rel_path_to_sign,
                       rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no"):
+                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_faest"""
     add_includes = []
     with_cmake = 'no'
@@ -629,7 +628,7 @@ def compile_run_faest(tools_list, signature_type, candidate, optimized_imp_folde
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ================================== Sphincs-alpha ============================
@@ -638,7 +637,7 @@ def compile_run_faest(tools_list, signature_type, candidate, optimized_imp_folde
 def compile_run_sphincs_alpha(tools_list, signature_type, candidate, optimized_imp_folder,
                               instance_folders_list, rel_path_to_api, rel_path_to_sign,
                               rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                              binary_patterns, rng_outside_instance_folder="no"):
+                              binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_sphincs_alpha"""
     add_includes = []
     with_cmake = 'no'
@@ -647,7 +646,7 @@ def compile_run_sphincs_alpha(tools_list, signature_type, candidate, optimized_i
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # =================================  OTHER =========================================
@@ -658,7 +657,7 @@ def compile_run_sphincs_alpha(tools_list, signature_type, candidate, optimized_i
 def compile_run_preon(tools_list, signature_type, candidate, optimized_imp_folder,
                       instance_folders_list, rel_path_to_api, rel_path_to_sign,
                       rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no"):
+                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_preon"""
     add_includes = []
     with_cmake = 'no'
@@ -667,7 +666,7 @@ def compile_run_preon(tools_list, signature_type, candidate, optimized_imp_folde
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ================================ ALTEQ ====================================
@@ -677,7 +676,7 @@ def compile_run_preon(tools_list, signature_type, candidate, optimized_imp_folde
 def compile_run_alteq(tools_list, signature_type, candidate, optimized_imp_folder,
                       instance_folders_list, rel_path_to_api, rel_path_to_sign,
                       rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no"):
+                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_alteq"""
     add_includes = []
     with_cmake = 'no'
@@ -686,7 +685,7 @@ def compile_run_alteq(tools_list, signature_type, candidate, optimized_imp_folde
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ================================== EMLE2_0 ======================================
@@ -696,7 +695,7 @@ def compile_run_alteq(tools_list, signature_type, candidate, optimized_imp_folde
 def compile_run_emle2_0(tools_list, signature_type, candidate, optimized_imp_folder,
                         instance_folders_list, rel_path_to_api, rel_path_to_sign,
                         rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no"):
+                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_eml2e_0"""
     add_includes = []
     with_cmake = 'no'
@@ -705,7 +704,7 @@ def compile_run_emle2_0(tools_list, signature_type, candidate, optimized_imp_fol
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # =================================== kaz_sign ====================================
@@ -715,7 +714,7 @@ def compile_run_emle2_0(tools_list, signature_type, candidate, optimized_imp_fol
 def compile_run_kaz_sign(tools_list, signature_type, candidate, optimized_imp_folder,
                          instance_folders_list, rel_path_to_api, rel_path_to_sign,
                          rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                         binary_patterns, rng_outside_instance_folder="no"):
+                         binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_kaz_sign"""
     add_includes = []
     with_cmake = 'no'
@@ -724,7 +723,7 @@ def compile_run_kaz_sign(tools_list, signature_type, candidate, optimized_imp_fo
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ============================= xifrat ==========================================
@@ -734,7 +733,7 @@ def compile_run_kaz_sign(tools_list, signature_type, candidate, optimized_imp_fo
 def compile_run_xifrat(tools_list, signature_type, candidate, optimized_imp_folder,
                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                       binary_patterns, rng_outside_instance_folder="no"):
+                       binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_xifrat"""
     add_includes = []
     with_cmake = 'no'
@@ -743,7 +742,7 @@ def compile_run_xifrat(tools_list, signature_type, candidate, optimized_imp_fold
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # =================================  ISOGENY ===============================
@@ -755,7 +754,7 @@ def compile_run_xifrat(tools_list, signature_type, candidate, optimized_imp_fold
 def compile_run_sqisign(tools_list, signature_type, candidate, optimized_imp_folder,
                         instance_folders_list, rel_path_to_api, rel_path_to_sign,
                         rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no"):
+                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
     """ Function: compile_run_sqisign"""
     add_includes = []
     with_cmake = 'yes'
@@ -766,7 +765,7 @@ def compile_run_sqisign(tools_list, signature_type, candidate, optimized_imp_fol
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                           with_cmake, add_includes, to_compile, to_run,
                                           depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder)
+                                          rng_outside_instance_folder, with_core_dump)
 
 
 # ####################################################################################
@@ -794,12 +793,13 @@ def run_cli_candidate(args_parse):
     build_directory = args_parse.build
     executable_patterns = args_parse.algorithms_patterns
     is_rng_in_different_folder = args_parse.rng_outside
+    with_core_dump = args_parse.core_dump
     arguments = f'''{list_of_tools}, f'{type_based_signature}', f'{target_candidate}',
                      f'{optimization_folder}', {list_of_instance_folders},
                      {relative_path_to_api}, f'{relative_path_to_sign}', {relative_path_to_rng},
                      f'{compile_candidate}', f'{run_candidate}', {binsec_depth_flag},
                      f'{build_directory}', {executable_patterns},
-                     f'{is_rng_in_different_folder}' '''
+                     f'{is_rng_in_different_folder}', f'{with_core_dump}' '''
     target = f'compile_run_{candidate}({arguments})'
     exec(target)
 

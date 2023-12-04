@@ -9,6 +9,7 @@ import glob
 import re
 import subprocess
 import sys
+import textwrap
 
 
 def find_ending_pattern(folder, pattern):
@@ -38,6 +39,32 @@ def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
     with open(output_file, "w") as file:
         for line in output_decode.split('\n'):
             file.write(line + '\n')
+
+
+def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: str):
+    snapshot_file = path_to_snapshot_file
+    gdb_script = path_to_gdb_script
+    if not snapshot_file.endswith('.snapshot'):
+        snapshot_file = f'{snapshot_file}.snapshot'
+    if not gdb_script.endswith('.gdb'):
+        gdb_script = f'{gdb_script}.gdb'
+    snapshot = f'''
+    set env LD_BIND_NOW=1
+    set env GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_Usable
+    b main
+    start
+    generate-core-file {snapshot_file}
+    kill
+    quit
+    '''
+    with open(gdb_script, "w+") as gdb_file:
+        gdb_file.write(textwrap.dedent(snapshot))
+
+
+def binsec_generate_core_dump(path_to_executable_file: str, path_to_gdb_script: str):
+    cmd = f'gdb -x {path_to_gdb_script} ./{path_to_executable_file}'
+    cmd_list = cmd.split()
+    subprocess.call(cmd_list, stdin=sys.stdin)
 
 
 def run_ctgrind(binary_file, output_file):
@@ -94,26 +121,6 @@ def compile_for_flowtracker(target_src_file, output_directory=".", target_depend
     cmd_args_lst = command.split()
     subprocess.call(cmd_args_lst, stdin=sys.stdin)
 
-
-
-# src_file = 'mpc-in-the-head/mirith/Optimized_Implementation/mirith_avx2_Ia_fast/sign.c'
-# output_directory = 'mpc-in-the-head/mirith/Optimized_Implementation/flowtracker/mirith_avx2_Ia_fast/build/mirith_keypair'
-# compile_for_flowtracker(src_file, output_directory)
-
-# clang -emit-llvm -c -g sign.c -o sign.bc opt -instnamer -mem2reg sign.bc > sign.rbc opt -basicaa
-# -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2 -xmlfile xml_crypto_sign_keypair.xml sign.rbc
-
-
-# def compile_flowtracker(xml_file):
-#     # Compile encrypt.c with flowtracker
-#     printf "Compiling with flowtracker\n"
-#
-#     FLOWTRACKER_BC="${COMPILED_DIR}/flowtracker.bc"
-#     FLOWTRACKER_COMPILED="${COMPILED_DIR}/flowtracker.rbc"
-#     clang -emit-llvm -I${COMPILED_DIR} -I$COMMON_DIR -g -c $ENCRYPT -o $FLOWTRACKER_BC
-#     [ $? -ne 0 ] && error "Error compiling provided src to llvm"
-#     opt -instnamer -mem2reg $FLOWTRACKER_BC > $FLOWTRACKER_COMPILED
-#     [ $? -ne 0 ] && error "Error compiling provided src with flowtracker"
 
 # Take into account the case in which one have a pointer input
 # that points to just one value (not really as an array)
@@ -413,7 +420,7 @@ class Tools(object):
 
     def get_tool_flags_and_libs(self):
         if self.tool_name == 'binsec':
-            self.tool_flags = "-static -g"
+            self.tool_flags = "-g" #-static
             return self.tool_flags, self.tool_libs
         if self.tool_name == 'ctgrind':
             self.tool_flags = "-Wall -ggdb  -std=c99  -Wextra"

@@ -1207,21 +1207,34 @@ def sign_configuration_file_content_deprecated(cfg_file_sign, crypto_sign_args_n
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
 
-def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names):
+def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_core_dump="no"):
     sig_msg = crypto_sign_args_names[0]
     sig_msg_len = crypto_sign_args_names[1]
     msg = crypto_sign_args_names[2]
     msg_len = crypto_sign_args_names[3]
     sk = crypto_sign_args_names[4]
+    script_file = cfg_file_sign
     cfg_file_content = f'''
     starting from <main>
     with concrete stack pointer
+    '''
+    if 'yes' in with_core_dump.lower():
+        if not cfg_file_sign.endswith('.ini'):
+            cfg_file_sign_split = cfg_file_sign.split('.')
+            if len(cfg_file_sign_split) == 1:
+                script_file = f'{cfg_file_sign}.ini'
+            else:
+                script_file = f'{cfg_file_sign_split[0:-1]}.ini'
+        cfg_file_content = f'''
+    starting from core
+    '''
+    cfg_file_content += f''' 
     secret global {sk}
     public global {sig_msg}, {sig_msg_len}, {msg}, {msg_len}
     halt at <exit>
     explore all
     '''
-    with open(cfg_file_sign, "w") as cfg_file:
+    with open(script_file, "w") as cfg_file:
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
 
@@ -1238,16 +1251,29 @@ def cfg_content_keypair_deprecated(cfg_file_keypair):
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
 
-def cfg_content_keypair(cfg_file_keypair):
+def cfg_content_keypair(cfg_file_keypair, with_core_dump="no"):
     cfg_file_content = f'''
     starting from <main>
     with concrete stack pointer
+    '''
+    script_file = cfg_file_keypair
+    if 'yes' in with_core_dump.lower():
+        if not cfg_file_keypair.endswith('.ini'):
+            cfg_file_sign_split = cfg_file_keypair.split('.')
+            if len(cfg_file_sign_split) == 1:
+                script_file = f'{cfg_file_keypair}.ini'
+            else:
+                script_file = f'{cfg_file_keypair[0:-1]}.ini'
+        cfg_file_content = f'''
+    starting from core
+    '''
+    cfg_file_content += f'''
     secret global sk
     public global pk
     halt at <exit>
     explore all
     '''
-    with open(cfg_file_keypair, "w") as cfg_file:
+    with open(script_file, "w") as cfg_file:
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
 
@@ -1328,8 +1354,13 @@ def run_binsec_deprecated(executable_file, cfg_file, stats_files, output_file, d
 def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
     # command = f'''binsec -sse -checkct -sse-depth  {depth} {cfg_file}
     #     -checkct-stats-file   {stats_files}  {executable_file} '''
-    command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth}
-          {executable_file} '''
+    # command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth}
+    #       {executable_file} '''
+    command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth} 
+          '''
+    if stats_files:
+        command += f'-checkct-stats-file {stats_files} '
+    command += f'{executable_file}'
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
     output, error = execution.communicate()
@@ -1337,6 +1368,59 @@ def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
     with open(output_file, "w") as file:
         for line in output_decode.split('\n'):
             file.write(line + '\n')
+
+
+def run_binsec_with_core_dump(snapshot_file, cfg_file, stats_files, output_file, depth):
+    command = f'''binsec -sse -sse-script {cfg_file} '''
+    if depth:
+        command += f'-sse-depth {depth} '
+    if stats_files:
+        command += f'-checkct-stats-file {stats_files} '
+    command += f'{snapshot_file}'
+    cmd_args_lst = command.split()
+    execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
+    output, error = execution.communicate()
+    output_decode = output.decode('utf-8')
+    with open(output_file, "w") as file:
+        for line in output_decode.split('\n'):
+            file.write(line + '\n')
+
+
+def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: str):
+    snapshot_file = path_to_snapshot_file
+    gdb_script = path_to_gdb_script
+    if not snapshot_file.endswith('.snapshot'):
+        snapshot_file = f'{snapshot_file}.snapshot'
+    if not gdb_script.endswith('.gdb'):
+        gdb_script = f'{gdb_script}.gdb'
+    snapshot = f'''
+    set env LD_BIND_NOW=1
+    set env GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_Usable
+    b main
+    start
+    generate-core-file {snapshot_file}
+    kill
+    quit
+    '''
+    with open(gdb_script, "w+") as gdb_file:
+        gdb_file.write(textwrap.dedent(snapshot))
+
+
+def binsec_generate_core_dump(path_to_executable_file: str, path_to_gdb_script: str):
+    cwd = os.getcwd()
+    path_to_executable_file_split = path_to_executable_file.split('/')
+    executable_basename = os.path.basename(path_to_executable_file)
+    gdb_script_basename = os.path.basename(path_to_gdb_script)
+    if len(path_to_executable_file_split) == 1:
+        executable_folder = "."
+    else:
+        executable_folder = '/'.join(path_to_executable_file_split[0:-1])
+
+    os.chdir(executable_folder)
+    cmd = f'gdb -x {gdb_script_basename} ./{executable_basename}'
+    cmd_list = cmd.split()
+    subprocess.call(cmd_list, stdin=sys.stdin)
+    os.chdir(cwd)
 
 
 def run_ctgrind(binary_file, output_file):
@@ -1355,36 +1439,6 @@ def run_dudect(executable_file, output_file):
     with open(output_file, "w") as file:
         for line in output_decode.split('\n'):
             file.write(line + '\n')
-
-
-def run_flowtracker1(rbc_file, xml_file, output_file):
-    command = f'''opt -basicaa -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2\
-    -xmlfile {xml_file} {rbc_file} 2>{output_file}
-    '''
-    cmd_args_lst = command.split()
-    subprocess.call(cmd_args_lst, stdin=sys.stdin)
-
-
-def run_flowtracker_modif_20(rbc_file, xml_file, output_file, sh_file_folder):
-    sh_command = f'''
-    #!/bin/sh
-    opt -basicaa -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2\
-    -xmlfile {xml_file} {rbc_file} 2>{output_file}
-    '''
-    shell_file = 'run_candidate.sh'
-    with open(shell_file, 'w') as sh_file:
-        sh_file.write(textwrap.dedent(sh_command))
-    command_permission = f'chmod +x {shell_file}'
-    cmd_args_lst = command_permission.split()
-    subprocess.call(cmd_args_lst, stdin=sys.stdin)
-    command_exec = f'./{shell_file}'
-    command_exec_lst = command_exec.split()
-    subprocess.call(command_exec_lst, stdin=sys.stdin)
-    # Convert fullGraph.dot to .png image file
-    graph_png_command = 'dot fullGraph.dot -Tpng  -o fullGraph.png'
-    graph_png_command_lst = graph_png_command.split()
-    subprocess.call(graph_png_command_lst, stdin=sys.stdin)
-
 
 
 def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
@@ -1415,10 +1469,12 @@ def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
 
 def binsec_generic_run(binsec_folder, signature_type, candidate,
                        optimized_imp_folder, opt_src_folder_list_dir,
-                       depth, build_folder, binary_patterns):
+                       depth, build_folder, binary_patterns, with_core_dump="no"):
     optimized_imp_folder_full_path = signature_type + '/' + candidate + '/' + optimized_imp_folder
     binsec_folder_full_path = optimized_imp_folder_full_path + '/' + binsec_folder
     cfg_pattern = ".cfg"
+    if 'yes' in with_core_dump.lower():
+        cfg_pattern = '.ini'
     if not opt_src_folder_list_dir:
         path_to_subfolder = binsec_folder_full_path
         path_to_build_folder = path_to_subfolder + '/' + build_folder
@@ -1428,12 +1484,21 @@ def binsec_generic_run(binsec_folder, signature_type, candidate,
             path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{binsec_folder_basename}'
             path_to_pattern_subfolder = f'{path_to_subfolder}/{binsec_folder_basename}'
             bin_files = os.listdir(path_to_binary_pattern_subfolder)
+            if 'yes' in with_core_dump.lower():
+                bin_files = [executable for executable in bin_files if executable.endswith('.snapshot')]
+            else:
+                bin_files = [executable for executable in bin_files if '.' not in executable]
             for executable in bin_files:
-                bin_basename = executable.split('test_harness_')[-1]
+                if 'yes' in with_core_dump.lower():
+                    bin_basename = executable.split('test_harness_')[-1]
+                    bin_basename = bin_basename.split('.snapshot')[0]
+                else:
+                    bin_basename = executable.split('test_harness_')[-1]
                 output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
                 stats_file = f'{path_to_pattern_subfolder}/{bin_pattern}.toml'
                 cfg_file = find_ending_pattern(path_to_pattern_subfolder, cfg_pattern)
                 abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
+                print("::::Running:", abs_path_to_executable)
                 run_binsec(abs_path_to_executable, cfg_file, stats_file, output_file, depth)
     else:
         for subfold in opt_src_folder_list_dir:
@@ -1445,12 +1510,21 @@ def binsec_generic_run(binsec_folder, signature_type, candidate,
                 path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{binsec_folder_basename}'
                 path_to_pattern_subfolder = f'{path_to_subfolder}/{binsec_folder_basename}'
                 bin_files = os.listdir(path_to_binary_pattern_subfolder)
+                if 'yes' in with_core_dump.lower():
+                    bin_files = [executable for executable in bin_files if executable.endswith('.snapshot')]
+                else:
+                    bin_files = [executable for executable in bin_files if '.' not in executable]
                 for executable in bin_files:
-                    bin_basename = executable.split('test_harness_')[-1]
+                    if 'yes' in with_core_dump.lower():
+                        bin_basename = executable.split('test_harness_')[-1]
+                        bin_basename = bin_basename.split('.snapshot')[0]
+                    else:
+                        bin_basename = executable.split('test_harness_')[-1]
                     output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
                     stats_file = f'{path_to_pattern_subfolder}/{bin_pattern}.toml'
                     cfg_file = find_ending_pattern(path_to_pattern_subfolder, cfg_pattern)
                     abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
+                    print("::::Running:", abs_path_to_executable)
                     run_binsec(abs_path_to_executable, cfg_file, stats_file, output_file, depth)
 
 
@@ -1473,7 +1547,7 @@ def ctgrind_generic_run(ctgrind_folder, signature_type,
                 bin_basename = bin_basename.split('.o')[0]
                 output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
                 abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
-                print("-------------Running: ", abs_path_to_executable)
+                print("::::Running: ", abs_path_to_executable)
                 run_ctgrind(abs_path_to_executable, output_file)
     else:
         for subfold in opt_src_folder_list_dir:
@@ -1490,7 +1564,7 @@ def ctgrind_generic_run(ctgrind_folder, signature_type,
                     bin_basename = bin_basename.split('.o')[0]
                     output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
                     abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
-                    print("-------------Running:", abs_path_to_executable)
+                    print("::::Running:", abs_path_to_executable)
                     run_ctgrind(abs_path_to_executable, output_file)
 
 
@@ -1513,7 +1587,7 @@ def dudect_generic_run(dudect_folder, signature_type,
                 bin_basename = bin_basename.split('.o')[0]
                 output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
                 abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
-                print("-------------Running: ", abs_path_to_executable)
+                print("::::Running:", abs_path_to_executable)
                 run_ctgrind(abs_path_to_executable, output_file)
     else:
         for subfold in opt_src_folder_list_dir:
@@ -1530,7 +1604,7 @@ def dudect_generic_run(dudect_folder, signature_type,
                     bin_basename = bin_basename.split('.o')[0]
                     output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
                     abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
-                    print("-------------Running:", abs_path_to_executable)
+                    print("::::Running:", abs_path_to_executable)
                     run_dudect(abs_path_to_executable, output_file)
 
 
@@ -1563,7 +1637,7 @@ def flowtracker_generic_run(flowtracker_folder, signature_type,
                 rbc_file = f'{rbc_file_folder}/{executable}'
                 os.chdir(path_to_pattern_subfolder)
                 sh_file_folder = flowtracker_folder_basename
-                print("-------------Running: ", rbc_file)
+                print("::::Running: ", rbc_file)
                 run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder)
             os.chdir(cwd)
 
@@ -1589,7 +1663,7 @@ def flowtracker_generic_run(flowtracker_folder, signature_type,
                     rbc_file = f'{rbc_file_folder}/{executable}'
                     os.chdir(path_to_pattern_subfolder)
                     sh_file_folder = flowtracker_folder_basename
-                    print("-------------Running: ", rbc_file)
+                    print("::::Running: ", rbc_file)
                     run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder)
 
                 os.chdir(cwd)
@@ -1598,14 +1672,14 @@ def flowtracker_generic_run(flowtracker_folder, signature_type,
 def generic_run(tools_list, signature_type,
                 candidate, optimized_imp_folder,
                 opt_src_folder_list_dir, depth,
-                build_folder, binary_patterns):
+                build_folder, binary_patterns, with_core_dump='no'):
     for tool_name in tools_list:
         if 'binsec' in tool_name.lower():
             binsec_folder = tool_name
             binsec_generic_run(binsec_folder, signature_type,
                                candidate, optimized_imp_folder,
                                opt_src_folder_list_dir, depth,
-                               build_folder, binary_patterns)
+                               build_folder, binary_patterns, with_core_dump)
     for tool_name in tools_list:
         if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
             ctgrind_folder = tool_name
@@ -1630,42 +1704,6 @@ def generic_run(tools_list, signature_type,
 
 # ========================== INITIALIZATION ==============================
 # ========================================================================
-
-
-def find_candidate_instance_api_sign_relative_path_good_until_4_oct(instance_folder,
-                                                                    rel_path_to_api,
-                                                                    rel_path_to_sign,
-                                                                    rel_path_to_rng):
-    api_relative = rel_path_to_api
-    sign_relative = rel_path_to_sign
-    rng_relative = rel_path_to_rng
-    if not instance_folder == "":
-        if not rel_path_to_api == "":
-            rel_path_to_api_split = rel_path_to_api.split('/')
-            for i in range(1, len(rel_path_to_api_split)):
-                if not rel_path_to_api_split[i] == '..':
-                    rel_path_to_api_split.insert(i, instance_folder)
-                    break
-            api_relative = '/'.join(rel_path_to_api_split)
-        else:
-            api_relative = ""
-        if not rel_path_to_sign == "":
-            rel_path_to_sign_split = rel_path_to_sign.split('/')
-            for i in range(1, len(rel_path_to_sign_split)):
-                if not rel_path_to_sign_split[i] == '..':
-                    rel_path_to_sign_split.insert(i, instance_folder)
-                    break
-            sign_relative = '/'.join(rel_path_to_sign_split)
-        else:
-            sign_relative = ""
-        # relative path to rng
-        rel_path_to_rng_split = rel_path_to_rng.split('/')
-        for i in range(1, len(rel_path_to_rng_split)):
-            if not rel_path_to_rng_split[i] == '..':
-                rel_path_to_rng_split.insert(i, instance_folder)
-                break
-        rng_relative = '/'.join(rel_path_to_rng_split)
-    return api_relative, sign_relative, rng_relative
 
 
 def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_api,
@@ -1717,33 +1755,6 @@ def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_
     return api_relative, sign_relative, rng_relative
 
 
-def find_api_sign_abs_path_modif_3_02_2023(path_to_opt_src_folder, api, sign, opt_implementation_name,
-                           ref_implementation_name="Reference_Implementation"):
-    folder = path_to_opt_src_folder
-    ref_implementation_name.strip()
-    opt_implementation_name.strip()
-    abs_path_to_api_or_sign = ""
-    if not api == '""':
-        api_folder_split = api.split("../")
-        api_folder = api_folder_split[-1]
-        api_folder = api_folder.split('"')
-        api_folder = api_folder[0]
-        abs_path_to_api_or_sign = f'{folder}/{api_folder}'
-    if not sign == '""':
-        sign_folder_split = sign.split("../")
-        sign_folder = sign_folder_split[-1]
-        sign_folder = sign_folder.split('"')
-        sign_folder = sign_folder[0]
-        abs_path_to_api_or_sign = f'{folder}/{sign_folder}'
-    if ref_implementation_name in abs_path_to_api_or_sign:
-        candidate_folder_list = abs_path_to_api_or_sign.split("/")
-        if opt_implementation_name in candidate_folder_list:
-            candidate_folder_list.remove(opt_implementation_name)
-        candidate_folder = "/".join(candidate_folder_list)
-        abs_path_to_api_or_sign = candidate_folder
-    return abs_path_to_api_or_sign
-
-
 def find_api_sign_abs_path(path_to_opt_src_folder, api, sign, opt_implementation_name,
                            ref_implementation_name="Reference_Implementation"):
     folder = path_to_opt_src_folder
@@ -1774,106 +1785,12 @@ def find_api_sign_abs_path(path_to_opt_src_folder, api, sign, opt_implementation
     return abs_path_to_api_or_sign
 
 
-def binsec_initialize_candidate(path_to_opt_src_folder,
-                                path_to_binsec_folder,
-                                path_to_binsec_keypair_folder,
-                                path_to_binsec_sign_folder, api,
-                                sign, add_includes):
-    list_of_path_to_folders = [path_to_binsec_folder,
-                               path_to_binsec_keypair_folder,
-                               path_to_binsec_sign_folder]
-    generic_create_tests_folders(list_of_path_to_folders)
-    tool_type = "binsec"
-    opt_implementation_name = os.path.basename(path_to_opt_src_folder)
-    abs_path_to_api_or_sign = find_api_sign_abs_path(path_to_opt_src_folder, api,
-                                                     sign, opt_implementation_name)
-    binsec_tool = GenericPatterns(tool_type)
-    test_harness_keypair_basename = f'{binsec_tool.binsec_test_harness_keypair}.c'
-    test_harness_sign_basename = f'{binsec_tool.binsec_test_harness_sign}.c'
-    cfg_file = binsec_tool.binsec_configuration_file_keypair
-    cfg_file_keypair = f'{path_to_binsec_keypair_folder}/{cfg_file}.cfg'
-    cfg_content_keypair(cfg_file_keypair)
-    test_harness_keypair = f'{path_to_binsec_keypair_folder}/{test_harness_keypair_basename}'
-    ret_kp = keypair_find_args_types_and_names(abs_path_to_api_or_sign)
-    return_type, f_basename, args_types, args_names = ret_kp
-    test_harness_content_keypair(test_harness_keypair, api, sign, add_includes, return_type, f_basename)
-    ret_sign = sign_find_args_types_and_names(abs_path_to_api_or_sign)
-    return_type, f_basename, args_types, args_names = ret_sign
-    cfg_file_sign = f'{path_to_binsec_sign_folder}/{binsec_tool.binsec_configuration_file_sign}.cfg'
-    crypto_sign_args_names = args_names
-    sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names)
-    test_harness_sign = f'{path_to_binsec_sign_folder}/{test_harness_sign_basename}'
-    sign_test_harness_content(test_harness_sign, api, sign, add_includes, return_type, f_basename, args_types,
-                              args_names)
-
-
-def ctgrind_initialize_candidate(path_to_opt_src_folder,
-                                 path_to_ctgrind_folder,
-                                 path_to_ctgrind_keypair_folder,
-                                 path_to_ctgrind_sign_folder, api,
-                                 sign, rng, add_includes):
-    list_of_path_to_folders = [path_to_ctgrind_folder,
-                               path_to_ctgrind_keypair_folder,
-                               path_to_ctgrind_sign_folder]
-    generic_create_tests_folders(list_of_path_to_folders)
-    tool_type = "ctgrind"
-    opt_implementation_name = os.path.basename(path_to_opt_src_folder)
-    abth_p = find_api_sign_abs_path(path_to_opt_src_folder, api,
-                                    sign, opt_implementation_name)
-    abs_path_to_api_or_sign = abth_p
-    ctgrind_tool = GenericPatterns(tool_type)
-    taint_keypair_basename = f'{ctgrind_tool.ctgrind_taint}.c'
-    test_sign_basename = f'{ctgrind_tool.ctgrind_taint}.c'
-    taint_keypair = f'{path_to_ctgrind_keypair_folder}/{taint_keypair_basename}'
-    ret_kp = keypair_find_args_types_and_names(abs_path_to_api_or_sign)
-    return_type, f_basename, args_types, args_names = ret_kp
-    ctgrind_keypair_taint_content(taint_keypair, api, sign,
-                                  add_includes, return_type,
-                                  f_basename, args_types, args_names)
-    taint_sign = f'{path_to_ctgrind_sign_folder}/{test_sign_basename}'
-    ret_sign = sign_find_args_types_and_names(abs_path_to_api_or_sign)
-    return_type, f_basename, args_types, args_names = ret_sign
-    ctgrind_sign_taint_content(taint_sign, api, sign, rng,
-                               add_includes, return_type,
-                               f_basename, args_types, args_names)
-
-
-def dudect_initialize_candidate(path_to_opt_src_folder,
-                                path_to_dudect_folder,
-                                path_to_dudect_keypair_folder,
-                                path_to_dudect_sign_folder, api,
-                                sign, rng, add_includes):
-    list_of_path_to_folders = [path_to_dudect_folder,
-                               path_to_dudect_keypair_folder,
-                               path_to_dudect_sign_folder]
-    generic_create_tests_folders(list_of_path_to_folders)
-    tool_type = "dudect"
-    opt_implementation_name = os.path.basename(path_to_opt_src_folder)
-    abth_p = find_api_sign_abs_path(path_to_opt_src_folder, api,
-                                    sign, opt_implementation_name)
-    abs_path_to_api_or_sign = abth_p
-    dudect_tool = GenericPatterns(tool_type)
-    dude_keypair_basename = f'{dudect_tool.dudect_dude}.c'
-    test_sign_basename = f'{dudect_tool.dudect_dude}.c'
-    dude_keypair = f'{path_to_dudect_keypair_folder}/{dude_keypair_basename}'
-    ret_kp = keypair_find_args_types_and_names(abs_path_to_api_or_sign)
-    return_type, f_basename, args_types, args_names = ret_kp
-    dudect_keypair_dude_content(dude_keypair, api, sign,
-                                add_includes, return_type,
-                                f_basename, args_types, args_names)
-    dude_sign = f'{path_to_dudect_sign_folder}/{test_sign_basename}'
-    ret_sign = sign_find_args_types_and_names(abs_path_to_api_or_sign)
-    return_type, f_basename, args_types, args_names = ret_sign
-    dudect_sign_dude_content(dude_sign, api, sign,
-                             add_includes, return_type,
-                             f_basename, args_types, args_names)
-
-
 def tool_initialize_candidate(path_to_opt_src_folder,
                               path_to_tool_folder,
                               path_to_tool_keypair_folder,
                               path_to_tool_sign_folder, api,
-                              sign, rng, add_includes):
+                              sign, rng, add_includes,
+                              with_core_dump="no"):
     list_of_path_to_folders = [path_to_tool_folder,
                                path_to_tool_keypair_folder,
                                path_to_tool_sign_folder]
@@ -1882,8 +1799,6 @@ def tool_initialize_candidate(path_to_opt_src_folder,
     opt_implementation_name = os.path.basename(path_to_opt_src_folder)
     abth_p = find_api_sign_abs_path(path_to_opt_src_folder, api,
                                     sign, opt_implementation_name)
-    print("::::tool_initialize_candidate")
-    print("---abth_p: ", abth_p)
     abs_path_to_api_or_sign = abth_p
     tool_type = tool.Tools(tool_name)
     tes_keypair_basename, tes_sign_basename = tool_type.get_tool_test_file_name()
@@ -1911,12 +1826,18 @@ def tool_initialize_candidate(path_to_opt_src_folder,
     if tool_name == 'binsec':
         cfg_file_kp, cfg_file_sign = tool_type.binsec_configuration_files()
         cfg_file_keypair = f'{path_to_tool_keypair_folder}/{cfg_file_kp}.cfg'
-        cfg_content_keypair(cfg_file_keypair)
+        if 'yes' in with_core_dump.lower():
+            cfg_file_keypair = f'{path_to_tool_keypair_folder}/{cfg_file_kp}.ini'
+        cfg_content_keypair(cfg_file_keypair, with_core_dump)
         test_harness_content_keypair(test_keypair, api, sign, add_includes, return_type_kp,
                                      f_basename_kp)
         crypto_sign_args_names = args_names_s
-        cfg_file_sign = f'{path_to_tool_sign_folder}/{cfg_file_sign}.cfg'
-        sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names)
+
+        if 'yes' in with_core_dump.lower():
+            cfg_file_sign = f'{path_to_tool_sign_folder}/{cfg_file_sign}.ini'
+        else:
+            cfg_file_sign = f'{path_to_tool_sign_folder}/{cfg_file_sign}.cfg'
+        sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_core_dump)
         sign_test_harness_content(test_sign, api, sign, add_includes, return_type_s, f_basename_s,
                                   args_types_s, args_names_s)
 
@@ -1939,9 +1860,9 @@ def tool_initialize_candidate(path_to_opt_src_folder,
 def initialization(tools_list, signature_type,
                    candidate, optimized_imp_folder,
                    instance_folder, api, sign,
-                   rng, add_includes):
+                   rng, add_includes, with_core_dump="no"):
     path_to_opt_src_folder = signature_type + '/' + candidate + '/' + optimized_imp_folder
-    tools_list_lowercase = [tool.lower() for tool in tools_list]
+    tools_list_lowercase = [tool_name.lower() for tool_name in tools_list]
 
     for tool_name in tools_list_lowercase:
         tool_folder = tool_name
@@ -1957,76 +1878,13 @@ def initialization(tools_list, signature_type,
                                   path_to_tool_folder,
                                   path_to_tool_keypair_folder,
                                   path_to_tool_sign_folder, api,
-                                  sign, rng, add_includes)
-
-
-def initialize_nist_candidate(tools_list, signature_type,
-                              candidate, optimized_imp_folder,
-                              instance_folder, api, sign,
-                              rng, add_includes):
-    path_to_opt_src_folder = signature_type + '/' + candidate + '/' + optimized_imp_folder
-    tools_list_lowercase = [tool.lower() for tool in tools_list]
-    binsec_folder = ""
-    ctgrind_folder = ""
-    dudect_folder = ""
-    for tool_name in tools_list_lowercase:
-        if 'binsec' in tool_name:
-            binsec_folder = tool_name
-        if 'ctgrind' in tool_name or 'ct_grind' in tool_name:
-            ctgrind_folder = tool_name
-        if 'dudect' in tool_name:
-            dudect_folder = tool_name
-    binsec = "binsec"
-    ctgrind = "ctgrind"
-    dudect = "dudect"
-    if binsec in tools_list_lowercase:
-        path_to_binsec_folder = path_to_opt_src_folder + '/' + binsec_folder
-        binsec_keypair_folder_basename = candidate + '_keypair'
-        binsec_sign_folder_basename = candidate + '_sign'
-        path_to_instance = path_to_binsec_folder
-        if not instance_folder == "":
-            path_to_instance = path_to_instance + '/' + instance_folder
-        path_to_binsec_keypair_folder = path_to_instance + '/' + binsec_keypair_folder_basename
-        path_to_binsec_sign_folder = path_to_instance + '/' + binsec_sign_folder_basename
-        binsec_initialize_candidate(path_to_opt_src_folder,
-                                    path_to_binsec_folder,
-                                    path_to_binsec_keypair_folder,
-                                    path_to_binsec_sign_folder, api,
-                                    sign, add_includes)
-    if ctgrind in tools_list_lowercase or 'ct_grind' in tools_list_lowercase:
-        path_to_ctgrind_folder = path_to_opt_src_folder + '/' + ctgrind_folder
-        ctgrind_keypair_folder_basename = candidate + '_keypair'
-        ctgrind_sign_folder_basename = candidate + '_sign'
-        path_to_instance = path_to_ctgrind_folder
-        if not instance_folder == "":
-            path_to_instance = path_to_instance + '/' + instance_folder
-        path_to_ctgrind_keypair_folder = path_to_instance + '/' + ctgrind_keypair_folder_basename
-        path_to_ctgrind_sign_folder = path_to_instance + '/' + ctgrind_sign_folder_basename
-        ctgrind_initialize_candidate(path_to_opt_src_folder,
-                                     path_to_ctgrind_folder,
-                                     path_to_ctgrind_keypair_folder,
-                                     path_to_ctgrind_sign_folder,
-                                     api, sign, rng, add_includes)
-    if dudect in tools_list_lowercase:
-        path_to_dudect_folder = path_to_opt_src_folder + '/' + dudect_folder
-        dudect_keypair_folder_basename = candidate + '_keypair'
-        dudect_sign_folder_basename = candidate + '_sign'
-        path_to_instance = path_to_dudect_folder
-        if not instance_folder == "":
-            path_to_instance = path_to_instance + '/' + instance_folder
-        path_to_dudect_keypair_folder = path_to_instance + '/' + dudect_keypair_folder_basename
-        path_to_dudect_sign_folder = path_to_instance + '/' + dudect_sign_folder_basename
-        dudect_initialize_candidate(path_to_opt_src_folder,
-                                    path_to_dudect_folder,
-                                    path_to_dudect_keypair_folder,
-                                    path_to_dudect_sign_folder,
-                                    api, sign, rng, add_includes)
+                                  sign, rng, add_includes, with_core_dump)
 
 
 def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
                                       optimized_imp_folder, instance_folders_list,
                                       rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                      add_includes, rng_outside_instance_folder="no"):
+                                      add_includes, rng_outside_instance_folder="no", with_core_dump="no"):
     if not instance_folders_list:
         instance_folder = ""
         api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
@@ -2037,7 +1895,7 @@ def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
         initialization(tools_list, signature_type,
                        candidate, optimized_imp_folder,
                        instance_folder, api, sign,
-                       rng, add_includes)
+                       rng, add_includes, with_core_dump)
     else:
         for instance_folder in instance_folders_list:
             api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
@@ -2048,7 +1906,7 @@ def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
             initialization(tools_list, signature_type,
                            candidate, optimized_imp_folder,
                            instance_folder, api, sign,
-                           rng, add_includes)
+                           rng, add_includes, with_core_dump)
 
 
 def set_include_correct_format(api, sign, rng):
@@ -2065,7 +1923,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                          optimized_imp_folder, instance_folders_list,
                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                          add_includes, build_folder, with_cmake,
-                         rng_outside_instance_folder="no"):
+                         rng_outside_instance_folder="no", with_core_dump="no"):
     api, sign, rng = set_include_correct_format(rel_path_to_api, rel_path_to_sign, rel_path_to_rng)
     rel_path_to_api = api
     rel_path_to_sign = sign
@@ -2077,7 +1935,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                                           candidate, optimized_imp_folder,
                                           instance_folders_list, rel_path_to_api,
                                           rel_path_to_sign, rel_path_to_rng,
-                                          add_includes, rng_outside_instance_folder)
+                                          add_includes, rng_outside_instance_folder, with_core_dump)
         instance = '""'
         for tool_type in tools_list:
             if with_cmake == 'yes':
@@ -2102,13 +1960,33 @@ def generic_init_compile(tools_list, signature_type, candidate,
                                                                          path_to_makefile_folder,
                                                                          path_to_build_folder,
                                                                          "all")
+            if 'yes' in with_core_dump.lower():
+                # crypto_sign_keypair
+                keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
+                executable_keypair = os.listdir(keypair_build_folder)[0]
+                executable_keypair = os.path.basename(executable_keypair)
+                path_to_keypair_snapshot_file = f'{executable_keypair}.snapshot'
+                path_to_gdb_script_keypair = f'{keypair_build_folder}/{executable_keypair}.gdb'
+                binsec_generate_gdb_script(path_to_gdb_script_keypair, path_to_keypair_snapshot_file)
+                path_to_executable_file = f'{keypair_build_folder}/{executable_keypair}'
+                binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_keypair)
+                # crypto_sign
+                sign_build_folder = f'{path_to_build_folder}/{candidate}_sign'
+                executable_sign = os.listdir(sign_build_folder)[0]
+                executable_sign = os.path.basename(executable_sign)
+                path_to_sign_snapshot_file = f'{executable_sign}.snapshot'
+                path_to_gdb_script_sign = f'{sign_build_folder}/{executable_sign}.gdb'
+                binsec_generate_gdb_script(path_to_gdb_script_sign, path_to_sign_snapshot_file)
+                path_to_executable_file = f'{sign_build_folder}/{executable_sign}'
+                binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
+
     else:
         for instance in instance_folders_list:
             generic_initialize_nist_candidate(tools_list, signature_type,
                                               candidate, optimized_imp_folder,
                                               instance_folders_list, rel_path_to_api,
                                               rel_path_to_sign, rel_path_to_rng,
-                                              add_includes, rng_outside_instance_folder)
+                                              add_includes, rng_outside_instance_folder, with_core_dump)
             for tool_type in tools_list:
                 if with_cmake == 'yes':
                     path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type + '/' + instance
@@ -2133,6 +2011,24 @@ def generic_init_compile(tools_list, signature_type, candidate,
                                                                              path_to_makefile_folder,
                                                                              path_to_build_folder,
                                                                              "all")
+                if 'yes' in with_core_dump.lower():
+                    keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
+                    executable_keypair = os.listdir(keypair_build_folder)[0]
+                    executable_keypair = os.path.basename(executable_keypair)
+                    path_to_keypair_snapshot_file = f'{executable_keypair}.snapshot'
+                    path_to_gdb_script_keypair = f'{keypair_build_folder}/{executable_keypair}.gdb'
+                    binsec_generate_gdb_script(path_to_gdb_script_keypair, path_to_keypair_snapshot_file)
+                    path_to_executable_file = f'{keypair_build_folder}/{executable_keypair}'
+                    binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_keypair)
+
+                    sign_build_folder = f'{path_to_build_folder}/{candidate}_sign'
+                    executable_sign = os.listdir(sign_build_folder)[0]
+                    executable_sign = os.path.basename(executable_sign)
+                    path_to_sign_snapshot_file = f'{executable_sign}.snapshot'
+                    path_to_gdb_script_sign = f'{sign_build_folder}/{executable_sign}.gdb'
+                    binsec_generate_gdb_script(path_to_gdb_script_sign, path_to_sign_snapshot_file)
+                    path_to_executable_file = f'{sign_build_folder}/{executable_sign}'
+                    binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
 
 
 def generic_compile_run_candidate(tools_list, signature_type, candidate,
@@ -2140,25 +2036,26 @@ def generic_compile_run_candidate(tools_list, signature_type, candidate,
                                   rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                   with_cmake, add_includes, to_compile, to_run,
                                   depth, build_folder, binary_patterns,
-                                  rng_outside_instance_folder="no"):
+                                  rng_outside_instance_folder="no",
+                                  with_core_dump="no"):
     candidate = candidate
     if 'y' in to_compile.lower() and 'y' in to_run.lower():
         generic_init_compile(tools_list, signature_type, candidate,
                              optimized_imp_folder, instance_folders_list,
                              rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                              add_includes, build_folder, with_cmake,
-                             rng_outside_instance_folder)
+                             rng_outside_instance_folder, with_core_dump)
         generic_run(tools_list, signature_type, candidate, optimized_imp_folder,
-                    instance_folders_list, depth, build_folder, binary_patterns)
+                    instance_folders_list, depth, build_folder, binary_patterns, with_core_dump)
     elif 'y' in to_compile.lower() and 'n' in to_run.lower():
         generic_init_compile(tools_list, signature_type, candidate,
                              optimized_imp_folder, instance_folders_list,
                              rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                              add_includes, build_folder, with_cmake,
-                             rng_outside_instance_folder)
+                             rng_outside_instance_folder, with_core_dump)
     if 'n' in to_compile.lower() and 'y' in to_run.lower():
         generic_run(tools_list, signature_type, candidate, optimized_imp_folder,
-                    instance_folders_list, depth, build_folder, binary_patterns)
+                    instance_folders_list, depth, build_folder, binary_patterns, with_core_dump)
 
 
 def add_cli_arguments(subparser,
@@ -2169,7 +2066,8 @@ def add_cli_arguments(subparser,
                       rel_path_to_sign='""',
                       rel_path_to_rng='""',
                       is_rng_in_cwd="no",
-                      candidate_default_list_of_folders=None):
+                      candidate_default_list_of_folders=None,
+                      with_core_dump="no"):
     if candidate_default_list_of_folders is None:
         candidate_default_list_of_folders = []
     candidate_parser = subparser.add_parser(f'{candidate}',
@@ -2220,5 +2118,8 @@ def add_cli_arguments(subparser,
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
     arguments = f"'--is_rng_outside_folder','-rng_outside',dest='rng_outside', default=f'{is_rng_in_cwd}',help = 'no'"
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--with_core_dump','-core_dump',dest='core_dump', default=f'{with_core_dump}',help = 'no'"
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)

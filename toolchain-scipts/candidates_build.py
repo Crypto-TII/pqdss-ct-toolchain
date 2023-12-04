@@ -4353,16 +4353,19 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate):
         makefile_content = f'''
         CC?=gcc
         CXX?=g++
-        CFLAGS+=-g -O2 -march=native -mtune=native -std=c11
-        CPPFLAGS+=-DHAVE_OPENSSL -DNDEBUG -MMD -MP -MF $*.d
+        CFLAGS+=-g -O3 -std=gnu11 -march=native
         
         SRC_DIR = ../../{subfolder}
         BUILD           = build
         BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
         BUILD_SIGN		= $(BUILD)/{candidate}_sign
         
-        SOURCES=$(filter-out  $(SRC_DIR)/PQCgenKAT_sign.c ,$(wildcard $(SRC_DIR)/*.c)) $(wildcard $(SRC_DIR)/*.s)
-        LIBFAEST=libfaest.a
+        CPPFLAGS+=-I$(SRC_DIR)/sha3
+        
+        SOURCES=$(filter-out $(SRC_DIR)/randomness.c,$(wildcard $(SRC_DIR)/*.c)) $(wildcard $(SRC_DIR)/sha3/*.c) $(wildcard $(SRC_DIR)/sha3/*.s)
+        SOURCES +=$(SRC_DIR)/NIST-KATs/rng.c
+        
+        LIBFAEST=$(SRC_DIR)/libfaest.a
         
         EXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_keypair}
         EXECUTABLE_SIGN		 = {candidate}_sign/{test_sign}
@@ -4376,16 +4379,19 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate):
         
         $(LIBFAEST): $(SOURCES:.c=.o) $(SOURCES:.s=.o)
         \tar rcs $@ $^
+
+        %.c.o: %.c
+        \t$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
         
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(LIBFAEST)
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c.o $(LIBFAEST) $(SRC_DIR)/randomness.c.o
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(EXECUTABLE_KEYPAIR).c $(TOOL_FLAGS) $(LIBFAEST) $(TOOL_LIBS)
-    
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(LIBFAEST)
+        \t$(CC) $(CPPFLAGS) $(TOOL_FLAGS) $(LDFLAGS) $^ -lcrypto $(TOOL_LIBS) -o $(BUILD)/$@
+        
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c.o $(LIBFAEST) $(SRC_DIR)/randomness.c.o
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -o $(BUILD)/$(EXECUTABLE_SIGN) $(EXECUTABLE_SIGN).c $(TOOL_FLAGS) $(LIBFAEST) $(TOOL_LIBS)
+        \t$(CC) $(CPPFLAGS) $(TOOL_FLAGS) $(LDFLAGS) $^ -lcrypto $(TOOL_LIBS) -o $(BUILD)/$@
         
         
         clean: 
