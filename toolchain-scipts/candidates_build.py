@@ -138,6 +138,11 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
         
         BASE_DIR = ../../{subfolder}/src
         
+        CRYPTOCODE_INCS = ../../{subfolder}/lib/cryptocode
+        RANDOMBYTES_INCS = ../../{subfolder}/lib/randombytes
+        XKCP_INCS = ../../{subfolder}/lib/XKCP
+        
+        
         INCS = $(wildcard $(BASE_DIR)/*.h)
         #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
         SRC  = $(filter-out  $(SRC_DIR)/sign.c $(SRC_DIR)/PQCgenKAT_sign.c ,$(wildcard $(SRC_DIR)/*.c))
@@ -159,7 +164,7 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        \t$(CC) -emit-llvm -I $(CRYPTOCODE_INCS) -I $(RANDOMBYTES_INCS) -I $(XKCP_INCS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
         
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
@@ -167,7 +172,7 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        \t$(CC) -emit-llvm -I $(CRYPTOCODE_INCS) -I $(RANDOMBYTES_INCS) -I $(XKCP_INCS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
         
         $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
@@ -295,11 +300,16 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
         
         BASE_DIR = ../../{subfolder}
         
+        ALL_FLAGS?= -DPARAM_HYPERCUBE_7R -DPARAM_GF31 -DPARAM_L1 -DPARAM_RND_EXPANSION_X4\
+         -DHASHX4 -DXOFX4 -DPRGX4 -DNDEBUG -mavx
+         
         INCS = $(wildcard $(BASE_DIR)/*.h)
         #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
         SRC  = $(filter-out  $(SRC_DIR)/sign.c  $(SRC_DIR)/keygen.c,$(wildcard $(SRC_DIR)/*.c))
         SIGN = $(BASE_DIR)/sign.c
         KEYGEN = $(BASE_DIR)/keygen.c
+        
+        HASH_PATH=$(BASE_DIR)/sha3
         
         BUILD			= build
         BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
@@ -317,7 +327,7 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_KEYPAIR_BC): $(KEYGEN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(KEYGEN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        \t$(CC) -emit-llvm $(ALL_FLAGS) -I $(HASH_PATH)/avx2 -c -g $(KEYGEN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
         
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
@@ -325,7 +335,7 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        \t$(CC) -emit-llvm $(ALL_FLAGS) -I $(HASH_PATH)/avx2 -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
         
         $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
@@ -413,6 +423,12 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate):
         
         BASE_DIR = ../../{subfolder}/src
         
+        
+        RANDOMBYTES_INCS = ../../{subfolder}/lib/randombytes
+        XKCP_INCS = ../../{subfolder}/lib/XKCP
+        RBC_INCS = $(BASE_DIR)/rbc-31
+        RBC_SRC = $(wildcard $(BASE_DIR)/rbc-31/*.c))
+        
         INCS = $(wildcard $(BASE_DIR)/*.h)
         #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
         SRC  = $(filter-out  $(SRC_DIR)/sign.c ,$(wildcard $(SRC_DIR)/*.c))
@@ -434,7 +450,7 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        \t$(CC) -emit-llvm -I $(RANDOMBYTES_INCS) -I $(XKCP_INCS) -I $(RBC_INCS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
         
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
@@ -442,7 +458,7 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        \t$(CC) -emit-llvm -I $(RANDOMBYTES_INCS) -I $(XKCP_INCS) -I $(RBC_INCS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
         
         $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
@@ -1055,6 +1071,29 @@ def cmake_cross1(path_to_cmake_lists, tool_name, candidate):
 
 
 def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate):
+    loop_block_test = f'''
+    MKDIR_P = mkdir -p
+    .PHONY: directories
+    
+    all: directories test
+    
+    directories: folders
+    
+    folders:
+        mkdir -p $(BUILD_FOLDERS)
+    
+    
+    test: $(SIGN) $(SRC) $(INCS)
+        for CATEGORY in 1 3 5; do \
+            for RSDP_VARIANT in RSDP RSDPG; do \
+                for PARAM_TARGET in SIG_SIZE SPEED; do \
+                    COMPILE_FLAGS  := -DCATEGORY_${{CATEGORY}}=1 -D${{PARAM_TARGET}}=1 -D${{CSPRNG_ALGO}}=1 -D$(HASH_ALGO)=1 -D$(RSDP_VARIANT)=1 ; \
+                    EXEC_BC := $(KEYPAIR)_$(CATEGORY)_$(RSDP_VARIANT)_$(PARAM_TARGET).bc ; \
+                    $(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/${{EXEC_BC}} ; \
+                done ; \
+            done ; \
+        done
+    '''
     tool_type = tool.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -1066,8 +1105,9 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         if '-static ' in tool_flags:
             link_flag = '-static'
     libs_str = ""
-    tool_libs = tool_libs.replace("-lm", "")
-    tool_libs = tool_libs.strip()
+    # tool_libs = tool_libs.replace("-lm", "")
+    # tool_libs = tool_libs.strip()
+    libs_list = []
     if tool_libs:
         libs_str = tool_libs.replace("-l", "")
         libs_list = libs_str.split()
@@ -1083,6 +1123,15 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         OPTIMIZED_CODE_DIR = ../../Optimized_Implementation
         
         BASE_DIR = $(REFERENCE_CODE_DIR)
+        
+        INCS_DIR = $(BASE_DIR)/include
+        CATEGORY = 1
+        RSDP_VARIANT =  RSDP
+        PARAM_TARGETS =  SIG_SIZE
+        CSPRNG_ALGO = SHAKE_CSPRNG
+        HASH_ALGO = SHA3_HASH
+        COMPILE_FLAGS  = -DCATEGORY_$(CATEGORY)=1 -D$(PARAM_TARGETS)=1 -D$(CSPRNG_ALGO)=1 \
+        -D$(HASH_ALGO)=1 -D$(RSDP_VARIANT)=1 #${{KECCAK_EXTERNAL_ENABLE}}
         
         
         INCS = $(wildcard $(BASE_DIR)/include/*.h)
@@ -1109,7 +1158,7 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        \t$(CC) -emit-llvm $(COMPILE_FLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
         
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
@@ -1117,7 +1166,7 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        \t$(CC) -emit-llvm $(COMPILE_FLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
         
         $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
@@ -1156,9 +1205,11 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         '''
         find_libs_block = ''
         for lib in libs_list:
+            lib_variable = lib.upper()
+            lib_variable = f'{lib_variable}_LIB'
             find_libs_block += f'''
-        find_library({lib})
-        if(NOT {lib})
+        find_library({lib_variable} {lib})
+        if(NOT {lib_variable})
         \tmessage("{lib} library not found")
         endif()
         '''
@@ -1800,10 +1851,10 @@ def makefile_wave(path_to_makefile_folder, subfolder, tool_name, candidate):
         BUILD_SIGN		= $(BUILD)/{candidate}_sign
         
         OBJS=$(BASE_DIR)/api.o $(BASE_DIR)/fq_arithmetic/mf3.o $(BASE_DIR)/fq_arithmetic/vf2.o\
-         $(BASE_DIR)/fq_arithmetic/vf3.o $(BASE_DIR)/keygen.o $(BASE_DIR)/prng/fips202.o \
-         $(BASE_DIR)/sign.o $(BASE_DIR)/util/bitstream.o $(BASE_DIR)/util/compress.o\
-        $(BASE_DIR)/util/djbsort_portable.o $(BASE_DIR)/util/gauss.o $(BASE_DIR)/util/hash.o \
-        $(BASE_DIR)/util/mf3permut.o $(BASE_DIR)/util/tritstream.o $(BASE_DIR)/verify.o \
+        $(BASE_DIR)/fq_arithmetic/vf3.o $(BASE_DIR)/keygen.o $(BASE_DIR)/prng/fips202.o\
+        $(BASE_DIR)/sign.o $(BASE_DIR)/util/bitstream.o $(BASE_DIR)/util/compress.o\
+        $(BASE_DIR)/util/djbsort_portable.o $(BASE_DIR)/util/gauss.o $(BASE_DIR)/util/hash.o\
+        $(BASE_DIR)/util/mf3permut.o $(BASE_DIR)/util/tritstream.o $(BASE_DIR)/verify.o\
         $(BASE_DIR)/wave/decode.o $(BASE_DIR)/wave/randperm.o $(BASE_DIR)/wave/reject.o $(BASE_DIR)/wave/sample.o
         
             
@@ -3959,13 +4010,16 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate):
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     if tool_name == 'flowtracker':
         makefile_content = f'''
+        PARAM ?= VOX256
+        
+        VOX_PARAMS = -DPARAM_SET_$(PARAM)
         CC = clang
         
         BASE_DIR = ../../../{subfolder}
         
         INCS = $(wildcard $(BASE_DIR)/*.h) $(BASE_DIR)/fips202/fips202.h $(BASE_DIR)/rng/rng.h
-        SRC = $(wildcard $(BASE_DIR)/*.c) $(BASE_DIR)/fips202/fips202.c $(BASE_DIR)/rng/rng.c
-        SRC += $(BASE_DIR)/fips202/fips202x4.c $(BASE_DIR)/fips202/keccak4x/KeccakP-1600-times4-SIMD256.c
+        SRC = $(filter-out  $(BASE_DIR)/api.c, $(wildcard $(BASE_DIR)/*.c)) $(BASE_DIR)/fips202/fips202.c $(BASE_DIR)/rng/rng.c
+        
         SIGN = $(BASE_DIR)/api.c
         
         BUILD			= build
@@ -3984,7 +4038,7 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        \t$(CC) -emit-llvm $(VOX_PARAMS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
         
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
@@ -3992,7 +4046,7 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        \t$(CC) -emit-llvm $(VOX_PARAMS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
         
         $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
@@ -4024,11 +4078,8 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate):
         #BUILD_DIRS_ALL = $(BASE_DIR)/$(BUILD_DIR) $(BASE_DIR)/$(BUILD_DIR)/fips202 $(BASE_DIR)/$(BUILD_DIR)/rng
         BUILD_DIRS_ALL = $(BUILD_DIR) $(BUILD_DIR)/fips202 $(BUILD_DIR)/rng
         
-        SRC += $(BASE_DIR)/fips202/fips202x4.c $(BASE_DIR)/fips202/keccak4x/KeccakP-1600-times4-SIMD256.c
-        #BUILD_DIRS_ALL += $(BASE_DIR)/$(BUILD_DIR)/fips202/keccak4x
         BUILD_DIRS_ALL += $(BUILD_DIR)/fips202/keccak4x
         
-        #OBJ = $(patsubst $(BASE_DIR)/%.c,$(BASE_DIR)/$(BUILD_DIR)/%.o,$(SRC))
         OBJ = $(patsubst $(BASE_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC))
         
         # Executables
@@ -4414,8 +4465,14 @@ def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candid
         CC = clang
         BASE_DIR = ../../{subfolder}
         
+        
+        PARAMETERS = {subfolder}
+        THASH = simple
+        
+        CFLAGS = $(EXTRA_CFLAGS) -DPARAMS=$(PARAMETERS)
+        PARAMS_INCS = $(BASE_DIR)/params
+        
         INCS = $(wildcard $(BASE_DIR)/*.h)
-        #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
         SRC  = $(filter-out  $(SRC_DIR)/sign.c $(SRC_DIR)/PQCgenKAT_sign.c,$(wildcard $(SRC_DIR)/*.c))
         SIGN = $(BASE_DIR)/sign.c
         
@@ -4435,7 +4492,7 @@ def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candid
         $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        \t$(CC) -emit-llvm $(CFLAGS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
         
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
@@ -4443,7 +4500,7 @@ def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candid
         $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        \t$(CC) -emit-llvm $(CFLAGS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
         
         $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
@@ -4546,6 +4603,8 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate):
         
         BASE_DIR = ../../../{subfolder}
         
+        CFLAGS := ${{CFLAGS}} -DUSE_PREON{security_level_labeled} -DAES{security_level}=1 -DUSE_PRNG -O3
+        
         INCS = $(wildcard $(BASE_DIR)/*.h)
         #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
         SRC  = $(filter-out  $(SRC_DIR)/api.c $(SRC_DIR)/PQCgenKAT_sign.c,$(wildcard $(SRC_DIR)/*.c))
@@ -4567,7 +4626,7 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        \t$(CC) -emit-llvm $(CFLAGS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
         
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
@@ -4575,7 +4634,7 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        \t$(CC) -emit-llvm $(CFLAGS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
         
         $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)

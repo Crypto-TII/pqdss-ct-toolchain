@@ -836,7 +836,7 @@ default_help_message = 'compile and run test'
 generic.add_cli_arguments(subparser, 'mpc-in-the-head', 'cross',
                           'Optimized_Implementation',
                           '"../../../Reference_Implementation/include/api.h"', '""',
-                          '"../../../lib/randombytes/randombytes.h"')
+                          '"../../../Additional_Implementations/KAT_Generation/include/KAT_NIST_rng.h"')
 
 # ============================== mira ==========================================================
 # In case of second run, for example when ctgrind folder is already created by the first run

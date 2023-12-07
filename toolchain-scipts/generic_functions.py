@@ -1283,6 +1283,7 @@ def cfg_content_keypair(cfg_file_keypair, with_core_dump="no"):
 # Create same sub-folders in each folder of a given list of folders
 def generic_create_tests_folders(list_of_path_to_folders):
     for t_folder in list_of_path_to_folders:
+        print("++++++creating folder: ", t_folder)
         if not os.path.isdir(t_folder):
             cmd = ["mkdir", "-p", t_folder]
             subprocess.call(cmd, stdin=sys.stdin)
@@ -1795,8 +1796,11 @@ def tool_initialize_candidate(path_to_opt_src_folder,
                                path_to_tool_keypair_folder,
                                path_to_tool_sign_folder]
     generic_create_tests_folders(list_of_path_to_folders)
+    print(".......list_of_path_to_folders")
+    print(list_of_path_to_folders)
     tool_name = os.path.basename(path_to_tool_folder)
     opt_implementation_name = os.path.basename(path_to_opt_src_folder)
+    print("_____opt_implementation_name: ", opt_implementation_name)
     abth_p = find_api_sign_abs_path(path_to_opt_src_folder, api,
                                     sign, opt_implementation_name)
     abs_path_to_api_or_sign = abth_p
