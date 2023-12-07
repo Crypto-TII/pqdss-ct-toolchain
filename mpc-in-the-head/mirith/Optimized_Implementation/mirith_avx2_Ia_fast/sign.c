@@ -406,7 +406,6 @@ void open_phase3_round
 
 int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
 {
-    printf("\n---call of crypto_sign_keypair ---\n ");
     /* PRNG. */
     prng_t prng;
     
