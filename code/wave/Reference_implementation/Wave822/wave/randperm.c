@@ -27,10 +27,10 @@ SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 
-#include "fq_arithmetic/vf2.h"
-#include "fq_arithmetic/vf3.h"
-#include "prng/prng.h"
-#include "util/djbsort.h"
+#include "../fq_arithmetic/vf2.h"
+#include "../fq_arithmetic/vf3.h"
+#include "../prng/prng.h"
+#include "../util/djbsort.h"
 
 // Algorithm 14, page 15 of specs
 /*

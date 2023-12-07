@@ -25,8 +25,8 @@ SOFTWARE.
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "params.h"
-#include "prng/prng.h"
+#include "../params.h"
+#include "../prng/prng.h"
 
 typedef struct {
   int prec, size, offset;

@@ -27,7 +27,7 @@ SOFTWARE.
 
 #include <stdint.h>
 
-#include "fq_arithmetic/types_f3.h"
+#include "../fq_arithmetic/types_f3.h"
 
 void seed_prng(uint8_t *seed, int seed_len);
 void close_prng();

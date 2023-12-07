@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "types.h"
+#include "../types.h"
 
 int decode_v(vf3_e *e_v, vf3_e *y_v, wave_sk_t *sk);
 

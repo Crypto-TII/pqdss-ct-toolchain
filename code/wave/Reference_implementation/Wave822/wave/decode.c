@@ -27,15 +27,15 @@ SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 
-#include "fq_arithmetic/mf3.h"
-#include "fq_arithmetic/vf2.h"
-#include "fq_arithmetic/vf3.h"
-#include "params.h"
+#include "../fq_arithmetic/mf3.h"
+#include "../fq_arithmetic/vf2.h"
+#include "../fq_arithmetic/vf3.h"
+#include "../params.h"
 #include "randperm.h"
 #include "reject.h"
 #include "sample.h"
-#include "types.h"
-#include "util/gauss.h"
+#include "../types.h"
+#include "../util/gauss.h"
 
 void mf3_genmatperm(mf3_e *H, uint16_t *pi, uint8_t *seed, int seed_len,
                     uint32_t domain) {

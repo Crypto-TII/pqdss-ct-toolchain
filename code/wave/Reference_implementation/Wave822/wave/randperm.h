@@ -28,7 +28,7 @@ SOFTWARE.
 
 #include <stdint.h>
 
-#include "fq_arithmetic/types_f3.h"
+#include "../fq_arithmetic/types_f3.h"
 
 /**
  * // Algorithm 14, page 15 of specs

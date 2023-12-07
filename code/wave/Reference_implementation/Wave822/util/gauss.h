@@ -26,7 +26,7 @@ SOFTWARE.
 #ifndef WAVE2_GAUSS_H
 #define WAVE2_GAUSS_H
 
-#include "fq_arithmetic/types_f3.h"
+#include "../fq_arithmetic/types_f3.h"
 
 /**
  * Extended gauss elimination. Function that perform gauss elimination.

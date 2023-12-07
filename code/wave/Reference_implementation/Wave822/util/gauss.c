@@ -27,9 +27,9 @@ SOFTWARE.
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "fq_arithmetic/mf3.h"
-#include "fq_arithmetic/types_f3.h"
-#include "fq_arithmetic/vf3.h"
+#include "../fq_arithmetic/mf3.h"
+#include "../fq_arithmetic/types_f3.h"
+#include "../fq_arithmetic/vf3.h"
 
 void normalize(vf3_e *e, int pos_l) {
   uint8_t tmp = vf3_get_element(pos_l, e);

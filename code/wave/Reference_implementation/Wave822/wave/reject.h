@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "params.h"
+#include "../params.h"
 
 typedef struct {
   int min, max;

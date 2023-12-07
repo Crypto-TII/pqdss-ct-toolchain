@@ -30,7 +30,7 @@ SOFTWARE.
 #include <string.h>
 
 #include "types_f3.h"
-#include "util/popcount.h"
+#include "../util/popcount.h"
 
 /**
  * Function to allocate a binary vector

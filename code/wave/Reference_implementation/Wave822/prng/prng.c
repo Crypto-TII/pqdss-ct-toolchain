@@ -28,7 +28,7 @@ SOFTWARE.
 #include <string.h>
 
 #include "fips202.h"
-#include "fq_arithmetic/vf3.h"
+#include "../fq_arithmetic/vf3.h"
 
 shake256incctx shakectx;
 void seed_prng(uint8_t *seed, int seed_len) {
@@ -44,7 +44,7 @@ void prng_bytes(uint8_t *output, int outlen) {
 void close_prng() {}
 
 #ifdef NIST_KAT
-#include "NIST-kat/rng.h"
+#include "../NIST-kat/rng.h"
 void rng_bytes(uint8_t *output, int outlen) { randombytes(output, outlen); }
 #else
 void rng_bytes(uint8_t *output, int outlen) { prng_bytes(output, outlen); }

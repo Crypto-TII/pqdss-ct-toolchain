@@ -28,10 +28,10 @@ SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 
-#include "fq_arithmetic/vf3.h"
-#include "params.h"
-#include "prng/fips202.h"
-#include "types.h"
+#include "../fq_arithmetic/vf3.h"
+#include "../params.h"
+#include "../prng/fips202.h"
+#include "../types.h"
 
 /**
  * Function to compute the hash of a message and transform into trits.

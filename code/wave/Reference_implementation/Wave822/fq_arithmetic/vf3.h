@@ -30,9 +30,9 @@ SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 
-#include "prng/prng.h"
+#include "../prng/prng.h"
 #include "types_f3.h"
-#include "util/popcount.h"
+#include "../util/popcount.h"
 
 /**
  * Initialize a vector of trits. All entries will be set to 0.

@@ -29,7 +29,7 @@ SOFTWARE.
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "fq_arithmetic/types_f3.h"
+#include "../fq_arithmetic/types_f3.h"
 
 /**
  * Function to permute the rows of M from the permutation pi
