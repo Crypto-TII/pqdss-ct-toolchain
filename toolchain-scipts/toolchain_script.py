@@ -178,6 +178,8 @@ def compile_run_less(tools_list, signature_type, candidate, optimized_imp_folder
     """ Function: compile_run_less"""
     add_includes = []
     with_cmake = 'yes'
+    if tools_list[0].strip() == 'flowtracker':
+        with_cmake = 'no'
     generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
                                           optimized_imp_folder, instance_folders_list,
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
@@ -481,15 +483,15 @@ def compile_run_hppc(tools_list, signature_type, candidate, optimized_imp_folder
 
 # ====================================  MAYO =======================================
 # [TODO]
-
-
 def compile_run_mayo(tools_list, signature_type, candidate, optimized_imp_folder,
                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
+                     binary_patterns, rng_outside_instance_folder="yes", with_core_dump="no"):
     """ Function: compile_run_mayo"""
     add_includes = []
     with_cmake = 'yes'
+    if tools_list[0].strip() == 'flowtracker':
+        with_cmake = 'no'
     generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
                                           optimized_imp_folder, instance_folders_list,
                                           rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
@@ -1112,8 +1114,9 @@ generic.add_cli_arguments(subparser, 'multivariate', 'hppc',
 mayo_default_list_of_folders = []
 generic.add_cli_arguments(subparser, 'multivariate', 'mayo',
                           'Optimized_Implementation',
-                          '"../../../api.h"', '""',
-                          '"../../../rng.h"')
+                          '"../../../../api.h"', '""',
+                          '"../../../../../include/rng.h"',
+                          'yes')
 
 
 # ================================================ prov ===========================================

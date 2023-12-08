@@ -65,6 +65,10 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 
 # ========================= LESS ==============================================
+def makefile_less(path_to_cmakelist, subfolder, tool_type, candidate):
+    build_cand.cmake_less(path_to_cmakelist, subfolder, tool_type, candidate)
+
+
 def cmake_less(path_to_cmakelist, subfolder, tool_type, candidate):
     build_cand.cmake_less(path_to_cmakelist, subfolder, tool_type, candidate)
 
@@ -162,6 +166,9 @@ def makefile_hppc(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 # ====================================  MAYO =======================================
 # [TODO]
+def makefile_mayo(path_to_cmakelist, subfolder, tool_type, candidate):
+    build_cand.cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate)
+
 def cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate):
     build_cand.cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate)
 
@@ -1707,9 +1714,9 @@ def generic_run(tools_list, signature_type,
 # ========================================================================
 
 
-def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_api,
-                                                   rel_path_to_sign, rel_path_to_rng,
-                                                   rng_outside_instance_folder="no"):
+def find_candidate_instance_api_sign_relative_path_legacy(instance_folder, rel_path_to_api,
+                                                          rel_path_to_sign, rel_path_to_rng,
+                                                          rng_outside_instance_folder="no"):
     api_relative = rel_path_to_api
     sign_relative = rel_path_to_sign
     rng_relative = rel_path_to_rng
@@ -1744,6 +1751,66 @@ def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_
                 for i in range(1, len(rel_path_to_rng_split)):
                     if not rel_path_to_rng_split[i] == '..':
                         rel_path_to_rng_split.insert(i, instance_folder_parent_folder)
+                        break
+                rng_relative = '/'.join(rel_path_to_rng_split)
+        else:
+            rel_path_to_rng_split = rel_path_to_rng.split('/')
+            for i in range(1, len(rel_path_to_rng_split)):
+                if not rel_path_to_rng_split[i] == '..':
+                    rel_path_to_rng_split.insert(i, instance_folder)
+                    break
+            rng_relative = '/'.join(rel_path_to_rng_split)
+    return api_relative, sign_relative, rng_relative
+
+
+
+def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_api,
+                                                   rel_path_to_sign, rel_path_to_rng,
+                                                   rng_outside_instance_folder="no"):
+    api_relative = rel_path_to_api
+    sign_relative = rel_path_to_sign
+    rng_relative = rel_path_to_rng
+    if not instance_folder == "":
+        if not rel_path_to_api == "":
+            rel_path_to_api_split = rel_path_to_api.split('/')
+            for i in range(1, len(rel_path_to_api_split)):
+                if not rel_path_to_api_split[i] == '..':
+                    rel_path_to_api_split.insert(i, instance_folder)
+                    break
+            api_relative = '/'.join(rel_path_to_api_split)
+        else:
+            api_relative = ""
+        if not rel_path_to_sign == "":
+            rel_path_to_sign_split = rel_path_to_sign.split('/')
+            for i in range(1, len(rel_path_to_sign_split)):
+                if not rel_path_to_sign_split[i] == '..':
+                    rel_path_to_sign_split.insert(i, instance_folder)
+                    break
+            sign_relative = '/'.join(rel_path_to_sign_split)
+        else:
+            sign_relative = ""
+        outside_depth_of_rng_folder = 1
+        rel_path_to_api_sign_split = []
+        # relative path to rng
+        if rng_outside_instance_folder == "yes":
+            if not rel_path_to_sign == '""':
+                rel_path_to_api_sign_split = rel_path_to_sign.split('/')
+            elif not rel_path_to_api == '""':
+                rel_path_to_api_sign_split = rel_path_to_api.split('/')
+            instance_folder_split = instance_folder.split('/')
+            if len(instance_folder_split) == 1:
+                rng_relative = rel_path_to_rng
+            else:
+                instance_folder_split.pop()
+                rel_path_to_rng_split = rel_path_to_rng.split('/')
+                if len(rel_path_to_api_sign_split) == len(rel_path_to_rng_split)-2:
+                    instance_folder_split.pop()
+                    del rel_path_to_rng_split[1]
+                instance_folder_parent_folder = '/'.join(instance_folder_split)
+                for i in range(1, len(rel_path_to_rng_split)):
+                    if not rel_path_to_rng_split[i] == '..':
+                        if instance_folder_parent_folder:
+                            rel_path_to_rng_split.insert(i, instance_folder_parent_folder)
                         break
                 rng_relative = '/'.join(rel_path_to_rng_split)
         else:
