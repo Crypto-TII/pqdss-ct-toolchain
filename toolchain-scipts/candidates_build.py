@@ -3621,9 +3621,10 @@ def makefile_hppc(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 
 # ==================================  MAYO ===============================
-# [TODO: NON BROKEN ---> TO BE EDITED]
+
 
 def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate):
+    mayo_instance_subfolder = subfolder.split('/')[-1]
     tool_type = tool.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -3632,44 +3633,42 @@ def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate):
     target_link_opt_block = ''
     link_flag = ''
     if tool_flags:
-        if '-static ' in tool_flags:
+        if '-static' in tool_flags:
             link_flag = '-static'
     libs_str = ""
-    # tool_libs = tool_libs.replace("-lm", "")
-    # tool_libs = tool_libs.strip()
     libs_list = []
     if tool_libs:
         libs_str = tool_libs.replace("-l", "")
         libs_list = libs_str.split()
     if tool_name == 'flowtracker':
-        print(":::: flowtracker wit cross")
         path_to_cmakelists = f'{path_to_cmakelists_folder}/Makefile'
         cmake_file_content = f'''
         CC = clang
         
-        # selection of specialized compilation units differing between ref and opt
-        # implementations.
-        REFERENCE_CODE_DIR = ../../Reference_Implementation
-        OPTIMIZED_CODE_DIR = ../../Optimized_Implementation
+        BASE_DIR  = ../../..
         
-        BASE_DIR = $(REFERENCE_CODE_DIR)
+        # MVARIANT_S =  MAYO_1 MAYO_2 MAYO_3 MAYO_5
         
-        INCS_DIR = $(BASE_DIR)/include
-        CATEGORY = 1
-        RSDP_VARIANT =  RSDP
-        PARAM_TARGETS =  SIG_SIZE
-        CSPRNG_ALGO = SHAKE_CSPRNG
-        HASH_ALGO = SHA3_HASH
-        COMPILE_FLAGS  = -DCATEGORY_$(CATEGORY)=1 -D$(PARAM_TARGETS)=1 -D$(CSPRNG_ALGO)=1 \
-        -D$(HASH_ALGO)=1 -D$(RSDP_VARIANT)=1 #${{KECCAK_EXTERNAL_ENABLE}}
+        SOURCE_FILES_COMMON_SYS  = ${{BASE_DIR}}/src/common/randombytes_system.c ${{BASE_DIR}}/src/common/aes_c.c \
+        ${{BASE_DIR}}/src/common/aes128ctr.c ${{BASE_DIR}}/src/common/fips202.c ${{BASE_DIR}}/src/common/mem.c
+        
+        SOURCE_FILES_MAYO = ${{BASE_DIR}}/src/mayo.c ${{BASE_DIR}}/src/params.c ${{BASE_DIR}}/src/bitsliced_arithmetic.c
+        
+        COMPILE_FLAGS = -Werror -Wextra -Wno-unused-parameter -fno-strict-aliasing -std=c99  -DENABLE_AESNI=ON
+        
+        INC_PLATFORM = ${{BASE_DIR}}/src/generic
         
         
-        INCS = $(wildcard $(BASE_DIR)/include/*.h)
-        SRC  = $(filter-out  $(BASE_DIR)/lib/sign.c, $(wildcard $(BASE_DIR)/lib/*.c))
-        SRC  += $(OPTIMIZED_CODE_DIR)/lib/aes256.c
         
+        SRC = $(SOURCE_FILES_MAYO) $(SOURCE_FILES_COMMON_SYS)
+        MVARIANT_LOWER = ${{BASE_DIR}}/{subfolder}
+        SIGN = ${{MVARIANT_LOWER}}/api.c
         
-        SIGN = $(BASE_DIR)/lib/sign.c
+        COMPILE_FLAGS += -DMAYO_VARIANT={mayo_instance_subfolder}
+        
+        INCS_DIR = -I $(BASE_DIR)/include -I $(INC_PLATFORM) -I $(BASE_DIR)/src/common -I $(MVARIANT_LOWER)
+        INCS = $(wildcard $(BASE_DIR)/include/*.h) $(wildcard $(INC_PLATFORM)/*.h) $(MVARIANT_LOWER)/api.h \
+         $(wildcard $(BASE_DIR)/src/common/*.h) $(wildcard $(BASE_DIR)/src/*.h)
         
         
         BUILD			= build
@@ -3688,7 +3687,7 @@ def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm $(COMPILE_FLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        \t$(CC) -emit-llvm $(COMPILE_FLAGS) $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
         
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
@@ -3696,7 +3695,7 @@ def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm $(COMPILE_FLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        \t$(CC) -emit-llvm $(COMPILE_FLAGS) $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
         
         $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
@@ -3723,7 +3722,7 @@ def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         set(BASE_DIR  ../../..)
         
         
-        SET(MVARIANT_S "MAYO_1;MAYO_2;MAYO_3;MAYO_5")
+        SET(MVARIANT "{mayo_instance_subfolder}")
 
         include(${{BASE_DIR}}/.cmake/flags.cmake)
         include(${{BASE_DIR}}/.cmake/sanitizers.cmake)
@@ -3794,72 +3793,65 @@ def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         '''
         cmake_file_content += f''' 
             # mayo_<x>_nistapi libraries
-            foreach(MVARIANT ${{MVARIANT_S}})
-                string(TOLOWER ${{MVARIANT}} MVARIANT_LOWER)
-                set(SOURCE_FILES_VARIANT ${{BASE_DIR}}/src/${{MVARIANT_LOWER}}/api.c)
-                add_library(${{MVARIANT_LOWER}}_nistapi ${{SOURCE_FILES_VARIANT}})
-                target_link_libraries(${{MVARIANT_LOWER}}_nistapi PRIVATE mayo)
-                target_include_directories(${{MVARIANT_LOWER}}_nistapi PUBLIC ${{MVARIANT_LOWER}} ${{INC_PLATFORM}})
-                
-                # crypto_sign_keypair
-                set(TARGET_KEYPAIR_BINARY_NAME {test_keypair}_${{MVARIANT}})
-                add_executable(${{TARGET_KEYPAIR_BINARY_NAME}} {candidate}_keypair/{test_keypair}.c)
+            set(SOURCE_FILES_VARIANT ${{BASE_DIR}}/src/${{MVARIANT}}/api.c)
+            add_library(${{MVARIANT}}_nistapi ${{SOURCE_FILES_VARIANT}})
+            target_link_libraries(${{MVARIANT}}_nistapi PRIVATE mayo)
+            target_include_directories(${{MVARIANT}}_nistapi PUBLIC ${{MVARIANT}} ${{INC_PLATFORM}})
+            
+            # crypto_sign_keypair
+            set(TARGET_KEYPAIR_BINARY_NAME {test_keypair}_${{MVARIANT}})
+            add_executable(${{TARGET_KEYPAIR_BINARY_NAME}} {candidate}_keypair/{test_keypair}.c)
             '''
         if link_flag:
             cmake_file_content += f'target_link_options(${{TARGET_KEYPAIR_BINARY_NAME}} PRIVATE {link_flag})'
         cmake_file_content += f'''
-                target_link_libraries(${{TARGET_KEYPAIR_BINARY_NAME}} PRIVATE {libs_str}  ${{MVARIANT_LOWER}}_nistapi)
+            target_link_libraries(${{TARGET_KEYPAIR_BINARY_NAME}} PRIVATE {libs_str}  ${{MVARIANT}}_nistapi)
              '''
         cmake_file_content += f'''
-                # crypto_sign_keypair
-                set(TARGET_SIGN_BINARY_NAME {test_sign}_${{MVARIANT}})
-                add_executable(${{TARGET_SIGN_BINARY_NAME}} {candidate}_sign/{test_sign}.c)
+            # crypto_sign_keypair
+            set(TARGET_SIGN_BINARY_NAME {test_sign}_${{MVARIANT}})
+            add_executable(${{TARGET_SIGN_BINARY_NAME}} {candidate}_sign/{test_sign}.c)
             '''
         if link_flag:
             cmake_file_content += f'target_link_options(${{TARGET_SIGN_BINARY_NAME}} PRIVATE {link_flag})'
         cmake_file_content += f'''
-                target_link_libraries(${{TARGET_SIGN_BINARY_NAME}} PRIVATE {libs_str}  ${{MVARIANT_LOWER}}_nistapi)
-            endforeach()
+            target_link_libraries(${{TARGET_SIGN_BINARY_NAME}} PRIVATE {libs_str}  ${{MVARIANT}}_nistapi)
         '''
 
-    cmake_file_content += f'''    
+        cmake_file_content += f'''    
         else()
-            FOREACH(MVARIANT ${{MVARIANT_S}})
-                string(TOLOWER ${{MVARIANT}} MVARIANT_LOWER)
-                add_library(${{MVARIANT_LOWER}} ${{SOURCE_FILES_MAYO}} ${{HEADER_FILES_MAYO}})
-                target_link_libraries(${{MVARIANT_LOWER}} PUBLIC mayo_common_sys)
-                target_include_directories(${{MVARIANT_LOWER}} PUBLIC ${{BASE_DIR}}/include  PRIVATE ${{BASE_DIR}}/src/common ${{BASE_DIR}}/src ${{INC_PLATFORM}})
-                target_compile_definitions(${{MVARIANT_LOWER}} PUBLIC MAYO_VARIANT=${{MVARIANT}})
-            ENDFOREACH()
+            add_library(${{MVARIANT}} ${{SOURCE_FILES_MAYO}} ${{HEADER_FILES_MAYO}})
+            target_link_libraries(${{MVARIANT}} PUBLIC mayo_common_sys)
+            target_include_directories(${{MVARIANT}} PUBLIC ${{BASE_DIR}}/include  PRIVATE ${{BASE_DIR}}/src/common ${{BASE_DIR}}/src ${{INC_PLATFORM}})
+            string(TOUPPER ${{MVARIANT}} MVARIANT_UPPER)
+            target_compile_definitions(${{MVARIANT}} PUBLIC MAYO_VARIANT=${{MVARIANT_UPPER}})
             
-            foreach(MVARIANT ${{MVARIANT_S}})
-                string(TOLOWER ${{MVARIANT}} MVARIANT_LOWER)
-                set(SOURCE_FILES_VARIANT ${{BASE_DIR}}/src/${{MVARIANT_LOWER}}/api.c ${{BASE_DIR}}/src/${{MVARIANT_LOWER}}/api.h)
-                add_library(${{MVARIANT_LOWER}}_nistapi ${{SOURCE_FILES_VARIANT}})
-                target_link_libraries(${{MVARIANT_LOWER}}_nistapi PRIVATE ${{MVARIANT_LOWER}})
-                target_include_directories(${{MVARIANT_LOWER}}_nistapi PUBLIC ${{MVARIANT_LOWER}} PUBLIC ${{BASE_DIR}}/include ${{BASE_DIR}}/src/${{MVARIANT_LOWER}})
-                
-                # crypto_sign_keypair
-                set(TARGET_KEYPAIR_BINARY_NAME {test_keypair}_${{MVARIANT}})
-                add_executable(${{TARGET_KEYPAIR_BINARY_NAME}} ./{candidate}_keypair/{test_keypair}.c)
+            
+            set(SOURCE_FILES_VARIANT ${{BASE_DIR}}/src/${{MVARIANT}}/api.c ${{BASE_DIR}}/src/${{MVARIANT}}/api.h)
+            add_library(${{MVARIANT}}_nistapi ${{SOURCE_FILES_VARIANT}})
+            target_link_libraries(${{MVARIANT}}_nistapi PRIVATE ${{MVARIANT}})
+            target_include_directories(${{MVARIANT}}_nistapi PUBLIC ${{MVARIANT}} PUBLIC ${{BASE_DIR}}/include ${{BASE_DIR}}/src/${{MVARIANT}})
+            
+            # crypto_sign_keypair
+            set(TARGET_KEYPAIR_BINARY_NAME {test_keypair}_${{MVARIANT}})
+            add_executable(${{TARGET_KEYPAIR_BINARY_NAME}} ./{candidate}_keypair/{test_keypair}.c)
                 '''
-    if link_flag:
-        cmake_file_content += f'target_link_options(${{TARGET_KEYPAIR_BINARY_NAME}} PRIVATE {link_flag})'
-    cmake_file_content += f'''
-                target_link_libraries(${{TARGET_KEYPAIR_BINARY_NAME}} PRIVATE {libs_str}  ${{MVARIANT_LOWER}}_nistapi)
-                set_target_properties(${{TARGET_KEYPAIR_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
+        if link_flag:
+            cmake_file_content += f'target_link_options(${{TARGET_KEYPAIR_BINARY_NAME}} PRIVATE {link_flag})'
+        cmake_file_content += f'''
+            target_link_libraries(${{TARGET_KEYPAIR_BINARY_NAME}} PRIVATE {libs_str}  ${{MVARIANT}}_nistapi)
+            set_target_properties(${{TARGET_KEYPAIR_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
              '''
-    cmake_file_content += f'''
-                # crypto_sign_keypair
-                set(TARGET_SIGN_BINARY_NAME {test_sign}_${{MVARIANT}})
-                add_executable(${{TARGET_SIGN_BINARY_NAME}} {candidate}_sign/{test_sign}.c)
+        cmake_file_content += f'''
+            # crypto_sign_keypair
+            set(TARGET_SIGN_BINARY_NAME {test_sign}_${{MVARIANT}})
+            add_executable(${{TARGET_SIGN_BINARY_NAME}} {candidate}_sign/{test_sign}.c)
             '''
-    if link_flag:
-        cmake_file_content += f'target_link_options(${{TARGET_SIGN_BINARY_NAME}} PRIVATE {link_flag})'
-    cmake_file_content += f'''
-                target_link_libraries(${{TARGET_SIGN_BINARY_NAME}} PRIVATE {libs_str}  ${{MVARIANT_LOWER}}_nistapi)
-                set_target_properties(${{TARGET_SIGN_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}})
-                endforeach()
+        if link_flag:
+            cmake_file_content += f'target_link_options(${{TARGET_SIGN_BINARY_NAME}} PRIVATE {link_flag})'
+        cmake_file_content += f'''
+            target_link_libraries(${{TARGET_SIGN_BINARY_NAME}} PRIVATE {libs_str}  ${{MVARIANT}}_nistapi)
+            set_target_properties(${{TARGET_SIGN_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}})
         endif()
         '''
     with open(path_to_cmakelists, "w") as cmake_file:

@@ -169,6 +169,7 @@ def makefile_hppc(path_to_makefile_folder, subfolder, tool_type, candidate):
 def makefile_mayo(path_to_cmakelist, subfolder, tool_type, candidate):
     build_cand.cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate)
 
+
 def cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate):
     build_cand.cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate)
 
@@ -828,10 +829,10 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
     #define max_message_length 3300
     
     {args_types[0]} *{args_names[0]};
-    {args_types[1]} {args_names[1]};
+    {args_types[1]} {args_names[1]} = 0;
     {args_types[2]} *{args_names[2]};
-    {args_types[3]} {args_names[3]};
-    {args_types[4]} {args_names[4]}[CRYPTO_SECRETKEYBYTES];
+    {args_types[3]} {args_names[3]} = 0;
+    {args_types[4]} {args_names[4]}[CRYPTO_SECRETKEYBYTES] = {0};
     
     void generate_test_vectors() {{
     \t//Fill randombytes
@@ -842,12 +843,14 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
     int main() {{
     
     \t{args_names[2]} = ({args_types[2]} *)calloc({args_names[3]}, sizeof({args_types[2]}));
-    \t{args_names[0]} = ({args_types[0]} *)calloc({args_names[3]}+CRYPTO_BYTES, sizeof({args_types[0]})); 
+    \t{args_names[0]} = ({args_types[0]} *)calloc({args_names[3]}+CRYPTO_BYTES, sizeof({args_types[0]}));
     
     
     \t{function_return_type} result = 2 ; 
     \tfor (int i = 0; i < CTGRIND_SAMPLE_SIZE; i++) {{
     \t\t{args_names[3]} = 33*(i+1);
+    \t\t{args_names[2]} = realloc({args_names[2]}, sizeof({args_types[2]}));
+    \t\t{args_names[0]} = realloc({args_names[0]}, {args_names[3]}+CRYPTO_BYTES);
     \t\tgenerate_test_vectors(); 
     \t\tct_poison({args_names[4]}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
     \t\tresult = {function_name}({args_names[0]}, &{args_names[1]}, {args_names[2]}, {args_names[3]}, {args_names[4]}); 
@@ -1761,7 +1764,6 @@ def find_candidate_instance_api_sign_relative_path_legacy(instance_folder, rel_p
                     break
             rng_relative = '/'.join(rel_path_to_rng_split)
     return api_relative, sign_relative, rng_relative
-
 
 
 def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_api,
