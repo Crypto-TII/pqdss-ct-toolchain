@@ -830,9 +830,10 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
     
     {args_types[0]} *{args_names[0]};
     {args_types[1]} {args_names[1]} = 0;
+    //{args_types[1]} *{args_names[1]};
     {args_types[2]} *{args_names[2]};
     {args_types[3]} {args_names[3]} = 0;
-    {args_types[4]} {args_names[4]}[CRYPTO_SECRETKEYBYTES] = {0};
+    {args_types[4]} {args_names[4]}[CRYPTO_SECRETKEYBYTES] = {{0}};
     
     void generate_test_vectors() {{
     \t//Fill randombytes
@@ -841,24 +842,19 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
     }} 
     
     int main() {{
-    
-    \t{args_names[2]} = ({args_types[2]} *)calloc({args_names[3]}, sizeof({args_types[2]}));
-    \t{args_names[0]} = ({args_types[0]} *)calloc({args_names[3]}+CRYPTO_BYTES, sizeof({args_types[0]}));
-    
-    
     \t{function_return_type} result = 2 ; 
     \tfor (int i = 0; i < CTGRIND_SAMPLE_SIZE; i++) {{
     \t\t{args_names[3]} = 33*(i+1);
-    \t\t{args_names[2]} = realloc({args_names[2]}, sizeof({args_types[2]}));
-    \t\t{args_names[0]} = realloc({args_names[0]}, {args_names[3]}+CRYPTO_BYTES);
+    \t\t{args_names[2]} = ({args_types[2]} *)calloc({args_names[3]}, sizeof({args_types[2]}));
+    \t\t{args_names[0]} = ({args_types[0]} *)calloc({args_names[3]}+CRYPTO_BYTES, sizeof({args_types[0]}));
+    
     \t\tgenerate_test_vectors(); 
     \t\tct_poison({args_names[4]}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
     \t\tresult = {function_name}({args_names[0]}, &{args_names[1]}, {args_names[2]}, {args_names[3]}, {args_names[4]}); 
     \t\tct_unpoison({args_names[4]}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
+    \t\tfree({args_names[0]});
+    \t\tfree({args_names[2]});
     \t}}
-
-    \tfree({args_names[0]}); 
-    \tfree({args_names[2]});
     \treturn result;
     }}
     '''

@@ -1102,7 +1102,7 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate):
     target_link_opt_block = ''
     link_flag = ''
     if tool_flags:
-        if '-static ' in tool_flags:
+        if '-static' in tool_flags:
             link_flag = '-static'
     libs_str = ""
     # tool_libs = tool_libs.replace("-lm", "")
