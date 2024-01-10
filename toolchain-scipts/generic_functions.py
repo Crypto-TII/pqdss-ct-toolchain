@@ -1220,10 +1220,13 @@ def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_
     msg_len = crypto_sign_args_names[3]
     sk = crypto_sign_args_names[4]
     script_file = cfg_file_sign
+    # with concrete stack pointer
     cfg_file_content = f'''
     starting from <main>
-    with concrete stack pointer
+    concretize stack
     '''
+    exploration_goal = f'''
+    reach all'''
     if 'yes' in with_core_dump.lower():
         if not cfg_file_sign.endswith('.ini'):
             cfg_file_sign_split = cfg_file_sign.split('.')
@@ -1234,12 +1237,16 @@ def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_
         cfg_file_content = f'''
     starting from core
     '''
+        exploration_goal = f'''
+    explore all
+    '''
     cfg_file_content += f''' 
     secret global {sk}
     public global {sig_msg}, {sig_msg_len}, {msg}, {msg_len}
     halt at <exit>
-    explore all
+    {exploration_goal}
     '''
+    # explore all
     with open(script_file, "w") as cfg_file:
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
@@ -1258,10 +1265,13 @@ def cfg_content_keypair_deprecated(cfg_file_keypair):
 
 
 def cfg_content_keypair(cfg_file_keypair, with_core_dump="no"):
+    # with concrete stack pointer
     cfg_file_content = f'''
     starting from <main>
-    with concrete stack pointer
+    concretize stack
     '''
+    exploration_goal = f'''
+    reach all'''
     script_file = cfg_file_keypair
     if 'yes' in with_core_dump.lower():
         if not cfg_file_keypair.endswith('.ini'):
@@ -1273,12 +1283,15 @@ def cfg_content_keypair(cfg_file_keypair, with_core_dump="no"):
         cfg_file_content = f'''
     starting from core
     '''
+        exploration_goal = f'''
+    explore all'''
     cfg_file_content += f'''
     secret global sk
     public global pk
     halt at <exit>
-    explore all
+    {exploration_goal}
     '''
+    # explore all
     with open(script_file, "w") as cfg_file:
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
@@ -1289,7 +1302,6 @@ def cfg_content_keypair(cfg_file_keypair, with_core_dump="no"):
 # Create same sub-folders in each folder of a given list of folders
 def generic_create_tests_folders(list_of_path_to_folders):
     for t_folder in list_of_path_to_folders:
-        print("++++++creating folder: ", t_folder)
         if not os.path.isdir(t_folder):
             cmd = ["mkdir", "-p", t_folder]
             subprocess.call(cmd, stdin=sys.stdin)
@@ -1361,12 +1373,18 @@ def run_binsec_deprecated(executable_file, cfg_file, stats_files, output_file, d
 def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
     # command = f'''binsec -sse -checkct -sse-depth  {depth} {cfg_file}
     #     -checkct-stats-file   {stats_files}  {executable_file} '''
+
+
     # command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth}
-    #       {executable_file} '''
-    command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth} 
+    #       '''
+    # With core dump
+    command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth} -sse-self-written-enum 1
           '''
-    if stats_files:
-        command += f'-checkct-stats-file {stats_files} '
+    # For binsec:v0.7.1
+    # command = f'''binsec -checkct -checkct-script {cfg_file} -checkct-depth  {depth}
+    #       '''
+    # if stats_files:
+    #     command += f'-checkct-stats-file {stats_files} '
     command += f'{executable_file}'
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
@@ -1438,7 +1456,7 @@ def run_ctgrind(binary_file, output_file):
 
 
 def run_dudect(executable_file, output_file):
-    command = f'timeout 120 ./{executable_file}'
+    command = f'timeout 3600 ./{executable_file}'
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
     output, error = execution.communicate()
@@ -1861,11 +1879,8 @@ def tool_initialize_candidate(path_to_opt_src_folder,
                                path_to_tool_keypair_folder,
                                path_to_tool_sign_folder]
     generic_create_tests_folders(list_of_path_to_folders)
-    print(".......list_of_path_to_folders")
-    print(list_of_path_to_folders)
     tool_name = os.path.basename(path_to_tool_folder)
     opt_implementation_name = os.path.basename(path_to_opt_src_folder)
-    print("_____opt_implementation_name: ", opt_implementation_name)
     abth_p = find_api_sign_abs_path(path_to_opt_src_folder, api,
                                     sign, opt_implementation_name)
     abs_path_to_api_or_sign = abth_p

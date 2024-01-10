@@ -1659,7 +1659,7 @@ def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
     target_link_opt_block = ''
     link_flag = ''
     if tool_flags:
-        if '-static ' in tool_flags:
+        if '-static ' in tool_flags or ' -static' in tool_flags:
             link_flag = '-static'
     libs_str = ""
     # tool_libs = tool_libs.replace("-lm", "")
@@ -1778,9 +1778,13 @@ def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         
         set(CMAKE_C_STANDARD 11)'''
         find_libs_block = ''
+        libs_variables = ''
         for lib in libs_list:
             lib_variable = lib.upper()
             lib_variable = f'{lib_variable}_LIB'
+            l_var = f'{lib_variable}'
+            l_var = f'{{{l_var}}}'
+            libs_variables += f' ${l_var}'
             find_libs_block += f'''
         find_library({lib_variable} {lib})
         if(NOT {lib_variable})
@@ -1853,14 +1857,13 @@ def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
                 set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{optimiz_target}})  
                 add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
                         ./{candidate}_keypair/{test_keypair}.c)
-                target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
                 target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                         ${{BASE_DIR}}/include
                         ./include)'''
         if link_flag:
             cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE {link_flag})'
         cmake_file_content += f'''
-                target_link_libraries(${{TARGET_BINARY_NAME}} m {libs_str} ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
+                target_link_libraries(${{TARGET_BINARY_NAME}} {libs_variables} ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
                 
                 set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
                 set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
@@ -1871,14 +1874,13 @@ def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
                 set(TARGET_BINARY_NAME {test_sign}_${{category}}_${{optimiz_target}})
                 add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
                         ./{candidate}_sign/{test_sign}.c)   
-                target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
                 target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
                         ${{BASE_DIR}}/include
                         ./include)'''
         if link_flag:
             cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE {link_flag})'
         cmake_file_content += f'''
-                target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
+                target_link_libraries(${{TARGET_BINARY_NAME}} {libs_variables} ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
                 
                 set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}}) 
                 set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
@@ -3134,7 +3136,8 @@ def compile_run_qr_uov(tools_list, signature_type, candidate,
                        optimized_imp_folder, instance_folders_list,
                        rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                        to_compile, to_run, depth, build_folder,
-                       binary_patterns, rng_outside_instance_folder="no"):
+                       binary_patterns, rng_outside_instance_folder="no",
+                       with_core_dump="no"):
     add_includes = []
     compile_with_cmake = 'no'
     custom_folder = "custom_makefile"
@@ -3144,7 +3147,7 @@ def compile_run_qr_uov(tools_list, signature_type, candidate,
                                             instance_folders_list, rel_path_to_api, rel_path_to_sign,
                                             rel_path_to_rng, compile_with_cmake, add_includes, to_compile,
                                             to_run, depth, build_folder,
-                                            binary_patterns,rng_outside_instance_folder)
+                                            binary_patterns,rng_outside_instance_folder, with_core_dump)
 
 
 # ===============================  snova ==========================================

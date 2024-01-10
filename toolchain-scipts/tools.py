@@ -420,7 +420,7 @@ class Tools(object):
 
     def get_tool_flags_and_libs(self):
         if self.tool_name == 'binsec':
-            self.tool_flags = "-g -static"
+            self.tool_flags = "-g" #-static
             return self.tool_flags, self.tool_libs
         if self.tool_name == 'ctgrind':
             self.tool_flags = "-Wall -ggdb  -std=c99  -Wextra"

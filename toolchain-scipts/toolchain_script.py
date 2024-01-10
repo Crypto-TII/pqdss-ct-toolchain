@@ -1175,10 +1175,12 @@ uov_default_list_of_folders.extend(amd64_ext)
 uov_default_list_of_folders.remove(uov_amd64+"/nistkat")
 avx2_ext = [uov_avx2+"/"+fold for fold in os.listdir(abs_path_to_uov_avx2)]
 uov_default_list_of_folders.extend(avx2_ext)
-uov_default_list_of_folders.remove(uov_avx2+"/nistkat")
+if uov_avx2+"/nistkat" in uov_default_list_of_folders:
+    uov_default_list_of_folders.remove(uov_avx2+"/nistkat")
 neon_ext = [uov_neon+"/"+fold for fold in os.listdir(abs_path_to_uov_neon)]
 uov_default_list_of_folders.extend(neon_ext)
-uov_default_list_of_folders.remove(uov_neon+"/nistkat")
+if uov_neon+"/nistkat" in uov_default_list_of_folders:
+    uov_default_list_of_folders.remove(uov_neon+"/nistkat")
 
 generic.add_cli_arguments(subparser, 'multivariate', 'uov',
                           'UOV/Optimized_Implementation',
