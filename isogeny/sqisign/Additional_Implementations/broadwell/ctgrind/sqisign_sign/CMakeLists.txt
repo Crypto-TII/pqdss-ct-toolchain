@@ -1,0 +1,3 @@
+add_executable(ctgrind_sqisign_lvl1 taint_sqisign_sign_lvl1.c)
+target_link_libraries(ctgrind_sqisign_lvl1 ${CT_GRIND_LIB})
+target_link_libraries(ctgrind_sqisign_lvl1 PRIVATE sqisign_lvl1)
