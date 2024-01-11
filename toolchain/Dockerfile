@@ -1,4 +1,4 @@
-FROM binsec/binsec:0.8.0
+FROM binsec/binsec
 
 
 USER root
