@@ -1,5 +1,4 @@
-# FROM binsec/binsec:0.8.0
-FROM binsec/binsec:0.7.1
+FROM binsec/binsec:0.8.0
 
 
 USER root
