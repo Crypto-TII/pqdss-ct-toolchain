@@ -1195,24 +1195,6 @@ def flowtracker_sign_xml_content(xml_file, api,
 # ===========================================================================
 
 
-def sign_configuration_file_content_deprecated(cfg_file_sign, crypto_sign_args_names):
-    sig_msg = crypto_sign_args_names[0]
-    sig_msg_len = crypto_sign_args_names[1]
-    msg = crypto_sign_args_names[2]
-    msg_len = crypto_sign_args_names[3]
-    sk = crypto_sign_args_names[4]
-    cfg_file_content = f'''
-    starting from <main>
-    concretize stack
-    secret global {sk}
-    public global {sig_msg},{sig_msg_len},{msg},{msg_len}
-    halt at <exit>
-    reach all
-    '''
-    with open(cfg_file_sign, "w") as cfg_file:
-        cfg_file.write(textwrap.dedent(cfg_file_content))
-
-
 def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_core_dump="no"):
     sig_msg = crypto_sign_args_names[0]
     sig_msg_len = crypto_sign_args_names[1]
@@ -1248,19 +1230,6 @@ def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_
     '''
     # explore all
     with open(script_file, "w") as cfg_file:
-        cfg_file.write(textwrap.dedent(cfg_file_content))
-
-
-def cfg_content_keypair_deprecated(cfg_file_keypair):
-    cfg_file_content = f'''
-    starting from <main>
-    concretize stack
-    secret global sk
-    public global pk
-    halt at <exit>
-    reach all
-    '''
-    with open(cfg_file_keypair, "w") as cfg_file:
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
 
@@ -1358,50 +1327,10 @@ def compile_with_makefile_all(path_to_makefile):
 # ==================== EXECUTION =====================================
 # ====================================================================
 
-def run_binsec_deprecated(executable_file, cfg_file, stats_files, output_file, depth):
-    command = f'''binsec -checkct -checkct-depth  {depth}   -checkct-script  {cfg_file}
-     -checkct-stats-file   {stats_files}  {executable_file} '''
-    cmd_args_lst = command.split()
-    execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
-    output, error = execution.communicate()
-    output_decode = output.decode('utf-8')
-    with open(output_file, "w") as file:
-        for line in output_decode.split('\n'):
-            file.write(line + '\n')
-
-
 def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
-    # command = f'''binsec -sse -checkct -sse-depth  {depth} {cfg_file}
-    #     -checkct-stats-file   {stats_files}  {executable_file} '''
-
-
-    # command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth}
-    #       '''
-    # With core dump
     command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth} -sse-self-written-enum 1
           '''
-    # For binsec:v0.7.1
-    # command = f'''binsec -checkct -checkct-script {cfg_file} -checkct-depth  {depth}
-    #       '''
-    # if stats_files:
-    #     command += f'-checkct-stats-file {stats_files} '
     command += f'{executable_file}'
-    cmd_args_lst = command.split()
-    execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
-    output, error = execution.communicate()
-    output_decode = output.decode('utf-8')
-    with open(output_file, "w") as file:
-        for line in output_decode.split('\n'):
-            file.write(line + '\n')
-
-
-def run_binsec_with_core_dump(snapshot_file, cfg_file, stats_files, output_file, depth):
-    command = f'''binsec -sse -sse-script {cfg_file} '''
-    if depth:
-        command += f'-sse-depth {depth} '
-    if stats_files:
-        command += f'-checkct-stats-file {stats_files} '
-    command += f'{snapshot_file}'
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
     output, error = execution.communicate()
@@ -1456,7 +1385,7 @@ def run_ctgrind(binary_file, output_file):
 
 
 def run_dudect(executable_file, output_file):
-    command = f'timeout 3600 ./{executable_file}'
+    command = f'timeout 43200 ./{executable_file}'
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
     output, error = execution.communicate()
