@@ -1486,10 +1486,6 @@ def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
         makefile_to_run_candidate.write(textwrap.dedent(makefile_content))
     command = ["make"]
     subprocess.call(command, stdin=sys.stdin)
-    # # Convert fullGraph.dot to .png image file
-    # graph_png_command = 'dot fullGraph.dot -Tpng  -o fullGraph.png'
-    # graph_png_command_lst = graph_png_command.split()
-    # subprocess.call(graph_png_command_lst, stdin=sys.stdin)
 
 
 def binsec_generic_run(binsec_folder, signature_type, candidate,

@@ -17,30 +17,6 @@ def find_ending_pattern(folder, pattern):
     return test_folder[0]
 
 
-def run_binsec_deprecated(executable_file, cfg_file, stats_files, output_file, depth):
-    command = f'''binsec -checkct -checkct-depth  {depth}   -checkct-script  {cfg_file}
-     -checkct-stats-file   {stats_files}  {executable_file} '''
-    cmd_args_lst = command.split()
-    execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
-    output, error = execution.communicate()
-    output_decode = output.decode('utf-8')
-    with open(output_file, "w") as file:
-        for line in output_decode.split('\n'):
-            file.write(line + '\n')
-
-
-def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
-    command = f'''binsec -sse -checkct -sse-depth  {depth} {cfg_file}
-        -checkct-stats-file   {stats_files}  {executable_file} '''
-    cmd_args_lst = command.split()
-    execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
-    output, error = execution.communicate()
-    output_decode = output.decode('utf-8')
-    with open(output_file, "w") as file:
-        for line in output_decode.split('\n'):
-            file.write(line + '\n')
-
-
 def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: str):
     snapshot_file = path_to_snapshot_file
     gdb_script = path_to_gdb_script
@@ -65,33 +41,6 @@ def binsec_generate_core_dump(path_to_executable_file: str, path_to_gdb_script: 
     cmd = f'gdb -x {path_to_gdb_script} ./{path_to_executable_file}'
     cmd_list = cmd.split()
     subprocess.call(cmd_list, stdin=sys.stdin)
-
-
-def run_ctgrind(binary_file, output_file):
-    command = f'''valgrind -s --track-origins=yes --leak-check=full 
-                --show-leak-kinds=all --verbose --log-file={output_file} ./{binary_file}'''
-    cmd_args_lst = command.split()
-    subprocess.call(cmd_args_lst, stdin=sys.stdin)
-
-
-def run_dudect(binary_file, output_file):
-    command = f'./{binary_file}'
-    print("::::::::Running current command: ", command)
-    cmd_args_lst = command.split()
-    execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
-    output, error = execution.communicate()
-    output_decode = output.decode('utf-8')
-    with open(output_file, "w") as file:
-        for line in output_decode.split('\n'):
-            file.write(line + '\n')
-
-
-def run_flowtracker(rbc_file, xml_file, output_file):
-    command = f'''opt -basicaa -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2 \
-            -xmlfile {xml_file} {rbc_file} 2> {output_file}.out
-        '''
-    cmd_args_lst = command.split()
-    subprocess.call(cmd_args_lst, stdin=sys.stdin)
 
 
 def compile_for_flowtracker(target_src_file, output_directory=".", target_dependencies="", target_includes=""):

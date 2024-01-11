@@ -73,13 +73,13 @@ python3 toolchain_script.py mirith -h
 To test a candidate by a targeted tool, run:
 
 ```
-python3 toolchain_script.py CANDIDATE --tools TOOLS --instance_folders_list PARAMETER_SET_FOLDER --algorithms_patterns PATTERN
+python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS --instance_folders_list PARAMETER_SET_FOLDER --algorithms_patterns PATTERN
 ```
 
 ### Example
 
 ````
-python3 toolchain_script.py mirith --tools ctgrind --instance_folders_list mirith_avx2_Ia_fast --algorithms_patterns sign
+python3 toolchain-scripts/toolchain_script.py mirith --tools ctgrind --instance_folders_list mirith_avx2_Ia_fast --algorithms_patterns sign
 ````
 
 ## To contribute to the project
