@@ -8,7 +8,7 @@ import sys
 import subprocess
 import textwrap
 import generic_functions as gen_funct
-import tools as tool
+
 
 
 # ============================== MPC-IN-THE-HEAD ================
@@ -16,7 +16,7 @@ import tools as tool
 
 # ================================ MIRITH ========================
 def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -127,7 +127,7 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 # ========================================== PERK ============================
 def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -289,7 +289,7 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 # ============================== MQOM ================================
 def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -412,7 +412,7 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 # ============================= RYDE ===========================================
 def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -575,7 +575,7 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 # =============================== MIRA =================================
 def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -727,7 +727,7 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 # =================================== SDITH ====================================
 def makefile_sdith(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -878,7 +878,7 @@ def makefile_sdith(path_to_makefile_folder, subfolder, tool_name, candidate):
 # =============================== CROSS =========================================
 # [TODO: Modify and remove if condition ]
 def cmake_cross1(path_to_cmake_lists, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     cmake_file_content_src_block1 = f'''
@@ -1094,7 +1094,7 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate):
             done ; \
         done
     '''
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_cmakelists = f'{path_to_cmakelists_folder}/CMakeLists.txt'
@@ -1331,7 +1331,7 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate):
 
 # ===============================  PQSIGRM ==================================
 def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     subfolder = 'pqsigrm613'
@@ -1447,7 +1447,7 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate):
 # =========================== LESS ==============================================
 # [TODO: Modify and remove if condition]
 def cmake_less1(path_to_cmakelist, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     subfolder = ""
@@ -1651,7 +1651,7 @@ def cmake_less1(path_to_cmakelist, subfolder, tool_name, candidate):
 
 
 def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_cmakelists = f'{path_to_cmakelists_folder}/CMakeLists.txt'
@@ -1898,7 +1898,7 @@ def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
 # ========================== FULEECA ========================================
 # [TODO]
 def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     subfolder = ""
@@ -1968,7 +1968,7 @@ def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_name, candidate):
 # ============================= MEDS =====================================
 # [TODO]
 def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     subfolder = ""
@@ -2034,7 +2034,7 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 # =================================== WAVE ======================================
 def makefile_wave(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -2156,7 +2156,7 @@ def squirrels_level(subfolder):
 def makefile_squirrels(path_to_makefile_folder, subfolder, tool_name, candidate):
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     level = squirrels_level(subfolder)
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     if tool_name == 'flowtracker':
@@ -2314,7 +2314,7 @@ def makefile_squirrels(path_to_makefile_folder, subfolder, tool_name, candidate)
 # [TODO: Modify and remove if condition]
 
 def cmake_haetae(path_to_cmakelist, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_cmakelist = path_to_cmakelist+'/CMakeLists.txt'
@@ -2479,8 +2479,8 @@ def makefile_eaglesign(path_to_makefile_folder, subfolder, tool_type, candidate)
     '''
     makefile_content_block_tool_flags_binary_files = ""
     if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+        test_harness_kpair = gen_funct.binsec_test_harness_keypair
+        test_harness_sign = gen_funct.binsec_test_harness_sign
         makefile_content_block_tool_flags_binary_files = f'''
         
         BINSEC_STATIC_FLAG  = -static
@@ -2488,7 +2488,7 @@ def makefile_eaglesign(path_to_makefile_folder, subfolder, tool_type, candidate)
         EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
         '''
     if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+        taint = gen_funct.ctgrind_taint
         makefile_content_block_tool_flags_binary_files = f'''
         CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
         
@@ -2581,8 +2581,8 @@ def makefile_ehtv3v4(path_to_makefile_folder, subfolder, tool_type, candidate):
     '''
     makefile_content_block_tool_flags_binary_files = ""
     if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+        test_harness_kpair = gen_funct.binsec_test_harness_keypair
+        test_harness_sign =gen_funct.binsec_test_harness_sign
         makefile_content_block_tool_flags_binary_files = f'''
         
         BINSEC_STATIC_FLAG  = -static
@@ -2590,7 +2590,7 @@ def makefile_ehtv3v4(path_to_makefile_folder, subfolder, tool_type, candidate):
         EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
         '''
     if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+        taint = gen_funct.ctgrind_taint
         makefile_content_block_tool_flags_binary_files = f'''
         CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
         
@@ -2659,7 +2659,7 @@ def makefile_ehtv3v4(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 # =========================== HAWK ============================================
 def makefile_hawk(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -2826,8 +2826,8 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate):
     '''
     makefile_content_block_tool_flags_binary_files = ""
     if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+        test_harness_kpair = gen_funct.binsec_test_harness_keypair
+        test_harness_sign = gen_funct.binsec_test_harness_sign
         makefile_content_block_tool_flags_binary_files = f'''
         
         BINSEC_STATIC_FLAG  = -static
@@ -2835,7 +2835,7 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate):
         EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
         '''
     if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+        taint = gen_funct.ctgrind_taint
         makefile_content_block_tool_flags_binary_files = f'''
         CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
         
@@ -2904,7 +2904,7 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 # =========================== RACCOON =============================
 def sh_build_raccoon(path_to_sh_script_folder, sh_script, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     executable_keypair = f'{candidate}_keypair/{test_keypair}'
@@ -3006,7 +3006,7 @@ def qr_uov_main_makefile(path_to_tool_folder, subfolder):
 
 
 def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -3017,8 +3017,8 @@ def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
         if '-static ' in tool_flags:
             link_flag = '-static'
     libs_str = ""
-    tool_libs = tool_libs.replace("-lm", "")
-    tool_libs = tool_libs.strip()
+    # tool_libs = tool_libs.replace("-lm", "")
+    # tool_libs = tool_libs.strip()
     if tool_libs:
         libs_str = tool_libs.replace("-l", "")
         libs_list = libs_str.split()
@@ -3151,9 +3151,8 @@ def compile_run_qr_uov(tools_list, signature_type, candidate,
 
 
 # ===============================  snova ==========================================
-# [TODO:error after running binsec. Make sure binary is static]
 def makefile_snova(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -3285,7 +3284,7 @@ def makefile_biscuit(path_to_makefile_folder, subfolder, tool_type, candidate):
     tool = gen_funct.GenericPatterns(tool_type)
     path_to_makefile = path_to_makefile_folder+'/Makefile'
 
-    # tool_type = tool.Tools(tool_name)
+    # tool_type = gen_funct.Tools(tool_name)
     # test_keypair, test_sign = tool_type.get_tool_test_file_name()
     # tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     # path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -3307,8 +3306,8 @@ def makefile_biscuit(path_to_makefile_folder, subfolder, tool_type, candidate):
     '''
     makefile_content_block_tool_flags_binary_files = ""
     if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+        test_harness_kpair = gen_funct.binsec_test_harness_keypair
+        test_harness_sign = gen_funct.binsec_test_harness_sign
         makefile_content_block_tool_flags_binary_files = f'''
         BINSEC_STATIC_FLAG  = -static
         DEBUG_G_FLAG = -g
@@ -3320,7 +3319,7 @@ def makefile_biscuit(path_to_makefile_folder, subfolder, tool_type, candidate):
         EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
         '''
     if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+        taint = gen_funct.ctgrind_taint
         makefile_content_block_tool_flags_binary_files = f'''
         \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
         \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
@@ -3426,8 +3425,8 @@ def makefile_dme_sign(path_to_makefile_folder, subfolder, tool_type, candidate):
     '''
     makefile_content_block_tool_flags_binary_files = ""
     if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+        test_harness_kpair = gen_funct.binsec_test_harness_keypair
+        test_harness_sign = gen_funct.binsec_test_harness_sign
         makefile_content_block_tool_flags_binary_files = f'''
         BINSEC_STATIC_FLAG  = -static
         DEBUG_G_FLAG = -g
@@ -3439,7 +3438,7 @@ def makefile_dme_sign(path_to_makefile_folder, subfolder, tool_type, candidate):
         EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
         '''
     if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+        taint = gen_funct.ctgrind_taint
         makefile_content_block_tool_flags_binary_files = f'''
         \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
         \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
@@ -3536,8 +3535,8 @@ def makefile_hppc(path_to_makefile_folder, subfolder, tool_type, candidate):
     '''
     makefile_content_block_tool_flags_binary_files = ""
     if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+        test_harness_kpair = gen_funct.binsec_test_harness_keypair
+        test_harness_sign = gen_funct.binsec_test_harness_sign
         makefile_content_block_tool_flags_binary_files = f'''
         BINSEC_STATIC_FLAG  = -static
         DEBUG_G_FLAG = -g
@@ -3549,7 +3548,7 @@ def makefile_hppc(path_to_makefile_folder, subfolder, tool_type, candidate):
         EXECUTABLE_SIGN         = {candidate}_sign/{test_harness_sign}
         '''
     if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+        taint = gen_funct.ctgrind_taint
         makefile_content_block_tool_flags_binary_files = f'''
         \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
         \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
@@ -3628,7 +3627,7 @@ def makefile_hppc(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate):
     mayo_instance_subfolder = subfolder.split('/')[-1]
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_cmakelists = f'{path_to_cmakelists_folder}/CMakeLists.txt'
@@ -3861,9 +3860,8 @@ def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         cmake_file.write(textwrap.dedent(cmake_file_content))
 
 # ==================================  PROV ===================================
-# [TODO]
 def makefile_prov(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -3975,9 +3973,8 @@ def makefile_prov(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # =================================  TUOV =================================
-# [TODO]
 def makefile_tuov(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -4181,7 +4178,7 @@ def get_uov_additional_cflags_and_ld(subfolder):
 
 
 def makefile_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     additional_cflags, loader = get_uov_additional_cflags_and_ld(subfolder)
@@ -4343,7 +4340,7 @@ def makefile_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
 # ===============================  VOX =====================================
 # [TODO]
 def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -4473,7 +4470,7 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 # =============================  AIMER =========================================
 def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -4588,7 +4585,7 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
 # ================================ ascon_sign ===================================
 
 def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -4690,7 +4687,7 @@ def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate
 # ================================= faest ========================================
 
 def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -4795,7 +4792,7 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate):
 # =================================== Sphincs-alpha ===========================
 
 def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -4932,7 +4929,7 @@ def preon_subfolder_parser(subfolder):
 
 def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate):
     security_level, security_level_labeled = preon_subfolder_parser(subfolder)
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -5034,7 +5031,7 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate):
 # ============================== ALTEQ ==========================================
 # [TODO]
 def makefile_alteq(path_to_makefile_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
@@ -5198,8 +5195,8 @@ def makefile_emle2_0(path_to_makefile_folder, subfolder, tool_type, candidate):
 
     makefile_content_block_tool_flags_binary_files = ""
     if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+        test_harness_kpair = gen_funct.binsec_test_harness_keypair
+        test_harness_sign = gen_funct.binsec_test_harness_sign
         makefile_content_block_tool_flags_binary_files = f'''
         \tBINSEC_STATIC_FLAG  = -static
         \tDEBUG_G_FLAG = -g
@@ -5208,7 +5205,7 @@ def makefile_emle2_0(path_to_makefile_folder, subfolder, tool_type, candidate):
         \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_harness_sign} 
         '''
     if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+        taint = gen_funct.ctgrind_taint
         makefile_content_block_tool_flags_binary_files = f'''
         \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
         \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
@@ -5309,8 +5306,8 @@ def makefile_kaz_sign(path_to_makefile_folder, subfolder, tool_type, candidate):
 
     makefile_content_block_tool_flags_binary_files = ""
     if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+        test_harness_kpair = gen_funct.binsec_test_harness_keypair
+        test_harness_sign = gen_funct.binsec_test_harness_sign
         makefile_content_block_tool_flags_binary_files = f'''
         \tBINSEC_STATIC_FLAG  = -static
         \tDEBUG_G_FLAG = -g
@@ -5319,7 +5316,7 @@ def makefile_kaz_sign(path_to_makefile_folder, subfolder, tool_type, candidate):
         \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_harness_sign} 
         '''
     if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+        taint = gen_funct.ctgrind_taint
         makefile_content_block_tool_flags_binary_files = f'''
         \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
         \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
@@ -5420,8 +5417,8 @@ def makefile_xifrat(path_to_makefile_folder, subfolder, tool_type, candidate):
 
     makefile_content_block_tool_flags_binary_files = ""
     if tool_type.lower() == 'binsec':
-        test_harness_kpair = tool.binsec_test_harness_keypair
-        test_harness_sign = tool.binsec_test_harness_sign
+        test_harness_kpair = gen_funct.binsec_test_harness_keypair
+        test_harness_sign = gen_funct.binsec_test_harness_sign
         makefile_content_block_tool_flags_binary_files = f'''
         \tBINSEC_STATIC_FLAG  = -static
         \tDEBUG_G_FLAG = -g
@@ -5430,7 +5427,7 @@ def makefile_xifrat(path_to_makefile_folder, subfolder, tool_type, candidate):
         \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_harness_sign} 
         '''
     if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = tool.ctgrind_taint
+        taint = gen_funct.ctgrind_taint
         makefile_content_block_tool_flags_binary_files = f'''
         \tCT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
         \tCT_GRIND_SHAREDLIB_PATH = /usr/lib/
@@ -5490,7 +5487,7 @@ def makefile_xifrat(path_to_makefile_folder, subfolder, tool_type, candidate):
 # =========================== sqisign ========================================
 
 def cmake_sqisign(path_to_cmakelists_folder, subfolder, tool_name, candidate):
-    tool_type = tool.Tools(tool_name)
+    tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_cmakelists = f'{path_to_cmakelists_folder}/CMakeLists.txt'

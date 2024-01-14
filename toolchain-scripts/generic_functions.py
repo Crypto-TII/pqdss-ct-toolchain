@@ -13,8 +13,17 @@ import textwrap
 import argparse
 
 import candidates_build as build_cand
-import tools as tool
 
+
+# The following functions should have been in the file 'candidates_build.py' only.
+# The function 'generic_init_compile' calls functions like 'makefile_mirith' for build/compilation. But if there
+# are only in the 'candidates_build.py', it doesn't work with the function 'generic_init_compile'.
+# To make the script work, we have written new functions in the current file, calling the corresponding ones from the
+# file 'candidates_build.py'.
+
+# We will fix that issue.
+
+# The candidates with the "[TODO]" are those with vulnerabilities (broken). We haven't tested them.
 
 # ============================ MIRITH ==========================================
 def makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate):
@@ -42,6 +51,7 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 
 # ============================ SDITH ==========================================
+# [TODO]
 def makefile_sdith(path_to_makefile_folder, subfolder, tool_type, candidate):
     build_cand.makefile_sdith(path_to_makefile_folder, subfolder, tool_type, candidate)
 
@@ -65,6 +75,7 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 
 # ========================= LESS ==============================================
+# The function makefile_less is meant for the use of the tool flowtracker only
 def makefile_less(path_to_cmakelist, subfolder, tool_type, candidate):
     build_cand.cmake_less(path_to_cmakelist, subfolder, tool_type, candidate)
 
@@ -94,13 +105,12 @@ def makefile_wave(path_to_makefile_folder, subfolder, tool_type, candidate):
 # ==============================================================================
 # =================================== SQUIRRELS =================================
 # [TODO]
-
 def makefile_squirrels(path_to_makefile_folder, subfolder, tool_type, candidate):
     build_cand.makefile_squirrels(path_to_makefile_folder, subfolder, tool_type, candidate)
 
 
 # ============================ HAETAE ===========================================
-
+# [TODO]
 def cmake_haetae(path_to_cmakelist, subfolder, tool_type, candidate):
     build_cand.cmake_haetae(path_to_cmakelist, subfolder, tool_type, candidate)
 
@@ -136,12 +146,8 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate):
 # ===================================  MULTIVARIATE =============================
 # ===============================================================================
 
-# =================================== QR-UOV ======================================
-# [TODO:Rename functions if needed/if not working with new script keep old script ...]
-
-
+#
 # ================================= snova ===============================================
-# [TODO:error after running binsec. Make sure binary is static]
 def makefile_snova(path_to_makefile_folder, subfolder, tool_type, candidate):
     build_cand.makefile_snova(path_to_makefile_folder, subfolder, tool_type, candidate)
 
@@ -165,7 +171,7 @@ def makefile_hppc(path_to_makefile_folder, subfolder, tool_type, candidate):
 
 
 # ====================================  MAYO =======================================
-# [TODO]
+# The function makefile_mayo is meant for the use of the tool flowtracker only
 def makefile_mayo(path_to_cmakelist, subfolder, tool_type, candidate):
     build_cand.cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate)
 
@@ -175,20 +181,16 @@ def cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate):
 
 
 # ==================================  PROV ===============================================
-# [TODO]
 def makefile_prov(path_to_makefile_folder, subfolder, tool_type, candidate):
     build_cand.makefile_prov(path_to_makefile_folder, subfolder, tool_type, candidate)
 
 
 # =================================== TUOV =============================================
-# [TODO]
 def makefile_tuov(path_to_makefile_folder, subfolder, tool_type, candidate):
     build_cand.makefile_tuov(path_to_makefile_folder, subfolder, tool_type, candidate)
 
 
 # ==================================  UOV ==============================================
-# [TODO]
-
 def makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate):
     build_cand.makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate)
 
@@ -197,8 +199,8 @@ def makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate):
 def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
     build_cand.makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate)
 
+
 # ===================================== VOX ================================================
-# [TODO]
 def makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate):
     build_cand.makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate)
 
@@ -274,11 +276,6 @@ def cmake_sqisign(path_to_cmakelist, subfolder, tool_type, candidate):
     build_cand.cmake_sqisign(path_to_cmakelist, subfolder, tool_type, candidate)
 
 
-def find_starting_pattern(folder, pattern):
-    test_folder = glob.glob(folder + '/' + pattern + '*')
-    return test_folder[0]
-
-
 def find_ending_pattern(folder, pattern):
     test_folder = glob.glob(folder + '/*' + pattern)
     return test_folder[0]
@@ -291,10 +288,12 @@ def get_default_list_of_folders(candidate_default_list_of_folders, tools_list):
     return candidate_default_list_of_folders
 
 
+# Patterns of test files (.c files) for binsec - ctgrind - dudect;
+# and also for binsec script file (configuration file).
 class GenericPatterns(object):
     def __init__(self, tool_type, test_harness_keypair="test_harness_crypto_sign_keypair",
                  test_harness_sign="test_harness_crypto_sign",
-                 ctgrind_taint="taint",dudect_dude="dude" ):
+                 ctgrind_taint="taint", dudect_dude="dude"):
         self.tool_type = tool_type
         self.binsec_test_harness_keypair = test_harness_keypair
         self.binsec_test_harness_sign = test_harness_sign
@@ -324,16 +323,8 @@ class Candidate(object):
         self.candidate_test_harness_name = ""
         self.candidate_source_file_name = ""
         self.candidate_executable = ""  # One call it "base_name-candidate_bin"
-        self.candidate_configuration_file = ""
-        self.candidate_stats_file = ""
-        self.candidate_assumption = ""
-        self.parent_header_file = ""
-        self.parent_source_file = ""
         self.candidate_secret_data = []
         self.candidate_public_data = []
-        self.cmd_binsec_compilation_candidate = []
-        self.cmd_binsec_run_candidate = []
-
         self.candidate_has_arguments_status = True
         self.candidate_split = re.split(r"[()]\s*", candidate)
         self.candidate_args = self.candidate_split[1]
@@ -355,23 +346,11 @@ class Candidate(object):
     def get_candidate_basename(self):
         return self.candidate_basename
 
-    def get_candidate_source_file_basename(self):
-        return self.candidate_basename + ".c"
-
-    def get_candidate_test_harness_basename(self):
-        return "test_harness_" + self.candidate_basename + ".c"
-
-    def get_candidate_memory_init_basename(self):
-        return "memory_edit_" + self.candidate_basename + ".txt"
-
     def get_candidate_configuration_basename(self):
         return self.candidate_basename + ".cfg"
 
     def get_candidate_stats_file_basename(self):
         return self.candidate_basename + ".toml"
-
-    def get_candidate_executable_basename(self):
-        return self.candidate_basename + "_bin"
 
     def get_arg_names(self):
         return self.candidate_args_names
@@ -379,57 +358,62 @@ class Candidate(object):
     def get_candidate_arguments_names(self):
         return self.candidate_args_names
 
-    def get_candidate_secret_data(self):
-        for el in self.candidate_secret_data:
-            if el not in self.candidate_args_names:
-                error_message = 'is not an argument of the function'
-                print("{0} {1}  {2}".format(el, error_message, self.candidate_basename))
-                self.candidate_secret_data = []
-                return self.candidate_secret_data
-        return self.candidate_secret_data
-
-    def get_candidate_public_data(self):
-        for el in self.candidate_public_data:
-            if el not in self.candidate_args_names:
-                error_message = 'is not an argument of the function'
-                print("{0} {1} {2}".format(el, error_message, self.candidate_basename))
-                self.candidate_secret_data = []
-                return self.candidate_secret_data
-        return self.candidate_public_data
-
-    def candidate_arguments_initialization(self, file):
-        pass
-
     def candidate_arguments_declaration(self):
         return self.candidate_args_declaration
 
-    def binsec_compile_candidate(self, folder):
-        cand_src_file = glob.glob(folder + '/binsec_' + '*' + '*.c')[0]
-        candidate_src_file = os.path.basename(cand_src_file)
-        candidate_executable_file = "candidate_exec"
-        t_harness = find_starting_pattern(folder, "test_h")
-        candidate_exec = candidate_executable_file
-        if self.cmd_binsec_compilation_candidate:
-            subprocess.call(self.cmd_binsec_compilation_candidate)
-        else:
-            cmd_str = f'gcc -g -m32 -static {t_harness} {folder}/{candidate_src_file} -o {folder}/{candidate_exec}'
-            cmd = cmd_str.split()
-            subprocess.call(cmd)
 
-    def binsec_run_candidate(self, folder):
-        candidate_executable_file = find_ending_pattern(folder, "_exec")
-        config_file = glob.glob(folder + '/*.cfg')[0]
-        stats_file = glob.glob(folder + '/*.toml')[0]
-        st_file = open(stats_file, 'w')
-        st_file.close()
-        if self.cmd_binsec_run_candidate:
-            subprocess.call(self.cmd_binsec_run_candidate, stdin=sys.stdin)
-        else:
-            cmd_str = f'''binsec -checkc -checkct-script
-                    {config_file} -checkct-stats-file {stats_file}
-                    {candidate_executable_file}'''
-            cmd = cmd_str.split()
-            subprocess.call(cmd, stdin=sys.stdin)
+# Tools: object of type 'Tools' consists in:
+# 1. tool name
+# 2. tool's required flags and libraries for candidate compilation
+# 3. tool's test files patterns
+class Tools(object):
+    """Create an object, tool, encapsulating its flags
+    and execution method"""
+
+    def __init__(self, tool_name):
+        self.tool_flags = ""
+        self.tool_libs = ""
+        self.tool_test_file_name = ""
+        self.tool_name = tool_name
+
+    def get_tool_flags_and_libs(self):
+        if self.tool_name == 'binsec':
+            self.tool_flags = "-g" # -static
+            return self.tool_flags, self.tool_libs
+        if self.tool_name == 'ctgrind':
+            self.tool_flags = "-Wall -ggdb  -std=c99  -Wextra"
+            self.tool_libs = "-lctgrind -lm"
+            return self.tool_flags, self.tool_libs
+        if self.tool_name == 'dudect':
+            self.tool_flags = "-std=c11"
+            self.tool_libs = "-lm"
+            return self.tool_flags, self.tool_libs
+        if self.tool_name == 'flowtracker':
+            self.tool_flags = "-emit-llvm -g"
+            self.tool_libs = ""
+            return self.tool_flags, self.tool_libs
+
+    def get_tool_test_file_name(self):
+        if self.tool_name == 'binsec':
+            self.tool_test_file_name = "test_harness"
+            keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+            sign = f'{self.tool_test_file_name}_crypto_sign'
+            return keypair, sign
+        if self.tool_name == 'ctgrind':
+            self.tool_test_file_name = "taint"
+            keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+            sign = f'{self.tool_test_file_name}_crypto_sign'
+            return keypair, sign
+        if self.tool_name == 'dudect':
+            self.tool_test_file_name = "dude"
+            keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+            sign = f'{self.tool_test_file_name}_crypto_sign'
+            return keypair, sign
+        if self.tool_name == 'flowtracker':
+            self.tool_test_file_name = "rbc"
+            keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+            sign = f'{self.tool_test_file_name}_crypto_sign'
+            return keypair, sign
 
 
 # Take into account the case in which one have a pointer input
@@ -521,6 +505,12 @@ def tokenize_argument(argument: str):
     return type_arg, name_arg, argument_declaration
 
 
+# tokenize_candidate: for a given function declaration (candidate), extracts:
+# 1. function return type (void is excluded)
+# 2. function name
+# 3. arguments names
+# 4. arguments types
+# 5. default declaration/initialisation of arguments
 def tokenize_candidate(candidate: str):
     candidate_split = re.split(r"[()]\s*", candidate)
     ret_type_basename = candidate_split[0].split(" ")
@@ -544,9 +534,8 @@ def tokenize_candidate(candidate: str):
         return output
 
 
-# List of src subfolders and generate those subfolders into binsec folder
-
-
+# group_multiple_lines: deals with multiple lines function declaration. Reconstructs the
+# function declaration as a single line.
 def group_multiple_lines(file_content_list,
                          starting_pattern,
                          ending_pattern,
@@ -589,55 +578,7 @@ def group_multiple_lines(file_content_list,
     return matching_string, found_start_index, found_end_index
 
 
-def group_multiple_lines_new_to_check(file_content_list,
-                                      starting_pattern,
-                                      ending_pattern,
-                                      exclude_pattern,
-                                      starting_index,
-                                      ending_index):
-    matching_string_list = []
-    break_index = -1
-    found_start_index = 0
-    found_end_index = 0
-    i = starting_index
-    line = file_content_list[i]
-    line.strip()
-    exclude_pattern = exclude_pattern.strip()
-    exclude_pattern_list = exclude_pattern.split()
-    while (i <= ending_index) and (break_index < 0):
-        for word in exclude_pattern_list:
-            if word in line:
-                i += 1
-                line = file_content_list[i]
-            if starting_pattern in line and word in line:
-                i += 1
-                line = file_content_list[i]
-        line = file_content_list[i]
-        line.strip()
-        if starting_pattern in line:
-            found_start_index = i
-            if "int" not in line:
-                matching_string_list.append("int")
-            matching_string_list.append(line)
-            if ending_pattern in line:
-                found_end_index = i
-                break
-            break_index = i
-            for j in range(found_start_index + 1, ending_index):
-                line = file_content_list[j]
-                line.strip()
-                matching_string_list.append(line)
-                if ending_pattern in line:
-                    found_end_index = j
-                    break_index = j
-                    break
-        i += 1
-
-    matching_string_list_strip = [word.strip() for word in matching_string_list]
-    matching_string = " ".join(matching_string_list_strip)
-    return matching_string, found_start_index, found_end_index
-
-
+# Get crypto_sign_keypair and crypto_sign functions declarations given the path to the header file (api.h/sign.h)
 def find_sign_and_keypair_definition_from_api_or_sign(api_sign_header_file):
     file = open(api_sign_header_file, 'r')
     file_content = file.read()
@@ -662,6 +603,7 @@ def find_sign_and_keypair_definition_from_api_or_sign(api_sign_header_file):
     return keypair_sign_def
 
 
+# sign_find_args_types_and_names: gets 'crypto_sign_keypair' arguments types/names and its return type
 def sign_find_args_types_and_names(abs_path_to_api_or_sign):
     keypair_sign_def = find_sign_and_keypair_definition_from_api_or_sign(abs_path_to_api_or_sign)
     sign_candidate = keypair_sign_def[1]
@@ -673,6 +615,7 @@ def sign_find_args_types_and_names(abs_path_to_api_or_sign):
     return cand_return_type, cand_basename, args_types, args_names
 
 
+# sign_find_args_types_and_names: get 'crypto_sign' arguments types/names and its return type
 def keypair_find_args_types_and_names(abs_path_to_api_or_sign):
     keypair_sign_def = find_sign_and_keypair_definition_from_api_or_sign(abs_path_to_api_or_sign)
     keypair_candidate = keypair_sign_def[0]
@@ -686,6 +629,8 @@ def keypair_find_args_types_and_names(abs_path_to_api_or_sign):
 
 # ======================TEST HARNESS =================================
 # ====================================================================
+
+# BINSEC: Test harness for crypto_sign_keypair
 def test_harness_content_keypair(test_harness_file,
                                  api, sign, add_includes,
                                  function_return_type,
@@ -718,6 +663,7 @@ def test_harness_content_keypair(test_harness_file,
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block2))
 
 
+# BINSEC: Test harness for crypto_sign
 def sign_test_harness_content(test_harness_file, api,
                               sign, add_includes,
                               function_return_type,
@@ -759,6 +705,7 @@ def sign_test_harness_content(test_harness_file, api,
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block2))
 
 
+# CTGRIND: taint for crypto_sign_keypair
 def ctgrind_keypair_taint_content(taint_file, api,
                                   sign, add_includes,
                                   function_return_type,
@@ -809,6 +756,7 @@ def ctgrind_keypair_taint_content(taint_file, api,
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
+# CTGRIND: taint for crypto_sign
 def ctgrind_sign_taint_content(taint_file, api, sign,
                                rng, add_includes,
                                function_return_type,
@@ -871,6 +819,7 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
+# DUDECT: for crypto_sign_keypair
 def dudect_keypair_dude_content(taint_file, api,
                                 sign, add_includes,
                                 function_return_type,
@@ -916,7 +865,7 @@ def dudect_keypair_dude_content(taint_file, api,
 
     \tdudect_config_t config = {{
     \t\t.chunk_size = 32,
-    \t\t.number_measurements = 100,
+    \t\t.number_measurements = 1e6,
     \t}};
     \tdudect_ctx_t ctx;
 
@@ -942,6 +891,7 @@ def dudect_keypair_dude_content(taint_file, api,
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
+# DUDECT: for crypto_sign
 def dudect_sign_dude_content(taint_file, api,
                              sign, add_includes,
                              function_return_type,
@@ -1007,7 +957,7 @@ def dudect_sign_dude_content(taint_file, api,
 
     \tdudect_config_t config = {{
     \t\t.chunk_size = CRYPTO_SECRETKEYBYTES,
-    \t\t.number_measurements = 1000,
+    \t\t.number_measurements = 1e6,
     \t}};
     \tdudect_ctx_t ctx;
 
@@ -1034,97 +984,7 @@ def dudect_sign_dude_content(taint_file, api,
 
 
 
-def dudect_sign_dude_content1(taint_file, api,
-                             sign, add_includes,
-                             function_return_type,
-                             function_name,
-                             args_types,
-                             args_names):
-    taint_file_content_block_include = f'''
-    #include <stdio.h>
-    #include <sys/types.h>
-    #include <unistd.h>
-    #include <string.h>
-    #include <stdlib.h>
-    
-    #define DUDECT_IMPLEMENTATION
-    #include <dudect.h>
-    
-    
-    '''
-    type_msg = args_types[2].replace('const', '')
-    type_msg = type_msg.strip()
-    type_sk = args_types[4].replace('const', '')
-    type_sk = type_sk.strip()
-    sig_msg = args_names[0]
-    sig_msg_len = args_names[1]
-    msg = args_names[2]
-    msg_len = args_names[3]
-    sk = args_names[4]
-    ret_type = function_return_type
-    taint_file_content_block_main = f'''
-    #define DUDECT_MEASUREMENTS 1e6     // Number of executions each iteration of dudect
-    #define DUDECT_TIMEOUT 600          // How long dudect should run for
-    
-    const size_t chunk_size = 32;
-    const size_t number_measurements = DUDECT_MEASUREMENTS;
-    
-    {args_types[0]} *{sig_msg};
-    {args_types[1]} {sig_msg_len};
-    {type_msg} *{msg};
-    {args_types[3]} {msg_len};
-    {type_sk} {sk}[CRYPTO_SECRETKEYBYTES]= {{0}};
-    
-    
-    uint8_t do_one_computation(uint8_t *data) {{
-    \t\t{ret_type} result = {function_name}({sig_msg}, &{sig_msg_len}, {msg}, {msg_len}, {sk});
-    \treturn result;
-    }}
-    
-    void generate_test_vectors() {{
-    \t//Fill randombytes
-    \tuint8_t length;
-    \t{args_names[2]} = ({args_types[2]} *)calloc({args_names[3]}, sizeof({args_types[2]}));
-    \t{args_types[4]} {args_names[4]}[CRYPTO_SECRETKEYBYTES];
-    
-    \trandombytes_dudect(&length, 1);
-    \tmsg_len = length+(length>>2)  ;// See how to generate randomly the message length 
-    \trandombytes_dudect({args_names[2]}, {args_names[3]});
-    \trandombytes_dudect({args_names[4]}, CRYPTO_SECRETKEYBYTES);
-    }} 
-    
-    void init_dut(void) {{
-    \tprintf("Generating test vectors\\n");
-    \tgenerate_test_vectors();
-
-    \tprintf("Starting dudect\\n");
-    }}
-    
-    
-    void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
-    \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
-    \tfor (size_t i = 0; i < c->number_measurements; i++) {{
-    \t\tclasses[i] = randombit();
-    \t\t\tif (classes[i] == 0) {{
-    \t\t\t\tmemset(input_data + (size_t)i * c->chunk_size, 0x00, c->chunk_size);
-    \t\t\t}} else {{
-        // leave random
-    \t\t\t}}
-    \t\t}}
-    \t}}
-    '''
-    with open(taint_file, "w") as t_file:
-        t_file.write(textwrap.dedent(taint_file_content_block_include))
-        if not add_includes == []:
-            for include in add_includes:
-                t_file.write(f'#include {include}\n')
-        if not sign == '""':
-            t_file.write(f'#include {sign}\n')
-        if not api == '""':
-            t_file.write(f'#include {api}\n')
-        t_file.write(textwrap.dedent(taint_file_content_block_main))
-
-
+# FLOWTRACKER: xml file for crypto_sign_keypair
 def flowtracker_keypair_xml_content(xml_file, api,
                                     sign, add_includes,
                                     function_return_type,
@@ -1154,6 +1014,7 @@ def flowtracker_keypair_xml_content(xml_file, api,
         t_file.write(textwrap.dedent(xml_file_content))
 
 
+# FLOWTRACKER: xml file for crypto_sign
 def flowtracker_sign_xml_content(xml_file, api,
                                  sign, add_includes,
                                  function_return_type,
@@ -1195,6 +1056,7 @@ def flowtracker_sign_xml_content(xml_file, api,
 # ===========================================================================
 
 
+# BINSEC: script for crypto_sign_keypair
 def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_core_dump="no"):
     sig_msg = crypto_sign_args_names[0]
     sig_msg_len = crypto_sign_args_names[1]
@@ -1202,10 +1064,9 @@ def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_
     msg_len = crypto_sign_args_names[3]
     sk = crypto_sign_args_names[4]
     script_file = cfg_file_sign
-    # with concrete stack pointer
     cfg_file_content = f'''
     starting from <main>
-    concretize stack
+    with concrete stack pointer
     '''
     exploration_goal = f'''
     reach all'''
@@ -1233,11 +1094,11 @@ def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
 
+# BINSEC: script for crypto_sign
 def cfg_content_keypair(cfg_file_keypair, with_core_dump="no"):
-    # with concrete stack pointer
     cfg_file_content = f'''
     starting from <main>
-    concretize stack
+    with concrete stack pointer
     '''
     exploration_goal = f'''
     reach all'''
@@ -1327,6 +1188,7 @@ def compile_with_makefile_all(path_to_makefile):
 # ==================== EXECUTION =====================================
 # ====================================================================
 
+# Run Binsec
 def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
     command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth} -sse-self-written-enum 1
           '''
@@ -1340,6 +1202,7 @@ def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
             file.write(line + '\n')
 
 
+# Generate gdb script
 def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: str):
     snapshot_file = path_to_snapshot_file
     gdb_script = path_to_gdb_script
@@ -1360,6 +1223,7 @@ def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: s
         gdb_file.write(textwrap.dedent(snapshot))
 
 
+# Given an executable, generate a core file (.snapshot) with a given gdb script
 def binsec_generate_core_dump(path_to_executable_file: str, path_to_gdb_script: str):
     cwd = os.getcwd()
     path_to_executable_file_split = path_to_executable_file.split('/')
@@ -1377,6 +1241,7 @@ def binsec_generate_core_dump(path_to_executable_file: str, path_to_gdb_script: 
     os.chdir(cwd)
 
 
+# Run CTGRIND
 def run_ctgrind(binary_file, output_file):
     command = f'''valgrind -s --track-origins=yes --leak-check=full 
                 --show-leak-kinds=all --verbose --log-file={output_file} ./{binary_file}'''
@@ -1384,6 +1249,7 @@ def run_ctgrind(binary_file, output_file):
     subprocess.call(cmd_args_lst, stdin=sys.stdin)
 
 
+# Run DUDECT
 def run_dudect(executable_file, output_file):
     command = f'timeout 43200 ./{executable_file}'
     cmd_args_lst = command.split()
@@ -1395,6 +1261,7 @@ def run_dudect(executable_file, output_file):
             file.write(line + '\n')
 
 
+# Run FLOWTRACKER
 def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
     sh_command = f'''
     #!/bin/sh
@@ -1415,6 +1282,18 @@ def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
         makefile_to_run_candidate.write(textwrap.dedent(makefile_content))
     command = ["make"]
     subprocess.call(command, stdin=sys.stdin)
+
+
+# binsec_generic_run - ctgrind_generic_run - dudecy_generic_run - flowtracker_generic_run
+# Those functions call respectively: binsec_run - ctgrind_run - dudect_run and flowtracker_run
+# For each of them, the path to the executable/binary file is obtained from:
+# 1. binsec_folder:  binsec folder
+# 2. signature_type: signature type
+# 3. candidate: candidate name
+# 4. optimized_imp_folder: folder of optimisation implementation
+# 5. opt_src_folder_list_dir: instance/scr folder of the given candidate with respect to optimized_imp_folder
+# 6. build_folder: build folder
+# 7. binary_patterns: sign/keypair, referring to crypto_sign_keypair and crypto_sign algorithms respectively
 
 
 def binsec_generic_run(binsec_folder, signature_type, candidate,
@@ -1619,6 +1498,8 @@ def flowtracker_generic_run(flowtracker_folder, signature_type,
                 os.chdir(cwd)
 
 
+# generic_run: this function, calls the previous ones, given the name of the name of
+# the tool: binsec - ctgrind - dudect - flowtracker
 def generic_run(tools_list, signature_type,
                 candidate, optimized_imp_folder,
                 opt_src_folder_list_dir, depth,
@@ -1652,59 +1533,10 @@ def generic_run(tools_list, signature_type,
                                     opt_src_folder_list_dir, build_folder,
                                     binary_patterns)
 
+
 # ========================== INITIALIZATION ==============================
 # ========================================================================
-
-
-def find_candidate_instance_api_sign_relative_path_legacy(instance_folder, rel_path_to_api,
-                                                          rel_path_to_sign, rel_path_to_rng,
-                                                          rng_outside_instance_folder="no"):
-    api_relative = rel_path_to_api
-    sign_relative = rel_path_to_sign
-    rng_relative = rel_path_to_rng
-    if not instance_folder == "":
-        if not rel_path_to_api == "":
-            rel_path_to_api_split = rel_path_to_api.split('/')
-            for i in range(1, len(rel_path_to_api_split)):
-                if not rel_path_to_api_split[i] == '..':
-                    rel_path_to_api_split.insert(i, instance_folder)
-                    break
-            api_relative = '/'.join(rel_path_to_api_split)
-        else:
-            api_relative = ""
-        if not rel_path_to_sign == "":
-            rel_path_to_sign_split = rel_path_to_sign.split('/')
-            for i in range(1, len(rel_path_to_sign_split)):
-                if not rel_path_to_sign_split[i] == '..':
-                    rel_path_to_sign_split.insert(i, instance_folder)
-                    break
-            sign_relative = '/'.join(rel_path_to_sign_split)
-        else:
-            sign_relative = ""
-        # relative path to rng
-        if rng_outside_instance_folder == "yes":
-            instance_folder_split = instance_folder.split('/')
-            if len(instance_folder_split) == 1:
-                rng_relative = rel_path_to_rng
-            else:
-                instance_folder_split.pop()
-                instance_folder_parent_folder = '/'.join(instance_folder_split)
-                rel_path_to_rng_split = rel_path_to_rng.split('/')
-                for i in range(1, len(rel_path_to_rng_split)):
-                    if not rel_path_to_rng_split[i] == '..':
-                        rel_path_to_rng_split.insert(i, instance_folder_parent_folder)
-                        break
-                rng_relative = '/'.join(rel_path_to_rng_split)
-        else:
-            rel_path_to_rng_split = rel_path_to_rng.split('/')
-            for i in range(1, len(rel_path_to_rng_split)):
-                if not rel_path_to_rng_split[i] == '..':
-                    rel_path_to_rng_split.insert(i, instance_folder)
-                    break
-            rng_relative = '/'.join(rel_path_to_rng_split)
-    return api_relative, sign_relative, rng_relative
-
-
+# Find api.h, sign.h and rng.h relative paths to the instance folder of a candidate.
 def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_api,
                                                    rel_path_to_sign, rel_path_to_rng,
                                                    rng_outside_instance_folder="no"):
@@ -1764,6 +1596,9 @@ def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_
     return api_relative, sign_relative, rng_relative
 
 
+# Find api.h/sign.h path taking into account the optimized implementation folder and the
+# instance folder of a candidate. The file obtained is the path to api.h/sign.h, the header file
+# needed to get crypto_sign_keypair and crypto_sign arguments names/types.
 def find_api_sign_abs_path(path_to_opt_src_folder, api, sign, opt_implementation_name,
                            ref_implementation_name="Reference_Implementation"):
     folder = path_to_opt_src_folder
@@ -1794,6 +1629,12 @@ def find_api_sign_abs_path(path_to_opt_src_folder, api, sign, opt_implementation
     return abs_path_to_api_or_sign
 
 
+# tool_initialize_candidate: given  tool, instances, keypair and sign folders and also api.h - sign.h - rng.h paths,
+# consists in creating:
+# 1. a directory named accordingly the tool name
+# 2. two subdirectories of the previous one, named accordingly to the instance of the candidate
+# and the keypair/sign algorithms
+# 3. the required files for the given tool (test harness, taint, etc.) into the previous folders.
 def tool_initialize_candidate(path_to_opt_src_folder,
                               path_to_tool_folder,
                               path_to_tool_keypair_folder,
@@ -1809,7 +1650,7 @@ def tool_initialize_candidate(path_to_opt_src_folder,
     abth_p = find_api_sign_abs_path(path_to_opt_src_folder, api,
                                     sign, opt_implementation_name)
     abs_path_to_api_or_sign = abth_p
-    tool_type = tool.Tools(tool_name)
+    tool_type = Tools(tool_name)
     tes_keypair_basename, tes_sign_basename = tool_type.get_tool_test_file_name()
     if tool_name == 'flowtracker':
         test_keypair_basename = f'{tes_keypair_basename}.xml'
@@ -1866,6 +1707,9 @@ def tool_initialize_candidate(path_to_opt_src_folder,
                                      f_basename_s, args_types_s, args_names_s)
 
 
+# initialization: given a candidate and its details (signature type, etc.), creates required arguments (folders)
+# for the function 'tool_initialize_candidate'.
+# It takes into account a multiple of tools  and instances (folders) for a given candidate
 def initialization(tools_list, signature_type,
                    candidate, optimized_imp_folder,
                    instance_folder, api, sign,
@@ -1890,6 +1734,8 @@ def initialization(tools_list, signature_type,
                                   sign, rng, add_includes, with_core_dump)
 
 
+# generic_initialize_nist_candidate: generalisation of the function 'initialization', taking into account the fact
+# that some candidates have only 'one' instance
 def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
                                       optimized_imp_folder, instance_folders_list,
                                       rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
@@ -1928,6 +1774,8 @@ def set_include_correct_format(api, sign, rng):
     return api, sign, rng
 
 
+# generic_init_compile: in addition to initializing a given candidate for desired tools and instances, generates
+# a Makefile/CMakeLists.txt and performs compilation/build.
 def generic_init_compile(tools_list, signature_type, candidate,
                          optimized_imp_folder, instance_folders_list,
                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
@@ -2040,6 +1888,8 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
 
 
+# generic_compile_run_candidate: initializes, compiles and runs given tools for the given instances
+# of a given candidate.
 def generic_compile_run_candidate(tools_list, signature_type, candidate,
                                   optimized_imp_folder, instance_folders_list,
                                   rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
@@ -2067,6 +1917,7 @@ def generic_compile_run_candidate(tools_list, signature_type, candidate,
                     instance_folders_list, depth, build_folder, binary_patterns, with_core_dump)
 
 
+# add_cli_arguments: creates a parser for a given candidate
 def add_cli_arguments(subparser,
                       signature_type,
                       candidate,
