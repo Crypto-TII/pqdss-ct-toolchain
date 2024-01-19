@@ -415,6 +415,12 @@ class Tools(object):
             sign = f'{self.tool_test_file_name}_crypto_sign'
             return keypair, sign
 
+    @staticmethod
+    def binsec_configuration_files():
+        kp_cfg = "cfg_keypair"
+        sign_cfg = "cfg_sign"
+        return kp_cfg, sign_cfg
+
 
 # Take into account the case in which one have a pointer input
 # that points to just one value (not really as an array)
@@ -865,7 +871,7 @@ def dudect_keypair_dude_content(taint_file, api,
 
     \tdudect_config_t config = {{
     \t\t.chunk_size = 32,
-    \t\t.number_measurements = 1e6,
+    \t\t.number_measurements = 1e5,
     \t}};
     \tdudect_ctx_t ctx;
 
@@ -892,7 +898,7 @@ def dudect_keypair_dude_content(taint_file, api,
 
 
 # DUDECT: for crypto_sign
-def dudect_sign_dude_content(taint_file, api,
+def dudect_sign_dude_content_fixed_vs_random(taint_file, api,
                              sign, add_includes,
                              function_return_type,
                              function_name,
@@ -957,7 +963,7 @@ def dudect_sign_dude_content(taint_file, api,
 
     \tdudect_config_t config = {{
     \t\t.chunk_size = CRYPTO_SECRETKEYBYTES,
-    \t\t.number_measurements = 1e6,
+    \t\t.number_measurements = 1e5,
     \t}};
     \tdudect_ctx_t ctx;
 
@@ -983,6 +989,111 @@ def dudect_sign_dude_content(taint_file, api,
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
+# DUDECT: for crypto_sign
+def dudect_sign_dude_content(taint_file, api,
+                             sign, add_includes,
+                             function_return_type,
+                             function_name,
+                             args_types,
+                             args_names):
+    taint_file_content_block_include = f'''
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    #include <string.h>
+    #include <stdlib.h>
+    
+    #define DUDECT_IMPLEMENTATION
+    #include <dudect.h>
+    
+    #define MESSAGE_LENGTH 256
+    
+    #define SECRET_KEY_BYTE_LENGTH CRYPTO_SECRETKEYBYTES
+    #define SIGNATURE_MESSAGE_BYTE_LENGTH (MESSAGE_LENGTH + CRYPTO_BYTES)
+    
+    '''
+    type_msg = args_types[2].replace('const', '')
+    type_msg = type_msg.strip()
+    type_sk = args_types[4].replace('const', '')
+    type_sk = type_sk.strip()
+
+    # type_msg = args_types[2]
+    # type_sk = args_types[4]
+    sig_msg = args_names[0]
+    sig_msg_len = args_names[1]
+    msg = args_names[2]
+    msg_len = args_names[3]
+    sk = args_names[4]
+    ret_type = function_return_type
+    taint_file_content_block_main = f'''
+    uint8_t do_one_computation(uint8_t *data) {{
+    
+    \t{args_types[1]} {sig_msg_len} = SIGNATURE_MESSAGE_BYTE_LENGTH; //the signature length could be initialized to 0.
+    \t{args_types[0]} {sig_msg}[SIGNATURE_MESSAGE_BYTE_LENGTH] = {{0}};
+    \t{args_types[3]} {msg_len} = MESSAGE_LENGTH; //  the message length could be also randomly generated.
+    \tconst {type_msg} *{msg} = ({type_msg}*)data + 0; 
+    \tconst {type_sk} *{sk} = ({type_sk}*)data + MESSAGE_LENGTH*sizeof({type_msg}) ; 
+    
+    \tuint8_t ret_val = 0;
+    \tconst {ret_type} result = {function_name}({sig_msg}, &{sig_msg_len}, {msg}, {msg_len}, {sk});
+    \tret_val ^= (uint8_t) result ^ {sig_msg}[0] ^ {sig_msg}[SIGNATURE_MESSAGE_BYTE_LENGTH - 1];
+    
+    \t/* We can either fix msg and msg_len or generate them randomly from <data>
+    \t1. Fix msg and msg_len: chunk_size = CRYPTO_SECRETKEYBYTES
+    \t2. Generate randomly msg and msg_len: chunk_size = CRYPTO_SECRETKEYBYTES + msg_len + NUMBER_BYTES(msg_len)
+    \t*/
+    
+    \treturn ret_val;
+    }}
+    
+    void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
+    \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
+    \tfor (size_t i = 0; i < c->number_measurements; i++) {{
+    \t\tclasses[i] = randombit();
+    \t\t\tif (classes[i] == 0) {{
+    \t\t\t\tmemset(input_data + (size_t)i * c->chunk_size, 0x00, c->chunk_size);
+    \t\t\t}} else {{
+    \t\t\t\tconst size_t offset = (size_t)i * c->chunk_size;
+    \t\t\t\t{type_sk} pk[CRYPTO_PUBLICKEYBYTES] = {{0}};
+    \t\t\t\t{type_sk} *sk = input_data + offset + MESSAGE_LENGTH;
+    \t\t\t\t(void)crypto_sign_keypair(pk, sk);
+    \t\t\t}}
+    \t\t}}
+    \t}}
+    
+    int main(int argc, char **argv)
+    {{
+    \t(void)argc;
+    \t(void)argv;
+    
+    \tconst size_t chunk_size = sizeof({type_msg})*MESSAGE_LENGTH + SECRET_KEY_BYTE_LENGTH*sizeof({type_sk}); 
+
+    \tdudect_config_t config = {{
+    \t\t.chunk_size = chunk_size,
+    \t\t.number_measurements = 1e5,
+    \t}};
+    \tdudect_ctx_t ctx;
+
+    \tdudect_init(&ctx, &config);
+
+    \tdudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
+    \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
+    \t\tstate = dudect_main(&ctx);
+    \t}}
+    \tdudect_free(&ctx);
+    \treturn (int)state;
+    }}
+    '''
+    with open(taint_file, "w") as t_file:
+        t_file.write(textwrap.dedent(taint_file_content_block_include))
+        if not add_includes == []:
+            for include in add_includes:
+                t_file.write(f'#include {include}\n')
+        if not sign == '""':
+            t_file.write(f'#include {sign}\n')
+        if not api == '""':
+            t_file.write(f'#include {api}\n')
+        t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 # FLOWTRACKER: xml file for crypto_sign_keypair
 def flowtracker_keypair_xml_content(xml_file, api,

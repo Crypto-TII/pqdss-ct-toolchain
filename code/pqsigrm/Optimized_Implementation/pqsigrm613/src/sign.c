@@ -13,7 +13,7 @@ int wgt(float *yc, float *yr)
 void import_sk(const unsigned char *sk, uint16_t **Q, uint16_t **part_perm1, uint16_t **part_perm2, matrix* Hrep)
 {
     *Q             = (uint16_t*)(sk);
-    *part_perm1 = (uint16_t*)(sk+sizeof(uint16_t)*CODE_N);
+
     *part_perm2 = (uint16_t*)(sk+sizeof(uint16_t)*CODE_N + sizeof(uint16_t)*CODE_N/4);
     import_matrix(Hrep, sk+sizeof(uint16_t)*CODE_N + (sizeof(uint16_t)*CODE_N/4)*2);
 }
