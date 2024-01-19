@@ -1,72 +1,74 @@
-# README #
+# Toolchain consisting of binsec - ctgrind - dudect - flowtracker
 
-This README would normally document whatever steps are necessary to get your application up and running.
 
-### What is this repository for? ###
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+## What is in this repository ? 
+This repository contains the following folders: 
+* the Post-Quantum Digital Signatures Schemes (PQDSS) implementations, submitted in the context of NIST Call 
+for proposals for PQC-based signature schemes. The candidates are classified according to the type-based signature scheme. Here 
+are the different folders: `code`, `lattice`, `mpc-in-the-head`, `symmetric`, `isogeny`, `mutlivariate` and `other`.
 
-### How do I get set up? ###
+* `toolchain`: contains required files (Dockerfile, .sh files) to build a Docker image consisting of the required packages
+and requirements to compile and run candidates with the following constant-time check tools: binsec - ctgrind - dudect and flowtracker
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+* `toolchain-scripts`: consist of the following files 
+  * `candidates_build.py`:  contains the functions that generate the CMakeLists.txt/Makefile of the candidates. For almost each candidate, the 
+  content of the CMakeLists.txt/Makefile is a copie, except the targets for tests and kat files generation, of the one proposed in the candidate implementation.
+  * `generic_functions.py`: contains generic functions for tools templates and other required files generation, functions to compile and run tools on the targets candidates 
+  * `toolchain_script.py`: contains the functions `compile_run_CANDIDATE`, eg. ***compile_run_mirith***, 
+  that allows to compile targets and run tests with a given tool. The scripts that create main parser and subparsers 
+  for candidates are also part of this file.
 
-### Contribution guidelines ###
 
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
 
 ## Help
+
+To see the list of all candidates, type:
+
 ```
-python3 toolchain_script.py -h
+python3 toolchain-scripts/toolchain_script.py -h
 ```
 
+## List of options to test a candidate
 
-### To see the list of arguments of function, type:
+To see the list of all options for test of a given target (candidate), type:
+
 ```
-python3 toolchain_script.py CANDIDATE_NAME -h
+python3 toolchain-scripts/toolchain_script.py CANDIDATE_NAME -h
 ```
 
-### Example
+## Example
 ```
 python3 toolchain_script.py mirith -h
 ```
-### Command-Line-Interface (CLI) Flags
+## Command-Line-Interface (CLI) Flags
 
-1. `tools`: list of tools that a given candidate will be tested with. Ex: binsec, ctgrind, dudect etc.. The tools are white space-separated
-2. `signature_type`: type-based signature. Ex: code, isogeny, lattice etc.
-3. `candidate`: NIST candidate. Ex: mirith, sqisign, perk, mira etc.
-4. `optimization_folder`: the Optimized Implementation folder. For most of the candidates, this 
+- `tools`: list of tools that a given candidate will be tested with. Ex: binsec, ctgrind, dudect etc.. The tools are white space-separated
+
+- `signature_type`: type-based signature. Ex: code, isogeny, lattice etc.
+- `candidate`: NIST candidate. Ex: mirith, sqisign, perk, mira etc.
+- `optimization_folder`: the Optimized Implementation folder. For most of the candidates, this 
     folder is named ***Optimized_Implementation***
-5. `instance_folders_list`: the list of the different parameters set based folders. 
+- `instance_folders_list`: the list of the different parameters set based folders. 
     Ex: mirith_avx2_Ia_fast  mirith_hypercube_avx2_IIIb_shortest etc.. The instance folders are white space-separated.
-6. `rel_path_to_api`: the relative path to api.h from 
+- `rel_path_to_api`: the relative path to api.h from 
    TOOL_TYPE/INSTANCE_FOLDER/CANDIDATE_keypair(or sign). 
    Ex: From the folder mpc-in-the-head/mirith/Optimized_Implementation/ctgrind/mirith_avx2_Ia_fast/mirith_keypair, the real
    relative path to api.h would be: rel_path_to_api ="../../../mirith_avx2_Ia_fast/api.h". But the script would add automatically the 
    name of the instance. So rel_path_to_api ="../../../api.h".
    If the file api.h doesn't contain the declaration of the crypto_sign_keypair and crypto_sign functions, then
    rel_path_to_api = "".
-7. `rel_path_to_sign`: Similar to rel_path_to_api.
-8. `compile`: by default, its value is 'yes'. If the targeted executable has already been generated in a previous execution, and if 
-   we just want to run the test, then the value of the flag is 'no'.
-9. `run`: by default, its value is 'yes'. If we just want to compile, then the value of this flag is 'no'.
-10. `depth`: this flag is meant for the use of binsec tool. The default value in our implementation is 1000000. But the default value
-    set by the authors of binsec tool is 1000.
-11. `build`: the default value is 'build'.
-12. `algorithms_patterns`: the patterns of the algorithm to be tested. default value: keypair sign
+- `rel_path_to_sign`: Similar to *rel_path_to_api*.
+- `compile`: by default, its value is ***yes***. If the targeted executable has already been generated in a previous execution, and if 
+   we just want to run the test, then the value of the flag is ***no***.
+- `run`: by default, its value is ***yes***. If we just want to compile, then the value of this flag is ***no***.
+- `depth`: this flag is meant for the use of binsec tool. The default value in our implementation is ***1000000***. But the default value
+    set by the authors of binsec tool is ***1000***.
+- `build`: the default value is *build*.
+- `algorithms_patterns`: the patterns of the algorithm to be tested. default value: ***keypair***, ***sign***
+- `is_rng_outside_folder`: for some of the candidates, the folder containing the header file, (rng.h, randombytes, etc.), in which is defined
+the function that generates random data.
+- `with_core_dump`: option to run binsec from core dump. By default, it's ***yes***.
 
 ## Compile and/or Run a candidate
 
@@ -76,21 +78,24 @@ To test a candidate by a targeted tool, run:
 python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS --instance_folders_list PARAMETER_SET_FOLDER --algorithms_patterns PATTERN
 ```
 
-### Example
+## Example
 
 ````
 python3 toolchain-scripts/toolchain_script.py mirith --tools ctgrind --instance_folders_list mirith_avx2_Ia_fast --algorithms_patterns sign
 ````
 
-## To contribute to the project
 
-### Add a new candidate in the CLI
+
+
+## How to add/enable tests for a new candidate in the CLI
+
+To be able to test a <new> candidate, in this project, proceed as follows:
 
 1. `candidates_build.py`: write a function that generates the `Makefile` or `CMakeLists` for the candidate. 
    - cmake_CANDIDATE(path_to_cmake_lists,tool_type,candidate)
-   - makefile_CANDIDATE(path_to_makefile,tool_type,candidate)
-2. `generic_functions.py`: add the function just created above. 
-3. `toolchain_script.py`: write a function`compile_run_CANDIDATE` as in function `compile_run_cross`.
-   - compile_with_cmake = 'yes' if the candidate is to be compiled with a CMakeLists.tx
+   - makefile_CANDIDATE(path_to_makefile_folder, subfolder, tool_name, candidate)
+2. `generic_functions.py`: add the function just created above. See `makefile_mirith` for example.
+3. `toolchain_script.py`: write a function`compile_run_CANDIDATE` as in function `compile_run_mirith`.
+   - compile_with_cmake = 'yes' if the candidate is to be compiled with a CMakeLists.txt
    - compile_with_cmake = 'yes' otherwise (with a Makefile)
 4. `toolchain_script.py`: add `generic.add_cli_arguments`: See the part: `# Create a parser for every function in the sub-parser name
