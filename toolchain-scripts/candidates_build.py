@@ -559,7 +559,7 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(EXECUTABLE_SIGN): $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build build {test_sign}
         \t@echo -e "### Compiling test harness sign"
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(TOOL_FLAG) $(C_FLAGS) $(SRC_SIGN) $(addprefix $(BIN)/, $^) \
+        \t$(CC) $(TOOL_FLAGS) $(C_FLAGS) $(SRC_SIGN) $(addprefix $(BIN)/, $^) \
         $(INCLUDE) $(XKCP_LINKER) -o $(BUILD_SIGN)/$@ $(TOOL_LIBS)
         
         .PHONY: clean
@@ -2916,18 +2916,75 @@ def sh_build_raccoon(path_to_sh_script_folder, sh_script, subfolder, tool_name, 
     build_sign = f'{build}/{candidate}_sign'
     block_binary_files = f'''
     #!/bin/bash
+    SRC=$(find {base_dir}/* -name "*.c" ! -name  PQCgenKAT_sign.c)
     mkdir -p {build}
     mkdir -p {build_keypair}
     gcc -o {build}/{executable_keypair} -Wall -O2 {tool_flags} {executable_keypair}.c\
-    {base_dir}/*.c -lcrypto {tool_libs}
+    $SRC -lcrypto {tool_libs}
     
     mkdir -p {build}
     mkdir -p {build_sign}
-    gcc - -o {build}/{executable_sign} -Wall -O2 {tool_flags} {executable_sign}.c \
-    {base_dir}/*.c -lcrypto {tool_libs}
+    gcc -o {build}/{executable_sign} -Wall -O2 {tool_flags} {executable_sign}.c \
+    $SRC -lcrypto {tool_libs}
     '''
     with open(path_to_sh_script, "w") as mfile:
         mfile.write(textwrap.dedent(block_binary_files))
+
+
+def makefile_raccoon(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    makefile_content = f'''
+    CC = clang
+    
+    BASE_DIR = ../../{subfolder}
+    
+    INCS = $(wildcard $(BASE_DIR)/*.h)
+    #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
+    SRC  = $(filter-out  $(SRC_DIR)/racc_api.c $(SRC_DIR)/PQCgenKAT_sign.c,$(wildcard $(SRC_DIR)/*.c))
+    SIGN = $(BASE_DIR)/racc_api.c
+    
+    INCS_DIR = $(BASE_DIR)
+    
+    BUILD			= build
+    BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+    BUILD_SIGN		= $(BUILD)/{candidate}_sign
+    
+    EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+    EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+    EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+    EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+    
+    all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+     
+    
+    
+    $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_KEYPAIR)
+    \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+    
+    $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+    \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+    
+    $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
+    \tmkdir -p $(BUILD)
+    \tmkdir -p $(BUILD_SIGN)
+    \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+    
+    $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+    \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+        
+    .PHONY: clean
+      
+    clean:
+    \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+    \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+    '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
 
 
 def generic_init_compile_with_sh(tools_list, signature_type,
@@ -2937,6 +2994,8 @@ def generic_init_compile_with_sh(tools_list, signature_type,
                                  add_includes, build_folder, sh_script,
                                  rng_outside_instance_folder="no"):
     path_to_optimized_implementation_folder = signature_type+'/'+candidate+'/'+optimized_imp_folder
+    print("::::::tools_list", tools_list)
+    print("::::::type of tools_list", type(tools_list))
     if not instance_folders_list:
         gen_funct.generic_initialize_nist_candidate(tools_list, signature_type,
                                                     candidate, optimized_imp_folder,
@@ -2950,9 +3009,15 @@ def generic_init_compile_with_sh(tools_list, signature_type,
                 cmd = ["mkdir", "-p", path_to_build_folder]
                 subprocess.call(cmd, stdin=sys.stdin)
             cwd = os.getcwd()
-            os.chdir(path_to_build_folder)
-            sh_build_raccoon(path_to_build_folder, sh_script, instance, tool_type, candidate)
-            exec(f'./{sh_script}')
+            if tool_type.strip() == "flowtracker":
+                makefile_raccoon(path_to_build_folder, instance, tool_type, candidate)
+                os.chdir(path_to_build_folder)
+                cmd = ["make"]
+                subprocess.call(cmd, stdin=sys.stdin)
+            else:
+                os.chdir(path_to_build_folder)
+                sh_build_raccoon(path_to_build_folder, sh_script, instance, tool_type, candidate)
+                exec(f'./{sh_script}')
             os.chdir(cwd)
     else:
         for instance in instance_folders_list:
@@ -2967,10 +3032,16 @@ def generic_init_compile_with_sh(tools_list, signature_type,
                     cmd = ["mkdir", "-p", path_to_build_folder]
                     subprocess.call(cmd, stdin=sys.stdin)
                 cwd = os.getcwd()
-                sh_build_raccoon(path_to_build_folder, sh_script, instance, tool_type, candidate)
-                os.chdir(path_to_build_folder)
-                exec(f'./{sh_script}.sh')
-                os.chdir(cwd)
+                if tool_type.strip() == "flowtracker":
+                    makefile_raccoon(path_to_build_folder, instance, tool_type, candidate)
+                    os.chdir(path_to_build_folder)
+                    cmd = ["make"]
+                    subprocess.call(cmd, stdin=sys.stdin)
+                else:
+                    sh_build_raccoon(path_to_build_folder, sh_script, instance, tool_type, candidate)
+                    os.chdir(path_to_build_folder)
+                    exec(f'./{sh_script}.sh')
+                    os.chdir(cwd)
 
 
 # ================================ MULTIVARIATE =====================================
@@ -5494,6 +5565,7 @@ def cmake_sqisign(path_to_cmakelists_folder, subfolder, tool_name, candidate):
     cmake_file_content = ''
     target_link_opt_block = ''
     link_flag = ''
+    libs_list = []
     if tool_flags:
         if '-static ' in tool_flags:
             link_flag = '-static'
@@ -5563,6 +5635,90 @@ def cmake_sqisign(path_to_cmakelists_folder, subfolder, tool_name, candidate):
     else:
 
         cmake_file_content = f'''
+        
+        cmake_minimum_required(VERSION 3.5)
+        project(SQIsign VERSION 1.0 LANGUAGES C ASM)
+        
+        set(SQISIGN_SO_VERSION "0")
+        set(CMAKE_C_STANDARD 99)
+        
+        include(CTest)
+        
+        
+        option(ENABLE_CT_TESTING  "Enable compilation for constant time testing." OFF)
+        
+        
+        if (NOT DEFINED SQISIGN_BUILD_TYPE)
+            SET(SQISIGN_BUILD_TYPE "broadwell")
+        endif()
+        
+        if(SQISIGN_BUILD_TYPE STREQUAL "broadwell")
+            SET(SVARIANT_S "lvl1")
+        else()
+            SET(SVARIANT_S "lvl1;lvl3;lvl5")
+        endif()
+        '''
+        find_libs_block = ''
+        for lib in libs_list:
+            lib_variable = lib.upper()
+            lib_variable = f'{lib_variable}_LIB'
+            find_libs_block += f'''
+        find_library({lib_variable} {lib})
+        if(NOT {lib_variable})
+        \tmessage("{lib} library not found")
+        endif()
+        '''
+        if libs_list:
+            cmake_file_content += f'{find_libs_block}'
+        cmake_file_content += f''' 
+        set(BASE_DIR  "../{subfolder}")
+        include(${{BASE_DIR}}/.cmake/flags.cmake)
+        include(${{BASE_DIR}}/.cmake/sanitizers.cmake)
+        include(${{BASE_DIR}}/.cmake/target.cmake)
+        if(ENABLE_DOC_TARGET)
+            include(${{BASE_DIR}}/.cmake/target_docs.cmake)
+        endif()
+        include(${{BASE_DIR}}/.cmake/gmpconfig.cmake)
+        
+        set()
+        
+        # set(SELECT_IMPL_TYPE ${{PROJECT_SOURCE_DIR}}/.cmake/impl_type.cmake)
+        # set(SELECT_SQISIGN_VARIANT ${{PROJECT_SOURCE_DIR}}/.cmake/sqisign_variant.cmake)
+        
+        set(SELECT_IMPL_TYPE ${{BASE_DIR}}/.cmake/impl_type.cmake)
+        set(SELECT_SQISIGN_VARIANT ${{BASE_DIR}}/.cmake/sqisign_variant.cmake)
+        
+        set(INC_PUBLIC ${{BASE_DIR}}/include)
+        
+        add_subdirectory(${{BASE_DIR}}/src)
+        add_subdirectory(${{BASE_DIR}}/apps)
+        
+            
+            
+        FOREACH(SVARIANT ${{SVARIANT_S}})
+            string(TOLOWER ${{SVARIANT}} SVARIANT_LOWER)
+            string(TOUPPER ${{SVARIANT}} SVARIANT_UPPER)
+            add_executable(sqisign_test_kat_${{SVARIANT}} test_kat.c)
+            target_link_libraries(sqisign_test_kat_${{SVARIANT}} sqisign_${{SVARIANT_LOWER}}_test)
+            target_include_directories(sqisign_test_kat_${{SVARIANT}} PRIVATE ${{PROJECT_SOURCE_DIR}}/src/nistapi/${{SVARIANT_LOWER}} ${{INC_PUBLIC}} ${{INC_INTBIG}} ${{INC_PRECOMP_${{SVARIANT_UPPER}}}} ${{INC_QUATERNION}} ${{INC_KLPT}} ${{INC_GF_${{SVARIANT_UPPER}}}} ${{INC_EC}} ${{INC_COMMON}} ${{INC_ID2ISO}} ${{INC_PROTOCOLS}})
+        
+            add_executable(sqisign_bench_${SVARIANT} bench.c)
+            target_link_libraries(sqisign_bench_${SVARIANT} sqisign_${SVARIANT_LOWER})
+            target_include_directories(sqisign_bench_${SVARIANT} PUBLIC ${PROJECT_SOURCE_DIR}/src/common ${INC_PUBLIC} ${PROJECT_SOURCE_DIR}/src/nistapi/${SVARIANT_LOWER})
+        
+            add_executable(sqisign_test_scheme_${SVARIANT} test_sqisign.c)
+            target_link_libraries(sqisign_test_scheme_${SVARIANT} sqisign_${SVARIANT_LOWER})
+            target_include_directories(sqisign_test_scheme_${SVARIANT} PUBLIC ${PROJECT_SOURCE_DIR}/src/common ${INC_PUBLIC} ${PROJECT_SOURCE_DIR}/src/nistapi/${SVARIANT_LOWER})
+        
+            add_executable(sqisign_test_prof_${SVARIANT} test_sqisign_prof.c)
+            target_link_libraries(sqisign_test_prof_${SVARIANT} sqisign_${SVARIANT_LOWER})
+            target_include_directories(sqisign_test_prof_${SVARIANT} PUBLIC ${PROJECT_SOURCE_DIR}/src/common ${INC_PUBLIC} ${PROJECT_SOURCE_DIR}/src/nistapi/${SVARIANT_LOWER})
+        
+            add_test(sqisign_${SVARIANT}_KAT sqisign_test_kat_${SVARIANT})
+            add_test(sqisign_${SVARIANT}_SELFTEST sqisign_test_scheme_${SVARIANT})
+        ENDFOREACH()
+        
+        
         cmake_minimum_required(VERSION 3.9.4)
         project(LESS C)
     
