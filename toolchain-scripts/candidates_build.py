@@ -2995,8 +2995,6 @@ def generic_init_compile_with_sh(tools_list, signature_type,
                                  add_includes, build_folder, sh_script,
                                  rng_outside_instance_folder="no"):
     path_to_optimized_implementation_folder = signature_type+'/'+candidate+'/'+optimized_imp_folder
-    print("::::::tools_list", tools_list)
-    print("::::::type of tools_list", type(tools_list))
     if not instance_folders_list:
         gen_funct.generic_initialize_nist_candidate(tools_list, signature_type,
                                                     candidate, optimized_imp_folder,
@@ -3018,7 +3016,13 @@ def generic_init_compile_with_sh(tools_list, signature_type,
             else:
                 os.chdir(path_to_build_folder)
                 sh_build_raccoon(path_to_build_folder, sh_script, instance, tool_type, candidate)
-                exec(f'./{sh_script}')
+
+                cmd_str = f"sudo chmod u+x ./{sh_script}.sh"
+                cmd = cmd_str.split()
+                subprocess.call(cmd, stdin=sys.stdin)
+                cmd_str = f"./{sh_script}.sh"
+                cmd = cmd_str.split()
+                subprocess.call(cmd, stdin=sys.stdin, shell=True)
             os.chdir(cwd)
     else:
         for instance in instance_folders_list:
@@ -3041,7 +3045,12 @@ def generic_init_compile_with_sh(tools_list, signature_type,
                 else:
                     sh_build_raccoon(path_to_build_folder, sh_script, instance, tool_type, candidate)
                     os.chdir(path_to_build_folder)
-                    exec(f'./{sh_script}.sh')
+                    cmd_str = f"sudo chmod u+x ./{sh_script}.sh"
+                    cmd = cmd_str.split()
+                    subprocess.call(cmd, stdin=sys.stdin)
+                    cmd_str = f"./{sh_script}.sh"
+                    cmd = cmd_str.split()
+                    subprocess.call(cmd, stdin=sys.stdin, shell=True)
                     os.chdir(cwd)
 
 
@@ -5941,3 +5950,9 @@ def cmake_candidate(path_to_cmake_lists, subfolder, tool_type, candidate):
         #cmake_sqisign(path_to_cmake_lists, subfolder, tool_type, candidate)
         pass
 
+
+# Candidates that are compiled with a sh script
+def sh_candidate(path_to_sh_file, subfolder, tool_type, candidate):
+    if candidate == "raccoon":
+        sh_script = 'compile_raccoon'
+        sh_build_raccoon(path_to_sh_file, sh_script, subfolder,tool_type,candidate)

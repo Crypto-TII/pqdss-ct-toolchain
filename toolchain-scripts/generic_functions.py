@@ -1186,7 +1186,7 @@ def dudect_generic_run(dudect_folder, signature_type,
                 output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
                 abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
                 print("::::Running:", abs_path_to_executable)
-                run_ctgrind(abs_path_to_executable, output_file)
+                run_dudect(abs_path_to_executable, output_file)
     else:
         for subfold in opt_src_folder_list_dir:
             path_to_subfolder = dudect_folder_full_path + '/' + subfold
@@ -1564,6 +1564,9 @@ def generic_init_compile(tools_list, signature_type, candidate,
                                           add_includes, rng_outside_instance_folder, with_core_dump)
         instance = '""'
         for tool_type in tools_list:
+            path_to_build_folder = ""
+            path_to_cmakelist_file = ""
+            path_to_makefile_folder = ""
             if with_cmake == 'yes':
                 path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type
                 path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
@@ -1572,6 +1575,23 @@ def generic_init_compile(tools_list, signature_type, candidate,
                 arguments = f'path_function_pattern_file,instance,tool_type,candidate'
                 funct = f'build_cand.cmake_candidate({arguments})'
                 exec(f'{funct}')
+            elif "sh" in with_cmake:
+                cwd = os.getcwd()
+                path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}'
+                path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
+                arguments = f'path_to_sh_folder, instance, tool_type, candidate'
+                funct = f'build_cand.sh_candidate({arguments})'
+                exec(f'{funct}')
+                sh_script = find_ending_pattern(path_to_sh_folder, ".sh")
+                sh_script = os.path.basename(sh_script)
+                os.chdir(path_to_sh_folder)
+                cmd_str = f"sudo chmod u+x ./{sh_script}"
+                cmd = cmd_str.split()
+                subprocess.call(cmd, stdin=sys.stdin)
+                cmd_str = f"./{sh_script}"
+                cmd = cmd_str.split()
+                subprocess.call(cmd, stdin=sys.stdin, shell=True)
+                os.chdir(cwd)
             else:
                 path_to_makefile_folder = path_to_opt_impl_folder + '/' + tool_type
                 path_to_build_folder = path_to_makefile_folder + '/' + build_folder
@@ -1583,10 +1603,11 @@ def generic_init_compile(tools_list, signature_type, candidate,
             if not os.path.isdir(path_to_build_folder):
                 cmd = ["mkdir", "-p", path_to_build_folder]
                 subprocess.call(cmd, stdin=sys.stdin)
-            compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
-                                                                         path_to_makefile_folder,
-                                                                         path_to_build_folder,
-                                                                         "all")
+            if "sh" not in with_cmake:
+                compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
+                                                                             path_to_makefile_folder,
+                                                                             path_to_build_folder,
+                                                                             "all")
             if 'yes' in with_core_dump.lower():
                 # crypto_sign_keypair
                 keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
@@ -1615,6 +1636,9 @@ def generic_init_compile(tools_list, signature_type, candidate,
                                               rel_path_to_sign, rel_path_to_rng,
                                               add_includes, rng_outside_instance_folder, with_core_dump)
             for tool_type in tools_list:
+                path_to_build_folder = ""
+                path_to_cmakelist_file = ""
+                path_to_makefile_folder = ""
                 if with_cmake == 'yes':
                     path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type + '/' + instance
                     path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
@@ -1623,6 +1647,23 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     arguments = f'path_function_pattern_file,instance,tool_type,candidate'
                     funct = f'build_cand.cmake_candidate({arguments})'
                     exec(f'{funct}')
+                elif "sh" in with_cmake:
+                    cwd = os.getcwd()
+                    path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
+                    path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
+                    arguments = f'path_to_sh_folder, instance, tool_type, candidate'
+                    funct = f'build_cand.sh_candidate({arguments})'
+                    exec(f'{funct}')
+                    sh_script = find_ending_pattern(path_to_sh_folder, ".sh")
+                    sh_script = os.path.basename(sh_script)
+                    os.chdir(path_to_sh_folder)
+                    cmd_str = f"sudo chmod u+x ./{sh_script}"
+                    cmd = cmd_str.split()
+                    subprocess.call(cmd, stdin=sys.stdin)
+                    cmd_str = f"./{sh_script}"
+                    cmd = cmd_str.split()
+                    subprocess.call(cmd, stdin=sys.stdin, shell=True)
+                    os.chdir(cwd)
                 else:
                     path_to_makefile_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
                     path_to_build_folder = f'{path_to_makefile_folder}/{build_folder}'
@@ -1631,13 +1672,12 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     arguments = f'path_function_pattern_file,instance,tool_type,candidate'
                     funct = f'build_cand.makefile_candidate({arguments})'
                     exec(funct)
-                if not os.path.isdir(path_to_build_folder):
-                    cmd = ["mkdir", "-p", path_to_build_folder]
-                subprocess.call(cmd, stdin=sys.stdin)
-                compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
-                                                                             path_to_makefile_folder,
-                                                                             path_to_build_folder,
-                                                                             "all")
+                if "sh" not in with_cmake:
+                    compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
+                                                                                 path_to_makefile_folder,
+                                                                                 path_to_build_folder,
+                                                                                 "all")
+
                 if 'yes' in with_core_dump.lower():
                     keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
                     executable_keypair = os.listdir(keypair_build_folder)[0]
@@ -1647,7 +1687,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     binsec_generate_gdb_script(path_to_gdb_script_keypair, path_to_keypair_snapshot_file)
                     path_to_executable_file = f'{keypair_build_folder}/{executable_keypair}'
                     binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_keypair)
-
+                    # crypto_sign
                     sign_build_folder = f'{path_to_build_folder}/{candidate}_sign'
                     executable_sign = os.listdir(sign_build_folder)[0]
                     executable_sign = os.path.basename(executable_sign)

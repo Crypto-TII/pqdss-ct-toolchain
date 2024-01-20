@@ -14,35 +14,6 @@ import generic_functions as generic
 
 # Special cases: the following candidates need special steps for compilation
 
-# =============================== RACCOON ===============================================
-# [TODO:Shell script compilation]
-# [TODO: rng_outside_instance_folder]
-
-def compile_run_raccoon(tools_list, signature_type, candidate, optimized_imp_folder,
-                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_raccoon"""
-    add_includes = []
-    sh_script = 'compile_raccoon'
-    build_candidate.generic_init_compile_with_sh(tools_list, signature_type, candidate,
-                                                 optimized_imp_folder, instance_folders_list,
-                                                 rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                                 add_includes, build_folder, sh_script,
-                                                 rng_outside_instance_folder)
-    generic.generic_run(tools_list, signature_type, candidate, optimized_imp_folder,
-                        instance_folders_list, depth, build_folder, binary_patterns, with_core_dump)
-    if 'y' in to_compile.lower() and 'n' in to_run.lower():
-        build_candidate.generic_init_compile_with_sh(tools_list, signature_type, candidate,
-                                                     optimized_imp_folder, instance_folders_list,
-                                                     rel_path_to_api, rel_path_to_sign,
-                                                     rel_path_to_rng, add_includes, build_folder,
-                                                     sh_script, rng_outside_instance_folder)
-    if 'n' in to_compile.lower() and 'y' in to_run.lower():
-        generic.generic_run(tools_list, signature_type, candidate, optimized_imp_folder,
-                            instance_folders_list, depth, build_folder, binary_patterns, with_core_dump)
-
-
 # =================================== QR-UOV ======================================
 # [TODO:Rename functions if needed/if not working with new script keep old script ...]
 # [TODO: rng_outside_instance_folder]
@@ -94,10 +65,16 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
                                               rng_outside_instance_folder, with_core_dump)
     # Special cases
     if candidate == "raccoon":
-        compile_run_raccoon(tools_list, signature_type, candidate, optimized_imp_folder,
-                            instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                            rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                            binary_patterns, rng_outside_instance_folder, with_core_dump)
+        add_includes = []
+        with_cmake = 'sh'
+        if tools_list[0].strip() == 'flowtracker':
+            with_cmake = 'no'
+        generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
+                                              optimized_imp_folder, instance_folders_list,
+                                              rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                                              with_cmake, add_includes, to_compile, to_run,
+                                              depth, build_folder, binary_patterns,
+                                              rng_outside_instance_folder, with_core_dump)
     if candidate == "qr_uov":
         compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
                            instance_folders_list, rel_path_to_api, rel_path_to_sign,
@@ -380,7 +357,6 @@ generic.add_cli_arguments(subparser, 'lattice', 'hufu',
 
 
 # ============================================ raccoon ===========================================
-# [TODO]
 raccoon_opt_folder = "lattice/raccoon/Optimized_Implementation"
 raccoon_default_list_of_folders = os.listdir(raccoon_opt_folder)
 default_list = generic.get_default_list_of_folders(raccoon_default_list_of_folders,
@@ -390,6 +366,11 @@ generic.add_cli_arguments(subparser, 'lattice', 'raccoon',
                           'Optimized_Implementation',
                           '"../../../api.h"', '""',
                           '"../../../rng.h"')
+
+generic.add_cli_arguments(subparser, 'code', 'wave',
+                          'Optimized_Implementation',
+                          '"../../../api.h"', '""',
+                          '"../../../NIST-kat/rng.h"')
 
 
 # ============================================= MULTIVARIATE ===================================
