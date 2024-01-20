@@ -7,356 +7,12 @@
 import os
 import argparse
 
-import generic_functions as generic
+
 import candidates_build as build_candidate
+import generic_functions as generic
 
 
-# ======================================  A  ======================================
-# =================================================================================
-
-
-# ============================== MPC-IN-THE-HEAD ================
-# ===============================================================
-
-# ================================ MIRITH ========================
-
-def compile_run_mirith(tools_list, signature_type, candidate, optimized_imp_folder,
-                       instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                       rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                       binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_mirith"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ========================================== PERK ============================
-
-def compile_run_perk(tools_list, signature_type, candidate,
-                     optimized_imp_folder, instance_folders_list,
-                     rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                     to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_perk"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run, depth,
-                                          build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ============================== MQOM ================================
-
-
-def compile_run_mqom(tools_list, signature_type, candidate,
-                     optimized_imp_folder, instance_folders_list,
-                     rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                     to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_mqom"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ========================= RYDE =========================================
-
-
-def compile_run_ryde(tools_list, signature_type, candidate,
-                     optimized_imp_folder, instance_folders_list,
-                     rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                     to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_ryde"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run, depth,
-                                          build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ============================== MIRA ============================================
-
-
-def compile_run_mira(tools_list, signature_type, candidate, optimized_imp_folder,
-                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_mira"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ============================= SDITH ===============================================
-
-
-def compile_run_sdith(tools_list, signature_type, candidate, optimized_imp_folder,
-                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_sdith"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ============================CROSS ================================================
-
-
-def compile_run_cross(tools_list, signature_type, candidate, optimized_imp_folder,
-                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_cross"""
-    add_includes = []
-    with_cmake = 'yes'
-    if tools_list[0].strip() == 'flowtracker':
-        with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ==============================  CODE ===========================================
-# ================================================================================
-
-# ===============================  PQSIGRM =======================================
-
-
-def compile_run_pqsigrm(tools_list, signature_type, candidate, optimized_imp_folder,
-                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_pqsigrm"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ========================= LESS ==============================================
-
-
-def compile_run_less(tools_list, signature_type, candidate, optimized_imp_folder,
-                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_less"""
-    add_includes = []
-    with_cmake = 'yes'
-    if tools_list[0].strip() == 'flowtracker':
-        with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# =========================== FULEECA =============================================
-# [TODO]
-
-
-def compile_run_fuleeca(tools_list, signature_type, candidate, optimized_imp_folder,
-                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_fuleeca"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ============================ MEDS ==========================================
-# [TODO]
-
-
-def compile_run_meds(tools_list, signature_type, candidate, optimized_imp_folder,
-                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_meds"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ================================= WAVE =====================================
-
-
-def compile_run_wave(tools_list, signature_type, candidate, optimized_imp_folder,
-                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_wave"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ================================== LATTICE ===================================
-# ==============================================================================
-# =================================== SQUIRRELS =================================
-# [TODO]
-
-
-def compile_run_squirrels(tools_list, signature_type, candidate, optimized_imp_folder,
-                          instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                          rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                          binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_squirrels"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ============================ HAETAE ===========================================
-
-
-def compile_run_haetae(tools_list, signature_type, candidate, optimized_imp_folder,
-                       instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                       rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                       binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_haetae"""
-    add_includes = []
-    with_cmake = 'yes'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run, depth,
-                                          build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ============================ EAGLESIGN ===================================
-# [TODO]
-
-def compile_run_eaglesign(tools_list, signature_type, candidate, optimized_imp_folder,
-                          instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                          rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                          binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_eaglesign"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# =============================== ehtv3v4 =======================================
-# [TODO]
-
-
-def compile_run_ehtv3v4(tools_list, signature_type, candidate, optimized_imp_folder,
-                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_ehtv3v4"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ============================ HAWK =============================================
-# [TODO]
-
-
-def compile_run_hawk(tools_list, signature_type, candidate, optimized_imp_folder,
-                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_hawk"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ============================ HUFU ==================================================
-# [TODO]
-
-
-def compile_run_hufu(tools_list, signature_type, candidate, optimized_imp_folder,
-                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_hufu"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
+# Special cases: the following candidates need special steps for compilation
 
 # =============================== RACCOON ===============================================
 # [TODO:Shell script compilation]
@@ -387,16 +43,13 @@ def compile_run_raccoon(tools_list, signature_type, candidate, optimized_imp_fol
                             instance_folders_list, depth, build_folder, binary_patterns, with_core_dump)
 
 
-# ===================================  MULTIVARIATE =============================
-# ===============================================================================
-
 # =================================== QR-UOV ======================================
 # [TODO:Rename functions if needed/if not working with new script keep old script ...]
 # [TODO: rng_outside_instance_folder]
 def compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                       binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
+                       binary_patterns, rng_outside_instance_folder="no", with_core_dump="yes"):
     """ Function: compile_run_qr_uov"""
 
     build_candidate.compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
@@ -405,382 +58,61 @@ def compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_fold
                                        binary_patterns, rng_outside_instance_folder)
 
 
-# ================================= snova ===============================================
-# [TODO:error after running binsec. Make sure binary is static]
-
-
-def compile_run_snova(tools_list, signature_type, candidate, optimized_imp_folder,
-                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_snova"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ================================  BISCUIT =========================================
-# [TODO]
-
-
-def compile_run_biscuit(tools_list, signature_type, candidate, optimized_imp_folder,
-                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_biscuit"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# =================================  dme_sign =======================================
-# [TODO]
-
-
-def compile_run_dme_sign(tools_list, signature_type, candidate, optimized_imp_folder,
-                         instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                         rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                         binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_dme_sign"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ==================================  hppc ===========================================
-# [TODO]
-
-
-def compile_run_hppc(tools_list, signature_type, candidate, optimized_imp_folder,
-                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_hppc"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ====================================  MAYO =======================================
-# [TODO]
-def compile_run_mayo(tools_list, signature_type, candidate, optimized_imp_folder,
-                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="yes", with_core_dump="no"):
-    """ Function: compile_run_mayo"""
-    add_includes = []
-    with_cmake = 'yes'
-    if tools_list[0].strip() == 'flowtracker':
+# compile_run_candidate: generic function to run a given candidate with given tools
+def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_folder,
+                          instance_folders_list, rel_path_to_api, rel_path_to_sign,
+                          rel_path_to_rng, to_compile, to_run, depth, build_folder,
+                          binary_patterns, rng_outside_instance_folder="no", with_core_dump="yes"):
+    """ Function: compile_run_candidate"""
+    candidates_to_build_with_makefile = ["mirith", "mira", "mqom", "perk", "ryde", "pqsigrm", "wave",
+                                         "snova", "tuov", "uov", "vox", "aimer", "ascon_sign", "faest",
+                                         "sphincs_alpha", "preon", "squirrels"]
+    candidate_to_build_with_cmake = ["cross", "less", "mayo", "sqisign"]
+    if candidate in candidates_to_build_with_makefile:
+        add_includes = []
         with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ==================================  PROV ===============================================
-# [TODO]
-
-
-def compile_run_prov(tools_list, signature_type, candidate, optimized_imp_folder,
-                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_prov"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# =================================== TUOV =============================================
-# [TODO]
-
-
-def compile_run_tuov(tools_list, signature_type, candidate, optimized_imp_folder,
-                     instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                     rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                     binary_patterns, rng_outside_instance_folder="yes", with_core_dump="no"):
-    """ Function: compile_run_tuov"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ==================================  UOV ==============================================
-# [TODO]
-
-
-def compile_run_uov(tools_list, signature_type, candidate, optimized_imp_folder,
-                    instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                    rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                    binary_patterns, rng_outside_instance_folder="yes", with_core_dump="no"):
-    """ Function: compile_run_uov"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ===================================== VOX ================================================
-# [TODO]
-
-
-def compile_run_vox(tools_list, signature_type, candidate, optimized_imp_folder,
-                    instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                    rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                    binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_vox"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ================================  SYMMETRIC =====================================
-# =================================================================================
-
-# ================================= AIMER =========================================
-
-
-def compile_run_aimer(tools_list, signature_type, candidate, optimized_imp_folder,
-                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_aimer"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ================================= ascon_sign ====================================
-
-
-def compile_run_ascon_sign(tools_list, signature_type, candidate, optimized_imp_folder,
+        if candidate == "tuov" or candidate == "uov":
+            rng_outside_instance_folder = 'yes'
+        generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
+                                              optimized_imp_folder, instance_folders_list,
+                                              rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                                              with_cmake, add_includes, to_compile, to_run,
+                                              depth, build_folder, binary_patterns,
+                                              rng_outside_instance_folder, with_core_dump)
+    if candidate in candidate_to_build_with_cmake:
+        add_includes = []
+        with_cmake = 'yes'
+        if tools_list[0].strip() == 'flowtracker':
+            with_cmake = 'no'
+        if candidate == 'mayo':
+            rng_outside_instance_folder = 'yes'
+        generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
+                                              optimized_imp_folder, instance_folders_list,
+                                              rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                                              with_cmake, add_includes, to_compile, to_run,
+                                              depth, build_folder, binary_patterns,
+                                              rng_outside_instance_folder, with_core_dump)
+    # Special cases
+    if candidate == "raccoon":
+        compile_run_raccoon(tools_list, signature_type, candidate, optimized_imp_folder,
+                            instance_folders_list, rel_path_to_api, rel_path_to_sign,
+                            rel_path_to_rng, to_compile, to_run, depth, build_folder,
+                            binary_patterns, rng_outside_instance_folder, with_core_dump)
+    if candidate == "qr_uov":
+        compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
                            instance_folders_list, rel_path_to_api, rel_path_to_sign,
                            rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                           binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_ascon_sign"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
+                           binary_patterns, rng_outside_instance_folder, with_core_dump)
 
 
-# =================================== faest ========================================
-
-
-def compile_run_faest(tools_list, signature_type, candidate, optimized_imp_folder,
-                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_faest"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ================================== Sphincs-alpha ============================
-
-
-def compile_run_sphincs_alpha(tools_list, signature_type, candidate, optimized_imp_folder,
-                              instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                              rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                              binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_sphincs_alpha"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# =================================  OTHER =========================================
-# ==================================================================================
-# ================================= PREON ==========================================
-
-
-def compile_run_preon(tools_list, signature_type, candidate, optimized_imp_folder,
-                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_preon"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ================================ ALTEQ ====================================
-# [TODO]
-
-
-def compile_run_alteq(tools_list, signature_type, candidate, optimized_imp_folder,
-                      instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                      rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                      binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_alteq"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ================================== EMLE2_0 ======================================
-# [TODO]
-
-
-def compile_run_emle2_0(tools_list, signature_type, candidate, optimized_imp_folder,
-                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_eml2e_0"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# =================================== kaz_sign ====================================
-# [TODO]
-
-
-def compile_run_kaz_sign(tools_list, signature_type, candidate, optimized_imp_folder,
-                         instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                         rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                         binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_kaz_sign"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ============================= xifrat ==========================================
-# [TODO]
-
-
-def compile_run_xifrat(tools_list, signature_type, candidate, optimized_imp_folder,
-                       instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                       rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                       binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_xifrat"""
-    add_includes = []
-    with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# =================================  ISOGENY ===============================
-# ==========================================================================
-# ========================================== sqisign =======================
-# [TODO]
-
-
-def compile_run_sqisign(tools_list, signature_type, candidate, optimized_imp_folder,
-                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                        binary_patterns, rng_outside_instance_folder="no", with_core_dump="no"):
-    """ Function: compile_run_sqisign"""
-    add_includes = []
-    with_cmake = 'yes'
-    if tools_list[0].strip() == 'flowtracker':
-        with_cmake = 'no'
-    generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
-                                          optimized_imp_folder, instance_folders_list,
-                                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                          with_cmake, add_includes, to_compile, to_run,
-                                          depth, build_folder, binary_patterns,
-                                          rng_outside_instance_folder, with_core_dump)
-
-
-# ####################################################################################
-# ################################  B  ###############################################
-# ####################################################################################
 # =============================== CLI: use argparse module ===========================
 # ====================================================================================
 
-
+# run_cli_candidate: Run candidate with CLI
 def run_cli_candidate(args_parse):
     """ Function: run_cli_candidate"""
     candidate = args.binsec_test
-    print("---------Target candidate: ", candidate)
+    print("========= Target candidate: ", candidate)
     list_of_tools = args_parse.tools
     type_based_signature = args_parse.type
     target_candidate = args_parse.candidate
@@ -802,7 +134,7 @@ def run_cli_candidate(args_parse):
                      f'{compile_candidate}', f'{run_candidate}', {binsec_depth_flag},
                      f'{build_directory}', {executable_patterns},
                      f'{is_rng_in_different_folder}', f'{with_core_dump}' '''
-    target = f'compile_run_{candidate}({arguments})'
+    target = f'compile_run_candidate({arguments})'
     exec(target)
 
 
@@ -1350,8 +682,6 @@ generic.add_cli_arguments(subparser, 'isogeny', 'sqisign',
 # set all the command-line arguments into the object args
 args = parser.parse_args()
 
-
-# run_cli_candidate(candidate, args)
 
 def main():
     """ Function: main"""

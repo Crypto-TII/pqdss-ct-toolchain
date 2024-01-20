@@ -10,6 +10,7 @@ import textwrap
 import generic_functions as gen_funct
 
 
+# The candidates with the "[TODO]" are those with vulnerabilities (broken). We haven't tested them.
 
 # ============================== MPC-IN-THE-HEAD ================
 # ===============================================================
@@ -5557,319 +5558,386 @@ def makefile_xifrat(path_to_makefile_folder, subfolder, tool_type, candidate):
 # ============================================================================
 # =========================== sqisign ========================================
 
-def cmake_sqisign(path_to_cmakelists_folder, subfolder, tool_name, candidate):
-    tool_type = gen_funct.Tools(tool_name)
-    test_keypair, test_sign = tool_type.get_tool_test_file_name()
-    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
-    path_to_cmakelists = f'{path_to_cmakelists_folder}/CMakeLists.txt'
-    cmake_file_content = ''
-    target_link_opt_block = ''
-    link_flag = ''
-    libs_list = []
-    if tool_flags:
-        if '-static ' in tool_flags:
-            link_flag = '-static'
-    libs_str = ""
-    tool_libs = tool_libs.replace("-lm", "")
-    tool_libs = tool_libs.strip()
-    if tool_libs:
-        libs_str = tool_libs.replace("-l", "")
-        libs_list = libs_str.split()
-    if tool_name == 'flowtracker':
-        print(":::: flowtracker wit cross")
-        path_to_cmakelists = f'{path_to_cmakelists_folder}/Makefile'
-        cmake_file_content = f'''
-        CC = clang
-        
-        # selection of specialized compilation units differing between ref and opt
-        # implementations.
-        REFERENCE_CODE_DIR = ../../Reference_Implementation
-        OPTIMIZED_CODE_DIR = ../../Optimized_Implementation
-        
-        BASE_DIR = $(REFERENCE_CODE_DIR)
-        
-        
-        INCS = $(wildcard $(BASE_DIR)/include/*.h)
-        SRC  = $(filter-out  $(BASE_DIR)/lib/sign.c, $(wildcard $(BASE_DIR)/lib/*.c))
-        SRC  += $(OPTIMIZED_CODE_DIR)/lib/aes256.c
-        
-        
-        SIGN = $(BASE_DIR)/lib/sign.c
-        
-        
-        BUILD			= build
-        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN		= $(BUILD)/{candidate}_sign
-        
-        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
-        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
-        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
-        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
-        
-        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
-         
-        
-        
-        $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
-        
-        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
-        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
-        
-        $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
-        
-        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
-        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
-            
-        .PHONY: clean
-          
-        clean:
-        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
-        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
-        '''
-    else:
+# def cmake_sqisign(path_to_cmakelists_folder, subfolder, tool_name, candidate):
+#     tool_type = gen_funct.Tools(tool_name)
+#     test_keypair, test_sign = tool_type.get_tool_test_file_name()
+#     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+#     path_to_cmakelists = f'{path_to_cmakelists_folder}/CMakeLists.txt'
+#     cmake_file_content = ''
+#     target_link_opt_block = ''
+#     link_flag = ''
+#     libs_list = []
+#     if tool_flags:
+#         if '-static ' in tool_flags:
+#             link_flag = '-static'
+#     libs_str = ""
+#     tool_libs = tool_libs.replace("-lm", "")
+#     tool_libs = tool_libs.strip()
+#     if tool_libs:
+#         libs_str = tool_libs.replace("-l", "")
+#         libs_list = libs_str.split()
+#     if tool_name == 'flowtracker':
+#         print(":::: flowtracker wit cross")
+#         path_to_cmakelists = f'{path_to_cmakelists_folder}/Makefile'
+#         cmake_file_content = f'''
+#         CC = clang
+#
+#         # selection of specialized compilation units differing between ref and opt
+#         # implementations.
+#         REFERENCE_CODE_DIR = ../../Reference_Implementation
+#         OPTIMIZED_CODE_DIR = ../../Optimized_Implementation
+#
+#         BASE_DIR = $(REFERENCE_CODE_DIR)
+#
+#
+#         INCS = $(wildcard $(BASE_DIR)/include/*.h)
+#         SRC  = $(filter-out  $(BASE_DIR)/lib/sign.c, $(wildcard $(BASE_DIR)/lib/*.c))
+#         SRC  += $(OPTIMIZED_CODE_DIR)/lib/aes256.c
+#
+#
+#         SIGN = $(BASE_DIR)/lib/sign.c
+#
+#
+#         BUILD			= build
+#         BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+#         BUILD_SIGN		= $(BUILD)/{candidate}_sign
+#
+#         EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+#         EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+#         EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+#         EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+#
+#         all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+#
+#
+#
+#         $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
+#         \tmkdir -p $(BUILD)
+#         \tmkdir -p $(BUILD_KEYPAIR)
+#         \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+#
+#         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+#         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+#
+#         $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
+#         \tmkdir -p $(BUILD)
+#         \tmkdir -p $(BUILD_SIGN)
+#         \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+#
+#         $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+#         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+#
+#         .PHONY: clean
+#
+#         clean:
+#         \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+#         \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+#         '''
+#     else:
+#
+#         cmake_file_content = f'''
+#
+#         cmake_minimum_required(VERSION 3.5)
+#         project(SQIsign VERSION 1.0 LANGUAGES C ASM)
+#
+#         set(SQISIGN_SO_VERSION "0")
+#         set(CMAKE_C_STANDARD 99)
+#
+#         include(CTest)
+#
+#
+#         option(ENABLE_CT_TESTING  "Enable compilation for constant time testing." OFF)
+#
+#
+#         if (NOT DEFINED SQISIGN_BUILD_TYPE)
+#             SET(SQISIGN_BUILD_TYPE "broadwell")
+#         endif()
+#
+#         if(SQISIGN_BUILD_TYPE STREQUAL "broadwell")
+#             SET(SVARIANT_S "lvl1")
+#         else()
+#             SET(SVARIANT_S "lvl1;lvl3;lvl5")
+#         endif()
+#         '''
+#         find_libs_block = ''
+#         for lib in libs_list:
+#             lib_variable = lib.upper()
+#             lib_variable = f'{lib_variable}_LIB'
+#             find_libs_block += f'''
+#         find_library({lib_variable} {lib})
+#         if(NOT {lib_variable})
+#         \tmessage("{lib} library not found")
+#         endif()
+#         '''
+#         if libs_list:
+#             cmake_file_content += f'{find_libs_block}'
+#         cmake_file_content += f'''
+#         set(BASE_DIR  "../{subfolder}")
+#         include(${{BASE_DIR}}/.cmake/flags.cmake)
+#         include(${{BASE_DIR}}/.cmake/sanitizers.cmake)
+#         include(${{BASE_DIR}}/.cmake/target.cmake)
+#         if(ENABLE_DOC_TARGET)
+#             include(${{BASE_DIR}}/.cmake/target_docs.cmake)
+#         endif()
+#         include(${{BASE_DIR}}/.cmake/gmpconfig.cmake)
+#
+#         set()
+#
+#         # set(SELECT_IMPL_TYPE ${{PROJECT_SOURCE_DIR}}/.cmake/impl_type.cmake)
+#         # set(SELECT_SQISIGN_VARIANT ${{PROJECT_SOURCE_DIR}}/.cmake/sqisign_variant.cmake)
+#
+#         set(SELECT_IMPL_TYPE ${{BASE_DIR}}/.cmake/impl_type.cmake)
+#         set(SELECT_SQISIGN_VARIANT ${{BASE_DIR}}/.cmake/sqisign_variant.cmake)
+#
+#         set(INC_PUBLIC ${{BASE_DIR}}/include)
+#
+#         add_subdirectory(${{BASE_DIR}}/src)
+#         add_subdirectory(${{BASE_DIR}}/apps)
+#
+#
+#
+#         FOREACH(SVARIANT ${{SVARIANT_S}})
+#             string(TOLOWER ${{SVARIANT}} SVARIANT_LOWER)
+#             string(TOUPPER ${{SVARIANT}} SVARIANT_UPPER)
+#             add_executable(sqisign_test_kat_${{SVARIANT}} test_kat.c)
+#             target_link_libraries(sqisign_test_kat_${{SVARIANT}} sqisign_${{SVARIANT_LOWER}}_test)
+#             target_include_directories(sqisign_test_kat_${{SVARIANT}} PRIVATE ${{PROJECT_SOURCE_DIR}}/src/nistapi/${{SVARIANT_LOWER}} ${{INC_PUBLIC}} ${{INC_INTBIG}} ${{INC_PRECOMP_${{SVARIANT_UPPER}}}} ${{INC_QUATERNION}} ${{INC_KLPT}} ${{INC_GF_${{SVARIANT_UPPER}}}} ${{INC_EC}} ${{INC_COMMON}} ${{INC_ID2ISO}} ${{INC_PROTOCOLS}})
+#
+#             add_executable(sqisign_bench_${SVARIANT} bench.c)
+#             target_link_libraries(sqisign_bench_${SVARIANT} sqisign_${SVARIANT_LOWER})
+#             target_include_directories(sqisign_bench_${SVARIANT} PUBLIC ${PROJECT_SOURCE_DIR}/src/common ${INC_PUBLIC} ${PROJECT_SOURCE_DIR}/src/nistapi/${SVARIANT_LOWER})
+#
+#             add_executable(sqisign_test_scheme_${SVARIANT} test_sqisign.c)
+#             target_link_libraries(sqisign_test_scheme_${SVARIANT} sqisign_${SVARIANT_LOWER})
+#             target_include_directories(sqisign_test_scheme_${SVARIANT} PUBLIC ${PROJECT_SOURCE_DIR}/src/common ${INC_PUBLIC} ${PROJECT_SOURCE_DIR}/src/nistapi/${SVARIANT_LOWER})
+#
+#             add_executable(sqisign_test_prof_${SVARIANT} test_sqisign_prof.c)
+#             target_link_libraries(sqisign_test_prof_${SVARIANT} sqisign_${SVARIANT_LOWER})
+#             target_include_directories(sqisign_test_prof_${SVARIANT} PUBLIC ${PROJECT_SOURCE_DIR}/src/common ${INC_PUBLIC} ${PROJECT_SOURCE_DIR}/src/nistapi/${SVARIANT_LOWER})
+#
+#             add_test(sqisign_${SVARIANT}_KAT sqisign_test_kat_${SVARIANT})
+#             add_test(sqisign_${SVARIANT}_SELFTEST sqisign_test_scheme_${SVARIANT})
+#         ENDFOREACH()
+#
+#
+#         cmake_minimum_required(VERSION 3.9.4)
+#         project(LESS C)
+#
+#         # build type can be case-sensitive!
+#         string(TOUPPER "${{CMAKE_BUILD_TYPE}}" UPPER_CMAKE_BUILD_TYPE)
+#
+#         set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -Wall -pedantic -Wuninitialized -Wsign-conversion -Wno-strict-prototypes")
+#
+#         include(CheckCCompilerFlag)
+#         unset(COMPILER_SUPPORTS_MARCH_NATIVE CACHE)
+#         check_c_compiler_flag(-march=native COMPILER_SUPPORTS_MARCH_NATIVE)
+#
+#         include(CheckIPOSupported)
+#         check_ipo_supported(RESULT lto_supported OUTPUT error)
+#
+#         if(UPPER_CMAKE_BUILD_TYPE MATCHES DEBUG)
+#             message(STATUS "Building in Debug mode!")
+#         else() # Release, RELEASE, MINSIZEREL, etc
+#             set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -mtune=native -O3 -g")
+#             if(COMPILER_SUPPORTS_MARCH_NATIVE)
+#                 set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -march=native")
+#             endif()
+#             if(lto_supported)
+#                 message(STATUS "IPO / LTO enabled")
+#                 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+#             endif()
+#         endif()
+#
+#         option(COMPRESS_CMT_COLUMNS "Enable COMPRESS_CMT_COLUMNS to compress commitment in SG and VY before hashing" OFF)
+#         if(COMPRESS_CMT_COLUMNS)
+#             message(STATUS "COMPRESS_CMT_COLUMNS is enabled")
+#             add_definitions(-DCOMPRESS_CMT_COLUMNS)
+#         else()
+#             message(STATUS "COMPRESS_CMT_COLUMNS is disabled")
+#         endif()
+#         unset(COMPRESS_CMT_COLUMNS CACHE)
+#
+#         set(SANITIZE "")
+#         message(STATUS "Compilation flags:" ${{CMAKE_C_FLAGS}})
+#
+#         set(CMAKE_C_STANDARD 11)
+#
+#         find_library(KECCAK_LIB keccak)
+#         if(NOT KECCAK_LIB)
+#             set(STANDALONE_KECCAK 1)
+#         endif()
+#
+#         # selection of specialized compilation units differing between ref and opt implementations.
+#         option(AVX2_OPTIMIZED "Use the AVX2 Optimized Implementation. Else the Reference Implementation will be used." OFF)
+#
+#         #set(BASE_DIR  ../Optimized_Implementation)
+#         set(BASE_DIR  ../)
+#         set(HEADERS
+#                 ${{BASE_DIR}}/include/api.h
+#                 ${{BASE_DIR}}/include/codes.h
+#                 ${{BASE_DIR}}/include/fips202.h
+#                 ${{BASE_DIR}}/include/fq_arith.h
+#                 ${{BASE_DIR}}/include/keccakf1600.h
+#                 ${{BASE_DIR}}/include/LESS.h
+#                 ${{BASE_DIR}}/include/monomial_mat.h
+#                 ${{BASE_DIR}}/include/parameters.h
+#                 ${{BASE_DIR}}/include/rng.h
+#                 ${{BASE_DIR}}/include/seedtree.h
+#                 ${{BASE_DIR}}/include/sha3.h
+#                 ${{BASE_DIR}}/include/utils.h
+#                 )
+#
+#         if(STANDALONE_KECCAK)
+#             message(STATUS "Employing standalone SHA-3")
+#             set(KECCAK_EXTERNAL_LIB "")
+#             set(KECCAK_EXTERNAL_ENABLE "")
+#             list(APPEND COMMON_SOURCES ${{BASE_DIR}}/lib/keccakf1600.c)
+#             list(APPEND COMMON_SOURCES ${{BASE_DIR}}/lib/fips202.c)
+#         else()
+#             message(STATUS "Employing libkeccak")
+#             set(KECCAK_EXTERNAL_LIB keccak)
+#             set(KECCAK_EXTERNAL_ENABLE "-DSHA_3_LIBKECCAK")
+#         endif()
+#
+#         '''
+#         find_libs_block = ''
+#         for lib in libs_list:
+#             find_libs_block += f'''
+#         find_library({lib})
+#         if(NOT {lib})
+#         \tmessage("{lib} library not found")
+#         endif()
+#         '''
+#         if libs_list:
+#             cmake_file_content += f'{find_libs_block}'
+#         cmake_file_content += f'''
+#         set(SOURCES
+#                 ${{COMMON_SOURCES}}
+#                 ${{BASE_DIR}}/lib/codes.c
+#                 ${{BASE_DIR}}/lib/LESS.c
+#                 ${{BASE_DIR}}/lib/monomial.c
+#                 ${{BASE_DIR}}/lib/rng.c
+#                 ${{BASE_DIR}}/lib/seedtree.c
+#                 ${{BASE_DIR}}/lib/utils.c
+#                 ${{BASE_DIR}}/lib/sign.c
+#                 )
+#         set(BUILD build)
+#         set(BUILD_KEYPAIR {candidate}_keypair)
+#         set(BUILD_SIGN {candidate}_sign)
+#
+#         foreach(category RANGE 1 5 2)
+#             if(category EQUAL 1)
+#                 set(PARAM_TARGETS SIG_SIZE BALANCED PK_SIZE)
+#             else()
+#                 set(PARAM_TARGETS SIG_SIZE PK_SIZE)
+#             endif()
+#             foreach(optimiz_target ${{PARAM_TARGETS}})
+#
+#                 set(TEST_HARNESS ./{tool_name}/{candidate}_keypair/{test_keypair}.c \
+#                 ./{tool_name}/{candidate}_sign/{test_sign}.c)
+#                 set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{optimiz_target}})
+#                 add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
+#                         ./{candidate}_keypair/{test_keypair}.c)
+#         '''
+#         if link_flag:
+#             cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)'
+#         cmake_file_content += f'''
+#                 target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
+#                         ${{BASE_DIR}}/include
+#                         ./include)
+#                 target_link_libraries(${{TARGET_BINARY_NAME}} m {libs_str} ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
+#                 set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
+#                 set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
+#                         COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}} ")
+#
+#                 #Test harness for crypto_sign
+#                 set(TARGET_BINARY_NAME {test_sign}_${{category}}_${{optimiz_target}})
+#                 add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
+#                         ./{candidate}_sign/{test_sign}.c)
+#                 '''
+#         if link_flag:
+#             cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)'
+#         cmake_file_content += f'''
+#                 target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
+#                 target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
+#                         ${{BASE_DIR}}/include
+#                         ./include)
+#                 target_link_libraries(${{TARGET_BINARY_NAME}} m {libs_str} ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
+#                 set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}})
+#                 set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
+#                         COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}}")
+#
+#                 #endforeach(t_harness)
+#             endforeach(optimiz_target)
+#         endforeach(category)
+#         '''
+#     with open(path_to_cmakelists, "w") as cmake_file:
+#         cmake_file.write(textwrap.dedent(cmake_file_content))
 
-        cmake_file_content = f'''
-        
-        cmake_minimum_required(VERSION 3.5)
-        project(SQIsign VERSION 1.0 LANGUAGES C ASM)
-        
-        set(SQISIGN_SO_VERSION "0")
-        set(CMAKE_C_STANDARD 99)
-        
-        include(CTest)
-        
-        
-        option(ENABLE_CT_TESTING  "Enable compilation for constant time testing." OFF)
-        
-        
-        if (NOT DEFINED SQISIGN_BUILD_TYPE)
-            SET(SQISIGN_BUILD_TYPE "broadwell")
-        endif()
-        
-        if(SQISIGN_BUILD_TYPE STREQUAL "broadwell")
-            SET(SVARIANT_S "lvl1")
-        else()
-            SET(SVARIANT_S "lvl1;lvl3;lvl5")
-        endif()
-        '''
-        find_libs_block = ''
-        for lib in libs_list:
-            lib_variable = lib.upper()
-            lib_variable = f'{lib_variable}_LIB'
-            find_libs_block += f'''
-        find_library({lib_variable} {lib})
-        if(NOT {lib_variable})
-        \tmessage("{lib} library not found")
-        endif()
-        '''
-        if libs_list:
-            cmake_file_content += f'{find_libs_block}'
-        cmake_file_content += f''' 
-        set(BASE_DIR  "../{subfolder}")
-        include(${{BASE_DIR}}/.cmake/flags.cmake)
-        include(${{BASE_DIR}}/.cmake/sanitizers.cmake)
-        include(${{BASE_DIR}}/.cmake/target.cmake)
-        if(ENABLE_DOC_TARGET)
-            include(${{BASE_DIR}}/.cmake/target_docs.cmake)
-        endif()
-        include(${{BASE_DIR}}/.cmake/gmpconfig.cmake)
-        
-        set()
-        
-        # set(SELECT_IMPL_TYPE ${{PROJECT_SOURCE_DIR}}/.cmake/impl_type.cmake)
-        # set(SELECT_SQISIGN_VARIANT ${{PROJECT_SOURCE_DIR}}/.cmake/sqisign_variant.cmake)
-        
-        set(SELECT_IMPL_TYPE ${{BASE_DIR}}/.cmake/impl_type.cmake)
-        set(SELECT_SQISIGN_VARIANT ${{BASE_DIR}}/.cmake/sqisign_variant.cmake)
-        
-        set(INC_PUBLIC ${{BASE_DIR}}/include)
-        
-        add_subdirectory(${{BASE_DIR}}/src)
-        add_subdirectory(${{BASE_DIR}}/apps)
-        
-            
-            
-        FOREACH(SVARIANT ${{SVARIANT_S}})
-            string(TOLOWER ${{SVARIANT}} SVARIANT_LOWER)
-            string(TOUPPER ${{SVARIANT}} SVARIANT_UPPER)
-            add_executable(sqisign_test_kat_${{SVARIANT}} test_kat.c)
-            target_link_libraries(sqisign_test_kat_${{SVARIANT}} sqisign_${{SVARIANT_LOWER}}_test)
-            target_include_directories(sqisign_test_kat_${{SVARIANT}} PRIVATE ${{PROJECT_SOURCE_DIR}}/src/nistapi/${{SVARIANT_LOWER}} ${{INC_PUBLIC}} ${{INC_INTBIG}} ${{INC_PRECOMP_${{SVARIANT_UPPER}}}} ${{INC_QUATERNION}} ${{INC_KLPT}} ${{INC_GF_${{SVARIANT_UPPER}}}} ${{INC_EC}} ${{INC_COMMON}} ${{INC_ID2ISO}} ${{INC_PROTOCOLS}})
-        
-            add_executable(sqisign_bench_${SVARIANT} bench.c)
-            target_link_libraries(sqisign_bench_${SVARIANT} sqisign_${SVARIANT_LOWER})
-            target_include_directories(sqisign_bench_${SVARIANT} PUBLIC ${PROJECT_SOURCE_DIR}/src/common ${INC_PUBLIC} ${PROJECT_SOURCE_DIR}/src/nistapi/${SVARIANT_LOWER})
-        
-            add_executable(sqisign_test_scheme_${SVARIANT} test_sqisign.c)
-            target_link_libraries(sqisign_test_scheme_${SVARIANT} sqisign_${SVARIANT_LOWER})
-            target_include_directories(sqisign_test_scheme_${SVARIANT} PUBLIC ${PROJECT_SOURCE_DIR}/src/common ${INC_PUBLIC} ${PROJECT_SOURCE_DIR}/src/nistapi/${SVARIANT_LOWER})
-        
-            add_executable(sqisign_test_prof_${SVARIANT} test_sqisign_prof.c)
-            target_link_libraries(sqisign_test_prof_${SVARIANT} sqisign_${SVARIANT_LOWER})
-            target_include_directories(sqisign_test_prof_${SVARIANT} PUBLIC ${PROJECT_SOURCE_DIR}/src/common ${INC_PUBLIC} ${PROJECT_SOURCE_DIR}/src/nistapi/${SVARIANT_LOWER})
-        
-            add_test(sqisign_${SVARIANT}_KAT sqisign_test_kat_${SVARIANT})
-            add_test(sqisign_${SVARIANT}_SELFTEST sqisign_test_scheme_${SVARIANT})
-        ENDFOREACH()
-        
-        
-        cmake_minimum_required(VERSION 3.9.4)
-        project(LESS C)
-    
-        # build type can be case-sensitive!
-        string(TOUPPER "${{CMAKE_BUILD_TYPE}}" UPPER_CMAKE_BUILD_TYPE)
-        
-        set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -Wall -pedantic -Wuninitialized -Wsign-conversion -Wno-strict-prototypes")
-        
-        include(CheckCCompilerFlag)
-        unset(COMPILER_SUPPORTS_MARCH_NATIVE CACHE)
-        check_c_compiler_flag(-march=native COMPILER_SUPPORTS_MARCH_NATIVE)
-        
-        include(CheckIPOSupported)
-        check_ipo_supported(RESULT lto_supported OUTPUT error)
-        
-        if(UPPER_CMAKE_BUILD_TYPE MATCHES DEBUG)
-            message(STATUS "Building in Debug mode!")
-        else() # Release, RELEASE, MINSIZEREL, etc
-            set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -mtune=native -O3 -g")   
-            if(COMPILER_SUPPORTS_MARCH_NATIVE)
-                set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -march=native")
-            endif()
-            if(lto_supported)
-                message(STATUS "IPO / LTO enabled")
-                set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-            endif()
-        endif()
-        
-        option(COMPRESS_CMT_COLUMNS "Enable COMPRESS_CMT_COLUMNS to compress commitment in SG and VY before hashing" OFF)
-        if(COMPRESS_CMT_COLUMNS)
-            message(STATUS "COMPRESS_CMT_COLUMNS is enabled")
-            add_definitions(-DCOMPRESS_CMT_COLUMNS)
-        else()
-            message(STATUS "COMPRESS_CMT_COLUMNS is disabled")
-        endif()
-        unset(COMPRESS_CMT_COLUMNS CACHE)
-        
-        set(SANITIZE "")
-        message(STATUS "Compilation flags:" ${{CMAKE_C_FLAGS}})
-        
-        set(CMAKE_C_STANDARD 11)
-        
-        find_library(KECCAK_LIB keccak)
-        if(NOT KECCAK_LIB)
-            set(STANDALONE_KECCAK 1)
-        endif()
-        
-        # selection of specialized compilation units differing between ref and opt implementations.
-        option(AVX2_OPTIMIZED "Use the AVX2 Optimized Implementation. Else the Reference Implementation will be used." OFF)
-        
-        #set(BASE_DIR  ../Optimized_Implementation) 
-        set(BASE_DIR  ../)  
-        set(HEADERS
-                ${{BASE_DIR}}/include/api.h
-                ${{BASE_DIR}}/include/codes.h
-                ${{BASE_DIR}}/include/fips202.h
-                ${{BASE_DIR}}/include/fq_arith.h
-                ${{BASE_DIR}}/include/keccakf1600.h
-                ${{BASE_DIR}}/include/LESS.h
-                ${{BASE_DIR}}/include/monomial_mat.h
-                ${{BASE_DIR}}/include/parameters.h
-                ${{BASE_DIR}}/include/rng.h
-                ${{BASE_DIR}}/include/seedtree.h
-                ${{BASE_DIR}}/include/sha3.h
-                ${{BASE_DIR}}/include/utils.h
-                )
-        
-        if(STANDALONE_KECCAK)
-            message(STATUS "Employing standalone SHA-3")
-            set(KECCAK_EXTERNAL_LIB "")
-            set(KECCAK_EXTERNAL_ENABLE "")
-            list(APPEND COMMON_SOURCES ${{BASE_DIR}}/lib/keccakf1600.c)
-            list(APPEND COMMON_SOURCES ${{BASE_DIR}}/lib/fips202.c)
-        else()
-            message(STATUS "Employing libkeccak")
-            set(KECCAK_EXTERNAL_LIB keccak)
-            set(KECCAK_EXTERNAL_ENABLE "-DSHA_3_LIBKECCAK")
-        endif()
-        
-        '''
-        find_libs_block = ''
-        for lib in libs_list:
-            find_libs_block += f'''
-        find_library({lib})
-        if(NOT {lib})
-        \tmessage("{lib} library not found")
-        endif()
-        '''
-        if libs_list:
-            cmake_file_content += f'{find_libs_block}'
-        cmake_file_content += f''' 
-        set(SOURCES
-                ${{COMMON_SOURCES}}
-                ${{BASE_DIR}}/lib/codes.c
-                ${{BASE_DIR}}/lib/LESS.c
-                ${{BASE_DIR}}/lib/monomial.c
-                ${{BASE_DIR}}/lib/rng.c
-                ${{BASE_DIR}}/lib/seedtree.c
-                ${{BASE_DIR}}/lib/utils.c
-                ${{BASE_DIR}}/lib/sign.c
-                )
-        set(BUILD build)
-        set(BUILD_KEYPAIR {candidate}_keypair)
-        set(BUILD_SIGN {candidate}_sign)
-        
-        foreach(category RANGE 1 5 2)
-            if(category EQUAL 1)
-                set(PARAM_TARGETS SIG_SIZE BALANCED PK_SIZE)
-            else()
-                set(PARAM_TARGETS SIG_SIZE PK_SIZE)
-            endif()
-            foreach(optimiz_target ${{PARAM_TARGETS}})
-            
-                set(TEST_HARNESS ./{tool_name}/{candidate}_keypair/{test_keypair}.c \
-                ./{tool_name}/{candidate}_sign/{test_sign}.c)
-                set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{optimiz_target}})  
-                add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                        ./{candidate}_keypair/{test_keypair}.c)
-        '''
-        if link_flag:
-            cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)'
-        cmake_file_content += f'''
-                target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
-                        ${{BASE_DIR}}/include
-                        ./include)
-                target_link_libraries(${{TARGET_BINARY_NAME}} m {libs_str} ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
-                set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
-                set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
-                        COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}} ")
-                
-                #Test harness for crypto_sign
-                set(TARGET_BINARY_NAME {test_sign}_${{category}}_${{optimiz_target}})
-                add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                        ./{candidate}_sign/{test_sign}.c)  
-                '''
-        if link_flag:
-            cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)'
-        cmake_file_content += f'''
-                target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
-                target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
-                        ${{BASE_DIR}}/include
-                        ./include)
-                target_link_libraries(${{TARGET_BINARY_NAME}} m {libs_str} ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
-                set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}}) 
-                set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
-                        COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}}")
-                        
-                #endforeach(t_harness)
-            endforeach(optimiz_target)
-        endforeach(category)
-        '''
-    with open(path_to_cmakelists, "w") as cmake_file:
-        cmake_file.write(textwrap.dedent(cmake_file_content))
+
+def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate):
+    if candidate == "mirith":
+        makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "mira":
+        makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "mqom":
+        makefile_mqom(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "perk":
+        makefile_perk(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "ryde":
+        makefile_ryde(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "pqsigrm":
+        makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "wave":
+        makefile_wave(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "prov":
+        makefile_prov(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "qr_uov":
+        makefile_qr_uov(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "snova":
+        makefile_snova(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "tuov":
+        makefile_tuov(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "uov":
+        makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "vox":
+        makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "aimer":
+        makefile_aimer(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "ascon_sign":
+        makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "faest":
+        makefile_faest(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "sphincs_alpha":
+        makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "preon":
+        makefile_preon(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "squirrels":
+        makefile_squirrels(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "raccoon":
+        makefile_raccoon(path_to_makefile_folder, subfolder, tool_type, candidate)
+    # =======================================================================================
+    # The following candidates are supposed to be compiled with cmake. But if the chosen tool is flowtraker,
+    # then these candidates are compiled with Makefile. Indeed, the function 'cmake_cross', etc., will generate
+    # a Makefile instead of a CMakeLists.txt
+    # ========================= LESS ==============================================
+    # The function makefile_less is meant for the use of the tool flowtracker only
+    if candidate == "cross":
+        cmake_cross(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "less":
+        cmake_less(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "mayo":
+        cmake_mayo(path_to_makefile_folder, subfolder, tool_type, candidate)
+
+
+def cmake_candidate(path_to_cmake_lists, subfolder, tool_type, candidate):
+    if candidate == "cross":
+        cmake_cross(path_to_cmake_lists, subfolder, tool_type, candidate)
+    if candidate == "mayo":
+        cmake_mayo(path_to_cmake_lists, subfolder, tool_type, candidate)
+    if candidate == "less":
+        cmake_less(path_to_cmake_lists, subfolder, tool_type, candidate)
+    if candidate == "sqisign":
+        #cmake_sqisign(path_to_cmake_lists, subfolder, tool_type, candidate)
+        pass
 

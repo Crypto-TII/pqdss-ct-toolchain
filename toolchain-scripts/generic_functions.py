@@ -15,267 +15,6 @@ import argparse
 import candidates_build as build_cand
 
 
-# The following functions should have been in the file 'candidates_build.py' only.
-# The function 'generic_init_compile' calls functions like 'makefile_mirith' for build/compilation. But if there
-# are only in the 'candidates_build.py', it doesn't work with the function 'generic_init_compile'.
-# To make the script work, we have written new functions in the current file, calling the corresponding ones from the
-# file 'candidates_build.py'.
-
-# We will fix that issue.
-
-# The candidates with the "[TODO]" are those with vulnerabilities (broken). We haven't tested them.
-
-# ============================ MIRITH ==========================================
-def makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ============================ MIRA ==========================================
-def makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ============================ PERK ==========================================
-def makefile_perk(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_perk(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ============================ MQOM ==========================================
-def makefile_mqom(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_mqom(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ============================ RYDE ==========================================
-def makefile_ryde(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_ryde(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ============================ SDITH ==========================================
-# [TODO]
-def makefile_sdith(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_sdith(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ============================ CROSS ==========================================
-# The function makefile_cross is meant for the use of the tool flowtracker only
-def makefile_cross(path_to_cmake_lists, subfolder, tool_type, candidate):
-    build_cand.cmake_cross(path_to_cmake_lists, subfolder, tool_type, candidate)
-
-
-def cmake_cross(path_to_cmake_lists, subfolder, tool_type, candidate):
-    build_cand.cmake_cross(path_to_cmake_lists, subfolder, tool_type, candidate)
-
-
-# ==============================  CODE ===========================================
-# ================================================================================
-
-# ===============================  PQSIGRM =======================================
-def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ========================= LESS ==============================================
-# The function makefile_less is meant for the use of the tool flowtracker only
-def makefile_less(path_to_cmakelist, subfolder, tool_type, candidate):
-    build_cand.cmake_less(path_to_cmakelist, subfolder, tool_type, candidate)
-
-
-def cmake_less(path_to_cmakelist, subfolder, tool_type, candidate):
-    build_cand.cmake_less(path_to_cmakelist, subfolder, tool_type, candidate)
-
-
-# =========================== FULEECA =============================================
-# [TODO]
-def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_fuleeca(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ============================ MEDS ==========================================
-# [TODO]
-def makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ================================= WAVE =====================================
-def makefile_wave(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_wave(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ================================== LATTICE ===================================
-# ==============================================================================
-# =================================== SQUIRRELS =================================
-# [TODO]
-def makefile_squirrels(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_squirrels(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ============================ HAETAE ===========================================
-# [TODO]
-def cmake_haetae(path_to_cmakelist, subfolder, tool_type, candidate):
-    build_cand.cmake_haetae(path_to_cmakelist, subfolder, tool_type, candidate)
-
-
-# ============================ EAGLESIGN ===================================
-# [TODO]
-def makefile_eaglesign(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_eaglesign(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# =============================== ehtv3v4 =======================================
-# [TODO]
-def makefile_ehtv3v4(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_ehtv3v4(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ============================ HAWK =============================================
-# [TODO]
-def makefile_hawk(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_hawk(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ============================ HUFU ==================================================
-# [TODO]
-def makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# =============================== RACCOON ===============================================
-# [TODO:Shell script compilation]
-
-
-# ===================================  MULTIVARIATE =============================
-# ===============================================================================
-
-#
-# ================================= snova ===============================================
-def makefile_snova(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_snova(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ================================  BISCUIT =========================================
-# [TODO]
-def makefile_biscuit(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_biscuit(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# =================================  dme_sign =======================================
-# [TODO]
-def makefile_dme_sign(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_dme_sign(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ==================================  hppc ===========================================
-# [TODO]
-def makefile_hppc(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_hppc(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ====================================  MAYO =======================================
-# The function makefile_mayo is meant for the use of the tool flowtracker only
-def makefile_mayo(path_to_cmakelist, subfolder, tool_type, candidate):
-    build_cand.cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate)
-
-
-def cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate):
-    build_cand.cmake_mayo(path_to_cmakelist, subfolder, tool_type, candidate)
-
-
-# ==================================  PROV ===============================================
-def makefile_prov(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_prov(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# =================================== TUOV =============================================
-def makefile_tuov(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_tuov(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ==================================  UOV ==============================================
-def makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ==================================  QR_UOV ==============================================
-def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
-    build_cand.makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate)
-
-
-# ===================================== VOX ================================================
-def makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ================================  SYMMETRIC =====================================
-# =================================================================================
-
-# ================================= AIMER =========================================
-def makefile_aimer(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_aimer(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ================================= ascon_sign ====================================
-
-def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# =================================== faest ========================================
-
-def makefile_faest(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_faest(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ================================== Sphincs-alpha ============================
-def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# =================================  OTHER =========================================
-# ==================================================================================
-# ================================= PREON ==========================================
-
-
-def makefile_preon(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_preon(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ================================ ALTEQ ====================================
-# [TODO]
-def makefile_alteq(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_alteq(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ================================== EMLE2_0 ======================================
-# [TODO]
-def makefile_emle2_0(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_emle2_0(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# =================================== kaz_sign ====================================
-# [TODO]
-def makefile_kaz_sign(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_kaz_sign(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# ============================= xifrat ==========================================
-# [TODO]
-def makefile_xifrat(path_to_makefile_folder, subfolder, tool_type, candidate):
-    build_cand.makefile_xifrat(path_to_makefile_folder, subfolder, tool_type, candidate)
-
-
-# =================================  ISOGENY ===============================
-# ==========================================================================
-# ========================================== sqisign =======================
-# [TODO]
-# The function makefile_sqisign is meant for the use of the tool flowtracker only
-def makefile_sqisign(path_to_cmakelist, subfolder, tool_type, candidate):
-    build_cand.cmake_sqisign(path_to_cmakelist, subfolder, tool_type, candidate)
-
-
-def cmake_sqisign(path_to_cmakelist, subfolder, tool_type, candidate):
-    build_cand.cmake_sqisign(path_to_cmakelist, subfolder, tool_type, candidate)
-
-
 def find_ending_pattern(folder, pattern):
     test_folder = glob.glob(folder + '/*' + pattern)
     return test_folder[0]
@@ -898,98 +637,6 @@ def dudect_keypair_dude_content(taint_file, api,
 
 
 # DUDECT: for crypto_sign
-def dudect_sign_dude_content_fixed_vs_random(taint_file, api,
-                             sign, add_includes,
-                             function_return_type,
-                             function_name,
-                             args_types,
-                             args_names):
-    taint_file_content_block_include = f'''
-    #include <stdio.h>
-    #include <sys/types.h>
-    #include <unistd.h>
-    #include <string.h>
-    #include <stdlib.h>
-    
-    #define DUDECT_IMPLEMENTATION
-    #include <dudect.h>
-    
-    #define MESSAGE_LENGTH 3300
-    
-    '''
-    type_msg = args_types[2].replace('const', '')
-    type_msg = type_msg.strip()
-    type_sk = args_types[4].replace('const', '')
-    type_sk = type_sk.strip()
-    sig_msg = args_names[0]
-    sig_msg_len = args_names[1]
-    msg = args_names[2]
-    msg_len = args_names[3]
-    sk = args_names[4]
-    ret_type = function_return_type
-    taint_file_content_block_main = f'''
-    uint8_t do_one_computation(uint8_t *data) {{
-    \t{args_types[1]} {sig_msg_len} = MESSAGE_LENGTH+CRYPTO_BYTES;
-    \t{args_types[0]} {sig_msg}[MESSAGE_LENGTH+CRYPTO_BYTES] = {{0x00}};
-    \t{args_types[3]} {msg_len} = MESSAGE_LENGTH; // // See how to generate randomly the message length 
-    \t{type_msg} {msg}[MESSAGE_LENGTH] = {{2,0xe1,8,4,0xd2,0xea,3,4}}; 
-    \t{type_sk} {sk}[CRYPTO_SECRETKEYBYTES]= {{0}};
-    \t/* We can either fix msg and msg_len or generate them randomly from <data>
-    \t1. Fix msg and msg_len: chunk_size = CRYPTO_SECRETKEYBYTES
-    \t2. Generate randomly msg and msg_len: chunk_size = CRYPTO_SECRETKEYBYTES + msg_len + NUMBER_BYTES(msg_len)
-    \t*/
-    \tmemcpy({sk}, data, CRYPTO_SECRETKEYBYTES);
-    
-    \t{ret_type} result = {function_name}({sig_msg}, &{sig_msg_len}, {msg}, {msg_len}, {sk});
-    \treturn result;
-    }}
-    
-    void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
-    \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
-    \tfor (size_t i = 0; i < c->number_measurements; i++) {{
-    \t\tclasses[i] = randombit();
-    \t\t\tif (classes[i] == 0) {{
-    \t\t\t\tmemset(input_data + (size_t)i * c->chunk_size, 0x00, c->chunk_size);
-    \t\t\t}} else {{
-        // leave random
-    \t\t\t}}
-    \t\t}}
-    \t}}
-    
-    int main(int argc, char **argv)
-    {{
-    \t(void)argc;
-    \t(void)argv;
-
-    \tdudect_config_t config = {{
-    \t\t.chunk_size = CRYPTO_SECRETKEYBYTES,
-    \t\t.number_measurements = 1e5,
-    \t}};
-    \tdudect_ctx_t ctx;
-
-    \tdudect_init(&ctx, &config);
-
-    \tdudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
-    \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
-    \t\tstate = dudect_main(&ctx);
-    \t}}
-    \tdudect_free(&ctx);
-    \treturn (int)state;
-    }}
-    '''
-    with open(taint_file, "w") as t_file:
-        t_file.write(textwrap.dedent(taint_file_content_block_include))
-        if not add_includes == []:
-            for include in add_includes:
-                t_file.write(f'#include {include}\n')
-        if not sign == '""':
-            t_file.write(f'#include {sign}\n')
-        if not api == '""':
-            t_file.write(f'#include {api}\n')
-        t_file.write(textwrap.dedent(taint_file_content_block_main))
-
-
-# DUDECT: for crypto_sign
 def dudect_sign_dude_content(taint_file, api,
                              sign, add_includes,
                              function_return_type,
@@ -1167,63 +814,77 @@ def flowtracker_sign_xml_content(xml_file, api,
 
 
 # BINSEC: script for crypto_sign_keypair
-def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_core_dump="no"):
+def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_core_dump="yes"):
     sig_msg = crypto_sign_args_names[0]
     sig_msg_len = crypto_sign_args_names[1]
     msg = crypto_sign_args_names[2]
     msg_len = crypto_sign_args_names[3]
     sk = crypto_sign_args_names[4]
     script_file = cfg_file_sign
+    if 'no' in with_core_dump.lower():
+        print("Binsec: only test with core dump is taken into account.")
+    if not cfg_file_sign.endswith('.ini'):
+        cfg_file_sign_split = cfg_file_sign.split('.')
+        if len(cfg_file_sign_split) == 1:
+            script_file = f'{cfg_file_sign}.ini'
+        else:
+            script_file = f'{cfg_file_sign_split[0:-1]}.ini'
     cfg_file_content = f'''
-    starting from <main>
-    with concrete stack pointer
+    starting from core
+    replace <getrandom> (buf, buffen, _) by
+        for i<64> in 0 to buffen -1 do
+            @[buf + i] := nondet as urandom
+        end
+        return buffen
+    end
+
+    import <brk>, <__curbrk> from libc.so.6
+
+    replace <brk> (addr) by
+        @[<__curbrk>, 8] := addr
+        return 0
+    end
     '''
     exploration_goal = f'''
-    reach all'''
-    if 'yes' in with_core_dump.lower():
-        if not cfg_file_sign.endswith('.ini'):
-            cfg_file_sign_split = cfg_file_sign.split('.')
-            if len(cfg_file_sign_split) == 1:
-                script_file = f'{cfg_file_sign}.ini'
-            else:
-                script_file = f'{cfg_file_sign_split[0:-1]}.ini'
-        cfg_file_content = f'''
-    starting from core
-    '''
-        exploration_goal = f'''
-    explore all
-    '''
+    explore all'''
     cfg_file_content += f''' 
     secret global {sk}
     public global {sig_msg}, {sig_msg_len}, {msg}, {msg_len}
     halt at <exit>
     {exploration_goal}
     '''
-    # explore all
     with open(script_file, "w") as cfg_file:
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
 
 # BINSEC: script for crypto_sign
 def cfg_content_keypair(cfg_file_keypair, with_core_dump="no"):
+    if 'no' in with_core_dump.lower():
+        print("Binsec: only test with core dump is taken into account.")
+    script_file = cfg_file_keypair
+    if not cfg_file_keypair.endswith('.ini'):
+        cfg_file_sign_split = cfg_file_keypair.split('.')
+        if len(cfg_file_sign_split) == 1:
+            script_file = f'{cfg_file_keypair}.ini'
+        else:
+            script_file = f'{cfg_file_keypair[0:-1]}.ini'
     cfg_file_content = f'''
-    starting from <main>
-    with concrete stack pointer
+    starting from core
+    replace <getrandom> (buf, buffen, _) by
+        for i<64> in 0 to buffen -1 do
+            @[buf + i] := nondet as urandom
+        end
+        return buffen
+    end
+
+    import <brk>, <__curbrk> from libc.so.6
+
+    replace <brk> (addr) by
+        @[<__curbrk>, 8] := addr
+        return 0
+    end
     '''
     exploration_goal = f'''
-    reach all'''
-    script_file = cfg_file_keypair
-    if 'yes' in with_core_dump.lower():
-        if not cfg_file_keypair.endswith('.ini'):
-            cfg_file_sign_split = cfg_file_keypair.split('.')
-            if len(cfg_file_sign_split) == 1:
-                script_file = f'{cfg_file_keypair}.ini'
-            else:
-                script_file = f'{cfg_file_keypair[0:-1]}.ini'
-        cfg_file_content = f'''
-    starting from core
-    '''
-        exploration_goal = f'''
     explore all'''
     cfg_file_content += f'''
     secret global sk
@@ -1231,7 +892,6 @@ def cfg_content_keypair(cfg_file_keypair, with_core_dump="no"):
     halt at <exit>
     {exploration_goal}
     '''
-    # explore all
     with open(script_file, "w") as cfg_file:
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
@@ -1404,8 +1064,6 @@ def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
 # 5. opt_src_folder_list_dir: instance/scr folder of the given candidate with respect to optimized_imp_folder
 # 6. build_folder: build folder
 # 7. binary_patterns: sign/keypair, referring to crypto_sign_keypair and crypto_sign algorithms respectively
-
-
 def binsec_generic_run(binsec_folder, signature_type, candidate,
                        optimized_imp_folder, opt_src_folder_list_dir,
                        depth, build_folder, binary_patterns, with_core_dump="no"):
@@ -1909,17 +1567,18 @@ def generic_init_compile(tools_list, signature_type, candidate,
                 path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type
                 path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
                 path_to_makefile_folder = ""
-                function_pattern = "cmake"
                 path_function_pattern_file = path_to_cmakelist_file
+                arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                funct = f'build_cand.cmake_candidate({arguments})'
+                exec(f'{funct}')
             else:
                 path_to_makefile_folder = path_to_opt_impl_folder + '/' + tool_type
                 path_to_build_folder = path_to_makefile_folder + '/' + build_folder
                 path_to_cmakelist_file = ""
-                function_pattern = "makefile"
                 path_function_pattern_file = path_to_makefile_folder
-            arguments = f'path_function_pattern_file,instance,tool_type,candidate'
-            funct = f'{function_pattern}_{candidate}({arguments})'
-            exec(f'{funct}')
+                arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                funct = f'build_cand.makefile_candidate({arguments})'
+                exec(f'{funct}')
             if not os.path.isdir(path_to_build_folder):
                 cmd = ["mkdir", "-p", path_to_build_folder]
                 subprocess.call(cmd, stdin=sys.stdin)
@@ -1959,18 +1618,18 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type + '/' + instance
                     path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
                     path_to_makefile_folder = ""
-                    function_pattern = "cmake"
                     path_function_pattern_file = path_to_cmakelist_file
+                    arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                    funct = f'build_cand.cmake_candidate({arguments})'
+                    exec(f'{funct}')
                 else:
                     path_to_makefile_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
                     path_to_build_folder = f'{path_to_makefile_folder}/{build_folder}'
                     path_to_cmakelist_file = ""
-                    function_pattern = "makefile"
                     path_function_pattern_file = path_to_makefile_folder
-                arguments = f'path_function_pattern_file,instance,tool_type,candidate'
-                funct = f'{function_pattern}_{candidate}({arguments})'
-                funct = f'{function_pattern}_{candidate}({arguments})'
-                exec(funct)
+                    arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                    funct = f'build_cand.makefile_candidate({arguments})'
+                    exec(funct)
                 if not os.path.isdir(path_to_build_folder):
                     cmd = ["mkdir", "-p", path_to_build_folder]
                 subprocess.call(cmd, stdin=sys.stdin)
