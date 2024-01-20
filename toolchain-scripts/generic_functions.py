@@ -610,7 +610,7 @@ def dudect_keypair_dude_content(taint_file, api,
 
     \tdudect_config_t config = {{
     \t\t.chunk_size = 32,
-    \t\t.number_measurements = 1e5,
+    \t\t.number_measurements = 1e4,
     \t}};
     \tdudect_ctx_t ctx;
 
@@ -653,7 +653,7 @@ def dudect_sign_dude_content(taint_file, api,
     #define DUDECT_IMPLEMENTATION
     #include <dudect.h>
     
-    #define MESSAGE_LENGTH 256
+    #define MESSAGE_LENGTH 3300
     
     #define SECRET_KEY_BYTE_LENGTH CRYPTO_SECRETKEYBYTES
     #define SIGNATURE_MESSAGE_BYTE_LENGTH (MESSAGE_LENGTH + CRYPTO_BYTES)
@@ -716,7 +716,7 @@ def dudect_sign_dude_content(taint_file, api,
 
     \tdudect_config_t config = {{
     \t\t.chunk_size = chunk_size,
-    \t\t.number_measurements = 1e5,
+    \t\t.number_measurements = 1e4,
     \t}};
     \tdudect_ctx_t ctx;
 
@@ -740,6 +740,7 @@ def dudect_sign_dude_content(taint_file, api,
         if not api == '""':
             t_file.write(f'#include {api}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
+
 
 # FLOWTRACKER: xml file for crypto_sign_keypair
 def flowtracker_keypair_xml_content(xml_file, api,
