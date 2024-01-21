@@ -1,0 +1,5 @@
+[checkct:result] Program status is : unknown (13.610)
+[checkct:info] 0 visited path covering 758 instructions
+[checkct:info] 583 / 584 control flow checks pass
+[checkct:info] 1891 / 1891 memory access checks pass
+

@@ -1,0 +1,462 @@
+digraph "DFG for 'file ../../../Preon128/Preon128C/api.c line 15 to file ../../../Preon128/Preon128C/api.c line 58 '  "{
+label="DFG for 'file ../../../Preon128/Preon128C/api.c line 15 to file ../../../Preon128/Preon128C/api.c line 58 ' ";
+node_3170[shape=ellipse,style=solid,label="cmp"]
+node_3165[shape=ellipse,style=dashed,label="Memory 5"]
+"node_3170"->"node_3165" [style=dashed]
+node_3250[shape=ellipse,style=solid,label="conv.7"]
+"node_3170"->"node_3250" [style=dashed]
+node_3254[shape=ellipse,style=solid,label="inc5.7"]
+"node_3170"->"node_3254" [style=dashed]
+node_3205[shape=ellipse,style=solid,label="conv.3"]
+"node_3170"->"node_3205" [style=dashed]
+node_3259[shape=ellipse,style=solid,label="tmp8"]
+"node_3170"->"node_3259" [style=dashed]
+node_3262[shape=ellipse,style=solid,label="tmp9"]
+"node_3170"->"node_3262" [style=dashed]
+node_3228[shape=ellipse,style=solid,label="conv.5"]
+"node_3170"->"node_3228" [style=dashed]
+node_3241[shape=ellipse,style=solid,label="tmp6"]
+"node_3170"->"node_3241" [style=dashed]
+node_3264[shape=ellipse,style=solid,label="add"]
+"node_3170"->"node_3264" [style=dashed]
+node_3221[shape=ellipse,style=solid,label="inc5.4"]
+"node_3170"->"node_3221" [style=dashed]
+node_3226[shape=ellipse,style=solid,label="shr.5"]
+"node_3170"->"node_3226" [style=dashed]
+node_3268[shape=ellipse,style=solid,label="tmp10"]
+"node_3170"->"node_3268" [style=dashed]
+node_3215[shape=ellipse,style=solid,label="shr.4"]
+"node_3170"->"node_3215" [style=dashed]
+node_3237[shape=ellipse,style=solid,label="shr.6"]
+"node_3170"->"node_3237" [style=dashed]
+node_3176[shape=ellipse,style=solid,label="inc5"]
+"node_3170"->"node_3176" [style=dashed]
+node_3270[shape=ellipse,style=solid,label="add10"]
+"node_3170"->"node_3270" [style=dashed]
+node_3174[shape=ellipse,style=solid,label="tmp"]
+"node_3170"->"node_3174" [style=dashed]
+node_3172[shape=ellipse,style=solid,label="conv"]
+"node_3170"->"node_3172" [style=dashed]
+node_3208[shape=ellipse,style=solid,label="tmp3"]
+"node_3170"->"node_3208" [style=dashed]
+node_3232[shape=ellipse,style=solid,label="inc5.5"]
+"node_3170"->"node_3232" [style=dashed]
+node_3185[shape=ellipse,style=solid,label="tmp1"]
+"node_3170"->"node_3185" [style=dashed]
+node_3239[shape=ellipse,style=solid,label="conv.6"]
+"node_3170"->"node_3239" [style=dashed]
+node_3243[shape=ellipse,style=solid,label="inc5.6"]
+"node_3170"->"node_3243" [style=dashed]
+node_3183[shape=ellipse,style=solid,label="conv.1"]
+"node_3170"->"node_3183" [style=dashed]
+node_3181[shape=ellipse,style=solid,label="shr.1"]
+"node_3170"->"node_3181" [style=dashed]
+node_3187[shape=ellipse,style=solid,label="inc5.1"]
+"node_3170"->"node_3187" [style=dashed]
+node_3219[shape=ellipse,style=solid,label="tmp4"]
+"node_3170"->"node_3219" [style=dashed]
+node_3194[shape=ellipse,style=solid,label="conv.2"]
+"node_3170"->"node_3194" [style=dashed]
+node_3192[shape=ellipse,style=solid,label="shr.2"]
+"node_3170"->"node_3192" [style=dashed]
+node_3230[shape=ellipse,style=solid,label="tmp5"]
+"node_3170"->"node_3230" [style=dashed]
+node_3210[shape=ellipse,style=solid,label="inc5.3"]
+"node_3170"->"node_3210" [style=dashed]
+node_3198[shape=ellipse,style=solid,label="inc5.2"]
+"node_3170"->"node_3198" [style=dashed]
+node_3252[shape=ellipse,style=solid,label="tmp7"]
+"node_3170"->"node_3252" [style=dashed]
+node_3248[shape=ellipse,style=solid,label="shr.7"]
+"node_3170"->"node_3248" [style=dashed]
+node_3196[shape=ellipse,style=solid,label="tmp2"]
+"node_3170"->"node_3196" [style=dashed]
+node_3217[shape=ellipse,style=solid,label="conv.4"]
+"node_3170"->"node_3217" [style=dashed]
+node_3203[shape=ellipse,style=solid,label="shr.3"]
+"node_3170"->"node_3203" [style=dashed]
+node_3169[shape=doubleoctagon,style=solid,label="Call sign"]
+node_3168[shape=ellipse,style=solid,label="call2"]
+"node_3169"->"node_3168"
+node_3249[shape=octagon,style=solid,label="lshr"]
+"node_3168"->"node_3249"
+node_3227[shape=octagon,style=solid,label="lshr"]
+"node_3168"->"node_3227"
+node_3171[shape=octagon,style=solid,label="icmp"]
+"node_3168"->"node_3171"
+node_3265[shape=octagon,style=solid,label="add"]
+"node_3168"->"node_3265"
+node_3173[shape=octagon,style=solid,label="trunc"]
+"node_3168"->"node_3173"
+node_3238[shape=octagon,style=solid,label="lshr"]
+"node_3168"->"node_3238"
+node_3204[shape=octagon,style=solid,label="lshr"]
+"node_3168"->"node_3204"
+node_3182[shape=octagon,style=solid,label="lshr"]
+"node_3168"->"node_3182"
+node_3216[shape=octagon,style=solid,label="lshr"]
+"node_3168"->"node_3216"
+node_3193[shape=octagon,style=solid,label="lshr"]
+"node_3168"->"node_3193"
+node_3167[shape=ellipse,style=dashed,label="Memory 4"]
+"node_3167"->"node_3169"
+node_3166[shape=octagon,style=solid,label="getelementptr"]
+"node_3167"->"node_3166"
+"node_3166"->"node_3165"
+"node_3165"->"node_3169"
+node_3164[shape=ellipse,style=dashed,label="Memory 0"]
+node_3330[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3330"
+node_3257[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3257"
+node_3253[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3253"
+node_3224[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3224"
+node_3260[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3260"
+node_3261[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3261"
+node_3283[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3283"
+node_3213[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3213"
+node_3263[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3263"
+node_3321[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3321"
+node_3267[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3267"
+node_3304[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3304"
+node_3269[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3269"
+node_3175[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3175"
+node_3246[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3246"
+node_3179[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3179"
+node_3186[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3186"
+node_3201[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3201"
+node_3209[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3209"
+node_3273[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3273"
+node_3242[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3242"
+node_3190[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3190"
+node_3235[shape=octagon,style=solid,label="getelementptr"]
+"node_3164"->"node_3235"
+node_3197[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3197"
+node_3220[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3220"
+node_3231[shape=octagon,style=solid,label="load"]
+"node_3164"->"node_3231"
+node_3285[shape=octagon,style=solid,label="load"]
+node_3284[shape=ellipse,style=solid,label="tmp2"]
+"node_3285"->"node_3284"
+node_3286[shape=ellipse,style=solid,label="conv3.prol"]
+node_3289[shape=octagon,style=solid,label="phi"]
+"node_3286"->"node_3289"
+node_3291[shape=octagon,style=solid,label="phi"]
+"node_3286"->"node_3291"
+node_3236[shape=octagon,style=solid,label="store"]
+"node_3236"->"node_3165"
+node_3329[shape=octagon,style=solid,label="phi"]
+node_3328[shape=ellipse,style=solid,label="sig_len.0.lcssa"]
+"node_3329"->"node_3328"
+node_3282[shape=ellipse,style=dashed,label="Memory 7"]
+"node_3330"->"node_3282"
+node_3202[shape=octagon,style=solid,label="store"]
+"node_3202"->"node_3165"
+node_3309[shape=ellipse,style=solid,label="mul.1"]
+node_3299[shape=octagon,style=solid,label="shl"]
+"node_3309"->"node_3299"
+node_3310[shape=octagon,style=solid,label="shl"]
+"node_3310"->"node_3309"
+node_3258[shape=octagon,style=solid,label="store"]
+"node_3250"->"node_3258"
+node_3335[shape=ellipse,style=solid,label="exitcond.1"]
+node_3336[shape=octagon,style=solid,label="icmp"]
+"node_3336"->"node_3335"
+node_3211[shape=octagon,style=solid,label="add"]
+"node_3211"->"node_3210"
+node_3240[shape=octagon,style=solid,label="trunc"]
+"node_3240"->"node_3239"
+"node_3249"->"node_3248"
+node_3255[shape=octagon,style=solid,label="add"]
+"node_3255"->"node_3254"
+node_3256[shape=octagon,style=solid,label="store"]
+"node_3256"->"node_3164"
+node_3229[shape=octagon,style=solid,label="trunc"]
+"node_3229"->"node_3228"
+"node_3257"->"node_3165"
+"node_3258"->"node_3165"
+node_3317[shape=ellipse,style=solid,label="conv3"]
+node_3316[shape=octagon,style=solid,label="shl"]
+"node_3317"->"node_3316"
+node_3318[shape=octagon,style=solid,label="zext"]
+"node_3318"->"node_3317"
+node_3295[shape=octagon,style=solid,label="phi"]
+node_3294[shape=ellipse,style=solid,label="or.1.lcssa"]
+"node_3295"->"node_3294"
+node_3296[shape=ellipse,style=solid,label="or.1"]
+"node_3296"->"node_3295"
+node_3325[shape=octagon,style=solid,label="phi"]
+"node_3296"->"node_3325"
+"node_3253"->"node_3252"
+"node_3254"->"node_3256"
+node_3214[shape=octagon,style=solid,label="store"]
+"node_3205"->"node_3214"
+"node_3227"->"node_3226"
+"node_3224"->"node_3165"
+node_3301[shape=octagon,style=solid,label="zext"]
+node_3300[shape=ellipse,style=solid,label="conv3.1"]
+"node_3301"->"node_3300"
+node_3302[shape=ellipse,style=solid,label="tmp6"]
+"node_3302"->"node_3301"
+"node_3259"->"node_3261"
+"node_3260"->"node_3259"
+node_3225[shape=octagon,style=solid,label="store"]
+"node_3225"->"node_3165"
+node_3313[shape=ellipse,style=solid,label="or"]
+node_3297[shape=octagon,style=solid,label="or"]
+"node_3313"->"node_3297"
+node_3314[shape=octagon,style=solid,label="or"]
+"node_3314"->"node_3313"
+node_3298[shape=ellipse,style=solid,label="shl.1"]
+"node_3299"->"node_3298"
+"node_3300"->"node_3299"
+node_3200[shape=octagon,style=solid,label="store"]
+"node_3200"->"node_3164"
+"node_3261"->"node_3165"
+"node_3262"->"node_3265"
+node_3199[shape=octagon,style=solid,label="add"]
+"node_3199"->"node_3198"
+node_3206[shape=octagon,style=solid,label="trunc"]
+"node_3206"->"node_3205"
+node_3331[shape=ellipse,style=solid,label="sub6"]
+node_3333[shape=octagon,style=solid,label="store"]
+"node_3331"->"node_3333"
+node_3332[shape=octagon,style=solid,label="sub"]
+"node_3332"->"node_3331"
+"node_3228"->"node_3236"
+"node_3241"->"node_3246"
+node_3244[shape=octagon,style=solid,label="add"]
+"node_3241"->"node_3244"
+node_3288[shape=ellipse,style=solid,label="or.lcssa.unr"]
+"node_3289"->"node_3288"
+node_3290[shape=ellipse,style=solid,label="sig_len.028.unr"]
+"node_3290"->"node_3325"
+"node_3283"->"node_3282"
+node_3287[shape=octagon,style=solid,label="zext"]
+"node_3284"->"node_3287"
+"node_3213"->"node_3165"
+"node_3263"->"node_3262"
+node_3266[shape=octagon,style=solid,label="store"]
+"node_3264"->"node_3266"
+"node_3264"->"node_3267"
+node_3223[shape=octagon,style=solid,label="store"]
+"node_3221"->"node_3223"
+"node_3321"->"node_3282"
+node_3322[shape=ellipse,style=solid,label="mul"]
+"node_3322"->"node_3316"
+node_3311[shape=ellipse,style=solid,label="add"]
+"node_3311"->"node_3310"
+"node_3311"->"node_3321"
+node_3312[shape=octagon,style=solid,label="add"]
+"node_3312"->"node_3311"
+node_3207[shape=octagon,style=solid,label="store"]
+"node_3207"->"node_3164"
+"node_3226"->"node_3229"
+node_3323[shape=octagon,style=solid,label="shl"]
+"node_3323"->"node_3322"
+node_3324[shape=ellipse,style=solid,label="sig_len.028"]
+"node_3324"->"node_3314"
+node_3222[shape=octagon,style=solid,label="add"]
+"node_3222"->"node_3221"
+"node_3171"->"node_3170"
+node_3178[shape=octagon,style=solid,label="store"]
+"node_3178"->"node_3164"
+"node_3333"->"node_3164"
+node_3334[shape=octagon,style=solid,label="getelementptr"]
+"node_3334"->"node_3282"
+"node_3265"->"node_3264"
+"node_3266"->"node_3164"
+node_3177[shape=octagon,style=solid,label="add"]
+"node_3177"->"node_3176"
+"node_3214"->"node_3165"
+"node_3287"->"node_3286"
+node_3327[shape=octagon,style=solid,label="phi"]
+"node_3288"->"node_3327"
+"node_3267"->"node_3165"
+node_3271[shape=octagon,style=solid,label="add"]
+"node_3268"->"node_3271"
+node_3218[shape=octagon,style=solid,label="trunc"]
+"node_3215"->"node_3218"
+node_3303[shape=octagon,style=solid,label="load"]
+"node_3303"->"node_3302"
+"node_3304"->"node_3282"
+"node_3297"->"node_3296"
+"node_3298"->"node_3297"
+"node_3237"->"node_3240"
+"node_3325"->"node_3324"
+node_3326[shape=ellipse,style=solid,label="or.lcssa"]
+"node_3326"->"node_3329"
+"node_3176"->"node_3178"
+"node_3269"->"node_3268"
+"node_3270"->"node_3207"
+"node_3291"->"node_3290"
+node_3292[shape=ellipse,style=solid,label="tmp3"]
+"node_3292"->"node_3309" [style=dashed]
+"node_3292"->"node_3335" [style=dashed]
+"node_3292"->"node_3317" [style=dashed]
+"node_3292"->"node_3296" [style=dashed]
+"node_3292"->"node_3302" [style=dashed]
+"node_3292"->"node_3313" [style=dashed]
+"node_3292"->"node_3300" [style=dashed]
+"node_3292"->"node_3322" [style=dashed]
+"node_3292"->"node_3311" [style=dashed]
+"node_3292"->"node_3324" [style=dashed]
+"node_3292"->"node_3298" [style=dashed]
+node_3305[shape=ellipse,style=solid,label="add.1"]
+"node_3292"->"node_3305" [style=dashed]
+node_3307[shape=ellipse,style=solid,label="i.027"]
+"node_3292"->"node_3307" [style=dashed]
+node_3315[shape=ellipse,style=solid,label="shl"]
+"node_3292"->"node_3315" [style=dashed]
+node_3319[shape=ellipse,style=solid,label="tmp5"]
+"node_3292"->"node_3319" [style=dashed]
+"node_3292"->"node_3282" [style=dashed]
+"node_3175"->"node_3174"
+"node_3305"->"node_3336"
+"node_3305"->"node_3304"
+node_3308[shape=octagon,style=solid,label="phi"]
+"node_3305"->"node_3308"
+node_3306[shape=octagon,style=solid,label="add"]
+"node_3306"->"node_3305"
+"node_3174"->"node_3177"
+"node_3174"->"node_3179"
+"node_3246"->"node_3165"
+"node_3271"->"node_3270"
+node_3272[shape=ellipse,style=solid,label="tmp"]
+node_3293[shape=octagon,style=solid,label="icmp"]
+"node_3272"->"node_3293"
+node_3275[shape=octagon,style=solid,label="icmp"]
+"node_3272"->"node_3275"
+node_3277[shape=octagon,style=solid,label="zext"]
+"node_3272"->"node_3277"
+node_3279[shape=octagon,style=solid,label="and"]
+"node_3272"->"node_3279"
+"node_3173"->"node_3172"
+"node_3238"->"node_3237"
+node_3234[shape=octagon,style=solid,label="store"]
+"node_3234"->"node_3164"
+node_3180[shape=octagon,style=solid,label="store"]
+"node_3172"->"node_3180"
+node_3233[shape=octagon,style=solid,label="add"]
+"node_3233"->"node_3232"
+"node_3179"->"node_3165"
+"node_3186"->"node_3185"
+"node_3208"->"node_3211"
+"node_3208"->"node_3213"
+"node_3232"->"node_3234"
+"node_3185"->"node_3190"
+node_3188[shape=octagon,style=solid,label="add"]
+"node_3185"->"node_3188"
+node_3247[shape=octagon,style=solid,label="store"]
+"node_3239"->"node_3247"
+"node_3201"->"node_3165"
+"node_3293"->"node_3292"
+"node_3294"->"node_3327"
+"node_3204"->"node_3203"
+node_3184[shape=octagon,style=solid,label="trunc"]
+"node_3184"->"node_3183"
+node_3245[shape=octagon,style=solid,label="store"]
+"node_3243"->"node_3245"
+"node_3307"->"node_3312"
+"node_3307"->"node_3323"
+"node_3307"->"node_3306"
+"node_3308"->"node_3307"
+node_3191[shape=octagon,style=solid,label="store"]
+"node_3183"->"node_3191"
+"node_3327"->"node_3326"
+"node_3328"->"node_3332"
+"node_3328"->"node_3334"
+"node_3182"->"node_3181"
+"node_3181"->"node_3184"
+"node_3180"->"node_3165"
+"node_3216"->"node_3215"
+"node_3218"->"node_3217"
+"node_3209"->"node_3208"
+"node_3273"->"node_3272"
+node_3274[shape=ellipse,style=solid,label="cmp.26"]
+node_3276[shape=ellipse,style=solid,label="tmp1"]
+"node_3274"->"node_3276" [style=dashed]
+node_3278[shape=ellipse,style=solid,label="xtraiter"]
+"node_3274"->"node_3278" [style=dashed]
+node_3280[shape=ellipse,style=solid,label="lcmp.mod"]
+"node_3274"->"node_3280" [style=dashed]
+"node_3275"->"node_3274"
+"node_3276"->"node_3336"
+"node_3315"->"node_3314"
+"node_3316"->"node_3315"
+node_3189[shape=octagon,style=solid,label="store"]
+"node_3187"->"node_3189"
+"node_3244"->"node_3243"
+"node_3219"->"node_3224"
+"node_3219"->"node_3222"
+"node_3277"->"node_3276"
+node_3281[shape=octagon,style=solid,label="icmp"]
+"node_3278"->"node_3281"
+"node_3194"->"node_3202"
+"node_3279"->"node_3278"
+"node_3280"->"node_3286" [style=dashed]
+"node_3280"->"node_3284" [style=dashed]
+"node_3280"->"node_3282" [style=dashed]
+"node_3193"->"node_3192"
+"node_3319"->"node_3318"
+node_3320[shape=octagon,style=solid,label="load"]
+"node_3320"->"node_3319"
+node_3195[shape=octagon,style=solid,label="trunc"]
+"node_3192"->"node_3195"
+"node_3191"->"node_3165"
+"node_3223"->"node_3164"
+"node_3247"->"node_3165"
+"node_3242"->"node_3241"
+"node_3190"->"node_3165"
+"node_3235"->"node_3165"
+"node_3189"->"node_3164"
+"node_3230"->"node_3233"
+"node_3230"->"node_3235"
+"node_3188"->"node_3187"
+"node_3195"->"node_3194"
+node_3212[shape=octagon,style=solid,label="store"]
+"node_3210"->"node_3212"
+"node_3212"->"node_3164"
+"node_3198"->"node_3200"
+"node_3245"->"node_3164"
+node_3251[shape=octagon,style=solid,label="trunc"]
+"node_3251"->"node_3250"
+"node_3252"->"node_3255"
+"node_3252"->"node_3257"
+"node_3248"->"node_3251"
+"node_3197"->"node_3196"
+"node_3196"->"node_3199"
+"node_3196"->"node_3201"
+"node_3217"->"node_3225"
+"node_3281"->"node_3280"
+"node_3282"->"node_3285"
+"node_3282"->"node_3334"
+"node_3282"->"node_3303"
+"node_3282"->"node_3320"
+"node_3203"->"node_3206"
+"node_3220"->"node_3219"
+"node_3231"->"node_3230"
+}
+

@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../../include/fips202x4.h
+stddef.h
+-
+stdint.h
+-
+immintrin.h
+-
+
+/home/lattice/haetae/Optimized_Implementation/src/f1600x4.S
+fips202x4.h
+/home/lattice/haetae/Optimized_Implementation/src/fips202x4.h
+

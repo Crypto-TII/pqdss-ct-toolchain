@@ -1,0 +1,3 @@
+
+build/ryde_sign/test_harness_crypto_sign:     file format elf64-x86-64
+

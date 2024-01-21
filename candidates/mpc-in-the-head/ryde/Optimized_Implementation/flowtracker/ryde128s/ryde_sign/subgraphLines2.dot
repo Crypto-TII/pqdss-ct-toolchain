@@ -1,0 +1,87 @@
+digraph "Vulnerability from 'file ../../ryde128s/src/sign.c line 45 to file ../../ryde128s/src/sign.c line 79 '  "{
+label="Vulnerability from  'file ../../ryde128s/src/sign.c line 45 to file ../../ryde128s/src/sign.c line 79 ' ";
+node_194[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  53", color=red]
+node_184[shape=ellipse,style=dashed,label="", color=red]
+"node_194"->"node_184" [color=red]
+node_195[shape=ellipse,style=dashed,label=""]
+node_199[shape=doubleoctagon,style=solid,label="../../ryde128s/src/sign.c Line  75"]
+"node_195"->"node_199"
+node_214[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  79"]
+"node_195"->"node_214"
+node_196[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  75"]
+"node_196"->"node_199"
+node_197[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  75"]
+"node_197"->"node_196"
+node_198[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  75"]
+node_201[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  75"]
+"node_198"->"node_201"
+"node_199"->"node_198"
+node_200[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  75"]
+node_202[shape=ellipse,style=solid,label="null"]
+"node_200"->"node_202" [style=dashed]
+node_206[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  79", color=red]
+"node_200"->"node_206" [style=dashed]
+node_208[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  79", color=red]
+"node_200"->"node_208" [style=dashed]
+"node_201"->"node_200"
+node_205[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  79"]
+"node_202"->"node_205"
+node_209[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  79", color=red]
+"node_202"->"node_209"
+node_211[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  79"]
+"node_202"->"node_211"
+node_215[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  79"]
+"node_202"->"node_215"
+node_203[shape=octagon,style=solid,label="null"]
+"node_203"->"node_202"
+node_204[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  79"]
+"node_204"->"node_203"
+"node_205"->"node_204"
+"node_206"->"node_209" [color=red]
+node_207[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  79", color=red]
+"node_207"->"node_206" [color=red]
+"node_208"->"node_195" [style=dashed]
+"node_208"->"node_204" [style=dashed]
+node_210[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  79"]
+"node_208"->"node_210" [style=dashed]
+node_213[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  79"]
+"node_208"->"node_213" [style=dashed]
+node_188[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  49", color=red]
+node_192[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  49", color=red]
+"node_188"->"node_192" [color=red]
+node_187[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  47"]
+node_182[shape=ellipse,style=dashed,label=""]
+"node_187"->"node_182"
+node_186[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  47"]
+node_185[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  47"]
+"node_186"->"node_185"
+"node_185"->"node_187"
+"node_184"->"node_197"
+"node_184"->"node_207" [color=red]
+"node_184"->"node_215"
+node_183[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  47"]
+"node_184"->"node_183"
+node_189[shape=doubleoctagon,style=solid,label="../../ryde128s/src/sign.c Line  49", color=red]
+"node_189"->"node_188" [color=red]
+node_190[shape=ellipse,style=dashed,label="", color=red]
+"node_190"->"node_189" [color=red]
+node_191[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  49", color=red]
+node_193[shape=ellipse,style=solid,label="../../ryde128s/src/sign.c Line  53", color=red]
+"node_191"->"node_193" [color=red, style=dashed]
+"node_192"->"node_191" [color=red]
+"node_193"->"node_194" [color=red]
+"node_209"->"node_208" [color=red]
+node_212[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  79"]
+"node_210"->"node_212"
+"node_211"->"node_210"
+"node_212"->"node_195"
+node_216[shape=octagon,style=solid,label="../../ryde128s/src/sign.c Line  79"]
+"node_213"->"node_216"
+"node_214"->"node_213"
+"node_215"->"node_195"
+"node_216"->"node_195"
+"node_183"->"node_182"
+"node_182"->"node_186"
+"node_182"->"node_189"
+}
+

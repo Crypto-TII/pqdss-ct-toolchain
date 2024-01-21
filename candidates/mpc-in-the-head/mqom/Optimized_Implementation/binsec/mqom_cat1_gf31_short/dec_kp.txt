@@ -1,0 +1,1272 @@
+
+build/mqom_keypair/test_harness_crypto_sign_keypair:     file format elf64-x86-64
+
+Contents of the .debug_line section:
+
+<artificial>:
+File name                            Line number    Starting address    View    Stmt
+gf31.c                                        18            0x402d20               x
+gf31.c                                        18            0x402d20       1
+gf31.c                                        20            0x402d28               x
+gf31.c                                        19            0x402d2b               x
+gf31.c                                        19            0x402d2d        
+gf31.c                                        27            0x402d30               x
+gf31.c                                        27            0x402d33        
+gf31.c                                        27            0x402d38               x
+gf31.c                                        29            0x402d3e               x
+gf31.c                                        23            0x402d47               x
+gf31.c                                        31            0x402d4a               x
+gf31.c                                        23            0x402d4e               x
+gf31.c                                        31            0x402d50               x
+gf31.c                                        23            0x402d53               x
+gf31.c                                        25            0x402d56               x
+gf31.c                                        25            0x402d59               x
+gf31.c                                        23            0x402d5c               x
+gf31.c                                        27            0x402d5f               x
+gf31.c                                        27            0x402d64               x
+gf31.c                                        28            0x402d69               x
+gf31.c                                        23            0x402d6e               x
+gf31.c                                        27            0x402d71               x
+gf31.c                                        27            0x402d76               x
+gf31.c                                        23            0x402d79               x
+gf31.c                                        23            0x402d7c               x
+gf31.c                                        23            0x402d7f               x
+gf31.c                                        27            0x402d82               x
+gf31.c                                        27            0x402d85        
+gf31.c                                        28            0x402d8a               x
+gf31.c                                        27            0x402d8e               x
+gf31.c                                        29            0x402d91               x
+gf31.c                                        31            0x402d96               x
+gf31.c                                        30            0x402d98               x
+gf31.c                                        30            0x402d9b        
+gf31.c                                        21            0x402d9b       1       x
+gf31.c                                        21            0x402d9e        
+gf31.c                                        23            0x402da3               x
+gf31.c                                        27            0x402da6               x
+gf31.c                                        23            0x402da9               x
+gf31.c                                        27            0x402dac               x
+gf31.c                                        28            0x402db0               x
+gf31.c                                        24            0x402db4               x
+gf31.c                                        25            0x402dbd               x
+gf31.c                                        23            0x402dc0               x
+gf31.c                                        23            0x402dc3               x
+gf31.c                                        23            0x402dc5               x
+gf31.c                                        27            0x402dc8               x
+gf31.c                                        27            0x402dcb        
+gf31.c                                        27            0x402dd0               x
+gf31.c                                        28            0x402dd5               x
+gf31.c                                        29            0x402dd9               x
+gf31.c                                        23            0x402ddf               x
+gf31.c                                        31            0x402de2               x
+gf31.c                                        23            0x402de6               x
+gf31.c                                        31            0x402de9               x
+gf31.c                                        23            0x402dec               x
+gf31.c                                        25            0x402def               x
+gf31.c                                        25            0x402df2               x
+gf31.c                                        25            0x402df5        
+gf31.c                                        21            0x402df5       1       x
+gf31.c                                        28            0x402df8               x
+gf31.c                                        23            0x402dfe               x
+gf31.c                                        27            0x402e02               x
+gf31.c                                        27            0x402e08               x
+gf31.c                                        23            0x402e0d               x
+gf31.c                                        27            0x402e11               x
+gf31.c                                        27            0x402e17               x
+gf31.c                                        27            0x402e1a        
+gf31.c                                        21            0x402e1a       1       x
+gf31.c                                        21            0x402e1f        
+gf31.c                                        35            0x402e1f       1       x
+gf31.c                                        23            0x402e28               x
+gf31.c                                        23            0x402e2b               x
+gf31.c                                        23            0x402e2d               x
+gf31.c                                        24            0x402e30               x
+gf31.c                                        23            0x402e40               x
+gf31.c                                        23            0x402e43               x
+gf31.c                                        23            0x402e46               x
+gf31.c                                        24            0x402e49               x
+gf31.c                                        27            0x402e4d               x
+gf31.c                                        27            0x402e50        
+gf31.c                                        27            0x402e55               x
+gf31.c                                        28            0x402e5a               x
+gf31.c                                        29            0x402e5e               x
+gf31.c                                        23            0x402e64               x
+gf31.c                                        31            0x402e67               x
+gf31.c                                        23            0x402e6b               x
+gf31.c                                        31            0x402e6e               x
+gf31.c                                        23            0x402e71               x
+gf31.c                                        25            0x402e74               x
+gf31.c                                        25            0x402e77               x
+gf31.c                                        28            0x402e7a               x
+gf31.c                                        23            0x402e80               x
+gf31.c                                        27            0x402e83               x
+gf31.c                                        27            0x402e89               x
+gf31.c                                        27            0x402e8e        
+gf31.c                                        23            0x402e93               x
+gf31.c                                        23            0x402e96               x
+gf31.c                                        23            0x402e99               x
+gf31.c                                        24            0x402e9c               x
+gf31.c                                        27            0x402ea0               x
+gf31.c                                        27            0x402ea3        
+gf31.c                                        28            0x402ea8               x
+gf31.c                                        27            0x402eac               x
+gf31.c                                        29            0x402eaf               x
+gf31.c                                        23            0x402eb5               x
+gf31.c                                        31            0x402eb8               x
+gf31.c                                        23            0x402ebc               x
+gf31.c                                        31            0x402ebf               x
+gf31.c                                        23            0x402ec2               x
+gf31.c                                        25            0x402ec5               x
+gf31.c                                        28            0x402ec9               x
+gf31.c                                        23            0x402ed4               x
+gf31.c                                        23            0x402ed7               x
+gf31.c                                        23            0x402eda               x
+gf31.c                                        24            0x402edd               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     71            0x402ef0               x
+witness.c                                     72            0x402ef0       1       x
+witness.c                                     71            0x402ef0       2
+witness.c                                     71            0x402ef1        
+witness.c                                     72            0x402ef4        
+witness.c                                     72            0x402ef8        
+witness.c                                     73            0x402efd               x
+witness.c                                     74            0x402f02               x
+witness.c                                     76            0x402f02       1       x
+witness.c                                     76            0x402f02       2
+witness.c                                     76            0x402f06        
+witness.c                                     77            0x402f0b               x
+witness.c                                     78            0x402f10               x
+witness.c                                     80            0x402f10       1       x
+witness.c                                     81            0x402f13        
+witness.c                                     80            0x402f14        
+witness.c                                     80            0x402f19        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31.c:
+gf31.c                                       459            0x402f20               x
+gf31.c                                       460            0x402f20       1       x
+gf31.c                                       459            0x402f20       2
+gf31.c                                       460            0x402f22        
+gf31.c                                       459            0x402f27        
+gf31.c                                       460            0x402f29        
+gf31.c                                       460            0x402f2d        
+gf31.c                                       459            0x402f30        
+gf31.c                                       460            0x402f37        
+gf31.c                                       459            0x402f3a        
+gf31.c                                       460            0x402f3b        
+gf31.c                                       461            0x402f3e               x
+gf31.c                                       459            0x402f3e       1
+gf31.c                                       462            0x402f41        
+gf31.c                                       459            0x402f43        
+gf31.c                                       459            0x402f47        
+gf31.c                                       461            0x402f4c        
+gf31.c                                       461            0x402f51        
+gf31.c                                       462            0x402f56               x
+gf31.c                                       463            0x402f56       1       x
+gf31.c                                       464            0x402f56       2       x
+gf31.c                                       465            0x402f56       3       x
+gf31.c                                       466            0x402f56       4       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/xof.c:
+xof.c                                         14            0x402f56       5
+xof.c                                         14            0x402f5e        
+xof.c                                         14            0x402f68        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31.c:
+gf31.c                                       467            0x402f68       1       x
+gf31.c                                       468            0x402f68       2       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/sample.h:
+sample.h                                      30            0x402f68       3       x
+sample.h                                      31            0x402f68       4       x
+sample.h                                      31            0x402f68       5
+sample.h                                      31            0x402f6f        
+sample.h                                      33            0x402f78               x
+sample.h                                      33            0x402f78       1
+sample.h                                      33            0x402f81        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31.c:
+gf31.c                                       470            0x402f81       1       x
+gf31.c                                       462            0x402f81       2
+gf31.c                                       481            0x402f90               x
+gf31.c                                       481            0x402f90       1
+gf31.c                                       482            0x402f92        
+gf31.c                                       482            0x402f94        
+gf31.c                                       481            0x402f99        
+gf31.c                                       482            0x402f9d               x
+gf31.c                                       483            0x402f9d       1       x
+gf31.c                                       479            0x402fa4               x
+gf31.c                                       479            0x402fa4       1       x
+gf31.c                                       487            0x402fa4       2       x
+gf31.c                                       470            0x402fa4       3
+gf31.c                                       487            0x402fa8        
+gf31.c                                       470            0x402fac               x
+gf31.c                                       470            0x402fac       1       x
+gf31.c                                       470            0x402fb5        
+gf31.c                                       471            0x402fbd               x
+gf31.c                                       472            0x402fbd       1
+gf31.c                                       471            0x402fc1        
+gf31.c                                       474            0x402fc4        
+gf31.c                                       472            0x402fc9        
+gf31.c                                       471            0x402fd0        
+gf31.c                                       472            0x402fd3        
+gf31.c                                       472            0x402fda        
+gf31.c                                       474            0x402fdc        
+gf31.c                                       473            0x402fe0        
+gf31.c                                       474            0x402fe3        
+gf31.c                                       474            0x402fe9        
+gf31.c                                       475            0x402feb        
+gf31.c                                       475            0x402fef        
+gf31.c                                       475            0x402ff3        
+gf31.c                                       475            0x402ff8        
+gf31.c                                       475            0x402ffb        
+gf31.c                                       477            0x402ffe        
+gf31.c                                       476            0x403003        
+gf31.c                                       477            0x403006        
+gf31.c                                       473            0x40300e        
+gf31.c                                       476            0x403012        
+gf31.c                                       477            0x403015        
+gf31.c                                       471            0x40301c        
+gf31.c                                       472            0x403020               x
+gf31.c                                       473            0x403020       1       x
+gf31.c                                       473            0x403020       2
+gf31.c                                       474            0x403024               x
+gf31.c                                       475            0x403024       1       x
+gf31.c                                       476            0x403024       2       x
+gf31.c                                       476            0x403024       3
+gf31.c                                       477            0x403028               x
+gf31.c                                       477            0x403028       1
+gf31.c                                       478            0x40302b               x
+gf31.c                                       478            0x40302b       1
+gf31.c                                       479            0x40302f               x
+gf31.c                                       479            0x40302f       1       x
+gf31.c                                       480            0x40302f       2       x
+gf31.c                                       480            0x40302f       3
+gf31.c                                       481            0x403035               x
+gf31.c                                       481            0x403035       1
+gf31.c                                       482            0x403038        
+gf31.c                                       481            0x40303a        
+gf31.c                                       482            0x40303e               x
+gf31.c                                       483            0x40303e       1       x
+gf31.c                                       479            0x403047               x
+gf31.c                                       479            0x403047       1       x
+gf31.c                                       480            0x40304d               x
+gf31.c                                       480            0x40304d       1
+gf31.c                                       481            0x403052               x
+gf31.c                                       481            0x403052       1
+gf31.c                                       482            0x403055        
+gf31.c                                       481            0x403057        
+gf31.c                                       482            0x40305b               x
+gf31.c                                       483            0x40305b       1       x
+gf31.c                                       479            0x403064               x
+gf31.c                                       479            0x403064       1       x
+gf31.c                                       480            0x40306a               x
+gf31.c                                       480            0x40306a       1
+gf31.c                                       481            0x403070               x
+gf31.c                                       481            0x403070       1
+gf31.c                                       482            0x403072        
+gf31.c                                       482            0x403074        
+gf31.c                                       481            0x403079        
+gf31.c                                       482            0x40307d               x
+gf31.c                                       483            0x40307d       1       x
+gf31.c                                       479            0x403081               x
+gf31.c                                       479            0x403081       1       x
+gf31.c                                       480            0x403083               x
+gf31.c                                       480            0x403083       1
+gf31.c                                       481            0x403089               x
+gf31.c                                       481            0x403089       1
+gf31.c                                       482            0x40308b        
+gf31.c                                       482            0x40308d        
+gf31.c                                       481            0x403092        
+gf31.c                                       482            0x403096               x
+gf31.c                                       483            0x403096       1       x
+gf31.c                                       479            0x40309a               x
+gf31.c                                       479            0x40309a       1       x
+gf31.c                                       480            0x40309c               x
+gf31.c                                       480            0x40309c       1
+gf31.c                                       481            0x4030a2               x
+gf31.c                                       481            0x4030a2       1
+gf31.c                                       482            0x4030a4        
+gf31.c                                       482            0x4030a6        
+gf31.c                                       481            0x4030ab        
+gf31.c                                       482            0x4030af               x
+gf31.c                                       483            0x4030af       1       x
+gf31.c                                       479            0x4030b3               x
+gf31.c                                       479            0x4030b3       1       x
+gf31.c                                       480            0x4030b5               x
+gf31.c                                       480            0x4030b5       1
+gf31.c                                       481            0x4030bb               x
+gf31.c                                       481            0x4030bb       1
+gf31.c                                       482            0x4030bd        
+gf31.c                                       482            0x4030bf        
+gf31.c                                       481            0x4030c4        
+gf31.c                                       482            0x4030c8               x
+gf31.c                                       483            0x4030c8       1       x
+gf31.c                                       479            0x4030cc               x
+gf31.c                                       479            0x4030cc       1       x
+gf31.c                                       480            0x4030ce               x
+gf31.c                                       480            0x4030ce       1
+gf31.c                                       481            0x4030d2               x
+gf31.c                                       481            0x4030d2       1
+gf31.c                                       482            0x4030d4        
+gf31.c                                       482            0x4030d6        
+gf31.c                                       481            0x4030db        
+gf31.c                                       482            0x4030df               x
+gf31.c                                       483            0x4030df       1       x
+gf31.c                                       479            0x4030e3               x
+gf31.c                                       479            0x4030e3       1       x
+gf31.c                                       480            0x4030e5               x
+gf31.c                                       480            0x4030e5       1
+gf31.c                                       480            0x4030ef        
+gf31.c                                       489            0x403100               x
+gf31.c                                       490            0x403109               x
+gf31.c                                       491            0x40310e        
+gf31.c                                       491            0x403113        
+gf31.c                                       491            0x403114        
+gf31.c                                       491            0x403116        
+gf31.c                                       491            0x403118        
+gf31.c                                       490            0x40311c        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/sample.h:
+sample.h                                      34            0x403121               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/rnd.c:
+rnd.c                                         17            0x403121       1       x
+rnd.c                                         18            0x403121       2       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/xof.c:
+xof.c                                         13            0x403121       3       x
+xof.c                                         14            0x403121       4       x
+xof.c                                         15            0x403139        
+
+../../mqom_cat1_gf31_short/rng.c:
+rng.c                                        117            0x403140               x
+rng.c                                        117            0x403140       1
+rng.c                                        117            0x40314a               x
+rng.c                                        126            0x40315a               x
+rng.c                                        126            0x40315f               x
+rng.c                                        128            0x403167               x
+rng.c                                        128            0x40316c        
+rng.c                                        128            0x403183               x
+rng.c                                        131            0x403188               x
+rng.c                                        131            0x40319a        
+rng.c                                        131            0x4031a5               x
+rng.c                                        136            0x4031aa               x
+rng.c                                        137            0x4031b2               x
+rng.c                                        137            0x4031c7        
+rng.c                                        137            0x4031c9        
+rng.c                                        108            0x4031d0               x
+rng.c                                        109            0x4031df               x
+rng.c                                        109            0x4031e4        
+rng.c                                        137            0x4031e4       1       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/rnd.c:
+rnd.c                                          3            0x4031f0               x
+rnd.c                                          3            0x4031f0       1
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/xof.c:
+xof.c                                          5            0x4031f2               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/rnd.c:
+rnd.c                                          3            0x4031f8               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/xof.c:
+xof.c                                          5            0x4031fc               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/rnd.c:
+rnd.c                                          3            0x4031fe               x
+rnd.c                                          3            0x403201        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/xof.c:
+xof.c                                          5            0x403205               x
+xof.c                                          5            0x40320f        
+xof.c                                          5            0x403214        
+xof.c                                          8            0x403214       1       x
+xof.c                                          8            0x403224        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/rnd.c:
+rnd.c                                          9            0x403224       1       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/xof.c:
+xof.c                                         11            0x403228               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/rnd.c:
+rnd.c                                          9            0x40322b               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/xof.c:
+xof.c                                         11            0x40322c               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/rnd.c:
+rnd.c                                          9            0x40322e               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/xof.c:
+xof.c                                         11            0x403230               x
+xof.c                                         11            0x403235        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                       6            0x403240               x
+keygen.c                                       6            0x403240       1
+
+../../mqom_cat1_gf31_short/rng.c:
+rng.c                                        165            0x403241        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                       6            0x403246        
+keygen.c                                       6            0x40325d        
+keygen.c                                       8            0x40327a               x
+keygen.c                                       9            0x40327a       1       x
+
+../../mqom_cat1_gf31_short/rng.c:
+rng.c                                        158            0x40327a       2       x
+rng.c                                        166            0x40327a       3
+rng.c                                        166            0x403281        
+rng.c                                        166            0x403289        
+rng.c                                        167            0x403290        
+rng.c                                        166            0x403297        
+rng.c                                        166            0x40329f        
+rng.c                                        167            0x4032a6        
+rng.c                                        166            0x4032ad        
+rng.c                                        166            0x4032b5        
+rng.c                                        167            0x4032bc        
+rng.c                                        166            0x4032c3        
+rng.c                                        166            0x4032cb        
+rng.c                                        167            0x4032d2        
+rng.c                                        166            0x4032d9        
+rng.c                                        166            0x4032e1        
+rng.c                                        167            0x4032e8        
+rng.c                                        166            0x4032ef        
+rng.c                                        166            0x4032f7        
+rng.c                                        167            0x4032fe        
+rng.c                                        166            0x403305        
+rng.c                                        166            0x40330d        
+rng.c                                        167            0x403314        
+rng.c                                        166            0x40331b        
+rng.c                                        166            0x403323        
+rng.c                                        167            0x40332a        
+rng.c                                        166            0x403331        
+rng.c                                        166            0x403339        
+rng.c                                        167            0x403340        
+rng.c                                        166            0x403347        
+rng.c                                        166            0x40334f        
+rng.c                                        167            0x403356        
+rng.c                                        166            0x40335d        
+rng.c                                        166            0x403365        
+rng.c                                        167            0x40336c        
+rng.c                                        166            0x403373        
+rng.c                                        166            0x40337b        
+rng.c                                        167            0x403382        
+rng.c                                        166            0x403389        
+rng.c                                        166            0x403391        
+rng.c                                        167            0x403398        
+rng.c                                        166            0x40339f        
+rng.c                                        166            0x4033a7        
+rng.c                                        167            0x4033ae        
+rng.c                                        166            0x4033b5        
+rng.c                                        166            0x4033bd        
+rng.c                                        167            0x4033c4        
+rng.c                                        166            0x4033cb        
+rng.c                                        167            0x4033d3        
+rng.c                                        167            0x4033da        
+rng.c                                        165            0x4033dc        
+rng.c                                        169            0x4033e1        
+rng.c                                        173            0x4033ee        
+rng.c                                        173            0x4033f6        
+rng.c                                        173            0x4033fb        
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            29            0x403403        
+
+../../mqom_cat1_gf31_short/rng.c:
+rng.c                                        200            0x40340c        
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            29            0x40341c        
+string_fortified.h                            29            0x403425        
+
+../../mqom_cat1_gf31_short/rng.c:
+rng.c                                        191            0x403425       1       x
+rng.c                                        191            0x403425       2
+rng.c                                        200            0x403430        
+rng.c                                        200            0x403434        
+rng.c                                        200            0x40343b        
+rng.c                                        200            0x403443        
+rng.c                                        201            0x40344a        
+rng.c                                        200            0x403451        
+rng.c                                        200            0x403459        
+rng.c                                        201            0x403460        
+rng.c                                        200            0x403467        
+rng.c                                        200            0x40346f        
+rng.c                                        201            0x403476        
+rng.c                                        200            0x40347d        
+rng.c                                        200            0x403485        
+rng.c                                        201            0x40348c        
+rng.c                                        200            0x403493        
+rng.c                                        200            0x40349b        
+rng.c                                        201            0x4034a2        
+rng.c                                        200            0x4034a9        
+rng.c                                        200            0x4034b1        
+rng.c                                        201            0x4034b8        
+rng.c                                        200            0x4034bf        
+rng.c                                        200            0x4034c7        
+rng.c                                        201            0x4034ce        
+rng.c                                        200            0x4034d5        
+rng.c                                        200            0x4034dd        
+rng.c                                        201            0x4034e4        
+rng.c                                        200            0x4034eb        
+rng.c                                        200            0x4034f3        
+rng.c                                        201            0x4034fa        
+rng.c                                        200            0x403501        
+rng.c                                        200            0x403509        
+rng.c                                        201            0x403510        
+rng.c                                        200            0x403517        
+rng.c                                        200            0x40351f        
+rng.c                                        201            0x403526        
+rng.c                                        200            0x40352d        
+rng.c                                        200            0x403535        
+rng.c                                        201            0x40353c        
+rng.c                                        200            0x403543        
+rng.c                                        200            0x40354b        
+rng.c                                        201            0x403552        
+rng.c                                        200            0x403559        
+rng.c                                        200            0x403561        
+rng.c                                        201            0x403568        
+rng.c                                        200            0x40356f        
+rng.c                                        200            0x403577        
+rng.c                                        201            0x40357e        
+rng.c                                        200            0x403585        
+rng.c                                        201            0x40358d        
+rng.c                                        201            0x403594        
+rng.c                                        208            0x403594       1
+rng.c                                        197            0x403597        
+rng.c                                        208            0x40359b        
+rng.c                                        197            0x4035a0        
+rng.c                                        197            0x4035a9        
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            29            0x4035a9       1
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                      11            0x4035c4        
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            29            0x4035d4        
+string_fortified.h                            29            0x4035e4        
+string_fortified.h                            29            0x4035ec        
+
+../../mqom_cat1_gf31_short/rng.c:
+rng.c                                        185            0x4035ec       1
+rng.c                                        185            0x4035f2        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                      10            0x4035f2       1       x
+keygen.c                                      11            0x4035f2       2       x
+keygen.c                                      12            0x4035f7               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     46            0x4035f7       1
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                      12            0x4035fc        
+keygen.c                                      14            0x403601               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     44            0x403601       1       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                      12            0x403601       2
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     46            0x403609        
+witness.c                                     46            0x40360e        
+witness.c                                     47            0x403613        
+witness.c                                     46            0x403618        
+witness.c                                     46            0x40361c        
+witness.c                                     47            0x40361f        
+witness.c                                     47            0x403624        
+witness.c                                     48            0x403627        
+witness.c                                     49            0x40362f        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/field.h:
+field.h                                       53            0x403637        
+field.h                                       53            0x40363c        
+field.h                                       53            0x403649        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/sample.h:
+sample.h                                      31            0x403649       1
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     55            0x40364d        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/sample.h:
+sample.h                                      30            0x403650               x
+sample.h                                      31            0x403650       1       x
+sample.h                                      31            0x403650       2
+sample.h                                      33            0x403659               x
+sample.h                                      33            0x403659       1
+sample.h                                      33            0x403662        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                      8            0x403662       1
+witness.c                                     58            0x403666        
+witness.c                                      7            0x403669               x
+witness.c                                      8            0x403669       1       x
+witness.c                                      8            0x403669       2
+witness.c                                      8            0x403672        
+witness.c                                     62            0x403672       1
+witness.c                                     23            0x403688               x
+witness.c                                     28            0x403688       1       x
+witness.c                                     62            0x403688       2
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31.c:
+gf31.c                                        82            0x403690               x
+gf31.c                                        82            0x403690       1
+gf31.c                                        82            0x403695        
+gf31.c                                        82            0x4036c3        
+gf31.c                                        82            0x4036d3        
+gf31.c                                        82            0x4036d7        
+gf31.c                                        82            0x4036e7        
+gf31.c                                        81            0x4036ef               x
+gf31.c                                        81            0x4036ef       1       x
+gf31.c                                        81            0x403718        
+gf31.c                                        81            0x40371d        
+gf31.c                                        81            0x403731        
+gf31.c                                        82            0x403734               x
+gf31.c                                        82            0x403734       1
+gf31.c                                        82            0x403738        
+gf31.c                                        82            0x403741        
+gf31.c                                        82            0x40376d        
+gf31.c                                        82            0x40377c        
+gf31.c                                        82            0x403780        
+gf31.c                                        82            0x40378f        
+gf31.c                                        81            0x403797               x
+gf31.c                                        81            0x403797       1       x
+gf31.c                                        82            0x4037c0               x
+gf31.c                                        82            0x4037c0       1
+gf31.c                                        82            0x4037c7        
+gf31.c                                        82            0x4037ca        
+gf31.c                                        82            0x4037cf        
+gf31.c                                        82            0x4037d4        
+gf31.c                                        82            0x4037d8        
+gf31.c                                        81            0x4037db               x
+gf31.c                                        81            0x4037df               x
+gf31.c                                        81            0x4037e8        
+gf31.c                                        83            0x4037e8       1       x
+gf31.c                                        83            0x4037e8       2
+gf31.c                                        58            0x4037e8       3       x
+gf31.c                                        59            0x4037e8       4       x
+gf31.c                                        83            0x4037e8       5
+gf31.c                                        83            0x4037f8        
+gf31.c                                        83            0x4037fc        
+gf31.c                                        83            0x403805        
+gf31.c                                        59            0x403805       1
+gf31.c                                        59            0x403811        
+gf31.c                                        60            0x403813               x
+gf31.c                                        61            0x40381d               x
+gf31.c                                        61            0x40381d       1
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     36            0x40381d       2
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31.c:
+gf31.c                                        61            0x403820        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     36            0x403823               x
+witness.c                                     34            0x403823       1       x
+witness.c                                     34            0x403823       2       x
+witness.c                                     34            0x403826        
+witness.c                                     39            0x40382f               x
+witness.c                                     39            0x40382f       1
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31-matrix.c:
+gf31-matrix.c                                 13            0x403834        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     39            0x40383e        
+witness.c                                     40            0x403842               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/field.h:
+field.h                                       29            0x403842       1       x
+field.h                                       30            0x403842       2       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31-matrix.c:
+gf31-matrix.c                                 12            0x403842       3       x
+gf31-matrix.c                                 13            0x403842       4
+gf31-matrix.c                                 18            0x40384a        
+gf31-matrix.c                                 18            0x403853        
+gf31-matrix.c                                 18            0x40387f        
+gf31-matrix.c                                 13            0x403890        
+gf31-matrix.c                                 18            0x403893        
+gf31-matrix.c                                 18            0x4038a3        
+gf31-matrix.c                                 18            0x4038a7        
+gf31-matrix.c                                 18            0x4038b7        
+gf31-matrix.c                                 18            0x4038bf        
+gf31-matrix.c                                 18            0x4038d2        
+gf31-matrix.c                                 18            0x403901        
+gf31-matrix.c                                 20            0x403901       1
+gf31-matrix.c                                 18            0x40390b        
+gf31-matrix.c                                 18            0x40391d        
+gf31-matrix.c                                 18            0x403921        
+gf31-matrix.c                                 18            0x403930        
+gf31-matrix.c                                 18            0x403938        
+gf31-matrix.c                                 18            0x403941        
+gf31-matrix.c                                 18            0x403961        
+gf31-matrix.c                                 20            0x403961       1
+gf31-matrix.c                                 20            0x40396b        
+gf31-matrix.c                                 20            0x403977        
+gf31-matrix.c                                 21            0x403977       1
+gf31-matrix.c                                 21            0x40397f        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     28            0x40397f       1       x
+witness.c                                     28            0x40397f       2       x
+witness.c                                     30            0x4039a2               x
+witness.c                                     30            0x4039a2       1
+witness.c                                     62            0x4039a8        
+witness.c                                     33            0x4039ce        
+witness.c                                     33            0x4039e6               x
+witness.c                                     34            0x4039e6       1       x
+witness.c                                     34            0x4039e6       2       x
+witness.c                                     34            0x4039e6       3       x
+witness.c                                     35            0x4039f0               x
+witness.c                                     35            0x4039f0       1
+witness.c                                     35            0x4039f9        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31.c:
+gf31.c                                        79            0x4039fc               x
+gf31.c                                        80            0x4039fc       1       x
+gf31.c                                        81            0x4039fc       2       x
+gf31.c                                        81            0x4039fc       3       x
+gf31.c                                        81            0x4039fc       4       x
+gf31.c                                        80            0x403a06        
+gf31.c                                        81            0x403a08        
+gf31.c                                        81            0x403a0f        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/sample.h:
+sample.h                                      34            0x403a0f       1       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/rnd.c:
+rnd.c                                         17            0x403a0f       2       x
+rnd.c                                         18            0x403a0f       3       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/xof.c:
+xof.c                                         13            0x403a0f       4       x
+xof.c                                         14            0x403a0f       5       x
+xof.c                                         14            0x403a21        
+xof.c                                         15            0x403a29        
+xof.c                                         15            0x403a2e        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                      15            0x403a2e       1       x
+keygen.c                                      15            0x403a2e       2
+keygen.c                                      16            0x403a3e               x
+keygen.c                                      17            0x403a3e       1
+keygen.c                                      17            0x403a59        
+keygen.c                                      17            0x403a65        
+
+../../mqom_cat1_gf31_short/rng.c:
+rng.c                                        200            0x403a66        
+rng.c                                        203            0x403a6d        
+rng.c                                        204            0x403a71        
+rng.c                                        204            0x403a76        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                      7            0x403a76       1       x
+witness.c                                     11            0x403a76       2       x
+witness.c                                     11            0x403a76       3
+witness.c                                     11            0x403a80        
+witness.c                                     12            0x403a84               x
+witness.c                                     12            0x403a84       1
+witness.c                                     12            0x403a8e        
+witness.c                                     13            0x403a92               x
+witness.c                                     14            0x403a92       1       x
+witness.c                                     14            0x403a92       2
+witness.c                                     15            0x403a9a        
+witness.c                                     14            0x403aa0        
+witness.c                                     15            0x403aaa               x
+witness.c                                     14            0x403aaa       1
+witness.c                                     15            0x403ab2        
+witness.c                                     16            0x403ab7               x
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            57            0x403ab7       1       x
+string_fortified.h                            59            0x403ab7       2       x
+string_fortified.h                            59            0x403ab7       3
+string_fortified.h                            59            0x403ac7        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     17            0x403ac7       1       x
+witness.c                                     17            0x403ac7       2       x
+witness.c                                     17            0x403ac7       3       x
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            59            0x403ac7       4
+string_fortified.h                            59            0x403ad5        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     18            0x403ad5       1       x
+witness.c                                     18            0x403ad5       2
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31.c:
+gf31.c                                       461            0x403adf        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     18            0x403ae4        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/field.h:
+field.h                                       53            0x403ae8               x
+field.h                                       53            0x403ae8       1       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31.c:
+gf31.c                                       459            0x403ae8       2       x
+gf31.c                                       461            0x403ae8       3
+gf31.c                                       462            0x403af0        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/sample.h:
+sample.h                                      30            0x403af2               x
+sample.h                                      31            0x403af2       1       x
+sample.h                                      33            0x403af2       2       x
+sample.h                                      34            0x403af2       3       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/rnd.c:
+rnd.c                                         17            0x403af2       4       x
+rnd.c                                         18            0x403af2       5       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/xof.c:
+xof.c                                         13            0x403af2       6       x
+xof.c                                         14            0x403af2       7       x
+xof.c                                         14            0x403b04        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31.c:
+gf31.c                                       469            0x403b04       1
+gf31.c                                       470            0x403b07        
+gf31.c                                       474            0x403b10        
+gf31.c                                       472            0x403b15        
+gf31.c                                       474            0x403b19        
+gf31.c                                       471            0x403b1d        
+gf31.c                                       472            0x403b20        
+gf31.c                                       473            0x403b27        
+gf31.c                                       474            0x403b2a        
+gf31.c                                       474            0x403b30        
+gf31.c                                       475            0x403b32        
+gf31.c                                       471            0x403b36        
+gf31.c                                       472            0x403b39        
+gf31.c                                       472            0x403b3f        
+gf31.c                                       475            0x403b41        
+gf31.c                                       475            0x403b46        
+gf31.c                                       475            0x403b4d        
+gf31.c                                       477            0x403b50        
+gf31.c                                       476            0x403b55        
+gf31.c                                       477            0x403b58        
+gf31.c                                       473            0x403b60        
+gf31.c                                       476            0x403b64        
+gf31.c                                       477            0x403b67        
+gf31.c                                       471            0x403b6e        
+gf31.c                                       473            0x403b72        
+gf31.c                                       476            0x403b76        
+gf31.c                                       477            0x403b7a        
+gf31.c                                       478            0x403b7d        
+gf31.c                                       480            0x403b81        
+gf31.c                                       480            0x403b8b        
+gf31.c                                       480            0x403b95        
+gf31.c                                       480            0x403b9f        
+gf31.c                                       480            0x403ba9        
+gf31.c                                       481            0x403bae        
+gf31.c                                       482            0x403bb0        
+gf31.c                                       483            0x403bb2        
+gf31.c                                       481            0x403bbb        
+gf31.c                                       483            0x403bbf        
+gf31.c                                       479            0x403bc3        
+gf31.c                                       480            0x403bc9        
+gf31.c                                       481            0x403bcf        
+gf31.c                                       482            0x403bd1        
+gf31.c                                       483            0x403bd3        
+gf31.c                                       481            0x403bdc        
+gf31.c                                       483            0x403be0        
+gf31.c                                       479            0x403be4        
+gf31.c                                       480            0x403be6        
+gf31.c                                       481            0x403beb        
+gf31.c                                       482            0x403bed        
+gf31.c                                       483            0x403bef        
+gf31.c                                       481            0x403bf8        
+gf31.c                                       483            0x403bfc        
+gf31.c                                       479            0x403c00        
+gf31.c                                       480            0x403c02        
+gf31.c                                       481            0x403c0c        
+gf31.c                                       482            0x403c0e        
+gf31.c                                       483            0x403c10        
+gf31.c                                       481            0x403c19        
+gf31.c                                       483            0x403c1d        
+gf31.c                                       470            0x403c24        
+gf31.c                                       487            0x403c28        
+gf31.c                                       470            0x403c2c        
+gf31.c                                       470            0x403c35        
+gf31.c                                       481            0x403c40        
+gf31.c                                       482            0x403c43        
+gf31.c                                       481            0x403c45        
+gf31.c                                       479            0x403c56        
+gf31.c                                       489            0x403c5c        
+gf31.c                                       490            0x403c65        
+gf31.c                                       490            0x403c6d        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     17            0x403c6d       1       x
+witness.c                                     17            0x403c6d       2       x
+witness.c                                     17            0x403c76        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/field.h:
+field.h                                       53            0x403c87        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     19            0x403c8c               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/field.h:
+field.h                                       53            0x403c8c       1       x
+field.h                                       53            0x403c8c       2       x
+field.h                                       53            0x403c91        
+field.h                                       53            0x403c9f        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     63            0x403c9f       1
+witness.c                                     63            0x403ca7        
+witness.c                                     21            0x403cab        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31.c:
+gf31.c                                       481            0x403cb0        
+gf31.c                                       482            0x403cb3        
+gf31.c                                       481            0x403cb5        
+gf31.c                                       483            0x403cb9        
+gf31.c                                       479            0x403cc6        
+gf31.c                                       479            0x403cce        
+
+../../mqom_cat1_gf31_short/rng.c:
+rng.c                                        200            0x403cce       1
+rng.c                                        200            0x403cd6        
+rng.c                                        200            0x403cde        
+rng.c                                        200            0x403ce6        
+rng.c                                        200            0x403cf2        
+rng.c                                        200            0x403cfe        
+rng.c                                        200            0x403d0a        
+rng.c                                        200            0x403d16        
+rng.c                                        200            0x403d22        
+rng.c                                        200            0x403d2e        
+rng.c                                        200            0x403d3a        
+rng.c                                        200            0x403d46        
+rng.c                                        200            0x403d52        
+rng.c                                        200            0x403d5e        
+rng.c                                        200            0x403d6a        
+rng.c                                        200            0x403d76        
+rng.c                                        165            0x403d76       1
+rng.c                                        165            0x403d80        
+rng.c                                        165            0x403d8a        
+rng.c                                        165            0x403d94        
+rng.c                                        165            0x403d9b        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/gf31.c:
+gf31.c                                       481            0x403d9b       1
+gf31.c                                       482            0x403d9d        
+gf31.c                                       483            0x403d9f        
+gf31.c                                       481            0x403da8        
+gf31.c                                       483            0x403dac        
+gf31.c                                       479            0x403db0        
+gf31.c                                       481            0x403dbb        
+gf31.c                                       482            0x403dbd        
+gf31.c                                       483            0x403dbf        
+gf31.c                                       481            0x403dc8        
+gf31.c                                       483            0x403dcc        
+gf31.c                                       479            0x403dd0        
+gf31.c                                       479            0x403ddb        
+gf31.c                                       479            0x403de8        
+gf31.c                                        82            0x403de8       1       x
+gf31.c                                        82            0x403de8       2
+gf31.c                                        82            0x403ded        
+gf31.c                                        82            0x403df0        
+gf31.c                                        82            0x403df5        
+gf31.c                                        81            0x403df9        
+gf31.c                                        82            0x403dfd        
+gf31.c                                        81            0x403e00               x
+gf31.c                                        81            0x403e00       1       x
+gf31.c                                        82            0x403e09               x
+gf31.c                                        82            0x403e09       1
+gf31.c                                        82            0x403e12        
+gf31.c                                        82            0x403e17        
+gf31.c                                        81            0x403e1b        
+gf31.c                                        82            0x403e1f        
+gf31.c                                        81            0x403e22               x
+gf31.c                                        81            0x403e22       1       x
+gf31.c                                        82            0x403e2b               x
+gf31.c                                        82            0x403e2b       1
+gf31.c                                        82            0x403e30        
+gf31.c                                        82            0x403e33        
+gf31.c                                        82            0x403e38        
+gf31.c                                        81            0x403e3c        
+gf31.c                                        82            0x403e40        
+gf31.c                                        81            0x403e43               x
+gf31.c                                        81            0x403e43       1       x
+gf31.c                                        82            0x403e4c               x
+gf31.c                                        82            0x403e4c       1
+gf31.c                                        82            0x403e55        
+gf31.c                                        82            0x403e5a        
+gf31.c                                        81            0x403e5e        
+gf31.c                                        82            0x403e62        
+gf31.c                                        81            0x403e65               x
+gf31.c                                        81            0x403e65       1       x
+gf31.c                                        82            0x403e6e               x
+gf31.c                                        82            0x403e6e       1
+gf31.c                                        82            0x403e77        
+gf31.c                                        82            0x403e7c        
+gf31.c                                        81            0x403e80        
+gf31.c                                        82            0x403e84        
+gf31.c                                        81            0x403e87               x
+gf31.c                                        81            0x403e87       1       x
+gf31.c                                        82            0x403e90               x
+gf31.c                                        82            0x403e90       1
+gf31.c                                        82            0x403e99        
+gf31.c                                        82            0x403e9e        
+gf31.c                                        81            0x403ea2        
+gf31.c                                        82            0x403ea6        
+gf31.c                                        81            0x403ea9               x
+gf31.c                                        81            0x403ea9       1       x
+gf31.c                                        82            0x403eb2               x
+gf31.c                                        82            0x403eb2       1
+gf31.c                                        82            0x403ebb        
+gf31.c                                        82            0x403ec0        
+gf31.c                                        81            0x403ec4        
+gf31.c                                        82            0x403ec8        
+gf31.c                                        81            0x403ecb               x
+gf31.c                                        81            0x403ecb       1       x
+gf31.c                                        82            0x403ed4               x
+gf31.c                                        82            0x403ed4       1
+gf31.c                                        82            0x403edd        
+gf31.c                                        82            0x403ee2        
+gf31.c                                        81            0x403ee6        
+gf31.c                                        82            0x403eea        
+gf31.c                                        81            0x403eed               x
+gf31.c                                        81            0x403eed       1       x
+gf31.c                                        82            0x403ef6               x
+gf31.c                                        82            0x403ef6       1
+gf31.c                                        82            0x403eff        
+gf31.c                                        82            0x403f04        
+gf31.c                                        81            0x403f08        
+gf31.c                                        82            0x403f0c        
+gf31.c                                        81            0x403f0f               x
+gf31.c                                        81            0x403f0f       1       x
+gf31.c                                        82            0x403f18               x
+gf31.c                                        82            0x403f18       1
+gf31.c                                        82            0x403f21        
+gf31.c                                        82            0x403f26        
+gf31.c                                        81            0x403f2a        
+gf31.c                                        82            0x403f2e        
+gf31.c                                        81            0x403f31               x
+gf31.c                                        81            0x403f31       1       x
+gf31.c                                        82            0x403f3a               x
+gf31.c                                        82            0x403f3a       1
+gf31.c                                        82            0x403f43        
+gf31.c                                        82            0x403f48        
+gf31.c                                        81            0x403f4c        
+gf31.c                                        82            0x403f50        
+gf31.c                                        81            0x403f53               x
+gf31.c                                        81            0x403f53       1       x
+gf31.c                                        82            0x403f5c               x
+gf31.c                                        82            0x403f5c       1
+gf31.c                                        82            0x403f65        
+gf31.c                                        82            0x403f6a        
+gf31.c                                        81            0x403f6e        
+gf31.c                                        82            0x403f72        
+gf31.c                                        81            0x403f75               x
+gf31.c                                        81            0x403f75       1       x
+gf31.c                                        82            0x403f7e               x
+gf31.c                                        82            0x403f7e       1
+gf31.c                                        82            0x403f87        
+gf31.c                                        81            0x403f8c        
+gf31.c                                        82            0x403f8f        
+gf31.c                                        82            0x403f93        
+gf31.c                                        81            0x403f96               x
+gf31.c                                        81            0x403f96       1       x
+gf31.c                                        82            0x403f9e               x
+gf31.c                                        82            0x403f9e       1
+gf31.c                                        82            0x403fa2        
+gf31.c                                        82            0x403fa9        
+gf31.c                                        82            0x403fac        
+gf31.c                                        81            0x403fae               x
+gf31.c                                        81            0x403fae       1       x
+gf31.c                                        81            0x403fb3        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                      17            0x403fb3       1
+
+../../mqom_cat1_gf31_short/rng.c:
+rng.c                                        165            0x403fb8        
+rng.c                                        165            0x403fc2        
+rng.c                                        165            0x403fcc        
+rng.c                                        165            0x403fd6        
+rng.c                                        165            0x403fe0        
+rng.c                                        165            0x403fea        
+rng.c                                        165            0x403ff4        
+rng.c                                        165            0x403ffe        
+rng.c                                        165            0x404008        
+rng.c                                        165            0x404012        
+rng.c                                          -            0x40401c
+
+
+/usr/include/x86_64-linux-gnu/bits/test_harness_crypto_sign_keypair.c:
+test_harness_crypto_sign_keypair.c            12            0x402b40               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                      97            0x402b49        
+
+/usr/include/x86_64-linux-gnu/bits/test_harness_crypto_sign_keypair.c:
+test_harness_crypto_sign_keypair.c            12            0x402b53        
+test_harness_crypto_sign_keypair.c            13            0x402b63               x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                     153            0x402b63       1       x
+keygen.c                                      94            0x402b63       2       x
+keygen.c                                      97            0x402b63       3
+keygen.c                                      98            0x402b6a        
+keygen.c                                      98            0x402b6e        
+
+/usr/include/x86_64-linux-gnu/bits/test_harness_crypto_sign_keypair.c:
+test_harness_crypto_sign_keypair.c            14            0x402b6e       1       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                      56            0x402b75               x
+keygen.c                                      64            0x402b75       1
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/serialization-specific.c:
+serialization-specific.c                       9            0x402b7a               x
+serialization-specific.c                      10            0x402b7a       1       x
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            26            0x402b7a       2       x
+string_fortified.h                            29            0x402b7a       3       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/mpc-compression.h:
+mpc-compression.h                              8            0x402b7a       4
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            29            0x402b81        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/serialization-specific.c:
+serialization-specific.c                      11            0x402b85        
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            29            0x402b89        
+string_fortified.h                            29            0x402b91        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/serialization-specific.c:
+serialization-specific.c                      11            0x402b91       1       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/mpc-compression.h:
+mpc-compression.h                              7            0x402b91       2       x
+mpc-compression.h                              8            0x402b91       3       x
+mpc-compression.h                              8            0x402b96        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                      81            0x402b96       1       x
+keygen.c                                      89            0x402b96       2
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/serialization-specific.c:
+serialization-specific.c                       9            0x402b9b               x
+serialization-specific.c                      10            0x402b9b       1       x
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            26            0x402b9b       2       x
+string_fortified.h                            29            0x402b9b       3       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/mpc-compression.h:
+mpc-compression.h                              8            0x402b9b       4
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            29            0x402ba2        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/serialization-specific.c:
+serialization-specific.c                      11            0x402ba6        
+
+../../mqom_cat1_gf31_short/generator/string_fortified.h:
+string_fortified.h                            29            0x402baa        
+string_fortified.h                            29            0x402bb2        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/serialization-specific.c:
+serialization-specific.c                      11            0x402bb2       1       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/mpc-compression.h:
+mpc-compression.h                              7            0x402bb2       2       x
+mpc-compression.h                              8            0x402bb2       3       x
+mpc-compression.h                              8            0x402bb7        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/serialization-specific.c:
+serialization-specific.c                      23            0x402bb7       1       x
+serialization-specific.c                      24            0x402bb7       2       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/mpc-compression.h:
+mpc-compression.h                              7            0x402bb7       3       x
+mpc-compression.h                              8            0x402bb7       4       x
+mpc-compression.h                              8            0x402bc5        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                      32            0x402bc5       1       x
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/witness.c:
+witness.c                                     67            0x402bc5       2       x
+witness.c                                     68            0x402bc5       3       x
+witness.c                                     68            0x402bcf        
+
+/home/old_image/mpc-in-the-head/mqom/Optimized_Implementation/binsec/mqom_cat1_gf31_short/keygen.c:
+keygen.c                                      35            0x402bcf       1
+keygen.c                                      38            0x402bd9        
+keygen.c                                      38            0x402bde        
+keygen.c                                      39            0x402be5        
+keygen.c                                       -            0x402bec
+
+
+mqom_keypair/test_harness_crypto_sign_keypair.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/generator/rng.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/rnd.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/hash.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/xof.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/gf31-matrix.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/gf31.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/mpc.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/witness.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/serialization-specific.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/precomputed.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/keygen.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/sign.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/views.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/commit.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/sign-mpcith-hypercube.c:
+File name                            Line number    Starting address    View    Stmt
+
+../../mqom_cat1_gf31_short/tree.c:
+File name                            Line number    Starting address    View    Stmt
+

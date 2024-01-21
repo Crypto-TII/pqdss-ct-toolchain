@@ -1,0 +1,24 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo_3/mayo_sign/test_harness_crypto_sign.c
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+stdint.h
+-
+ctype.h
+-
+../../../../src/mayo_3/api.h
+/tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/src/mayo_3/api.h
+
+/tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/src/mayo_3/api.h
+

@@ -1,0 +1,31 @@
+digraph "DFG for 'file ../../../vox_sign/api.c line 91 to file ../../../vox_sign/api.c line 98 '  "{
+label="DFG for 'file ../../../vox_sign/api.c line 91 to file ../../../vox_sign/api.c line 98 ' ";
+node_347[shape=ellipse,style=solid,label="cmp"]
+node_350[shape=ellipse,style=dashed,label="Memory 9"]
+"node_347"->"node_350" [style=dashed]
+node_353[shape=ellipse,style=solid,label="call1"]
+"node_347"->"node_353" [style=dashed]
+node_355[shape=ellipse,style=solid,label="cmp2"]
+"node_347"->"node_355" [style=dashed]
+node_348[shape=octagon,style=solid,label="icmp"]
+"node_348"->"node_347"
+node_349[shape=octagon,style=solid,label="getelementptr"]
+"node_349"->"node_350"
+"node_350"->"node_348"
+"node_350"->"node_349"
+node_354[shape=doubleoctagon,style=solid,label="Call VOX_sign_core"]
+"node_350"->"node_354"
+node_357[shape=octagon,style=solid,label="getelementptr"]
+"node_350"->"node_357"
+node_351[shape=doubleoctagon,style=solid,label="Call VOX_expand_sk"]
+"node_351"->"node_350"
+node_352[shape=ellipse,style=dashed,label="Memory 8"]
+"node_352"->"node_351"
+node_356[shape=octagon,style=solid,label="icmp"]
+"node_353"->"node_356"
+"node_354"->"node_353"
+"node_355"->"node_350" [style=dashed]
+"node_356"->"node_355"
+"node_357"->"node_350"
+}
+

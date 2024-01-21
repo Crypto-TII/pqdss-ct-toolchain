@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/code/multivariate/mayo/Optimized_Implementation/dudect/src/mayo_2/mayo_keypair/dude_crypto_sign_keypair.c
+stdio.h
+-
+sys/types.h
+-
+unistd.h
+-
+string.h
+-
+stdlib.h
+-
+dudect.h
+-
+../../../../src/mayo_2/api.h
+/home/code/multivariate/mayo/Optimized_Implementation/src/mayo_2/api.h
+
+/home/code/multivariate/mayo/Optimized_Implementation/src/mayo_2/api.h
+

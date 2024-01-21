@@ -1,0 +1,10 @@
+[checkct:result] Instruction 0x00489897 has control flow leak (0.088s)
+[checkct:result] Instruction 0x004ae1cb has memory leak (0.257s)
+[checkct:result] Instruction 0x004ae1d2 has control flow leak (1.512s)
+[checkct:result] Instruction 0x004ae1da has control flow leak (1.836s)
+[checkct:result] Instruction 0x004ae1eb has memory leak (2.387s)
+[checkct:result] Program status is : insecure (2.693)
+[checkct:info] 5 visited paths covering 108 instructions
+[checkct:info] 7 / 10 control flow checks pass
+[checkct:info] 40 / 42 memory access checks pass
+

@@ -1,0 +1,413 @@
+[kernel:result] 
+                ELF Header:
+                  Class:               ELF64                        
+                  Data:                2's complement, little endian
+                  Type:                DYN                          
+                  OS/ABI:              Linux - GNU                  
+                  Kernel Version:      3.2.0                        
+                  Machine:             x86                          
+                  Entry point address: 0x11c0                       
+                
+                Section Headers:
+                  [Nr] Name            Type       Addr             Off   
+                  Size   ES Flg Lk Inf Al
+                  [ 0]                 NULL       0000000000000000 000000
+                  000000 00      0   0  0
+                  [ 1] .interp         PROGBITS   0000000000000318 000318
+                  00001c 00   A  0   0  1
+                  [ 2] .note.gnu.pr... NOTE       0000000000000338 000338
+                  000030 00   A  0   0  8
+                  [ 3] .note.gnu.bu... NOTE       0000000000000368 000368
+                  000024 00   A  0   0  4
+                  [ 4] .note.ABI-tag   NOTE       000000000000038c 00038c
+                  000020 00   A  0   0  4
+                  [ 5] .gnu.hash       GNU_HASH   00000000000003b0 0003b0
+                  000024 00   A  6   0  8
+                  [ 6] .dynsym         DYNSYM     00000000000003d8 0003d8
+                  0001b0 18   A  7   1  8
+                  [ 7] .dynstr         STRTAB     0000000000000588 000588
+                  000155 00   A  0   0  1
+                  [ 8] .gnu.version    VERSYM     00000000000006de 0006de
+                  000024 02   A  6   0  2
+                  [ 9] .gnu.version_r  VERNEED    0000000000000708 000708
+                  000070 00   A  7   2  8
+                  [10] .rela.dyn       RELA       0000000000000778 000778
+                  0000c0 18   A  6   0  8
+                  [11] .rela.plt       RELA       0000000000000838 000838
+                  000120 18  AI  6  24  8
+                  [12] .init           PROGBITS   0000000000001000 001000
+                  00001b 00  AX  0   0  4
+                  [13] .plt            PROGBITS   0000000000001020 001020
+                  0000d0 10  AX  0   0 16
+                  [14] .plt.got        PROGBITS   00000000000010f0 0010f0
+                  000010 10  AX  0   0 16
+                  [15] .plt.sec        PROGBITS   0000000000001100 001100
+                  0000c0 10  AX  0   0 16
+                  [16] .text           PROGBITS   00000000000011c0 0011c0
+                  0062ab 00  AX  0   0 16
+                  [17] .fini           PROGBITS   000000000000746c 00746c
+                  00000d 00  AX  0   0  4
+                  [18] .rodata         PROGBITS   0000000000008000 008000
+                  000139 00   A  0   0 32
+                  [19] .eh_frame_hdr   PROGBITS   000000000000813c 00813c
+                  00028c 00   A  0   0  4
+                  [20] .eh_frame       PROGBITS   00000000000083c8 0083c8
+                  000a20 00   A  0   0  8
+                  [21] .init_array     INIT_ARRAY 000000000000ad50 009d50
+                  000008 08  WA  0   0  8
+                  [22] .fini_array     FINI_ARRAY 000000000000ad58 009d58
+                  000008 08  WA  0   0  8
+                  [23] .dynamic        DYNAMIC    000000000000ad60 009d60
+                  000200 10  WA  7   0  8
+                  [24] .got            PROGBITS   000000000000af60 009f60
+                  0000a0 08  WA  0   0  8
+                  [25] .data           PROGBITS   000000000000b000 00a000
+                  000120 00  WA  0   0 32
+                  [26] .bss            NOBITS     000000000000b120 00a120
+                  000250 00  WA  0   0 32
+                  [27] .comment        PROGBITS   0000000000000000 00a120
+                  00002b 01  MS  0   0  1
+                  [28] .debug_aranges  PROGBITS   0000000000000000 00a14b
+                  0001e0 00      0   0  1
+                  [29] .debug_info     PROGBITS   0000000000000000 00a32b
+                  004388 00      0   0  1
+                  [30] .debug_abbrev   PROGBITS   0000000000000000 00e6b3
+                  000d75 00      0   0  1
+                  [31] .debug_line     PROGBITS   0000000000000000 00f428
+                  00254d 00      0   0  1
+                  [32] .debug_str      PROGBITS   0000000000000000 011975
+                  000bb0 01  MS  0   0  1
+                  [33] .debug_line_str PROGBITS   0000000000000000 012525
+                  0001e3 01  MS  0   0  1
+                  [34] .symtab         SYMTAB     0000000000000000 012708
+                  000d08 18     35  40  8
+                  [35] .strtab         STRTAB     0000000000000000 013410
+                  0009b2 00      0   0  1
+                  [36] .shstrtab       STRTAB     0000000000000000 013dc2
+                  00016a 00      0   0  1
+                Key to Flags:
+                  W (write), A (alloc), X (execute), M (merge), S (strings),
+                  I (info), L (link order), G (group), T (TLS),
+                  O (extra OS processing required)
+                
+                Symbol table '.dynsym' contains 18 entries:
+                  Num:            Value Size Type   Bind   Section
+                  Name              
+                    0: 0000000000000000    0 NOTYPE LOCAL  UND    
+                                    
+                    1: 0000000000000000    0 FUNC   GLOBAL UND    
+                  memset            
+                    2: 0000000000000000    0 NOTYPE WEAK   UND    
+                  __gmon_start__    
+                    3: 0000000000000000    0 FUNC   GLOBAL UND    
+                  exit              
+                    4: 0000000000000000    0 FUNC   GLOBAL UND    
+                  __assert_fail     
+                    5: 0000000000000000    0 FUNC   GLOBAL UND    
+                  EVP_sha3_256      
+                    6: 0000000000000000    0 NOTYPE WEAK   UND    
+                  _ITM_deregister...
+                    7: 0000000000000000    0 FUNC   GLOBAL UND    
+                  EVP_MD_CTX_new    
+                    8: 0000000000000000    0 NOTYPE WEAK   UND    
+                  _ITM_registerTM...
+                    9: 0000000000000000    0 FUNC   GLOBAL UND    
+                  EVP_DigestUpdate  
+                   10: 0000000000000000    0 FUNC   GLOBAL UND    
+                  EVP_MD_CTX_free   
+                   11: 0000000000000000    0 FUNC   GLOBAL UND    
+                  __stack_chk_fail  
+                   12: 0000000000000000    0 FUNC   GLOBAL UND    
+                  EVP_DigestInit_ex 
+                   13: 0000000000000000    0 FUNC   GLOBAL UND    
+                  memcmp            
+                   14: 0000000000000000    0 FUNC   GLOBAL UND    
+                  __libc_start_main 
+                   15: 0000000000000000    0 FUNC   GLOBAL UND    
+                  memcpy            
+                   16: 0000000000000000    0 FUNC   GLOBAL UND    
+                  EVP_DigestFinal_ex
+                   17: 0000000000000000    0 FUNC   WEAK   UND    
+                  __cxa_finalize     
+                Symbol table '.symtab' contains 139 entries:
+                  Num:            Value Size Type   Bind   Section      
+                  Name                
+                    0: 0000000000000000    0 NOTYPE LOCAL  UND          
+                                      
+                    1: 0000000000000000    0 FILE   LOCAL  ABS          
+                  Scrt1.o             
+                    2: 000000000000038c   32 OBJECT LOCAL  .note.ABI-tag
+                  __abi_tag           
+                    3: 0000000000000000    0 FILE   LOCAL  ABS          
+                  crtstuff.c          
+                    4: 00000000000011f0    0 FUNC   LOCAL  .text        
+                  deregister_tm_clones
+                    5: 0000000000001220    0 FUNC   LOCAL  .text        
+                  register_tm_clones  
+                    6: 0000000000001260    0 FUNC   LOCAL  .text        
+                  __do_global_dtors...
+                    7: 000000000000b120    1 OBJECT LOCAL  .bss         
+                  completed.0         
+                    8: 000000000000ad58    0 OBJECT LOCAL  .fini_array  
+                  __do_global_dtors...
+                    9: 00000000000012a0    0 FUNC   LOCAL  .text        
+                  frame_dummy         
+                   10: 000000000000ad50    0 OBJECT LOCAL  .init_array  
+                  __frame_dummy_ini...
+                   11: 0000000000000000    0 FILE   LOCAL  ABS          
+                  test_harness_keyp...
+                   12: 0000000000000000    0 FILE   LOCAL  ABS          
+                  challenges.c        
+                   13: 0000000000000000    0 FILE   LOCAL  ABS          
+                  fips202.c           
+                   14: 000000000000139d   79 FUNC   LOCAL  .text        
+                  load64              
+                   15: 00000000000013ec   71 FUNC   LOCAL  .text        
+                  store64             
+                   16: 0000000000001433 4763 FUNC   LOCAL  .text        
+                  KeccakF1600_State...
+                   17: 00000000000026ce   60 FUNC   LOCAL  .text        
+                  keccak_init         
+                   18: 000000000000270a  315 FUNC   LOCAL  .text        
+                  keccak_absorb       
+                   19: 0000000000002845  160 FUNC   LOCAL  .text        
+                  keccak_finalize     
+                   20: 00000000000028e5  194 FUNC   LOCAL  .text        
+                  keccak_squeeze      
+                   21: 00000000000029a7  452 FUNC   LOCAL  .text        
+                  keccak_absorb_once  
+                   22: 0000000000002b6b  135 FUNC   LOCAL  .text        
+                  keccak_squeezeblocks
+                   23: 0000000000000000    0 FILE   LOCAL  ABS          
+                  hash.c              
+                   24: 0000000000000000    0 FILE   LOCAL  ABS          
+                  matrix.c            
+                   25: 0000000000008100   23 OBJECT LOCAL  .rodata      
+                  __PRETTY_FUNCTION...
+                   26: 0000000000008120   25 OBJECT LOCAL  .rodata      
+                  __PRETTY_FUNCTION...
+                   27: 0000000000000000    0 FILE   LOCAL  ABS          
+                  packing.c           
+                   28: 0000000000000000    0 FILE   LOCAL  ABS          
+                  prng.c              
+                   29: 0000000000000000    0 FILE   LOCAL  ABS          
+                  random.c            
+                   30: 000000000000b280    4 OBJECT LOCAL  .bss         
+                  prng_singleton_up   
+                   31: 000000000000b2a0  208 OBJECT LOCAL  .bss         
+                  prng_singleton      
+                   32: 0000000000000000    0 FILE   LOCAL  ABS          
+                  seed_tree.c         
+                   33: 0000000000000000    0 FILE   LOCAL  ABS          
+                  sign.c              
+                   34: 0000000000000000    0 FILE   LOCAL  ABS          
+                  crtstuff.c          
+                   35: 0000000000008de4    0 OBJECT LOCAL  .eh_frame    
+                  __FRAME_END__       
+                   36: 0000000000000000    0 FILE   LOCAL  ABS          
+                                      
+                   37: 000000000000813c    0 NOTYPE LOCAL  .eh_frame_hdr
+                  __GNU_EH_FRAME_HDR  
+                   38: 000000000000af60    0 OBJECT LOCAL  .got         
+                  _GLOBAL_OFFSET_TA...
+                   39: 000000000000ad60    0 OBJECT LOCAL  .dynamic     
+                  _DYNAMIC            
+                   40: 000000000000b000    0 NOTYPE WEAK   .data        
+                  data_start          
+                   41: 000000000000300a  267 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   42: 00000000000031e0  203 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   43: 0000000000003356   54 FUNC   GLOBAL .text        
+                  hash_equal          
+                   44: 0000000000000000    0 FUNC   GLOBAL UND          
+                  memset@GLIBC_2.2.5  
+                   45: 0000000000002dee   65 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   46: 0000000000008020  192 OBJECT GLOBAL .rodata      
+                  mirith_fips202_re...
+                   47: 00000000000011c0   38 FUNC   GLOBAL .text        
+                  _start              
+                   48: 0000000000002c1f   78 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   49: 0000000000003b18  136 FUNC   GLOBAL .text        
+                  matrix_horizontal...
+                   50: 0000000000002d3f   52 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   51: 0000000000000000    0 NOTYPE WEAK   UND          
+                  __gmon_start__      
+                   52: 0000000000006fc6 1189 FUNC   GLOBAL .text        
+                  mirith_open         
+                   53: 0000000000000000    0 FUNC   GLOBAL UND          
+                  exit@GLIBC_2.2.5    
+                   54: 0000000000000000    0 FUNC   GLOBAL UND          
+                  __assert_fail@GLI...
+                   55: 00000000000039d4  324 FUNC   GLOBAL .text        
+                  matrix_product      
+                   56: 0000000000006124 1520 FUNC   GLOBAL .text        
+                  open_phase3_round   
+                   57: 000000000000746c    0 FUNC   GLOBAL .fini        
+                  _fini               
+                   58: 0000000000002ec0   52 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   59: 0000000000006aaa 1308 FUNC   GLOBAL .text        
+                  crypto_sign_unpac...
+                   60: 000000000000b1e0  145 OBJECT GLOBAL .bss         
+                  sk                  
+                   61: 00000000000032e9   50 FUNC   GLOBAL .text        
+                  hash_update         
+                   62: 00000000000052ef  214 FUNC   GLOBAL .text        
+                  seed_tree_pack      
+                   63: 0000000000003115  203 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   64: 0000000000005551 1201 FUNC   GLOBAL .text        
+                  sign_phase1_round   
+                   65: 00000000000069cd  221 FUNC   GLOBAL .text        
+                  MIRITH_NAMESPACETOP 
+                   66: 0000000000003719  196 FUNC   GLOBAL .text        
+                  matrix_init_random  
+                   67: 0000000000002bf2   45 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   68: 000000000000b140  129 OBJECT GLOBAL .bss         
+                  pk                  
+                   69: 0000000000000000    0 FUNC   GLOBAL UND          
+                  EVP_sha3_256@OPEN...
+                   70: 00000000000047ef 1097 FUNC   GLOBAL .text        
+                  pack_signature      
+                   71: 000000000000338c  195 FUNC   GLOBAL .text        
+                  hash_digest0        
+                   72: 0000000000000000    0 NOTYPE WEAK   UND          
+                  _ITM_deregisterTM...
+                   73: 0000000000008000    4 OBJECT GLOBAL .rodata      
+                  _IO_stdin_used      
+                   74: 0000000000000000    0 FUNC   GLOBAL UND          
+                  EVP_MD_CTX_new@OP...
+                   75: 0000000000000000    0 NOTYPE WEAK   UND          
+                  _ITM_registerTMCl...
+                   76: 000000000000b000    0 NOTYPE GLOBAL .data        
+                  __data_start        
+                   77: 00000000000032ab   62 FUNC   GLOBAL .text        
+                  hash_init           
+                   78: 0000000000002d73   45 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   79: 000000000000364e  203 FUNC   GLOBAL .text        
+                  matrix_set_entry    
+                   80: 0000000000000000    0 FUNC   WEAK   UND          
+                  __cxa_finalize@GL...
+                   81: 00000000000012db  194 FUNC   GLOBAL .text        
+                  get_second_challe...
+                   82: 0000000000002cf7   72 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   83: 0000000000005dde  838 FUNC   GLOBAL .text        
+                  open_phase1_round   
+                   84: 00000000000053c5  396 FUNC   GLOBAL .text        
+                  seed_tree_unpack    
+                   85: 0000000000003c28  250 FUNC   GLOBAL .text        
+                  _matrix_pack_nrow...
+                   86: 000000000000344f  287 FUNC   GLOBAL .text        
+                  hash_digest0_aux    
+                   87: 0000000000005203   48 FUNC   GLOBAL .text        
+                  get_leaves          
+                   88: 000000000000359c   63 FUNC   GLOBAL .text        
+                  matrix_init_zero    
+                   89: 0000000000003ba0  136 FUNC   GLOBAL .text        
+                  matrix_horizontal...
+                   90: 0000000000002da0   78 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   91: 000000000000b120    0 OBJECT GLOBAL .data        
+                  __TMC_END__         
+                   92: 0000000000004c38  751 FUNC   GLOBAL .text        
+                  unpack_signature    
+                   93: 000000000000b008    0 OBJECT GLOBAL .data        
+                  __dso_handle        
+                   94: 000000000000463d   80 FUNC   GLOBAL .text        
+                  pack_secret_key     
+                   95: 0000000000000000    0 FUNC   GLOBAL UND          
+                  EVP_DigestUpdate@...
+                   96: 0000000000004116  727 FUNC   GLOBAL .text        
+                  _matrix_unpack_nr...
+                   97: 0000000000002ef4  278 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                   98: 0000000000004455  104 FUNC   GLOBAL .text        
+                  matrix_unpack       
+                   99: 0000000000002c6d   65 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                  100: 00000000000050c5  318 FUNC   GLOBAL .text        
+                  generate_subtree    
+                  101: 00000000000043ed  104 FUNC   GLOBAL .text        
+                  matrix_pack         
+                  102: 000000000000468d  354 FUNC   GLOBAL .text        
+                  unpack_secret_key   
+                  103: 0000000000005a02  988 FUNC   GLOBAL .text        
+                  sign_phase3_round   
+                  104: 00000000000044bd  128 FUNC   GLOBAL .text        
+                  pack_public_key     
+                  105: 0000000000000000    0 FUNC   GLOBAL UND          
+                  EVP_MD_CTX_free@O...
+                  106: 00000000000037dd   75 FUNC   GLOBAL .text        
+                  matrix_copy         
+                  107: 0000000000003d22  223 FUNC   GLOBAL .text        
+                  _matrix_unpack_nr...
+                  108: 000000000000383d  111 FUNC   GLOBAL .text        
+                  matrix_add          
+                  109: 000000000000b120    0 NOTYPE GLOBAL .bss         
+                  __bss_start         
+                  110: 0000000000002e78   72 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                  111: 00000000000052d7   24 FUNC   GLOBAL .text        
+                  seed_tree_get_leaves
+                  112: 00000000000038ac  181 FUNC   GLOBAL .text        
+                  matrix_add_multiple 
+                  113: 0000000000000000    0 FUNC   GLOBAL UND          
+                  __stack_chk_fail@...
+                  114: 0000000000003961   51 FUNC   GLOBAL .text        
+                  matrix_subtract     
+                  115: 0000000000006714  697 FUNC   GLOBAL .text        
+                  mirith_keypair      
+                  116: 00000000000035db  115 FUNC   GLOBAL .text        
+                  matrix_get_entry    
+                  117: 0000000000003994   64 FUNC   GLOBAL .text        
+                  matrix_subtract_m...
+                  118: 0000000000003828   21 FUNC   GLOBAL .text        
+                  matrix_negate       
+                  119: 0000000000003e01  789 FUNC   GLOBAL .text        
+                  _matrix_pack_nrow...
+                  120: 0000000000005022  163 FUNC   GLOBAL .text        
+                  randombytes         
+                  121: 0000000000000000    0 FUNC   GLOBAL UND          
+                  EVP_DigestInit_ex...
+                  122: 0000000000000000    0 FUNC   GLOBAL UND          
+                  memcmp@GLIBC_2.2.5  
+                  123: 000000000000b370    0 NOTYPE GLOBAL .bss         
+                  _end                
+                  124: 000000000000453d  256 FUNC   GLOBAL .text        
+                  unpack_public_key   
+                  125: 0000000000002e2f   73 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                  126: 000000000000356e   46 FUNC   GLOBAL .text        
+                  field_product       
+                  127: 0000000000005233  164 FUNC   GLOBAL .text        
+                  seed_tree_init      
+                  128: 0000000000002cae   73 FUNC   GLOBAL .text        
+                  mirith_fips202_re...
+                  129: 000000000000b120    0 NOTYPE GLOBAL .data        
+                  _edata              
+                  130: 0000000000004f27  201 FUNC   GLOBAL .text        
+                  prng_init           
+                  131: 0000000000000000    0 FUNC   GLOBAL UND          
+                  __libc_start_main...
+                  132: 000000000000331b   59 FUNC   GLOBAL .text        
+                  hash_finalize       
+                  133: 0000000000004ff0   50 FUNC   GLOBAL .text        
+                  prng_bytes          
+                  134: 0000000000000000    0 FUNC   GLOBAL UND          
+                  memcpy@GLIBC_2.14   
+                  135: 0000000000000000    0 FUNC   GLOBAL UND          
+                  EVP_DigestFinal_e...
+                  136: 000000000000b020  256 OBJECT GLOBAL .data        
+                  mult_table          
+                  137: 00000000000012a9   50 FUNC   GLOBAL .text        
+                  main                
+                  138: 0000000000001000    0 FUNC   GLOBAL .init        
+                  _init                
+

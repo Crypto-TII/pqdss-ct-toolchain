@@ -1,0 +1,10 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ct_dude_binsecv0.7.1/code/less/Optimized_Implementation/ctgrind/build/CMakeFiles/_CMakeLTOTest-C/src/foo.c
+

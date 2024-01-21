@@ -1,0 +1,15 @@
+
+<functions>
+    <sources>
+        <function>
+            <name>crypto_sign_keypair</name>
+            <return>false</return>
+            <public>
+                <parameter>pk</parameter>
+            </public>
+            <secret>
+                <parameter>sk</parameter>       <!--Secret key-->
+            </secret>
+        </function>
+    </sources>
+</functions>

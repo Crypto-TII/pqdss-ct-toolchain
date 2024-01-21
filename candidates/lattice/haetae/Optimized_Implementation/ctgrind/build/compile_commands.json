@@ -1,0 +1,237 @@
+[
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/consts.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/consts.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/consts.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/poly.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/poly.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/poly.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/fft.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/fft.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/fft.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/reduce.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/reduce.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/reduce.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/polyvec.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/polyvec.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/polyvec.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/polymat.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/polymat.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/polymat.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/polyfix.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/polyfix.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/polyfix.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/decompose.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/decompose.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/decompose.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/sampler.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/sampler.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/sampler.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/packing.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/packing.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/packing.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/sign.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/sign.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/sign.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/fixpoint.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/fixpoint.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/fixpoint.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/encoding.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/encoding.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/encoding.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=5 -D_5_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/5.dir/home/lattice/haetae/Optimized_Implementation/src/symmetric-shake.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/symmetric-shake.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/symmetric-shake.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/consts.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/consts.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/consts.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/poly.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/poly.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/poly.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/fft.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/fft.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/fft.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/reduce.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/reduce.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/reduce.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/polyvec.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/polyvec.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/polyvec.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/polymat.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/polymat.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/polymat.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/polyfix.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/polyfix.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/polyfix.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/decompose.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/decompose.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/decompose.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/sampler.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/sampler.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/sampler.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/packing.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/packing.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/packing.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/sign.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/sign.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/sign.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/fixpoint.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/fixpoint.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/fixpoint.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/encoding.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/encoding.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/encoding.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=3 -D_3_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/3.dir/home/lattice/haetae/Optimized_Implementation/src/symmetric-shake.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/symmetric-shake.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/symmetric-shake.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api    -std=gnu11 -o CMakeFiles/taint_2.dir/haetae_keypair/taint.c.o   -c /home/lattice/haetae/Optimized_Implementation/ctgrind/haetae_keypair/taint.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/ctgrind/haetae_keypair/taint.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/consts.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/consts.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/consts.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/poly.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/poly.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/poly.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/fft.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/fft.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/fft.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/reduce.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/reduce.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/reduce.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/polyvec.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/polyvec.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/polyvec.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/polymat.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/polymat.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/polymat.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/polyfix.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/polyfix.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/polyfix.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/decompose.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/decompose.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/decompose.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/sampler.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/sampler.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/sampler.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/packing.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/packing.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/packing.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/sign.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/sign.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/sign.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/fixpoint.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/fixpoint.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/fixpoint.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/encoding.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/encoding.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/encoding.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -D_2_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic -std=gnu11 -o CMakeFiles/2.dir/home/lattice/haetae/Optimized_Implementation/src/symmetric-shake.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/symmetric-shake.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/symmetric-shake.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DHAETAE_MODE=2 -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api    -std=gnu11 -o CMakeFiles/taint_2_1.dir/haetae_sign/taint.c.o   -c /home/lattice/haetae/Optimized_Implementation/ctgrind/haetae_sign/taint.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/ctgrind/haetae_sign/taint.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -DRNG_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -fomit-frame-pointer -fPIC -std=gnu11 -o CMakeFiles/RNG.dir/home/lattice/haetae/Optimized_Implementation/src/randombytes.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/randombytes.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/randombytes.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -Dfips202_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -mavx2 -fomit-frame-pointer -fPIC -std=gnu11 -o CMakeFiles/fips202.dir/home/lattice/haetae/Optimized_Implementation/src/fips202.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/fips202.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/fips202.c"
+},
+{
+  "directory": "/home/lattice/haetae/Optimized_Implementation/ctgrind/build",
+  "command": "/usr/bin/cc -Dfips202_EXPORTS -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../include -I/home/lattice/haetae/Optimized_Implementation/ctgrind/../api  -fPIC   -O3 -mavx2 -fomit-frame-pointer -fPIC -std=gnu11 -o CMakeFiles/fips202.dir/home/lattice/haetae/Optimized_Implementation/src/fips202x4.c.o   -c /home/lattice/haetae/Optimized_Implementation/src/fips202x4.c",
+  "file": "/home/lattice/haetae/Optimized_Implementation/src/fips202x4.c"
+}
+]

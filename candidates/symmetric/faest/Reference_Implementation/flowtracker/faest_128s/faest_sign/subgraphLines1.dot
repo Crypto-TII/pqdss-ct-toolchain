@@ -1,0 +1,17 @@
+digraph "Vulnerability from 'file ../../faest_128s/crypto_sign.c line 38 to file ../../faest_128s/crypto_sign.c line 42 '  "{
+label="Vulnerability from  'file ../../faest_128s/crypto_sign.c line 38 to file ../../faest_128s/crypto_sign.c line 42 ' ";
+node_138[shape=octagon,style=solid,label="../../faest_128s/crypto_sign.c Line  56", color=red]
+node_134[shape=ellipse,style=dashed,label="", color=red]
+"node_138"->"node_134" [color=red]
+node_137[shape=doubleoctagon,style=solid,label="../../faest_128s/crypto_sign.c Line  42", color=red]
+node_136[shape=ellipse,style=solid,label="../../faest_128s/crypto_sign.c Line  42", color=red]
+"node_137"->"node_136" [color=red]
+"node_136"->"node_134" [style=dashed]
+node_135[shape=octagon,style=solid,label="../../faest_128s/crypto_sign.c Line  42"]
+"node_135"->"node_134"
+"node_134"->"node_137" [color=red]
+node_133[shape=ellipse,style=dashed,label="", color=red]
+"node_133"->"node_138" [color=red]
+"node_133"->"node_135"
+}
+

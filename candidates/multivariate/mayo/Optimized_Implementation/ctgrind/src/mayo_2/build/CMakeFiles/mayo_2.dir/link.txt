@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmayo_2.a  CMakeFiles/mayo_2.dir/home/ct_dude_binsecv0.7.1/multivariate/mayo/Optimized_Implementation/src/mayo.c.o CMakeFiles/mayo_2.dir/home/ct_dude_binsecv0.7.1/multivariate/mayo/Optimized_Implementation/src/params.c.o CMakeFiles/mayo_2.dir/home/ct_dude_binsecv0.7.1/multivariate/mayo/Optimized_Implementation/src/bitsliced_arithmetic.c.o
+/usr/bin/ranlib libmayo_2.a

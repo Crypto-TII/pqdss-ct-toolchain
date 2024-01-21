@@ -1,0 +1,84 @@
+digraph "DFG for 'file ../../ryde128s/src/sign.c line 45 to file ../../ryde128s/src/sign.c line 79 '  "{
+label="DFG for 'file ../../ryde128s/src/sign.c line 45 to file ../../ryde128s/src/sign.c line 79 ' ";
+node_229[shape=octagon,style=solid,label="store"]
+node_219[shape=ellipse,style=dashed,label="Memory 0"]
+"node_229"->"node_219"
+node_230[shape=ellipse,style=dashed,label="Memory 6"]
+node_248[shape=octagon,style=solid,label="load"]
+"node_230"->"node_248"
+node_234[shape=doubleoctagon,style=solid,label="Call ryde_128s_verify"]
+"node_230"->"node_234"
+node_224[shape=doubleoctagon,style=solid,label="Call ryde_128s_sign"]
+node_223[shape=ellipse,style=solid,label="call"]
+"node_224"->"node_223"
+node_225[shape=ellipse,style=dashed,label="Memory 4"]
+"node_225"->"node_224"
+node_226[shape=ellipse,style=solid,label="cmp5"]
+node_228[shape=ellipse,style=solid,label="add7"]
+"node_226"->"node_228" [style=dashed]
+node_227[shape=octagon,style=solid,label="icmp"]
+"node_223"->"node_227"
+node_222[shape=octagon,style=solid,label="store"]
+node_217[shape=ellipse,style=dashed,label="Memory 3"]
+"node_222"->"node_217"
+node_221[shape=octagon,style=solid,label="load"]
+node_220[shape=ellipse,style=solid,label="tmp5"]
+"node_221"->"node_220"
+"node_220"->"node_222"
+node_218[shape=octagon,style=solid,label="getelementptr"]
+"node_219"->"node_218"
+node_242[shape=octagon,style=solid,label="load"]
+"node_219"->"node_242"
+node_249[shape=octagon,style=solid,label="getelementptr"]
+"node_219"->"node_249"
+node_232[shape=octagon,style=solid,label="load"]
+"node_219"->"node_232"
+"node_218"->"node_217"
+"node_217"->"node_224"
+"node_217"->"node_221"
+node_245[shape=ellipse,style=solid,label="add"]
+node_246[shape=octagon,style=solid,label="add"]
+"node_246"->"node_245"
+node_247[shape=ellipse,style=solid,label="tmp13"]
+node_250[shape=octagon,style=solid,label="store"]
+"node_247"->"node_250"
+"node_248"->"node_247"
+node_241[shape=ellipse,style=solid,label="tmp10"]
+node_244[shape=octagon,style=solid,label="icmp"]
+"node_241"->"node_244"
+"node_242"->"node_241"
+node_243[shape=ellipse,style=solid,label="cmp3"]
+"node_243"->"node_230" [style=dashed]
+"node_243"->"node_245" [style=dashed]
+"node_243"->"node_247" [style=dashed]
+node_239[shape=ellipse,style=solid,label="inc"]
+"node_243"->"node_239" [style=dashed]
+"node_244"->"node_243"
+node_233[shape=ellipse,style=solid,label="call"]
+"node_234"->"node_233"
+node_235[shape=ellipse,style=solid,label="cmp1"]
+"node_235"->"node_241" [style=dashed]
+"node_235"->"node_243" [style=dashed]
+node_237[shape=ellipse,style=solid,label="i.0"]
+"node_235"->"node_237" [style=dashed]
+node_236[shape=octagon,style=solid,label="icmp"]
+"node_236"->"node_235"
+"node_227"->"node_226"
+"node_228"->"node_229"
+"node_249"->"node_230"
+"node_250"->"node_230"
+"node_237"->"node_246"
+"node_237"->"node_244"
+"node_237"->"node_249"
+node_240[shape=octagon,style=solid,label="add"]
+"node_237"->"node_240"
+node_238[shape=octagon,style=solid,label="phi"]
+"node_238"->"node_237"
+"node_239"->"node_238"
+"node_240"->"node_239"
+node_231[shape=ellipse,style=solid,label="tmp6"]
+"node_231"->"node_234"
+"node_232"->"node_231"
+"node_233"->"node_236"
+}
+

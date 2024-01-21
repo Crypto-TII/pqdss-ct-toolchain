@@ -1,0 +1,84 @@
+
+Note section [ 1] 'note0' of 3244 bytes at offset 0x8b388:
+  Owner          Data size  Type
+  CORE                 136  PRPSINFO
+    state: 0, sname: t, zomb: 0, nice: 0, flag: 0x0000000000000000
+    uid: 1000, gid: 1000, pid: 7322, ppid: 7320, pgrp: 7322, sid: 9
+    fname: test_harness_cry
+    psargs: /tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo
+  CORE                 336  PRSTATUS
+    info.si_signo: 0, info.si_code: 0, info.si_errno: 0, cursig: 5
+    sigpend: <>
+    sighold: <>
+    pid: 7322, ppid: 0, pgrp: 0, sid: 0
+    utime: 0.000000, stime: 0.000000, cutime: 0.000000, cstime: 0.000000
+    orig_rax: -1, fpvalid: 0
+    r15:                       0  r14:                       0
+    r13:         140737488348464  r12:          93824992235952
+    rbp:      0x0000000000000000  rbx:          93824992439344
+    r11:                       0  r10:                       5
+    r9:          140737354009952  r8:                        0
+    rax:          93824992235904  rcx:          93824992439344
+    rdx:         140737488348488  rsi:         140737488348472
+    rdi:                       1  rip:      0x0000555555555180
+    rflags:   0x0000000000000246  rsp:      0x00007fffffffe448
+    fs.base:   0x00007ffff7fc2580  gs.base:   0x0000000000000000
+    cs: 0x0033  ss: 0x002b  ds: 0x0000  es: 0x0000  fs: 0x0000  gs: 0x0000
+  CORE                 512  FPREGSET
+    xmm0:  0x00000000000000000000000000000000
+    xmm1:  0x2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f
+    xmm2:  0x0000000000ff00000000000000000000
+    xmm3:  0x00000000000000ff00000000000000ff
+    xmm4:  0x00000000000000000000000000000000
+    xmm5:  0x0000000000ff00000000000000000000
+    xmm6:  0x00000000000000000000000000000000
+    xmm7:  0x00000000000000000000000000000000
+    xmm8:  0x00000000000000000000000000000000
+    xmm9:  0x00000000000000000000000000000000
+    xmm10: 0x00000000000000000000000000000000
+    xmm11: 0x00000000000000000000000000000000
+    xmm12: 0x00000000000000000000000000000000
+    xmm13: 0x00000000000000000000000000000000
+    xmm14: 0x00000000000000000000000000000000
+    xmm15: 0x00000000000000000000000000000000
+    st0: 0x00000000000000000000  st1: 0x00000000000000000000
+    st2: 0x00000000000000000000  st3: 0x00000000000000000000
+    st4: 0x00000000000000000000  st5: 0x00000000000000000000
+    st6: 0x00000000000000000000  st7: 0x00000000000000000000
+    mxcsr:   0x0000000000001f80
+    fcw: 0x037f  fsw: 0x0000
+  LINUX                832  X86_XSTATE
+  CORE                 128  SIGINFO
+    si_signo: 5, si_errno: 0, si_code: 128
+  CORE                 336  AUXV
+    SYSINFO_EHDR: 0x7ffff7fcd000
+    51: 0x6f0
+    HWCAP: 0x178bfbff  <fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht>
+    PAGESZ: 4096
+    CLKTCK: 100
+    PHDR: 0x555555554040
+    PHENT: 56
+    PHNUM: 13
+    BASE: 0x7ffff7fcf000
+    FLAGS: 0
+    ENTRY: 0x5555555551b0
+    UID: 1000
+    EUID: 1000
+    GID: 1000
+    EGID: 1000
+    SECURE: 0
+    RANDOM: 0x7fffffffe719
+    26: 0x2
+    EXECFN: 0x7fffffffef6a
+    PLATFORM: 0x7fffffffe729
+    NULL
+  CORE                 823  FILE
+    8 files:
+      555555555000-555555587000 00001000 204800      /tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo_1/build/mayo_keypair/test_harness_crypto_sign_keypair_mayo_1
+      555555589000-55555558a000 00034000 4096        /tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo_1/build/mayo_keypair/test_harness_crypto_sign_keypair_mayo_1
+      55555558a000-55555558b000 00035000 4096        /tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo_1/build/mayo_keypair/test_harness_crypto_sign_keypair_mayo_1
+      7ffff7fb7000-7ffff7fbb000 001e7000 16384       /usr/lib/x86_64-linux-gnu/libc-2.31.so
+      7ffff7fbb000-7ffff7fbd000 001eb000 8192        /usr/lib/x86_64-linux-gnu/libc-2.31.so
+      7ffff7fd0000-7ffff7ff3000 00001000 143360      /usr/lib/x86_64-linux-gnu/ld-2.31.so
+      7ffff7ffc000-7ffff7ffd000 0002c000 4096        /usr/lib/x86_64-linux-gnu/ld-2.31.so
+      7ffff7ffd000-7ffff7ffe000 0002d000 4096        /usr/lib/x86_64-linux-gnu/ld-2.31.so

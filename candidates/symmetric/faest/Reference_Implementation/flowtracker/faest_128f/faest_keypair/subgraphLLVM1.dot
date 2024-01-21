@@ -1,0 +1,17 @@
+digraph "DFG for 'file ../../faest_128f/crypto_sign.c line 30 to file ../../faest_128f/crypto_sign.c line 42 '  "{
+label="DFG for 'file ../../faest_128f/crypto_sign.c line 30 to file ../../faest_128f/crypto_sign.c line 42 ' ";
+node_138[shape=octagon,style=solid,label="getelementptr"]
+node_134[shape=ellipse,style=dashed,label="Memory 3"]
+"node_138"->"node_134"
+node_137[shape=doubleoctagon,style=solid,label="Call owf_128"]
+node_136[shape=ellipse,style=solid,label="call"]
+"node_137"->"node_136"
+"node_136"->"node_134" [style=dashed]
+node_135[shape=octagon,style=solid,label="getelementptr"]
+"node_135"->"node_134"
+"node_134"->"node_137"
+node_133[shape=ellipse,style=dashed,label="Memory 0"]
+"node_133"->"node_138"
+"node_133"->"node_135"
+}
+

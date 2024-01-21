@@ -1,0 +1,98 @@
+["CT report"."Insecurity models".0x00489897.public]
+fs_base = ["0x000000000050d2e5"]
+pk = ["0x0000000000000000000000000000000000000000000000000000000000000000"]
+r12 = ["0x0000000000000000"]
+r13 = ["0x0000000000000000"]
+rax = ["0x0000000000000000"]
+rbp = ["0x0000000000000000"]
+rbx = ["0x0000000000000000"]
+["CT report"."Insecurity models".0x00489897.secret1]
+sk = ["0x0000000000000000000000000000000000000000000000000000000000000000"]
+["CT report"."Insecurity models".0x00489897.secret2]
+sk = ["0x00000000000000000000000000000000000000000000000000000000000000ff"]
+["CT report"."Insecurity models".0x004ae1cb.public]
+fs_base = ["0x000000000050d2ea"]
+pk = ["0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"]
+r12 = ["0xffffffffffffffff"]
+r13 = ["0xffffffffffffffff"]
+rax = ["0xffffffffffffffff"]
+rbp = ["0xffffffffffffffff"]
+rbx = ["0xffffffffffffffff"]
+["CT report"."Insecurity models".0x004ae1cb.secret1]
+sk = ["0xffffffffffffffffffffffffffffffffffffffffffffffffffff01000000feff"]
+["CT report"."Insecurity models".0x004ae1cb.secret2]
+sk = ["0xffffffffffffffffffffffffffffffffffffffffffffffffffff01000000ffff"]
+["CT report"."Insecurity models".0x004ae1d2.public]
+fs_base = ["0x000000000050d2f7"]
+pk = ["0xfe7ffefffffffff631ffffff02ffffff02ffffffffffffffff7ffe7ffe4802ff"]
+r12 = ["0xffffffffffffffff"]
+r13 = ["0xfffffff638ffffff"]
+rax = ["0xfe7ffe7ffe3f8085"]
+rbp = ["0x39f731fffffff633"]
+rbx = ["0xffffffffffffffff"]
+["CT report"."Insecurity models".0x004ae1d2.secret1]
+sk = ["0x7fffffffffffffffffffffffff7ffe7ffe7ffefffffffff631ffffffffffffff"]
+["CT report"."Insecurity models".0x004ae1d2.secret2]
+sk = ["0x7fffffffffffffffffffffffff7ffe7ffe7ffeffffffdff631ffffffffffffff"]
+["CT report"."Insecurity models".0x004ae1da.public]
+fs_base = ["0x000000000050cff9"]
+pk = ["0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"]
+r12 = ["0xffffffffffffffff"]
+r13 = ["0xffffffffffffffff"]
+rax = ["0xffffffffffffffff"]
+rbp = ["0x7fffffffffffffff"]
+rbx = ["0xffffffffffffffff"]
+["CT report"."Insecurity models".0x004ae1da.secret1]
+sk = ["0xffffffffffffffffffffffffffffffffffffffffffffffffffffff50d3307f7f"]
+["CT report"."Insecurity models".0x004ae1da.secret2]
+sk = ["0xffffffffffffffffffffffffffffffffffffffffffffffffffffff50d3304848"]
+["CT report"."Insecurity models".0x004ae1eb.public]
+fs_base = ["0x000000000050d2ea"]
+pk = ["0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"]
+r12 = ["0xffffffffffffffff"]
+r13 = ["0xffffffffffffffff"]
+rax = ["0xffffffffffffffff"]
+rbp = ["0xffffffffffffffff"]
+rbx = ["0xffffffffffffffff"]
+["CT report"."Insecurity models".0x004ae1eb.secret1]
+sk = ["0xffffffffffffffffffffffffffffffffffffffffffffffffffff01000000ffff"]
+["CT report"."Insecurity models".0x004ae1eb.secret2]
+sk = ["0xffffffffffffffffffffffffffffffffffffffffffffffffffff01000000feff"]
+["CT report"."Instructions status"]
+insecure = ["0x00489897", "0x004ae1cb", "0x004ae1d2", "0x004ae1da", "0x004ae1eb"]
+unknown = []
+[Exploration]
+"branching points" = 10
+"competed/cut paths" = 5
+"failed assertions" = 0
+"max path depth" = 96
+"pending paths" = 0
+"stale paths" = 3
+"total paths" = 8
+"visited instructions (unrolled)" = 116
+["State statistics"."CT checks"]
+"Solver time" = 2.32415604591
+["State statistics"."CT checks"."Control flow checks"]
+"insecure (CV)" = 0
+"insecure (RelSE)" = 3
+"secure (RelSE)" = 2
+"secure (taint)" = 5
+unknown = 0
+["State statistics"."CT checks"."Memory access checks"]
+"insecure (CV)" = 0
+"insecure (RelSE)" = 2
+"secure (RelSE)" = 0
+"secure (taint)" = 40
+unknown = 0
+["State statistics"."SMT queries"."Preprocessing simplifications"]
+"constant enum" = 5
+sat = 0
+total = 9
+unsat = 4
+["State statistics"."SMT queries"."Satisfiability queries"]
+average = 0.0419445719038
+sat = 7
+time = 0.293612003326
+total = 7
+unknown = 0
+unsat = 0

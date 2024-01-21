@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../../include/fips202.h
+stddef.h
+-
+stdint.h
+-
+
+../../include/fips202x4.h
+stddef.h
+-
+stdint.h
+-
+immintrin.h
+-
+
+/home/lattice/haetae/Optimized_Implementation/src/fips202.c
+fips202.h
+/home/lattice/haetae/Optimized_Implementation/src/fips202.h
+stddef.h
+-
+stdint.h
+-
+
+/home/lattice/haetae/Optimized_Implementation/src/fips202x4.c
+stddef.h
+-
+stdint.h
+-
+immintrin.h
+-
+string.h
+-
+fips202.h
+/home/lattice/haetae/Optimized_Implementation/src/fips202.h
+fips202x4.h
+/home/lattice/haetae/Optimized_Implementation/src/fips202x4.h
+

@@ -1,0 +1,38 @@
+["CT report"."Instructions status"]
+insecure = []
+unknown = ["0x004010d4", "0x004011e4", "0x00402087", "0x0040208e", "0x004020b4", "0x0063e7e9", "0x0063eaeb", "0x0063eafd", "0x0063eb01", "0x00643bb1", "0x00643be8", "0x00643bee", "0x0064a2c4", "0x0064a2c9", "0x0064a2d0", "0x0064a2d4", "0x0064a7f3", "0x0064ccc0", "0x0064cf06", "0x0064cf1b", "0x0064e860", "0x0064e87f", "0x0064e890", "0x0064e983", "0x0064e992", "0x0064e9a9", "0x0064e9d8", "0x0064f869", "0x0064f874", "0x0064f87a", "0x0064f87e", "0x0064f882", "0x0064f88f", "0x0064f895", "0x0064f899", "0x0064f8a0", "0x0064f8a2", "0x0064f8b3", "0x0064f976", "0x0064fa67", "0x0064fa78", "0x0064fa7e", "0x0064fbc0", "0x0064fbc7", "0x0064fcb1", "0x00650f21", "0x00650f3e", "0x00650f52", "0x00650f5f", "0x00651040", "0x00651048", "0x00651053", "0x00651059", "0x00651069", "0x0065106c", "0x00651070", "0x00651075", "0x00651084"]
+[Exploration]
+"branching points" = 1156
+"competed/cut paths" = 39
+"failed assertions" = 0
+"max path depth" = 290
+"pending paths" = 11
+"stale paths" = 118
+"total paths" = 168
+"visited instructions (unrolled)" = 3285
+["State statistics"."CT checks"]
+"Solver time" = 1535.51525259
+["State statistics"."CT checks"."Control flow checks"]
+"insecure (CV)" = 0
+"insecure (RelSE)" = 0
+"secure (RelSE)" = 39
+"secure (taint)" = 1002
+unknown = 115
+["State statistics"."CT checks"."Memory access checks"]
+"insecure (CV)" = 0
+"insecure (RelSE)" = 0
+"secure (RelSE)" = 2
+"secure (taint)" = 1839
+unknown = 43
+["State statistics"."SMT queries"."Preprocessing simplifications"]
+"constant enum" = 36
+sat = 616
+total = 953
+unsat = 301
+["State statistics"."SMT queries"."Satisfiability queries"]
+average = 3.36687611031
+sat = 170
+time = 801.316514254
+total = 238
+unknown = 63
+unsat = 5

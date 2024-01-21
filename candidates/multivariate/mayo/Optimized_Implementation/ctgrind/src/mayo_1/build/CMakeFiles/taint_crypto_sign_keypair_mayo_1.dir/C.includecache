@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ct_dude_binsecv0.7.1/multivariate/mayo/Optimized_Implementation/ctgrind/src/mayo_1/mayo_keypair/taint_crypto_sign_keypair.c
+stdio.h
+-
+sys/types.h
+-
+unistd.h
+-
+string.h
+-
+stdlib.h
+-
+ctgrind.h
+-
+openssl/rand.h
+-
+../../../../src/mayo_1/api.h
+/home/ct_dude_binsecv0.7.1/multivariate/mayo/Optimized_Implementation/src/mayo_1/api.h
+
+/home/ct_dude_binsecv0.7.1/multivariate/mayo/Optimized_Implementation/src/mayo_1/api.h
+

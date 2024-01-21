@@ -1,0 +1,63 @@
+
+CC = clang
+
+BASE_DIR = ../
+
+
+INCS_DIR = $(BASE_DIR)/include
+
+
+# CATEGORY RANGE 1 5 2
+# PARAM_TARGETS SIG_SIZE BALANCED PK_SIZE
+# if CATEGORY = 1   PARAM_TARGETS SIG_SIZE BALANCED PK_SIZE
+# else PARAM_TARGETS SIG_SIZE PK_SIZE
+
+KECCAK_EXTERNAL_ENABLE = 
+CATEGORY = 1
+RSDP_VARIANT =  RSDP
+PARAM_TARGETS =  SIG_SIZE
+COMPILE_FLAGS = -DCATEGORY_${CATEGORY}=1 -D${PARAM_TARGETS}=1 ${KECCAK_EXTERNAL_ENABLE}
+
+
+
+INCS = $(wildcard $(BASE_DIR)/include/*.h)
+SRC  = $(filter-out  $(BASE_DIR)/lib/sign.c, $(wildcard $(BASE_DIR)/lib/*.c))
+
+
+SIGN = $(BASE_DIR)/lib/sign.c
+
+
+BUILD			= build
+BUILD_KEYPAIR	= $(BUILD)/less_keypair
+BUILD_SIGN		= $(BUILD)/less_sign
+
+EXECUTABLE_KEYPAIR_BC	= less_keypair/rbc_crypto_sign_keypair.bc
+EXECUTABLE_KEYPAIR_RBC	= less_keypair/rbc_crypto_sign_keypair.rbc
+EXECUTABLE_SIGN_BC		= less_sign/rbc_crypto_sign.bc
+EXECUTABLE_SIGN_RBC		= less_sign/rbc_crypto_sign.rbc
+
+all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+
+
+
+$(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
+	mkdir -p $(BUILD)
+	mkdir -p $(BUILD_KEYPAIR)
+	$(CC) -emit-llvm $(COMPILE_FLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+
+$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+	opt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+
+$(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
+	mkdir -p $(BUILD)
+	mkdir -p $(BUILD_SIGN)
+	$(CC) -emit-llvm $(COMPILE_FLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+
+$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+	opt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+
+.PHONY: clean
+
+clean:
+	rm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+	rm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)

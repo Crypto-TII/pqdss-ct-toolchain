@@ -1,0 +1,33 @@
+[sse:info] Empty path worklist: halting ...
+[sse:info] SMT queries
+             Preprocessing simplifications
+               total          17
+               sat            1
+               unsat          12
+               constant enum  4
+             
+             Satisfiability queries
+               total          0
+               sat            0
+               unsat          0
+               unknown        0
+               time           0.00
+               average        -nan
+             
+           Exploration
+             total paths                      1
+             completed/cut paths              0
+             pending paths                    0
+             stale paths                      1
+             failed assertions                0
+             branching points                 8
+             max path depth                   115
+             visited instructions (unrolled)  115
+             visited instructions (static)    168
+             
+           
+[checkct:result] Program status is : unknown (0.131)
+[checkct:info] 0 visited path covering 168 instructions
+[checkct:info] 8 / 8 control flow checks pass
+[checkct:info] 71 / 71 memory access checks pass
+

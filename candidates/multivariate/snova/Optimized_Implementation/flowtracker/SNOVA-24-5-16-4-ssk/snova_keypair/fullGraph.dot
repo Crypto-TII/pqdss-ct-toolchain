@@ -1,0 +1,362 @@
+digraph "DFG for 'Grafo'  "{
+label="DFG for 'Grafo' ";
+node_5[shape=box,style=solid,label="0"]
+node_3[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_3"
+node_9[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_9"
+node_23[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_23"
+node_29[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_29"
+node_40[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_40"
+node_43[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_43"
+node_46[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_46"
+node_49[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_49"
+node_52[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_52"
+node_89[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_89"
+node_92[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_92"
+node_95[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_95"
+node_98[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_98"
+node_101[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_101"
+node_123[shape=doubleoctagon,style=solid,label="Call llvm.dbg.value"]
+"node_5"->"node_123"
+node_6[shape=ellipse,style=solid,label=""]
+"node_6"->"node_3"
+node_4[shape=ellipse,style=solid,label=""]
+"node_4"->"node_3"
+node_2[shape=box,style=solid,label="1"]
+node_1[shape=octagon,style=solid,label="alloca"]
+"node_2"->"node_1"
+node_37[shape=octagon,style=solid,label="alloca"]
+"node_2"->"node_37"
+node_39[shape=octagon,style=solid,label="alloca"]
+"node_2"->"node_39"
+node_82[shape=doubleoctagon,style=solid,label="Call llvm.memcpy.p0i8.p0i8.i64"]
+"node_2"->"node_82"
+node_88[shape=octagon,style=solid,label="alloca"]
+"node_2"->"node_88"
+node_131[shape=doubleoctagon,style=solid,label="Call llvm.memcpy.p0i8.p0i8.i64"]
+"node_2"->"node_131"
+node_0[shape=ellipse,style=dashed,label="Memory 1"]
+node_16[shape=octagon,style=solid,label="getelementptr"]
+"node_0"->"node_16"
+node_19[shape=doubleoctagon,style=solid,label="Call randombytes"]
+"node_0"->"node_19"
+node_22[shape=octagon,style=solid,label="getelementptr"]
+"node_0"->"node_22"
+node_26[shape=octagon,style=solid,label="getelementptr"]
+"node_0"->"node_26"
+node_27[shape=octagon,style=solid,label="getelementptr"]
+"node_0"->"node_27"
+node_32[shape=doubleoctagon,style=solid,label="Call generate_keys_esk"]
+"node_0"->"node_32"
+"node_1"->"node_0"
+node_7[shape=ellipse,style=solid,label=""]
+"node_7"->"node_3"
+"node_7"->"node_9"
+node_12[shape=doubleoctagon,style=solid,label="Call llvm.dbg.declare"]
+"node_7"->"node_12"
+"node_7"->"node_23"
+"node_7"->"node_29"
+"node_7"->"node_40"
+"node_7"->"node_43"
+"node_7"->"node_46"
+"node_7"->"node_49"
+"node_7"->"node_52"
+node_55[shape=doubleoctagon,style=solid,label="Call llvm.dbg.declare"]
+"node_7"->"node_55"
+node_58[shape=doubleoctagon,style=solid,label="Call llvm.dbg.declare"]
+"node_7"->"node_58"
+"node_7"->"node_89"
+"node_7"->"node_92"
+"node_7"->"node_95"
+"node_7"->"node_98"
+"node_7"->"node_101"
+node_104[shape=doubleoctagon,style=solid,label="Call llvm.dbg.declare"]
+"node_7"->"node_104"
+"node_7"->"node_123"
+node_8[shape=box,style=solid,label="Const:llvm.dbg.value"]
+"node_8"->"node_3"
+"node_8"->"node_9"
+"node_8"->"node_23"
+"node_8"->"node_29"
+"node_8"->"node_40"
+"node_8"->"node_43"
+"node_8"->"node_46"
+"node_8"->"node_49"
+"node_8"->"node_52"
+"node_8"->"node_89"
+"node_8"->"node_92"
+"node_8"->"node_95"
+"node_8"->"node_98"
+"node_8"->"node_101"
+"node_8"->"node_123"
+node_10[shape=ellipse,style=solid,label=""]
+"node_10"->"node_9"
+node_11[shape=ellipse,style=solid,label=""]
+"node_11"->"node_9"
+node_13[shape=ellipse,style=solid,label=""]
+"node_13"->"node_12"
+node_14[shape=ellipse,style=solid,label=""]
+"node_14"->"node_12"
+node_15[shape=box,style=solid,label="Const:llvm.dbg.declare"]
+"node_15"->"node_12"
+"node_15"->"node_55"
+"node_15"->"node_58"
+"node_15"->"node_104"
+"node_16"->"node_0"
+node_17[shape=box,style=solid,label="0"]
+"node_17"->"node_16"
+"node_17"->"node_22"
+"node_17"->"node_26"
+node_64[shape=octagon,style=solid,label="getelementptr"]
+"node_17"->"node_64"
+node_69[shape=octagon,style=solid,label="getelementptr"]
+"node_17"->"node_69"
+node_72[shape=octagon,style=solid,label="getelementptr"]
+"node_17"->"node_72"
+node_73[shape=octagon,style=solid,label="getelementptr"]
+"node_17"->"node_73"
+node_116[shape=octagon,style=solid,label="getelementptr"]
+"node_17"->"node_116"
+node_118[shape=octagon,style=solid,label="getelementptr"]
+"node_17"->"node_118"
+node_127[shape=octagon,style=solid,label="icmp"]
+"node_17"->"node_127"
+node_136[shape=octagon,style=solid,label="phi"]
+"node_17"->"node_136"
+node_18[shape=ellipse,style=solid,label="call"]
+"node_19"->"node_18"
+node_20[shape=box,style=solid,label="48"]
+"node_20"->"node_19"
+node_21[shape=box,style=solid,label="Const:randombytes"]
+"node_21"->"node_19"
+"node_22"->"node_0"
+node_24[shape=ellipse,style=solid,label=""]
+"node_24"->"node_23"
+node_25[shape=ellipse,style=solid,label=""]
+"node_25"->"node_23"
+"node_26"->"node_0"
+"node_27"->"node_0"
+node_28[shape=box,style=solid,label="16"]
+"node_28"->"node_27"
+node_30[shape=ellipse,style=solid,label=""]
+"node_30"->"node_29"
+node_31[shape=ellipse,style=solid,label=""]
+"node_31"->"node_29"
+node_33[shape=ellipse,style=dashed,label="Memory 2"]
+"node_33"->"node_32"
+node_34[shape=ellipse,style=dashed,label="Memory 3"]
+"node_34"->"node_32"
+node_35[shape=box,style=solid,label="Const:generate_keys_esk"]
+"node_35"->"node_32"
+node_36[shape=ellipse,style=dashed,label="Memory 5"]
+"node_36"->"node_64"
+node_65[shape=doubleoctagon,style=solid,label="Call shake256"]
+"node_36"->"node_65"
+"node_36"->"node_72"
+node_74[shape=doubleoctagon,style=solid,label="Call sign_digest_esk"]
+"node_36"->"node_74"
+"node_36"->"node_116"
+node_117[shape=doubleoctagon,style=solid,label="Call shake256"]
+"node_36"->"node_117"
+"node_36"->"node_118"
+node_120[shape=doubleoctagon,style=solid,label="Call verify_signture"]
+"node_36"->"node_120"
+"node_37"->"node_36"
+node_38[shape=ellipse,style=dashed,label="Memory 6"]
+"node_38"->"node_69"
+node_70[shape=doubleoctagon,style=solid,label="Call create_salt"]
+"node_38"->"node_70"
+"node_38"->"node_73"
+"node_38"->"node_74"
+"node_39"->"node_38"
+node_41[shape=ellipse,style=solid,label=""]
+"node_41"->"node_40"
+node_42[shape=ellipse,style=solid,label=""]
+"node_42"->"node_40"
+node_44[shape=ellipse,style=solid,label=""]
+"node_44"->"node_43"
+node_45[shape=ellipse,style=solid,label=""]
+"node_45"->"node_43"
+node_47[shape=ellipse,style=solid,label=""]
+"node_47"->"node_46"
+node_48[shape=ellipse,style=solid,label=""]
+"node_48"->"node_46"
+node_50[shape=ellipse,style=solid,label=""]
+"node_50"->"node_49"
+node_51[shape=ellipse,style=solid,label=""]
+"node_51"->"node_49"
+node_53[shape=ellipse,style=solid,label=""]
+"node_53"->"node_52"
+node_54[shape=ellipse,style=solid,label=""]
+"node_54"->"node_52"
+node_56[shape=ellipse,style=solid,label=""]
+"node_56"->"node_55"
+node_57[shape=ellipse,style=solid,label=""]
+"node_57"->"node_55"
+node_59[shape=ellipse,style=solid,label=""]
+"node_59"->"node_58"
+node_60[shape=ellipse,style=solid,label=""]
+"node_60"->"node_58"
+node_61[shape=ellipse,style=solid,label="conv"]
+"node_61"->"node_65"
+node_62[shape=octagon,style=solid,label="trunc"]
+"node_62"->"node_61"
+node_63[shape=ellipse,style=solid,label="mlen"]
+"node_63"->"node_62"
+"node_63"->"node_82"
+node_86[shape=octagon,style=solid,label="add"]
+"node_63"->"node_86"
+"node_64"->"node_36"
+node_66[shape=ellipse,style=dashed,label="Memory 4"]
+"node_66"->"node_65"
+"node_66"->"node_82"
+"node_66"->"node_117"
+"node_66"->"node_131"
+node_67[shape=box,style=solid,label="64"]
+"node_67"->"node_65"
+"node_67"->"node_117"
+node_68[shape=box,style=solid,label="Const:shake256"]
+"node_68"->"node_65"
+"node_68"->"node_117"
+"node_69"->"node_38"
+node_71[shape=box,style=solid,label="Const:create_salt"]
+"node_71"->"node_70"
+"node_72"->"node_36"
+"node_73"->"node_38"
+node_75[shape=ellipse,style=dashed,label="Memory 7"]
+"node_75"->"node_74"
+node_80[shape=octagon,style=solid,label="getelementptr"]
+"node_75"->"node_80"
+node_76[shape=box,style=solid,label="64"]
+"node_76"->"node_74"
+"node_76"->"node_120"
+node_77[shape=ellipse,style=dashed,label="Memory 8"]
+"node_77"->"node_74"
+node_78[shape=box,style=solid,label="Const:sign_digest_esk"]
+"node_78"->"node_74"
+node_79[shape=ellipse,style=dashed,label="Memory 0"]
+"node_79"->"node_82"
+"node_79"->"node_131"
+"node_80"->"node_79"
+node_81[shape=box,style=solid,label="256"]
+"node_81"->"node_80"
+"node_81"->"node_86"
+node_108[shape=octagon,style=solid,label="icmp"]
+"node_81"->"node_108"
+node_110[shape=octagon,style=solid,label="getelementptr"]
+"node_81"->"node_110"
+node_113[shape=octagon,style=solid,label="sub"]
+"node_81"->"node_113"
+node_128[shape=octagon,style=solid,label="getelementptr"]
+"node_81"->"node_128"
+node_130[shape=octagon,style=solid,label="sub"]
+"node_81"->"node_130"
+node_133[shape=octagon,style=solid,label="sub"]
+"node_81"->"node_133"
+node_83[shape=box,style=solid,label="0"]
+"node_83"->"node_82"
+"node_83"->"node_131"
+node_84[shape=box,style=solid,label="Const:llvm.memcpy.p0i8.p0i8.i64"]
+"node_84"->"node_82"
+"node_84"->"node_131"
+node_85[shape=ellipse,style=solid,label="add"]
+node_87[shape=octagon,style=solid,label="store"]
+"node_85"->"node_87"
+"node_86"->"node_85"
+"node_87"->"node_79"
+"node_88"->"node_36"
+node_90[shape=ellipse,style=solid,label=""]
+"node_90"->"node_89"
+node_91[shape=ellipse,style=solid,label=""]
+"node_91"->"node_89"
+node_93[shape=ellipse,style=solid,label=""]
+"node_93"->"node_92"
+node_94[shape=ellipse,style=solid,label=""]
+"node_94"->"node_92"
+node_96[shape=ellipse,style=solid,label=""]
+"node_96"->"node_95"
+node_97[shape=ellipse,style=solid,label=""]
+"node_97"->"node_95"
+node_99[shape=ellipse,style=solid,label=""]
+"node_99"->"node_98"
+node_100[shape=ellipse,style=solid,label=""]
+"node_100"->"node_98"
+node_102[shape=ellipse,style=solid,label=""]
+"node_102"->"node_101"
+node_103[shape=ellipse,style=solid,label=""]
+"node_103"->"node_101"
+node_105[shape=ellipse,style=solid,label=""]
+"node_105"->"node_104"
+node_106[shape=ellipse,style=solid,label=""]
+"node_106"->"node_104"
+node_107[shape=ellipse,style=solid,label="cmp"]
+"node_107"->"node_36" [style=dashed]
+"node_107"->"node_66" [style=dashed]
+node_112[shape=ellipse,style=solid,label="sub"]
+"node_107"->"node_112" [style=dashed]
+node_114[shape=ellipse,style=solid,label="conv"]
+"node_107"->"node_114" [style=dashed]
+node_119[shape=ellipse,style=solid,label="call"]
+"node_107"->"node_119" [style=dashed]
+node_126[shape=ellipse,style=solid,label="tobool"]
+"node_107"->"node_126" [style=dashed]
+"node_108"->"node_107"
+node_109[shape=ellipse,style=solid,label="smlen"]
+"node_109"->"node_108"
+"node_109"->"node_113"
+"node_109"->"node_130"
+"node_109"->"node_133"
+"node_110"->"node_66"
+node_111[shape=ellipse,style=dashed,label="Memory 9"]
+"node_111"->"node_110"
+"node_111"->"node_120"
+"node_111"->"node_128"
+node_115[shape=octagon,style=solid,label="trunc"]
+"node_112"->"node_115"
+"node_113"->"node_112"
+"node_114"->"node_117"
+"node_115"->"node_114"
+"node_116"->"node_36"
+"node_118"->"node_36"
+"node_119"->"node_127"
+"node_120"->"node_119"
+node_121[shape=ellipse,style=dashed,label="Memory 10"]
+"node_121"->"node_120"
+node_122[shape=box,style=solid,label="Const:verify_signture"]
+"node_122"->"node_120"
+node_124[shape=ellipse,style=solid,label=""]
+"node_124"->"node_123"
+node_125[shape=ellipse,style=solid,label=""]
+"node_125"->"node_123"
+"node_126"->"node_66" [style=dashed]
+node_129[shape=ellipse,style=solid,label="sub5"]
+"node_126"->"node_129" [style=dashed]
+node_132[shape=ellipse,style=solid,label="sub6"]
+"node_126"->"node_132" [style=dashed]
+"node_127"->"node_126"
+"node_128"->"node_66"
+"node_129"->"node_131"
+"node_130"->"node_129"
+node_134[shape=octagon,style=solid,label="store"]
+"node_132"->"node_134"
+"node_133"->"node_132"
+"node_134"->"node_79"
+node_135[shape=ellipse,style=solid,label="retval.0"]
+"node_136"->"node_135"
+node_137[shape=box,style=solid,label="-1"]
+"node_137"->"node_136"
+}
+
