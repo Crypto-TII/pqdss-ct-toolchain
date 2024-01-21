@@ -5,7 +5,7 @@
 
 ## What is in this repository ? 
 This repository contains the following folders: 
-* the Post-Quantum Digital Signatures Schemes (PQDSS) implementations, submitted in the context of NIST Call 
+* `candidates`: contains the Post-Quantum Digital Signatures Schemes (PQDSS) implementations, submitted in the context of NIST Call 
 for proposals for PQC-based signature schemes. The candidates are classified according to the type-based signature scheme. Here 
 are the different folders: `code`, `lattice`, `mpc-in-the-head`, `symmetric`, `isogeny`, `mutlivariate` and `other`.
 
