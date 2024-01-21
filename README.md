@@ -19,6 +19,7 @@ and requirements to compile and run candidates with the following constant-time 
   * `toolchain_script.py`: contains the functions `compile_run_candidate` 
   that allows to compile targets and run tests with a given tool. The scripts that create main parser and subparsers 
   for candidates are also part of this file.
+* `tests_results`: Excel file consisting in a table of the results of the tests with the tools.
 
 
 ## Benefits of using our toolchain
@@ -141,11 +142,11 @@ type-based signature
 ```
 
 ### Example
-- tool: binsec
-- type-based signature: mpc-in-the-head
-- candidate: mirith
-- Optimizated Implementation folder: Optimized_Implementation
-- Instance: mirith_avx2_Ia_fast
+- `tool`: binsec
+- `type-based signature`: mpc-in-the-head
+- `candidate`: mirith
+- `Optimizated Implementation folder`: Optimized_Implementation
+- `Instance`: mirith_avx2_Ia_fast
 
 Note: For each candidate, the Optimized implementation folder has a 
 default value: the one proposed by bidders.
@@ -156,7 +157,7 @@ As already mentioned above, to create required files for the tests and run the t
 python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast
 ```
 
-Here's the result:
+Here's the structure of the generated files:
 
 
 ```

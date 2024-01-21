@@ -1,9 +1,0 @@
-version: "3.8"
-
-services:
-  python-linter:
-    build: .
-    container_name: python-linter
-    volumes:
-      - $PWD/../:/tmp
-    entrypoint: ["pylint", "--output-format", "colorized", "toolchain_script.py"]
