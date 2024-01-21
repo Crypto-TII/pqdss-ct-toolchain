@@ -509,6 +509,8 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
                                args_names):
     args_types[2] = re.sub("const ", "", args_types[2])
     args_types[4] = re.sub("const ", "", args_types[4])
+    type_sk_with_no_const = args_types[4]
+    secret_key = args_names[4]
     taint_file_content_block_include = f'''
     #include <stdio.h>
     #include <sys/types.h>
@@ -526,12 +528,14 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
     //{args_types[1]} *{args_names[1]};
     {args_types[2]} *{args_names[2]};
     {args_types[3]} {args_names[3]} = 0;
-    {args_types[4]} {args_names[4]}[CRYPTO_SECRETKEYBYTES] = {{0}};
+    {args_types[4]} {secret_key}[CRYPTO_SECRETKEYBYTES] = {{0}};
     
     void generate_test_vectors() {{
     \t//Fill randombytes
     \trandombytes({args_names[2]}, {args_names[3]});
-    \trandombytes({args_names[4]}, CRYPTO_SECRETKEYBYTES);
+    \t//randombytes({args_names[4]}, CRYPTO_SECRETKEYBYTES);
+    \t{type_sk_with_no_const} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
+    \t(void)crypto_sign_keypair(public_key, {secret_key});
     }} 
     
     int main() {{
@@ -542,9 +546,9 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
     \t\t{args_names[0]} = ({args_types[0]} *)calloc({args_names[3]}+CRYPTO_BYTES, sizeof({args_types[0]}));
     
     \t\tgenerate_test_vectors(); 
-    \t\tct_poison({args_names[4]}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
-    \t\tresult = {function_name}({args_names[0]}, &{args_names[1]}, {args_names[2]}, {args_names[3]}, {args_names[4]}); 
-    \t\tct_unpoison({args_names[4]}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
+    \t\tct_poison({secret_key}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
+    \t\tresult = {function_name}({args_names[0]}, &{args_names[1]}, {args_names[2]}, {args_names[3]}, {secret_key}); 
+    \t\tct_unpoison({secret_key}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
     \t\tfree({args_names[0]});
     \t\tfree({args_names[2]});
     \t}}
