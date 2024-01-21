@@ -659,11 +659,6 @@ def dudect_sign_dude_content(taint_file, api,
     #define SIGNATURE_MESSAGE_BYTE_LENGTH (MESSAGE_LENGTH + CRYPTO_BYTES)
     
     '''
-    # type_msg = args_types[2].replace('const', '')
-    # type_msg = type_msg.strip()
-    # type_sk = args_types[4].replace('const', '')
-    # type_sk = type_sk.strip()
-
     type_msg = args_types[2]
     type_sk = args_types[4]
 
