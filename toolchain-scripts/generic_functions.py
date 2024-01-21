@@ -666,6 +666,10 @@ def dudect_sign_dude_content(taint_file, api,
 
     type_msg = args_types[2]
     type_sk = args_types[4]
+
+    type_sk_with_no_const = type_sk.replace('const', '')
+    type_sk_with_no_const = type_sk_with_no_const.strip()
+
     sig_msg = args_names[0]
     sig_msg_len = args_names[1]
     msg = args_names[2]
@@ -689,8 +693,8 @@ def dudect_sign_dude_content(taint_file, api,
     
     void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
     \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
-    \t{type_sk} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
-    \t{type_sk} fixed_secret_key[CRYPTO_SECRETKEYBYTES] = {{0}};
+    \t{type_sk_with_no_const} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
+    \t{type_sk_with_no_const} fixed_secret_key[CRYPTO_SECRETKEYBYTES] = {{0}};
     \t(void)crypto_sign_keypair(public_key, fixed_secret_key);
     \tfor (size_t i = 0; i < c->number_measurements; i++) {{
     \t\tclasses[i] = randombit();
@@ -700,8 +704,8 @@ def dudect_sign_dude_content(taint_file, api,
     \t\t\t\t        fixed_secret_key, SECRET_KEY_BYTE_LENGTH*sizeof({type_sk}));
     \t\t\t}} else {{
     \t\t\t\tconst size_t offset = (size_t)i * c->chunk_size;
-    \t\t\t\t{type_sk} pk[CRYPTO_PUBLICKEYBYTES] = {{0}};
-    \t\t\t\t{type_sk} *sk = input_data + offset + MESSAGE_LENGTH;
+    \t\t\t\t{type_sk_with_no_const} pk[CRYPTO_PUBLICKEYBYTES] = {{0}};
+    \t\t\t\t{type_sk_with_no_const} *sk = input_data + offset + MESSAGE_LENGTH;
     \t\t\t\t(void)crypto_sign_keypair(pk, sk);
     \t\t\t}}
     \t\t}}
@@ -1604,6 +1608,9 @@ def generic_init_compile(tools_list, signature_type, candidate,
                 cmd = ["mkdir", "-p", path_to_build_folder]
                 subprocess.call(cmd, stdin=sys.stdin)
             if "sh" not in with_cmake:
+                if not os.path.isdir(path_to_build_folder):
+                    cmd = ["mkdir", "-p", path_to_build_folder]
+                    subprocess.call(cmd, stdin=sys.stdin)
                 compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
                                                                              path_to_makefile_folder,
                                                                              path_to_build_folder,
@@ -1673,6 +1680,9 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     funct = f'build_cand.makefile_candidate({arguments})'
                     exec(funct)
                 if "sh" not in with_cmake:
+                    if not os.path.isdir(path_to_build_folder):
+                        cmd = ["mkdir", "-p", path_to_build_folder]
+                        subprocess.call(cmd, stdin=sys.stdin)
                     compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
                                                                                  path_to_makefile_folder,
                                                                                  path_to_build_folder,
