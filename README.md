@@ -183,6 +183,42 @@ mpc-in-the-head
 
 ```
 
+## Especial cases
+
+For the following candidates, run the commands:
+
+### Candidates with no instance
+
+Candidates: `cross`, `less`, `pqsigrm`
+```
+python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS 
+```
+
+#### Vox
+
+Actually, Vox has no instance. The optimized implementation folder is: `Reference_Implementation/vox_sign`.
+We consider the instance of vox as: `vox_sign`
+
+```
+python3 toolchain-scripts/toolchain_script.py vox --tools TOOLS --instance_folders_list vox_sign
+```
+
+### Mayo
+
+Instances: `src/mayo_1`, `src/mayo_2`, `src/mayo_3`, `src/mayo_5`
+```
+python3 toolchain-scripts/toolchain_script.py mayo --tools TOOLS --instance_folders_list src/mayo_1
+```
+
+### Qr_uov
+
+Instances: `qruov1q7L10v740m100`, `qruov1q31L3v165m60`, etc..
+
+The List of instances can be found in the `Makefile` of the folder: `Optimized_Implementation`.
+
+```
+python3 toolchain-scripts/toolchain_script.py mayo --tools TOOLS --instance_folders_list qruov1q7L10v740m100
+```
 
 ## Note
 
