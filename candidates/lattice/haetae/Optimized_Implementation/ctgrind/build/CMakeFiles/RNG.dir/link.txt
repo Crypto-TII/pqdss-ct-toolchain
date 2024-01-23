@@ -1,1 +1,0 @@
-/usr/bin/cc -fPIC   -shared -Wl,-soname,libRNG.so -o libs/libRNG.so CMakeFiles/RNG.dir/home/lattice/haetae/Optimized_Implementation/src/randombytes.c.o   -L/home/lattice/haetae/Optimized_Implementation/ctgrind/../libs  -Wl,-rpath,/home/lattice/haetae/Optimized_Implementation/ctgrind/../libs /usr/lib/x86_64-linux-gnu/libcrypto.so 

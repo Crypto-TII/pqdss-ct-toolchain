@@ -37,8 +37,9 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
     """ Function: compile_run_candidate"""
     candidates_to_build_with_makefile = ["mirith", "mira", "mqom", "perk", "ryde", "pqsigrm", "wave",
                                          "snova", "tuov", "uov", "vox", "aimer", "ascon_sign", "faest",
-                                         "sphincs_alpha", "preon", "squirrels"]
-    candidate_to_build_with_cmake = ["cross", "less", "mayo", "sqisign"]
+                                         "sphincs_alpha", "preon", "squirrels", "hawk", "meds", "haeatae",
+                                         "hufu", "meds"]
+    candidate_to_build_with_cmake = ["cross", "less", "mayo", "sqisign", "haetae"]
     if candidate in candidates_to_build_with_makefile:
         add_includes = []
         with_cmake = 'no'
@@ -334,13 +335,19 @@ generic.add_cli_arguments(subparser, 'candidates/lattice', 'ehtv3v4',
 
 
 # ========================================== HAWK ==============================================
+#hawk_opt_folder = "candidates/lattice/hawk/Optimized_Implementation/avx2"
 hawk_opt_folder = "candidates/lattice/hawk/Optimized_Implementation/avx2"
 hawk_default_list_of_folders = os.listdir(hawk_opt_folder)
 hawk_default_list_of_folders = generic.get_default_list_of_folders(hawk_default_list_of_folders,
                                                                    default_tools_list)
 
+# generic.add_cli_arguments(subparser, 'candidates/lattice', 'hawk',
+#                           'Optimized_Implementation/avx2',
+#                           '"../../../api.h"', '""',
+#                           '"../../../rng.h"')
+
 generic.add_cli_arguments(subparser, 'candidates/lattice', 'hawk',
-                          'Optimized_Implementation/avx2',
+                          'Reference_Implementation',
                           '"../../../api.h"', '""',
                           '"../../../rng.h"')
 
@@ -351,9 +358,9 @@ hufu_default_list_of_folders = generic.get_default_list_of_folders(hufu_default_
                                                                    default_tools_list)
 
 generic.add_cli_arguments(subparser, 'candidates/lattice', 'hufu',
-                          'Optimized_Implementation/crypto_sign',
-                          '"../../../../api.h"', '""',
-                          '"../../../../rng.h"')
+                          'HuFu/Optimized_Implementation/crypto_sign',
+                          '"../../../api.h"', '""',
+                          '"../../../rng.h"')
 
 
 # ============================================ raccoon ===========================================

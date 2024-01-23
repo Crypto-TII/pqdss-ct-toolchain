@@ -1972,65 +1972,154 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
-    subfolder = ""
-    src_folder = 'pqsigrm613'
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content = f'''
-    CC = gcc
-    LDFLAGS =  -L/usr/local/lib
-    CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
-    LIBFLAGS = -lcrypto -lssl -lm
-    
-    BASE_DIR = ../{src_folder}
-     
-    
-    CFILES := $(shell find $(BASE_DIR)/src -name '*.c' | sed -e 's/\.c/\.o/')
-    
-    OBJS = ${{CFILES}}
-    
-    BUILD					= build
-    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-    BUILD_SIGN			= $(BUILD)/{candidate}_sign
-    
-    TOOL_LIBS = {tool_libs}
-    TOOL_FLAGS = {tool_flags}
-    
-    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
-    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
-    
-    ifeq ($(DEBUG), 1)
-    \tDBG_FLAGS = -g -O0 -DDEBUG
-    else
-    \tDBG_FLAGS = -g -O2 -DNDEBUG -Wunused-variable -Wunused-function   
-    endif
-    
-    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-    
-    %.o : %.c
-    \t$(CC) $(CFLAGS) $(DBG_FLAGS) -o $@ -c $<
-    
-    $(EXECUTABLE_KEYPAIR): ${{OBJS}} {candidate}_keypair/$(EXECUTABLE_KEYPAIR).c
-    \tmkdir -p $(BUILD)
-    \tmkdir -p $(BUILD_KEYPAIR)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
-    
-    $(EXECUTABLE_SIGN): ${{OBJS}} {candidate}_sign/$(EXECUTABLE_SIGN).c
-    \tmkdir -p $(BUILD)
-    \tmkdir -p $(BUILD_SIGN)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
-    
-    matrix.o : matrix.h
-    rng.o : rng.h
-    api.o : api.h
-    
-    clean:
-    \tcd  $(BASE_DIR)/src; rm -f *.o; cd ..
-    \trm -f *.o
-    \t cd ../../{candidate}
-    \trm -f  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-    '''
+    makefile_content = ''
+    if tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        INCS = $(wildcard $(BASE_DIR)/*.h)
+        #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
+        SRC  = $(filter-out  $(SRC_DIR)/sign.c ,$(wildcard $(SRC_DIR)/*.c))
+        SIGN = $(BASE_DIR)/sign.c
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        
+        SHELL := /bin/bash
+
+        LIBS = -lssl -lcrypto
+        CC := gcc
+        
+        BUILD					= build
+        BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN			= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_FLAGS = {tool_flags}
+        TOOL_LIBS = {tool_libs}
+        
+        ifdef DEBUG
+        CFLAGS := -g -Wall -DDEBUG
+        OBJDIR := debug
+        else
+        CFLAGS := -O3 -Wall
+        OBJDIR := $(BUILD)
+        endif
+        
+        ifdef LOG
+        CFLAGS += -DDEBUG
+        endif
+        
+        CFLAGS += -I$(OBJDIR) -INIST
+        
+        EXES =  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)  #test bench PQCgenKAT_sign
+        
+        TARGETS := ${{EXES:%=$(OBJDIR)/%}}
+        
+        
+        
+        .PHONY: default clean
+        
+        default: $(EXES)
+        
+        BASE_DIR = ../../{subfolder}
+        
+        
+        OBJECTS = $(BASE_DIR)/meds.o $(BASE_DIR)/util.o $(BASE_DIR)/seed.o $(BASE_DIR)/osfreq.o $(BASE_DIR)/fips202.o\
+            $(BASE_DIR)/matrixmod.o $(BASE_DIR)/bitstream.o $(BASE_DIR)/randombytes.o
+        HEADERS = $(wildcard $(BASE_DIR)/*.h)
+        
+        BUILDOBJ := ${{OBJECTS:%=$(OBJDIR)/%}}
+        
+        
+        $(EXES) : % :
+        \t@make $(OBJDIR)/$(@F)
+        
+        $(OBJDIR):
+        \tmkdir -p $(OBJDIR)
+        
+        $(BUILDOBJ) : $(OBJDIR)/%.o: %.c $(HEADERS) | $(OBJDIR)
+        \t$(CC) $(CFLAGS) -c $< -o $@
+        
+        $(TARGETS) : $(OBJDIR)/%: %.c $(BUILDOBJ)
+        \t$(CC) $(@F).c $(BUILDOBJ) $(CFLAGS) $(LIBS) -o $@
+        
+        
+        # TEST: test
+        #     $(OBJDIR)/test
+        # 
+        # KAT: PQCgenKAT_sign
+        #     $(OBJDIR)/PQCgenKAT_sign
+        # 
+        # BENCH: bench
+        #     $(OBJDIR)/bench
+        # 
+        # clean:
+        #     rm -rf build/ debug/ PQCsignKAT_*
+                
+        
+        
+        
+        
+        # 
+        # $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(SOURCES)
+        # \tmkdir -p $(BUILD_KEYPAIR)
+        # \t$(CC) $(CFLAGS) -o $(BUILD)/$@ $(EXECUTABLE_KEYPAIR).c $(SOURCES) $(LDFLAGS)  $(TOOL_LIBS) $(TOOL_FLAGS)
+        #     
+        # $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(SOURCES)
+        # \tmkdir -p $(BUILD_SIGN)
+        # \t$(CC) $(CFLAGS) -o $(BUILD)/$@ $(EXECUTABLE_SIGN).c $(SOURCES) $(LDFLAGS)  $(TOOL_LIBS) $(TOOL_FLAGS)
+        # 
+        # 
+        # .PHONY: clean
+          
+        clean:
+        \trm -f $(BASE_DIR)/*.o 
+        \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+        '''
     with open(path_to_makefile, "w") as mfile:
         mfile.write(textwrap.dedent(makefile_content))
+
 
 
 # =================================== WAVE ======================================
@@ -2318,140 +2407,207 @@ def cmake_haetae(path_to_cmakelist, subfolder, tool_name, candidate):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
-    path_to_cmakelist = path_to_cmakelist+'/CMakeLists.txt'
-    cmake_file_content_src_block = f'''
-    cmake_minimum_required(VERSION 3.16)
-    project({subfolder} LANGUAGES ASM C CXX) # CXX for the google test
-    
-    enable_testing() # Enables running `ctest`
-    
-    set(BASE_DIR ..)
-    
-    set(CMAKE_C_STANDARD 11)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/libs/)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/libs/)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/bin/)
-    set(EXECUTABLE_OUTPUT_PATH ${{CMAKE_BINARY_DIR}}/bin/)
-    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-    
-    set(HAETAE_SRCS
-      ${{BASE_DIR}}/src/consts.c
-      ${{BASE_DIR}}/src/poly.c
-      ${{BASE_DIR}}/src/ntt.S
-      ${{BASE_DIR}}/src/invntt.S
-      ${{BASE_DIR}}/src/pointwise.S
-      ${{BASE_DIR}}/src/shuffle.S
-      ${{BASE_DIR}}/src/fft.c
-      ${{BASE_DIR}}/src/reduce.c
-      ${{BASE_DIR}}/src/polyvec.c
-      ${{BASE_DIR}}/src/polymat.c
-      ${{BASE_DIR}}/src/polyfix.c
-      ${{BASE_DIR}}/src/decompose.c
-      ${{BASE_DIR}}/src/sampler.c
-      ${{BASE_DIR}}/src/packing.c
-      ${{BASE_DIR}}/src/sign.c
-      ${{BASE_DIR}}/src/fixpoint.c
-      ${{BASE_DIR}}/src/encoding.c
-    )
-    
-    set(HAETAE_FIPS202_SRCS
-      ${{HAETAE_SRCS}}
-      ${{BASE_DIR}}/src/symmetric-shake.c
-    )
-    set(FIPS202_SRCS ${{BASE_DIR}}/src/fips202.c ${{BASE_DIR}}/src/fips202x4.c ${{BASE_DIR}}/src/f1600x4.S)
-    
-    if(MSVC)
-      set(C_FLAGS /nologo /O2 /W4 /wd4146 /wd4244)
-    else()
-      set(C_FLAGS -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic)
-    endif()
-    
-    find_package(OpenSSL REQUIRED)
-    
-    include_directories(${{BASE_DIR}}/include)
-    include_directories(${{BASE_DIR}}/api)
-    link_directories(${{BASE_DIR}}/libs)
-    
-    add_library(fips202 SHARED ${{FIPS202_SRCS}})
-    target_compile_options(fips202 PRIVATE -O3 -mavx2 -fomit-frame-pointer -fPIC)
-    add_library(RNG SHARED ${{PROJECT_SOURCE_DIR}}/${{BASE_DIR}}//src/randombytes.c)
-    target_compile_options(RNG PRIVATE -O3 -fomit-frame-pointer -fPIC)
-    target_link_libraries(RNG PUBLIC OpenSSL::Crypto)
-    
-    
-    # HAETAE 2 SHAKE ONLY
-    set(LIB_NAME2 ${{PROJECT_NAME}}2)
-    add_library(${{LIB_NAME2}} SHARED ${{HAETAE_FIPS202_SRCS}})
-    target_compile_definitions(${{LIB_NAME2}} PUBLIC HAETAE_MODE=2)
-    target_compile_options(${{LIB_NAME2}} PRIVATE ${{C_FLAGS}})
-    target_link_libraries(${{LIB_NAME2}} INTERFACE fips202 m)
-    target_link_libraries(${{LIB_NAME2}} PUBLIC RNG)
-    
-    # HAETAE 3 SHAKE ONLY
-    set(LIB_NAME3 ${{PROJECT_NAME}}3)
-    add_library(${{LIB_NAME3}} SHARED ${{HAETAE_FIPS202_SRCS}})
-    target_compile_definitions(${{LIB_NAME3}} PUBLIC HAETAE_MODE=3)
-    target_compile_options(${{LIB_NAME3}} PRIVATE ${{C_FLAGS}})
-    target_link_libraries(${{LIB_NAME3}} INTERFACE fips202 m)
-    target_link_libraries(${{LIB_NAME3}} PUBLIC RNG)
-    
-    # HAETAE 5 SHAKE ONLY
-    set(LIB_NAME5 ${{PROJECT_NAME}}5)
-    add_library(${{LIB_NAME5}} SHARED ${{HAETAE_FIPS202_SRCS}})
-    target_compile_definitions(${{LIB_NAME5}} PUBLIC HAETAE_MODE=5)
-    target_compile_options(${{LIB_NAME5}} PRIVATE ${{C_FLAGS}})
-    target_link_libraries(${{LIB_NAME5}} INTERFACE fips202 m)
-    target_link_libraries(${{LIB_NAME5}} PUBLIC RNG)
-    
-    
-    set(BUILD build)
-    set(BUILD_KEYPAIR {candidate}_keypair)
-    set(BUILD_SIGN {candidate}_sign)
-    '''
-    cmake_file_content_loop_content_block_executables = ""
-    if tool_name.lower() == 'binsec':
-        cmake_file_content_loop_content_block_executables = f'''
-        foreach(category RANGE 2 3 5)
-            \t\tset(TARGET_KEYPAIR_BINARY_NAME {test_keypair}_${{category}})
-            \t\tadd_executable(${{TARGET_KEYPAIR_BINARY_NAME}} ./{candidate}_keypair/{test_keypair}.c)
-            \t\ttarget_link_libraries(${{TARGET_KEYPAIR_BINARY_NAME}}  ${{LIB_NAME${{category}}}} OpenSSL::Crypto)
-            \t\ttarget_include_directories(${{TARGET_KEYPAIR_BINARY_NAME}} PUBLIC ../include)
-            \t\ttarget_compile_definitions(${{TARGET_KEYPAIR_BINARY_NAME}} PUBLIC HAETAE_MODE=${{category}})
-            \t\tset_target_properties(${{TARGET_KEYPAIR_BINARY_NAME}} PROPERTIES \
-            RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
-            
-            \t\tset(TARGET_SIGN_BINARY_NAME {test_sign}_${{category}})
-            \t\tadd_executable(${{TARGET_SIGN_BINARY_NAME}} ./{candidate}_sign/{test_sign}.c)
-            \t\ttarget_include_directories(${{TARGET_SIGN_BINARY_NAME}} PUBLIC ../include)
-            \t\ttarget_compile_definitions(${{TARGET_SIGN_BINARY_NAME}} PUBLIC HAETAE_MODE=${{category}})
-            \t\ttarget_link_libraries(${{TARGET_SIGN_BINARY_NAME}}  ${{LIB_NAME${{category}}}} OpenSSL::Crypto)
-        endforeach(category) 
-        '''
-    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
-        cmake_file_content_loop_content_block_executables = f'''
-        find_library(CT_GRIND_LIB ctgrind)
-        foreach(category RANGE 2 3 5)
-        \t\tset(TARGET_KEYPAIR_BINARY_NAME {test_sign}_${{category}})
-        \t\tadd_executable(${{TARGET_KEYPAIR_BINARY_NAME}} ./{candidate}_keypair/{test_sign}.c)
-        \t\ttarget_link_libraries(${{TARGET_KEYPAIR_BINARY_NAME}}  ${{LIB_NAME${{category}}}}\
-         ${{CT_GRIND_LIB}} OpenSSL::Crypto)
-        \t\ttarget_include_directories(${{TARGET_KEYPAIR_BINARY_NAME}} PUBLIC ../include)
-        \t\ttarget_compile_definitions(${{TARGET_KEYPAIR_BINARY_NAME}} PUBLIC HAETAE_MODE=${{category}})
-        \t\tset_target_properties(${{TARGET_KEYPAIR_BINARY_NAME}} PROPERTIES\
-         RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
+    cmakelists = f'{path_to_cmakelist}/CMakeLists.txt'
+    cmake_file_content = ''
+    target_link_opt_block = ''
+    link_flag = ''
+    if tool_flags:
+        if '-static ' in tool_flags or ' -static' in tool_flags:
+            link_flag = '-static'
+    libs_str = ""
+    # tool_libs = tool_libs.replace("-lm", "")
+    # tool_libs = tool_libs.strip()
+    libs_list = []
+    if tool_libs:
+        libs_str = tool_libs.replace("-l", "")
+        libs_list = libs_str.split()
+    if tool_name == 'flowtracker':
+        cmakelists = f'{path_to_cmakelist}/Makefile'
+        cmake_file_content = f'''
+        CC = clang
         
-        \t\tset(TARGET_SIGN_BINARY_NAME {test_sign}_${{category}}_1)
-        \t\tadd_executable(${{TARGET_SIGN_BINARY_NAME}} ./{candidate}_sign/{test_sign}.c)
-        \t\ttarget_include_directories(${{TARGET_SIGN_BINARY_NAME}} PUBLIC ../include)
-        \t\ttarget_compile_definitions(${{TARGET_SIGN_BINARY_NAME}} PUBLIC HAETAE_MODE=${{category}})
-        \t\ttarget_link_libraries(${{TARGET_SIGN_BINARY_NAME}}  ${{LIB_NAME${{category}}}}\
-         ${{CT_GRIND_LIB}} OpenSSL::Crypto)
-        \t\tset_target_properties(${{TARGET_SIGN_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}})
-        endforeach(category)
+        BASE_DIR = ..
+        
+        
+        INCS_DIR = $(BASE_DIR)/include
+        
+        
+        KECCAK_EXTERNAL_ENABLE = 
+        CATEGORY = 2
+        
+        
+        INCS = $(wildcard $(BASE_DIR)/include/*.h)
+        SRC  = $(filter-out  $(BASE_DIR)/src/sign.c, $(wildcard $(BASE_DIR)/src/*.c))
+        SRC += $(wildcard $(BASE_DIR)/include/*.S)
+        
+        SIGN = $(BASE_DIR)/src/sign.c
+        
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm $(COMPILE_FLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm $(COMPILE_FLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
         '''
-    with open(path_to_cmakelist, "w") as cmake_file:
-        cmake_file.write(textwrap.dedent(cmake_file_content_src_block))
-        cmake_file.write(textwrap.dedent(cmake_file_content_loop_content_block_executables))
+    else:
+        cmake_file_content = f'''
+        cmake_minimum_required(VERSION 3.16)
+        project({subfolder} LANGUAGES ASM C CXX) # CXX for the google test
+        
+        enable_testing() # Enables running `ctest`
+        
+        set(BASE_DIR ..)
+        
+        set(CMAKE_C_STANDARD 11)
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/libs/)
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/libs/)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${{CMAKE_BINARY_DIR}}/bin/)
+        set(EXECUTABLE_OUTPUT_PATH ${{CMAKE_BINARY_DIR}}/bin/)
+        set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+        
+        set(HAETAE_SRCS
+          ${{BASE_DIR}}/src/consts.c
+          ${{BASE_DIR}}/src/poly.c
+          ${{BASE_DIR}}/src/ntt.S
+          ${{BASE_DIR}}/src/invntt.S
+          ${{BASE_DIR}}/src/pointwise.S
+          ${{BASE_DIR}}/src/shuffle.S
+          ${{BASE_DIR}}/src/fft.c
+          ${{BASE_DIR}}/src/reduce.c
+          ${{BASE_DIR}}/src/polyvec.c
+          ${{BASE_DIR}}/src/polymat.c
+          ${{BASE_DIR}}/src/polyfix.c
+          ${{BASE_DIR}}/src/decompose.c
+          ${{BASE_DIR}}/src/sampler.c
+          ${{BASE_DIR}}/src/packing.c
+          ${{BASE_DIR}}/src/sign.c
+          ${{BASE_DIR}}/src/fixpoint.c
+          ${{BASE_DIR}}/src/encoding.c
+        )
+        
+        set(HAETAE_FIPS202_SRCS
+          ${{HAETAE_SRCS}}
+          ${{BASE_DIR}}/src/symmetric-shake.c
+        )
+        set(FIPS202_SRCS ${{BASE_DIR}}/src/fips202.c ${{BASE_DIR}}/src/fips202x4.c ${{BASE_DIR}}/src/f1600x4.S)
+        
+        if(MSVC)
+          set(C_FLAGS /nologo /O2 /W4 /wd4146 /wd4244)
+        else()
+          set(C_FLAGS -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic)
+        endif()
+        
+        find_package(OpenSSL REQUIRED)
+        '''
+        find_libs_block = ''
+        libs_variables = ''
+        for lib in libs_list:
+            lib_variable = lib.upper()
+            lib_variable = f'{lib_variable}_LIB'
+            l_var = f'{lib_variable}'
+            l_var = f'{{{l_var}}}'
+            libs_variables += f' ${l_var}'
+            find_libs_block += f'''
+            find_library({lib_variable} {lib})
+            if(NOT {lib_variable})
+            \tmessage("{lib} library not found")
+            endif()
+            '''
+        if libs_list:
+            cmake_file_content += f'{find_libs_block}'
+        cmake_file_content += f'''
+        include_directories(${{BASE_DIR}}/include)
+        include_directories(${{BASE_DIR}}/api)
+        link_directories(${{BASE_DIR}}/libs)
+        
+        add_library(fips202 SHARED ${{FIPS202_SRCS}})
+        target_compile_options(fips202 PRIVATE -O3 -mavx2 -fomit-frame-pointer -fPIC)
+        add_library(RNG SHARED ${{PROJECT_SOURCE_DIR}}/${{BASE_DIR}}/src/randombytes.c)
+        target_compile_options(RNG PRIVATE -O3 -fomit-frame-pointer -fPIC)
+        target_link_libraries(RNG PUBLIC OpenSSL::Crypto)
+        
+        
+        # HAETAE 2 SHAKE ONLY
+        set(LIB_NAME2 ${{PROJECT_NAME}}2)
+        add_library(${{LIB_NAME2}} SHARED ${{HAETAE_FIPS202_SRCS}})
+        target_compile_definitions(${{LIB_NAME2}} PUBLIC HAETAE_MODE=2)
+        target_compile_options(${{LIB_NAME2}} PRIVATE ${{C_FLAGS}})
+        target_link_libraries(${{LIB_NAME2}} INTERFACE fips202 m)
+        target_link_libraries(${{LIB_NAME2}} PUBLIC RNG)
+        
+        # HAETAE 3 SHAKE ONLY
+        set(LIB_NAME3 ${{PROJECT_NAME}}3)
+        add_library(${{LIB_NAME3}} SHARED ${{HAETAE_FIPS202_SRCS}})
+        target_compile_definitions(${{LIB_NAME3}} PUBLIC HAETAE_MODE=3)
+        target_compile_options(${{LIB_NAME3}} PRIVATE ${{C_FLAGS}})
+        target_link_libraries(${{LIB_NAME3}} INTERFACE fips202 m)
+        target_link_libraries(${{LIB_NAME3}} PUBLIC RNG)
+        
+        # HAETAE 5 SHAKE ONLY
+        set(LIB_NAME5 ${{PROJECT_NAME}}5)
+        add_library(${{LIB_NAME5}} SHARED ${{HAETAE_FIPS202_SRCS}})
+        target_compile_definitions(${{LIB_NAME5}} PUBLIC HAETAE_MODE=5)
+        target_compile_options(${{LIB_NAME5}} PRIVATE ${{C_FLAGS}})
+        target_link_libraries(${{LIB_NAME5}} INTERFACE fips202 m)
+        target_link_libraries(${{LIB_NAME5}} PUBLIC RNG)
+        
+        
+        set(BUILD build)
+        set(BUILD_KEYPAIR {candidate}_keypair)
+        set(BUILD_SIGN {candidate}_sign)
+        '''
+        cmake_file_content += f'''
+        set(CATEGORIES 2 3 5)
+        foreach(category IN LISTS CATEGORIES)
+            \tset(TARGET_KEYPAIR_BINARY_NAME {test_keypair}_${{category}})
+            \tadd_executable(${{TARGET_KEYPAIR_BINARY_NAME}} ./{candidate}_keypair/{test_keypair}.c)
+            \ttarget_link_libraries(${{TARGET_KEYPAIR_BINARY_NAME}} {libs_variables}  ${{LIB_NAME${{category}}}} OpenSSL::Crypto)
+            \tset_target_properties(${{TARGET_KEYPAIR_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
+        '''
+        if link_flag:
+            cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE {link_flag})'
+        cmake_file_content += f'''
+            \tset(TARGET_SIGN_BINARY_NAME {test_sign}_${{category}})
+            \tadd_executable(${{TARGET_SIGN_BINARY_NAME}} ./{candidate}_sign/{test_sign}.c)
+            \ttarget_link_libraries(${{TARGET_SIGN_BINARY_NAME}} {libs_variables} ${{LIB_NAME${{category}}}} OpenSSL::Crypto)
+            \tset_target_properties(${{TARGET_SIGN_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}})
+            '''
+        if link_flag:
+            cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE {link_flag})'
+        cmake_file_content += f'''
+        endforeach()
+        '''
+    with open(cmakelists, "w") as cmake_file:
+        cmake_file.write(textwrap.dedent(cmake_file_content))
 
 
 # =========================== EAGLESIGN =========================================
@@ -2718,6 +2874,14 @@ def makefile_hawk(path_to_makefile_folder, subfolder, tool_name, candidate):
         LDFLAGS =
         LIBS =
         
+        
+        CC = c99
+        CFLAGS = -Wall -Wextra -Wshadow -Wundef -O2
+        LD = $(CC)
+        LDFLAGS =
+        LIBS =
+        
+        
         BASE_DIR = ../../{subfolder}
         BUILD					= build
         BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
@@ -2802,106 +2966,122 @@ def makefile_hawk(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # ========================= HUFU ====================================
-# [TODO]
-def makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate):
-    tool = gen_funct.GenericPatterns(tool_type)
-    subfolder = ""
-    src_folder = 'pqsigrm613'
+def makefile_hufu(path_to_makefile_folder, subfolder, tool_name, candidate):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content_block_cflags = f'''
-    CC = gcc
-    LDFLAGS =  -L/usr/local/lib
-    CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
-    LIBFLAGS = -lcrypto -lssl -lm
-    
-    BASE_DIR = ../{src_folder}
-     
-    
-    CFILES := $(shell find $(BASE_DIR)/src -name '*.c' | sed -e 's/\.c/\.o/')
-    
-    OBJS = ${{CFILES}}
-    
-    BUILD					= build
-    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-    BUILD_SIGN			= $(BUILD)/{candidate}_sign
-    '''
-    makefile_content_block_tool_flags_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        test_harness_kpair = gen_funct.binsec_test_harness_keypair
-        test_harness_sign = gen_funct.binsec_test_harness_sign
-        makefile_content_block_tool_flags_binary_files = f'''
+    makefile_content = ''
+    if tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
         
-        BINSEC_STATIC_FLAG  = -static
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_harness_kpair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_harness_sign}
-        '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        taint = gen_funct.ctgrind_taint
-        makefile_content_block_tool_flags_binary_files = f'''
-        CT_GRIND_FLAGS = -g -Wall -ggdb  -std=c99  -Wextra -lm
+        BASE_DIR = ../../{subfolder}
         
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{taint}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{taint}
-        '''
-    makefile_content_block_object_files = f'''
-    ifeq ($(DEBUG), 1)
-    \tDBG_FLAGS = -g -O0 -DDEBUG
-    else
-    \tDBG_FLAGS = -g -O2 -DNDEBUG -Wunused-variable -Wunused-function   
-    endif
-    
-    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-    
-    %.o : %.c
-    \t$(CC) $(CFLAGS) $(DBG_FLAGS) -o $@ -c $<
-    '''
-    makefile_content_block_binary_files = ""
-    if tool_type.lower() == 'binsec':
-        makefile_content_block_binary_files = f'''
-    $(EXECUTABLE_KEYPAIR): ${{OBJS}} {candidate}_keypair/$(EXECUTABLE_KEYPAIR).c
-    \tmkdir -p $(BUILD)
-    \tmkdir -p $(BUILD_KEYPAIR)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
-    
-    $(EXECUTABLE_SIGN): ${{OBJS}} {candidate}_sign/$(EXECUTABLE_SIGN).c
-    \tmkdir -p $(BUILD)
-    \tmkdir -p $(BUILD_SIGN)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(BINSEC_STATIC_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS)
-    
-    matrix.o : matrix.h
-    rng.o : rng.h
-    api.o : api.h
-    '''
-    if 'ctgrind' in tool_type.lower() or 'ct_grind' in tool_type.lower():
-        makefile_content_block_binary_files = f'''
-        $(EXECUTABLE_KEYPAIR): ${{OBJS}} $(EXECUTABLE_KEYPAIR).c
-        \tmkdir -p $(BUILD)  
+        INCS = $(wildcard $(BASE_DIR)/*.h)
+        #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
+        SRC  = $(filter-out  $(SRC_DIR)/sign.c ,$(wildcard $(SRC_DIR)/*.c))
+        SIGN = $(BASE_DIR)/sign.c
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
+        \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(CT_GRIND_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) -lctgrind
-    
-        $(EXECUTABLE_SIGN): ${{OBJS}} $(EXECUTABLE_SIGN).c
+        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(LDFLAGS)  $(CFLAGS) $(CT_GRIND_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) -lctgrind
-    
-        matrix.o : matrix.h
-        rng.o : rng.h
-        api.o : api.h
+        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
         '''
-    makefile_content_block_clean = f'''
-    clean:
-    \tcd  $(BASE_DIR)/src; rm -f *.o; cd ..
-    \trm -f *.o
-    \t cd ../../{candidate}
-    \trm -f  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-    '''
-    with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content_block_cflags))
-        mfile.write(textwrap.dedent(makefile_content_block_tool_flags_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_object_files))
-        mfile.write(textwrap.dedent(makefile_content_block_binary_files))
-        mfile.write(textwrap.dedent(makefile_content_block_clean))
+    else:
 
+        makefile_content = f'''
+        
+        CC=clang
+        ifeq "$(CC)" "gcc"
+            COMPILER=gcc
+        else ifeq "$(CC)" "clang"
+            COMPILER=clang
+        endif
+        
+        ARCHITECTURE=_AMD64_
+        
+        CC=/usr/bin/gcc
+        CFLAGS= -mavx2 -mbmi2 -mpopcnt -O3 -std=gnu11 -march=native -Wextra -DNIX -mfpmath=sse -msse2 -ffp-contract=off
+        LDFLAGS= -lm -lssl -lcrypto
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SOURCES  = $(filter-out  $(BASE_DIR)/PQCgenKAT_sign.c ,$(wildcard $(BASE_DIR)/*.c))
+        SOURCES += $(BASE_DIR)/aes/aes.c $(BASE_DIR)/aes/aes_ni.c $(BASE_DIR)/random/random.c\
+        $(BASE_DIR)/sha3/fips202.c $(BASE_DIR)/sha3/shake.c $(BASE_DIR)/rANS/compress.c\
+        $(BASE_DIR)/normaldist/fixpoint.c $(BASE_DIR)/normaldist/normaldist.c $(BASE_DIR)/sampling/samplez.c \
+        $(BASE_DIR)/sampling/sampling.c
+        
+        HEADERS = $(wildcard $(BASE_DIR)/*.h) $(BASE_DIR)/aes/aes.h $(BASE_DIR)/aes/aes_local.h \
+            $(BASE_DIR)/random/random.h $(BASE_DIR)/sha3/fips202.h $(BASE_DIR)/sha3/shake.h
+        
+                
+        
+        BUILD					= build
+        BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN			= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_FLAGS = {tool_flags}
+        TOOL_LIBS = {tool_libs}
+        
+        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        
+        %.o: %.c
+        \t$(CC) $(CFLAGS) -c -o $@ $<
+            
+        
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(SOURCES)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CFLAGS) -o $(BUILD)/$@ $(EXECUTABLE_KEYPAIR).c $(SOURCES) $(LDFLAGS)  $(TOOL_LIBS) $(TOOL_FLAGS)
+            
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(SOURCES)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(CFLAGS) -o $(BUILD)/$@ $(EXECUTABLE_SIGN).c $(SOURCES) $(LDFLAGS)  $(TOOL_LIBS) $(TOOL_FLAGS)
+        
+        
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BASE_DIR)/*.o 
+        \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
 
 # =========================== RACCOON =============================
 def sh_build_raccoon(path_to_sh_script_folder, sh_script, subfolder, tool_name, candidate):
@@ -5925,6 +6105,14 @@ def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate)
         makefile_squirrels(path_to_makefile_folder, subfolder, tool_type, candidate)
     if candidate == "raccoon":
         makefile_raccoon(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "hawk":
+        makefile_hawk(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "meds":
+        makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "hufu":
+        makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "meds":
+        makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate)
     # =======================================================================================
     # The following candidates are supposed to be compiled with cmake. But if the chosen tool is flowtraker,
     # then these candidates are compiled with Makefile. Indeed, the function 'cmake_cross', etc., will generate
@@ -5937,6 +6125,9 @@ def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate)
         cmake_less(path_to_makefile_folder, subfolder, tool_type, candidate)
     if candidate == "mayo":
         cmake_mayo(path_to_makefile_folder, subfolder, tool_type, candidate)
+    if candidate == "haetae":
+        cmake_haetae(path_to_makefile_folder, subfolder, tool_type, candidate)
+
 
 
 def cmake_candidate(path_to_cmake_lists, subfolder, tool_type, candidate):
@@ -5946,6 +6137,8 @@ def cmake_candidate(path_to_cmake_lists, subfolder, tool_type, candidate):
         cmake_mayo(path_to_cmake_lists, subfolder, tool_type, candidate)
     if candidate == "less":
         cmake_less(path_to_cmake_lists, subfolder, tool_type, candidate)
+    if candidate == "haetae":
+        cmake_haetae(path_to_cmake_lists, subfolder, tool_type, candidate)
     if candidate == "sqisign":
         #cmake_sqisign(path_to_cmake_lists, subfolder, tool_type, candidate)
         pass
