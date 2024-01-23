@@ -1973,7 +1973,6 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate):
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content = ''
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -1981,9 +1980,9 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate):
         BASE_DIR = ../../{subfolder}
         
         INCS = $(wildcard $(BASE_DIR)/*.h)
-        #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
-        SRC  = $(filter-out  $(SRC_DIR)/sign.c ,$(wildcard $(SRC_DIR)/*.c))
-        SIGN = $(BASE_DIR)/sign.c
+        
+        SRC  = $(filter-out  $(SRC_DIR)/meds.c $(BASE_DIR)/PQCgenKAT_sign.c $(BASE_DIR)/test.c $(BASE_DIR)/bench.c ,$(wildcard $(SRC_DIR)/*.c))
+        SIGN = $(BASE_DIR)/meds.c
         
         BUILD			= build
         BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
@@ -2028,6 +2027,8 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate):
         LIBS = -lssl -lcrypto
         CC := gcc
         
+        BASE_DIR = ../../{subfolder}
+        
         BUILD					= build
         BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
         BUILD_SIGN			= $(BUILD)/{candidate}_sign
@@ -2052,74 +2053,33 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate):
         
         CFLAGS += -I$(OBJDIR) -INIST
         
-        EXES =  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)  #test bench PQCgenKAT_sign
+        SOURCES  = $(filter-out  $(BASE_DIR)/PQCgenKAT_sign.c $(BASE_DIR)/test.c $(BASE_DIR)/bench.c ,$(wildcard $(BASE_DIR)/*.c))
+        HEADERS = $(wildcard *.h)
         
-        TARGETS := ${{EXES:%=$(OBJDIR)/%}}
-        
-        
-        
-        .PHONY: default clean
-        
-        default: $(EXES)
-        
-        BASE_DIR = ../../{subfolder}
+        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
         
         
-        OBJECTS = $(BASE_DIR)/meds.o $(BASE_DIR)/util.o $(BASE_DIR)/seed.o $(BASE_DIR)/osfreq.o $(BASE_DIR)/fips202.o\
-            $(BASE_DIR)/matrixmod.o $(BASE_DIR)/bitstream.o $(BASE_DIR)/randombytes.o
-        HEADERS = $(wildcard $(BASE_DIR)/*.h)
-        
-        BUILDOBJ := ${{OBJECTS:%=$(OBJDIR)/%}}
+        %.o: %.c
+        \t$(CC) $(CFLAGS) -c -o $@ $<
         
         
-        $(EXES) : % :
-        \t@make $(OBJDIR)/$(@F)
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(SOURCES)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CFLAGS) -o $(BUILD)/$@ $(EXECUTABLE_KEYPAIR).c $(SOURCES) $(LIBS)  $(TOOL_LIBS) $(TOOL_FLAGS)
         
-        $(OBJDIR):
-        \tmkdir -p $(OBJDIR)
-        
-        $(BUILDOBJ) : $(OBJDIR)/%.o: %.c $(HEADERS) | $(OBJDIR)
-        \t$(CC) $(CFLAGS) -c $< -o $@
-        
-        $(TARGETS) : $(OBJDIR)/%: %.c $(BUILDOBJ)
-        \t$(CC) $(@F).c $(BUILDOBJ) $(CFLAGS) $(LIBS) -o $@
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(SOURCES)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(CFLAGS) -o $(BUILD)/$@ $(EXECUTABLE_SIGN).c $(SOURCES) $(LIBS)  $(TOOL_LIBS) $(TOOL_FLAGS)
         
         
-        # TEST: test
-        #     $(OBJDIR)/test
-        # 
-        # KAT: PQCgenKAT_sign
-        #     $(OBJDIR)/PQCgenKAT_sign
-        # 
-        # BENCH: bench
-        #     $(OBJDIR)/bench
-        # 
-        # clean:
-        #     rm -rf build/ debug/ PQCsignKAT_*
-                
+        .PHONY: clean
         
-        
-        
-        
-        # 
-        # $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(SOURCES)
-        # \tmkdir -p $(BUILD_KEYPAIR)
-        # \t$(CC) $(CFLAGS) -o $(BUILD)/$@ $(EXECUTABLE_KEYPAIR).c $(SOURCES) $(LDFLAGS)  $(TOOL_LIBS) $(TOOL_FLAGS)
-        #     
-        # $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(SOURCES)
-        # \tmkdir -p $(BUILD_SIGN)
-        # \t$(CC) $(CFLAGS) -o $(BUILD)/$@ $(EXECUTABLE_SIGN).c $(SOURCES) $(LDFLAGS)  $(TOOL_LIBS) $(TOOL_FLAGS)
-        # 
-        # 
-        # .PHONY: clean
-          
         clean:
-        \trm -f $(BASE_DIR)/*.o 
-        \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+        \trm -f $(BASE_DIR)/*.o
+        \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
         '''
     with open(path_to_makefile, "w") as mfile:
         mfile.write(textwrap.dedent(makefile_content))
-
 
 
 # =================================== WAVE ======================================
@@ -4730,11 +4690,19 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate):
 # ==============================================================================
 
 # =============================  AIMER =========================================
+def aimer_level_parameters(subfolder):
+    subfold_basename = os.path.basename(subfolder)
+    subfold_basename_split = subfold_basename.split('-')
+    params_level = subfold_basename_split[0][1]
+    return params_level
+
+
 def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    params_level = aimer_level_parameters(subfolder)
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -4824,14 +4792,14 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
         $(BASE_DIR)/aim128.c $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c \
         $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
         \tmkdir -p $(BUILD_KEYPAIR) 
-        \t$(CC) -D_BSD_SOURCE -D_DEFAULT_SOURCE $(CFLAGS) $(TOOL_FLAGS) $(AVX2FLAGS)  -D_AIMER_L=1 \
+        \t$(CC) -D_BSD_SOURCE -D_DEFAULT_SOURCE $(CFLAGS) $(TOOL_FLAGS) $(AVX2FLAGS)  -D_AIMER_L={params_level} \
          $^ $(LDFLAGS) $(TOOL_LIBS) -lcrypto -o $(BUILD)/$@
         
         $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c $(BASE_DIR)/aim128.c \
         $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c \
         $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
         \tmkdir -p $(BUILD_SIGN) 
-        \t$(CC) -D_BSD_SOURCE -D_DEFAULT_SOURCE $(CFLAGS) $(TOOL_FLAGS) $(AVX2FLAGS)  -D_AIMER_L=1  \
+        \t$(CC) -D_BSD_SOURCE -D_DEFAULT_SOURCE $(CFLAGS) $(TOOL_FLAGS) $(AVX2FLAGS)  -D_AIMER_L={params_level}  \
         $^ $(LDFLAGS) $(TOOL_LIBS) -lcrypto -o $(BUILD)/$@
         
     
