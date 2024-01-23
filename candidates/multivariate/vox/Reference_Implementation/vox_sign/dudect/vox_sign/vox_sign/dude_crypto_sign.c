@@ -37,10 +37,11 @@ void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {
 	for (size_t i = 0; i < c->number_measurements; i++) {
 		classes[i] = randombit();
 			if (classes[i] == 0) {
-				memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof(const unsigned char));
+				//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof(const unsigned char));
 				memcpy(input_data + (size_t)i * c->chunk_size+MESSAGE_LENGTH*sizeof(const unsigned char), 
 				        fixed_secret_key, SECRET_KEY_BYTE_LENGTH*sizeof(const unsigned char));
 			} else {
+                //memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof(const unsigned char));
 				const size_t offset = (size_t)i * c->chunk_size;
 				const unsigned char pk[CRYPTO_PUBLICKEYBYTES] = {0};
 				const unsigned char *sk = input_data + offset + MESSAGE_LENGTH;

@@ -5,7 +5,7 @@
 // -----------------------------------------------------------------------------
 
 #include "field128.h"
-#include "portable_endian.h"
+#include "../portable_endian.h"
 #include <immintrin.h>
 
 void poly128_sqr(const __m128i a, __m128i c[2]);
