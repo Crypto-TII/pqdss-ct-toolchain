@@ -699,12 +699,12 @@ def dudect_sign_dude_content(taint_file, api,
     \t\tclasses[i] = randombit();
     \t\t\tif (classes[i] == 0) {{
      \t\t\t\t//Uncomment this line if you want to have a fixed message in this class.
-    \t\t\t\t\\memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
+    \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
     \t\t\t\tmemcpy(input_data + (size_t)i * c->chunk_size+MESSAGE_LENGTH*sizeof({type_msg}), 
     \t\t\t\t        fixed_secret_key, SECRET_KEY_BYTE_LENGTH*sizeof({type_sk}));
     \t\t\t}} else {{
     \t\t\t\t//Uncomment this line if you want to have a fixed message in this class.
-    \t\t\t\t\\memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
+    \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
     \t\t\t\tconst size_t offset = (size_t)i * c->chunk_size;
     \t\t\t\t{type_sk_with_no_const} pk[CRYPTO_PUBLICKEYBYTES] = {{0}};
     \t\t\t\t{type_sk_with_no_const} *sk = input_data + offset + MESSAGE_LENGTH;
@@ -1028,7 +1028,7 @@ def run_ctgrind(binary_file, output_file):
 
 # Run DUDECT
 def run_dudect(executable_file, output_file):
-    command = f'timeout 43200 ./{executable_file}'
+    command = f'timeout 86400 ./{executable_file}'
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
     output, error = execution.communicate()
@@ -1064,127 +1064,104 @@ def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
 # binsec_generic_run - ctgrind_generic_run - dudecy_generic_run - flowtracker_generic_run
 # Those functions call respectively: binsec_run - ctgrind_run - dudect_run and flowtracker_run
 # For each of them, the path to the executable/binary file is obtained from:
-# 1. binsec_folder:  binsec folder
+# 1. binsec_folder:  binsec folder (same for ctggrind - dudect and flowtracker)
 # 2. signature_type: signature type
 # 3. candidate: candidate name
 # 4. optimized_imp_folder: folder of optimisation implementation
 # 5. opt_src_folder_list_dir: instance/scr folder of the given candidate with respect to optimized_imp_folder
 # 6. build_folder: build folder
 # 7. binary_patterns: sign/keypair, referring to crypto_sign_keypair and crypto_sign algorithms respectively
+
 def binsec_generic_run(binsec_folder, signature_type, candidate,
                        optimized_imp_folder, opt_src_folder_list_dir,
-                       depth, build_folder, binary_patterns, with_core_dump="no"):
-    optimized_imp_folder_full_path = signature_type + '/' + candidate + '/' + optimized_imp_folder
-    binsec_folder_full_path = optimized_imp_folder_full_path + '/' + binsec_folder
-    cfg_pattern = ".cfg"
-    if 'yes' in with_core_dump.lower():
-        cfg_pattern = '.ini'
+                       depth, build_folder, binary_patterns, with_core_dump="yes"):
+    optimized_imp_folder_full_path = f'{signature_type}/{candidate}/{optimized_imp_folder}'
+    binsec_folder_full_path = f'{optimized_imp_folder_full_path}/{binsec_folder}'
+    cfg_pattern = ".ini"
+    list_of_instances = []
     if not opt_src_folder_list_dir:
         path_to_subfolder = binsec_folder_full_path
-        path_to_build_folder = path_to_subfolder + '/' + build_folder
+        list_of_instances.append(path_to_subfolder)
+    else:
+        for subfold in opt_src_folder_list_dir:
+            path_to_subfolder = f'{binsec_folder_full_path}/{subfold}'
+            list_of_instances.append(path_to_subfolder)
+    for instance in list_of_instances:
+        path_to_build_folder = f'{instance}/{build_folder}'
         path_to_binary_files = path_to_build_folder
         for bin_pattern in binary_patterns:
             binsec_folder_basename = f'{candidate}_{bin_pattern}'
             path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{binsec_folder_basename}'
-            path_to_pattern_subfolder = f'{path_to_subfolder}/{binsec_folder_basename}'
+            path_to_pattern_subfolder = f'{instance}/{binsec_folder_basename}'
             bin_files = os.listdir(path_to_binary_pattern_subfolder)
-            if 'yes' in with_core_dump.lower():
-                bin_files = [executable for executable in bin_files if executable.endswith('.snapshot')]
-            else:
-                bin_files = [executable for executable in bin_files if '.' not in executable]
             for executable in bin_files:
-                if 'yes' in with_core_dump.lower():
-                    bin_basename = executable.split('test_harness_')[-1]
-                    bin_basename = bin_basename.split('.snapshot')[0]
-                else:
-                    bin_basename = executable.split('test_harness_')[-1]
+                binary = os.path.basename(executable)
+                path_to_snapshot_file = f'{binary}.snapshot'
+                path_to_gdb_script = f'{path_to_binary_pattern_subfolder}/{binary}.gdb'
+                binsec_generate_gdb_script(path_to_gdb_script, path_to_snapshot_file)
+                path_to_executable_file = f'{path_to_binary_pattern_subfolder}/{binary}'
+                binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script)
+                bin_basename = binary.split('test_harness_')[-1]
+                bin_basename = bin_basename.split('.snapshot')[0]
                 output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
                 stats_file = f'{path_to_pattern_subfolder}/{bin_pattern}.toml'
                 cfg_file = find_ending_pattern(path_to_pattern_subfolder, cfg_pattern)
-                abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
+                abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{binary}.snapshot'
                 print("::::Running:", abs_path_to_executable)
                 run_binsec(abs_path_to_executable, cfg_file, stats_file, output_file, depth)
-    else:
-        for subfold in opt_src_folder_list_dir:
-            path_to_subfolder = binsec_folder_full_path + '/' + subfold
-            path_to_build_folder = path_to_subfolder + '/' + build_folder
-            path_to_binary_files = path_to_build_folder
-            for bin_pattern in binary_patterns:
-                binsec_folder_basename = f'{candidate}_{bin_pattern}'
-                path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{binsec_folder_basename}'
-                path_to_pattern_subfolder = f'{path_to_subfolder}/{binsec_folder_basename}'
-                bin_files = os.listdir(path_to_binary_pattern_subfolder)
-                if 'yes' in with_core_dump.lower():
-                    bin_files = [executable for executable in bin_files if executable.endswith('.snapshot')]
-                else:
-                    bin_files = [executable for executable in bin_files if '.' not in executable]
-                for executable in bin_files:
-                    if 'yes' in with_core_dump.lower():
-                        bin_basename = executable.split('test_harness_')[-1]
-                        bin_basename = bin_basename.split('.snapshot')[0]
-                    else:
-                        bin_basename = executable.split('test_harness_')[-1]
-                    output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
-                    stats_file = f'{path_to_pattern_subfolder}/{bin_pattern}.toml'
-                    cfg_file = find_ending_pattern(path_to_pattern_subfolder, cfg_pattern)
-                    abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
-                    print("::::Running:", abs_path_to_executable)
-                    run_binsec(abs_path_to_executable, cfg_file, stats_file, output_file, depth)
 
 
 def ctgrind_generic_run(ctgrind_folder, signature_type,
                         candidate, optimized_imp_folder,
                         opt_src_folder_list_dir,
                         build_folder, binary_patterns):
-    optimized_imp_folder_full_path = signature_type + '/' + candidate + '/' + optimized_imp_folder
-    ctgrind_folder_full_path = optimized_imp_folder_full_path + '/' + ctgrind_folder
+    optimized_imp_folder_full_path = f'{signature_type}/{candidate}/{optimized_imp_folder}'
+    ctgrind_folder_full_path = f'{optimized_imp_folder_full_path}/{ctgrind_folder}'
+    list_of_instances = []
     if not opt_src_folder_list_dir:
-        path_to_build_folder = f'{ctgrind_folder_full_path}/{build_folder}'
+        path_to_subfolder = ctgrind_folder_full_path
+        list_of_instances.append(path_to_subfolder)
+    else:
+        for subfold in opt_src_folder_list_dir:
+            path_to_subfolder = f'{ctgrind_folder_full_path}/{subfold}'
+            list_of_instances.append(path_to_subfolder)
+    for instance in list_of_instances:
+        path_to_build_folder = f'{instance}/{build_folder}'
         path_to_binary_files = path_to_build_folder
         for bin_pattern in binary_patterns:
             ctgrind_folder_basename = f'{candidate}_{bin_pattern}'
             path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{ctgrind_folder_basename}'
-            path_to_pattern_subfolder = f'{ctgrind_folder_full_path}/{ctgrind_folder_basename}'
+            path_to_pattern_subfolder = f'{instance}/{ctgrind_folder_basename}'
             bin_files = os.listdir(path_to_binary_pattern_subfolder)
             for executable in bin_files:
                 bin_basename = executable.split('taint_')[-1]
                 bin_basename = bin_basename.split('.o')[0]
                 output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
                 abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
-                print("::::Running: ", abs_path_to_executable)
+                print("::::Running:", abs_path_to_executable)
                 run_ctgrind(abs_path_to_executable, output_file)
-    else:
-        for subfold in opt_src_folder_list_dir:
-            path_to_subfolder = ctgrind_folder_full_path + '/' + subfold
-            path_to_build_folder = path_to_subfolder + '/' + build_folder
-            path_to_binary_files = path_to_build_folder
-            for bin_pattern in binary_patterns:
-                ctgrind_folder_basename = f'{candidate}_{bin_pattern}'
-                path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{ctgrind_folder_basename}'
-                path_to_pattern_subfolder = f'{path_to_subfolder}/{ctgrind_folder_basename}'
-                bin_files = os.listdir(path_to_binary_pattern_subfolder)
-                for executable in bin_files:
-                    bin_basename = executable.split('taint_')[-1]
-                    bin_basename = bin_basename.split('.o')[0]
-                    output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
-                    abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
-                    print("::::Running:", abs_path_to_executable)
-                    run_ctgrind(abs_path_to_executable, output_file)
 
 
 def dudect_generic_run(dudect_folder, signature_type,
                        candidate, optimized_imp_folder,
                        opt_src_folder_list_dir,
                        build_folder, binary_patterns):
-    optimized_imp_folder_full_path = signature_type + '/' + candidate + '/' + optimized_imp_folder
-    dudect_folder_full_path = optimized_imp_folder_full_path + '/' + dudect_folder
+    optimized_imp_folder_full_path = f'{signature_type}/{candidate}/{optimized_imp_folder}'
+    dudect_folder_full_path = f'{optimized_imp_folder_full_path}/{dudect_folder}'
+    list_of_instances = []
     if not opt_src_folder_list_dir:
-        path_to_build_folder = f'{dudect_folder_full_path}/{build_folder}'
-        path_to_binary_files = path_to_build_folder
+        path_to_subfolder = dudect_folder_full_path
+        list_of_instances.append(path_to_subfolder)
+    else:
+        for subfold in opt_src_folder_list_dir:
+            path_to_subfolder = f'{dudect_folder_full_path}/{subfold}'
+            list_of_instances.append(path_to_subfolder)
+    for instance in list_of_instances:
+        path_to_build_folder = f'{instance}/{build_folder}'
         for bin_pattern in binary_patterns:
             dudect_folder_basename = f'{candidate}_{bin_pattern}'
-            path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{dudect_folder_basename}'
-            path_to_pattern_subfolder = f'{dudect_folder_full_path}/{dudect_folder_basename}'
+            path_to_binary_pattern_subfolder = f'{path_to_build_folder}/{dudect_folder_basename}'
+            path_to_pattern_subfolder = f'{instance}/{dudect_folder_basename}'
             bin_files = os.listdir(path_to_binary_pattern_subfolder)
             for executable in bin_files:
                 bin_basename = executable.split('dude_')[-1]
@@ -1193,23 +1170,6 @@ def dudect_generic_run(dudect_folder, signature_type,
                 abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
                 print("::::Running:", abs_path_to_executable)
                 run_dudect(abs_path_to_executable, output_file)
-    else:
-        for subfold in opt_src_folder_list_dir:
-            path_to_subfolder = dudect_folder_full_path + '/' + subfold
-            path_to_build_folder = path_to_subfolder + '/' + build_folder
-            path_to_binary_files = path_to_build_folder
-            for bin_pattern in binary_patterns:
-                dudect_folder_basename = f'{candidate}_{bin_pattern}'
-                path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{dudect_folder_basename}'
-                path_to_pattern_subfolder = f'{path_to_subfolder}/{dudect_folder_basename}'
-                bin_files = os.listdir(path_to_binary_pattern_subfolder)
-                for executable in bin_files:
-                    bin_basename = executable.split('dude_')[-1]
-                    bin_basename = bin_basename.split('.o')[0]
-                    output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
-                    abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
-                    print("::::Running:", abs_path_to_executable)
-                    run_dudect(abs_path_to_executable, output_file)
 
 
 def flowtracker_generic_run(flowtracker_folder, signature_type,
@@ -1219,15 +1179,23 @@ def flowtracker_generic_run(flowtracker_folder, signature_type,
     cwd = os.getcwd()
     xml_pattern = '.xml'
     rbc_pattern = '.rbc'
-    optimized_imp_folder_full_path = signature_type + '/' + candidate + '/' + optimized_imp_folder
+    optimized_imp_folder_full_path = f'{signature_type}/{candidate}/{optimized_imp_folder}'
     flowtracker_folder_full_path = optimized_imp_folder_full_path + '/' + flowtracker_folder
+    list_of_instances = []
     if not opt_src_folder_list_dir:
-        path_to_build_folder = f'{flowtracker_folder_full_path}/{build_folder}'
+        path_to_subfolder = flowtracker_folder_full_path
+        list_of_instances.append(path_to_subfolder)
+    else:
+        for subfold in opt_src_folder_list_dir:
+            path_to_subfolder = f'{flowtracker_folder_full_path}/{subfold}'
+            list_of_instances.append(path_to_subfolder)
+    for instance in list_of_instances:
+        path_to_build_folder = f'{instance}/{build_folder}'
         path_to_binary_files = path_to_build_folder
         for bin_pattern in binary_patterns:
             flowtracker_folder_basename = f'{candidate}_{bin_pattern}'
             path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{flowtracker_folder_basename}'
-            path_to_pattern_subfolder = f'{flowtracker_folder_full_path}/{flowtracker_folder_basename}'
+            path_to_pattern_subfolder = f'{instance}/{flowtracker_folder_basename}'
             bin_files = os.listdir(path_to_binary_pattern_subfolder)
             bin_files = [file for file in bin_files if file.endswith('.rbc')]
             for executable in bin_files:
@@ -1244,33 +1212,6 @@ def flowtracker_generic_run(flowtracker_folder, signature_type,
                 print("::::Running: ", rbc_file)
                 run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder)
             os.chdir(cwd)
-
-    else:
-        for subfold in opt_src_folder_list_dir:
-            path_to_subfolder = flowtracker_folder_full_path + '/' + subfold
-            path_to_build_folder = path_to_subfolder + '/' + build_folder
-            path_to_binary_files = path_to_build_folder
-            for bin_pattern in binary_patterns:
-                flowtracker_folder_basename = f'{candidate}_{bin_pattern}'
-                path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{flowtracker_folder_basename}'
-                path_to_pattern_subfolder = f'{path_to_subfolder}/{flowtracker_folder_basename}'
-                bin_files = os.listdir(path_to_binary_pattern_subfolder)
-                bin_files = [file for file in bin_files if file.endswith('.rbc')]
-
-                for executable in bin_files:
-                    bin_basename = executable.split('rbc_')[-1]
-                    bin_basename = bin_basename.split('.rbc')[0]
-                    output_file = f'{bin_basename}_output.out'
-                    xml_file = find_ending_pattern(path_to_pattern_subfolder, xml_pattern)
-                    xml_file = os.path.basename(xml_file)
-                    rbc_file_folder = f'../{build_folder}/{flowtracker_folder_basename}'
-                    rbc_file = f'{rbc_file_folder}/{executable}'
-                    os.chdir(path_to_pattern_subfolder)
-                    sh_file_folder = flowtracker_folder_basename
-                    print("::::Running: ", rbc_file)
-                    run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder)
-
-                os.chdir(cwd)
 
 
 # generic_run: this function, calls the previous ones, given the name of the name of
@@ -1551,7 +1492,7 @@ def set_include_correct_format(api, sign, rng):
 
 # generic_init_compile: in addition to initializing a given candidate for desired tools and instances, generates
 # a Makefile/CMakeLists.txt and performs compilation/build.
-def generic_init_compile(tools_list, signature_type, candidate,
+def generic_init_compile1(tools_list, signature_type, candidate,
                          optimized_imp_folder, instance_folders_list,
                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                          add_includes, build_folder, with_cmake,
@@ -1708,6 +1649,234 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     binsec_generate_gdb_script(path_to_gdb_script_sign, path_to_sign_snapshot_file)
                     path_to_executable_file = f'{sign_build_folder}/{executable_sign}'
                     binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
+
+
+
+# def test(with_cmake, tool_name, path_to_build_folder):
+#     path_to_build_folder = ""
+#     path_to_cmakelist_file = ""
+#     path_to_makefile_folder = ""
+#     if with_cmake == 'yes':
+#         path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_name + '/' + instance
+#         path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
+#         path_to_makefile_folder = ""
+#         path_function_pattern_file = path_to_cmakelist_file
+#         arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+#         funct = f'build_cand.cmake_candidate({arguments})'
+#         exec(f'{funct}')
+#     elif "sh" in with_cmake:
+#         cwd = os.getcwd()
+#         path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
+#         path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
+#         arguments = f'path_to_sh_folder, instance, tool_type, candidate'
+#         funct = f'build_cand.sh_candidate({arguments})'
+#         exec(f'{funct}')
+#         sh_script = find_ending_pattern(path_to_sh_folder, ".sh")
+#         sh_script = os.path.basename(sh_script)
+#         os.chdir(path_to_sh_folder)
+#         cmd_str = f"sudo chmod u+x ./{sh_script}"
+#         cmd = cmd_str.split()
+#         subprocess.call(cmd, stdin=sys.stdin)
+#         cmd_str = f"./{sh_script}"
+#         cmd = cmd_str.split()
+#         subprocess.call(cmd, stdin=sys.stdin, shell=True)
+#         os.chdir(cwd)
+#     else:
+#         path_to_makefile_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
+#         path_to_build_folder = f'{path_to_makefile_folder}/{build_folder}'
+#         path_to_cmakelist_file = ""
+#         path_function_pattern_file = path_to_makefile_folder
+#         arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+#         funct = f'build_cand.makefile_candidate({arguments})'
+#         exec(funct)
+#     if "sh" not in with_cmake:
+#         if not os.path.isdir(path_to_build_folder):
+#             cmd = ["mkdir", "-p", path_to_build_folder]
+#             subprocess.call(cmd, stdin=sys.stdin)
+#         compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
+#                                                                      path_to_makefile_folder,
+#                                                                      path_to_build_folder,
+#                                                                      "all")
+#
+#     if 'yes' in with_core_dump.lower():
+#         keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
+#         executable_keypair = os.listdir(keypair_build_folder)[0]
+#         executable_keypair = os.path.basename(executable_keypair)
+#         path_to_keypair_snapshot_file = f'{executable_keypair}.snapshot'
+#         path_to_gdb_script_keypair = f'{keypair_build_folder}/{executable_keypair}.gdb'
+#         binsec_generate_gdb_script(path_to_gdb_script_keypair, path_to_keypair_snapshot_file)
+#         path_to_executable_file = f'{keypair_build_folder}/{executable_keypair}'
+#         binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_keypair)
+#         # crypto_sign
+#         sign_build_folder = f'{path_to_build_folder}/{candidate}_sign'
+#         executable_sign = os.listdir(sign_build_folder)[0]
+#         executable_sign = os.path.basename(executable_sign)
+#         path_to_sign_snapshot_file = f'{executable_sign}.snapshot'
+#         path_to_gdb_script_sign = f'{sign_build_folder}/{executable_sign}.gdb'
+#         binsec_generate_gdb_script(path_to_gdb_script_sign, path_to_sign_snapshot_file)
+#         path_to_executable_file = f'{sign_build_folder}/{executable_sign}'
+#         binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
+
+
+
+
+def generic_init_compile(tools_list, signature_type, candidate,
+                         optimized_imp_folder, instance_folders_list,
+                         rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                         add_includes, build_folder, with_cmake,
+                         rng_outside_instance_folder="no", with_core_dump="no"):
+    api, sign, rng = set_include_correct_format(rel_path_to_api, rel_path_to_sign, rel_path_to_rng)
+    rel_path_to_api = api
+    rel_path_to_sign = sign
+    rel_path_to_rng = rng
+    cmd = []
+    path_to_opt_impl_folder = signature_type + '/' + candidate + '/' + optimized_imp_folder
+    if not instance_folders_list:
+        generic_initialize_nist_candidate(tools_list, signature_type,
+                                          candidate, optimized_imp_folder,
+                                          instance_folders_list, rel_path_to_api,
+                                          rel_path_to_sign, rel_path_to_rng,
+                                          add_includes, rng_outside_instance_folder, with_core_dump)
+        instance = '""'
+        for tool_type in tools_list:
+            path_to_build_folder = ""
+            path_to_cmakelist_file = ""
+            path_to_makefile_folder = ""
+            if with_cmake == 'yes':
+                path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type
+                path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
+                path_to_makefile_folder = ""
+                path_function_pattern_file = path_to_cmakelist_file
+                arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                funct = f'build_cand.cmake_candidate({arguments})'
+                exec(f'{funct}')
+            elif "sh" in with_cmake:
+                cwd = os.getcwd()
+                path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}'
+                path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
+                arguments = f'path_to_sh_folder, instance, tool_type, candidate'
+                funct = f'build_cand.sh_candidate({arguments})'
+                exec(f'{funct}')
+                sh_script = find_ending_pattern(path_to_sh_folder, ".sh")
+                sh_script = os.path.basename(sh_script)
+                os.chdir(path_to_sh_folder)
+                cmd_str = f"sudo chmod u+x ./{sh_script}"
+                cmd = cmd_str.split()
+                subprocess.call(cmd, stdin=sys.stdin)
+                cmd_str = f"./{sh_script}"
+                cmd = cmd_str.split()
+                subprocess.call(cmd, stdin=sys.stdin, shell=True)
+                os.chdir(cwd)
+            else:
+                path_to_makefile_folder = path_to_opt_impl_folder + '/' + tool_type
+                path_to_build_folder = path_to_makefile_folder + '/' + build_folder
+                path_to_cmakelist_file = ""
+                path_function_pattern_file = path_to_makefile_folder
+                arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                funct = f'build_cand.makefile_candidate({arguments})'
+                exec(f'{funct}')
+            if not os.path.isdir(path_to_build_folder):
+                cmd = ["mkdir", "-p", path_to_build_folder]
+                subprocess.call(cmd, stdin=sys.stdin)
+            if "sh" not in with_cmake:
+                if not os.path.isdir(path_to_build_folder):
+                    cmd = ["mkdir", "-p", path_to_build_folder]
+                    subprocess.call(cmd, stdin=sys.stdin)
+                compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
+                                                                             path_to_makefile_folder,
+                                                                             path_to_build_folder,
+                                                                             "all")
+            # if 'yes' in with_core_dump.lower():
+            #     # crypto_sign_keypair
+            #     keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
+            #     executable_keypair = os.listdir(keypair_build_folder)[0]
+            #     executable_keypair = os.path.basename(executable_keypair)
+            #     path_to_keypair_snapshot_file = f'{executable_keypair}.snapshot'
+            #     path_to_gdb_script_keypair = f'{keypair_build_folder}/{executable_keypair}.gdb'
+            #     binsec_generate_gdb_script(path_to_gdb_script_keypair, path_to_keypair_snapshot_file)
+            #     path_to_executable_file = f'{keypair_build_folder}/{executable_keypair}'
+            #     binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_keypair)
+            #     # crypto_sign
+            #     sign_build_folder = f'{path_to_build_folder}/{candidate}_sign'
+            #     executable_sign = os.listdir(sign_build_folder)[0]
+            #     executable_sign = os.path.basename(executable_sign)
+            #     path_to_sign_snapshot_file = f'{executable_sign}.snapshot'
+            #     path_to_gdb_script_sign = f'{sign_build_folder}/{executable_sign}.gdb'
+            #     binsec_generate_gdb_script(path_to_gdb_script_sign, path_to_sign_snapshot_file)
+            #     path_to_executable_file = f'{sign_build_folder}/{executable_sign}'
+            #     binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
+
+    else:
+        for instance in instance_folders_list:
+            generic_initialize_nist_candidate(tools_list, signature_type,
+                                              candidate, optimized_imp_folder,
+                                              instance_folders_list, rel_path_to_api,
+                                              rel_path_to_sign, rel_path_to_rng,
+                                              add_includes, rng_outside_instance_folder, with_core_dump)
+            for tool_type in tools_list:
+                path_to_build_folder = ""
+                path_to_cmakelist_file = ""
+                path_to_makefile_folder = ""
+                if with_cmake == 'yes':
+                    path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type + '/' + instance
+                    path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
+                    path_to_makefile_folder = ""
+                    path_function_pattern_file = path_to_cmakelist_file
+                    arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                    funct = f'build_cand.cmake_candidate({arguments})'
+                    exec(f'{funct}')
+                elif "sh" in with_cmake:
+                    cwd = os.getcwd()
+                    path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
+                    path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
+                    arguments = f'path_to_sh_folder, instance, tool_type, candidate'
+                    funct = f'build_cand.sh_candidate({arguments})'
+                    exec(f'{funct}')
+                    sh_script = find_ending_pattern(path_to_sh_folder, ".sh")
+                    sh_script = os.path.basename(sh_script)
+                    os.chdir(path_to_sh_folder)
+                    cmd_str = f"sudo chmod u+x ./{sh_script}"
+                    cmd = cmd_str.split()
+                    subprocess.call(cmd, stdin=sys.stdin)
+                    cmd_str = f"./{sh_script}"
+                    cmd = cmd_str.split()
+                    subprocess.call(cmd, stdin=sys.stdin, shell=True)
+                    os.chdir(cwd)
+                else:
+                    path_to_makefile_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
+                    path_to_build_folder = f'{path_to_makefile_folder}/{build_folder}'
+                    path_to_cmakelist_file = ""
+                    path_function_pattern_file = path_to_makefile_folder
+                    arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                    funct = f'build_cand.makefile_candidate({arguments})'
+                    exec(funct)
+                if "sh" not in with_cmake:
+                    if not os.path.isdir(path_to_build_folder):
+                        cmd = ["mkdir", "-p", path_to_build_folder]
+                        subprocess.call(cmd, stdin=sys.stdin)
+                    compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
+                                                                                 path_to_makefile_folder,
+                                                                                 path_to_build_folder,
+                                                                                 "all")
+
+                # if 'yes' in with_core_dump.lower():
+                #     keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
+                #     executable_keypair = os.listdir(keypair_build_folder)[0]
+                #     executable_keypair = os.path.basename(executable_keypair)
+                #     path_to_keypair_snapshot_file = f'{executable_keypair}.snapshot'
+                #     path_to_gdb_script_keypair = f'{keypair_build_folder}/{executable_keypair}.gdb'
+                #     binsec_generate_gdb_script(path_to_gdb_script_keypair, path_to_keypair_snapshot_file)
+                #     path_to_executable_file = f'{keypair_build_folder}/{executable_keypair}'
+                #     binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_keypair)
+                #     # crypto_sign
+                #     sign_build_folder = f'{path_to_build_folder}/{candidate}_sign'
+                #     executable_sign = os.listdir(sign_build_folder)[0]
+                #     executable_sign = os.path.basename(executable_sign)
+                #     path_to_sign_snapshot_file = f'{executable_sign}.snapshot'
+                #     path_to_gdb_script_sign = f'{sign_build_folder}/{executable_sign}.gdb'
+                #     binsec_generate_gdb_script(path_to_gdb_script_sign, path_to_sign_snapshot_file)
+                #     path_to_executable_file = f'{sign_build_folder}/{executable_sign}'
+                #     binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
 
 
 
