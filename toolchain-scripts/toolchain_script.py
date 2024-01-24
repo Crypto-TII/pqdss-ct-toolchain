@@ -35,7 +35,7 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
                           rel_path_to_rng, to_compile, to_run, depth, build_folder,
                           binary_patterns, rng_outside_instance_folder="no", with_core_dump="yes"):
     """ Function: compile_run_candidate"""
-    candidates_to_build_with_makefile = ["mirith", "mira", "mqom", "perk", "ryde", "pqsigrm", "wave",
+    candidates_to_build_with_makefile = ["mirith", "mira", "mqom", "perk", "ryde", "pqsigrm", "wave", "prov",
                                          "snova", "tuov", "uov", "vox", "aimer", "ascon_sign", "faest",
                                          "sphincs_alpha", "preon", "squirrels", "hawk", "meds", "haeatae",
                                          "hufu", "meds"]

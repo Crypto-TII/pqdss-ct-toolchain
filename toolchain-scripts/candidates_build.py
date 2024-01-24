@@ -261,7 +261,7 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
         \t$(CC) $(ASMFLAGS) -c $< -o $@
         
         $(PERK_OBJS): $(BUILD_DIR)/%$(EXT).o: %.c
-        \t@echo -e "### Compiling perk-128-fast-3 file $@"
+        \t@echo -e "### Compiling {subfolder} file $@"
         \t@mkdir -p $(dir $@)
         \t$(CC) $(CFLAGS) -c $< $(PERK_INCLUDE) -o $@
         
@@ -288,19 +288,27 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # ============================== MQOM ================================
+def get_mqom_params_index(subfolder):
+    subfolder_split = subfolder.split("_")
+    cat_index = subfolder_split[1][-1]
+    gf_index = subfolder_split[2][2:]
+    return cat_index, gf_index
+
+
 def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     makefile_content = ''
+    cat_index, gf_index = get_mqom_params_index(subfolder)
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
         
         BASE_DIR = ../../{subfolder}
         
-        ALL_FLAGS?= -DPARAM_HYPERCUBE_7R -DPARAM_GF31 -DPARAM_L1 -DPARAM_RND_EXPANSION_X4\
+        ALL_FLAGS?= -DPARAM_HYPERCUBE_7R -DPARAM_GF{gf_index} -DPARAM_L{cat_index} -DPARAM_RND_EXPANSION_X4\
          -DHASHX4 -DXOFX4 -DPRGX4 -DNDEBUG -mavx
          
         INCS = $(wildcard $(BASE_DIR)/*.h)
@@ -350,14 +358,14 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
         makefile_content = f'''    
         CC?=gcc
         ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow \
-        \t-DPARAM_HYPERCUBE_7R -DPARAM_GF31 -DPARAM_L1 -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4  -DPRGX4 -DNDEBUG -mavx
+        \t-DPARAM_HYPERCUBE_7R -DPARAM_GF{gf_index} -DPARAM_L{cat_index} -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4  -DPRGX4 -DNDEBUG -mavx
         
         ALL_FLAGS+=$(EXTRA_ALL_FLAGS) -g 
         
         BASE_DIR = ../../{subfolder}
         
         SYM_OBJ= $(BASE_DIR)/rnd.o $(BASE_DIR)/hash.o $(BASE_DIR)/xof.o
-        ARITH_OBJ= $(BASE_DIR)/gf31-matrix.o $(BASE_DIR)/gf31.o
+        ARITH_OBJ= $(BASE_DIR)/gf{gf_index}-matrix.o $(BASE_DIR)/gf{gf_index}.o
         MPC_OBJ= $(BASE_DIR)/mpc.o $(BASE_DIR)/witness.o $(BASE_DIR)/serialization-specific.o $(BASE_DIR)/precomputed.o
         CORE_OBJ= $(BASE_DIR)/keygen.o $(BASE_DIR)/sign.o $(BASE_DIR)/views.o $(BASE_DIR)/commit.o \
         \t$(BASE_DIR)/sign-mpcith-hypercube.o $(BASE_DIR)/tree.o
@@ -796,7 +804,7 @@ def makefile_sdith(path_to_makefile_folder, subfolder, tool_name, candidate):
         SCRIPT_AUTHOR=MIRA team
         
         CC=gcc
-        C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -g 
+        C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -g
         
         BASE_DIR = ../../{subfolder}
         
@@ -2149,10 +2157,10 @@ def makefile_wave(path_to_makefile_folder, subfolder, tool_name, candidate):
     else:
         makefile_content = f'''
         CC=gcc
-        CFLAGS=-I. -O3 -Wall -march=native
+        BASE_DIR = ../../{subfolder}
+        CFLAGS=-I. -O3 -Wall -march=native -I$(BASE_DIR)
         LDFLAGS=-lcrypto
         
-        BASE_DIR = ../../{subfolder}
         
         BUILD           = build
         BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
@@ -2851,11 +2859,17 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_name, candidate):
     with open(path_to_makefile, "w") as mfile:
         mfile.write(textwrap.dedent(makefile_content))
 
+
 # =========================== RACCOON =============================
 def sh_build_raccoon(path_to_sh_script_folder, sh_script, subfolder, tool_name, candidate):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+
+    if tool_name.lower() == 'ctgrind':
+        tool_flags = tool_flags.replace('-std=c99', '')
+    if tool_name.lower() == 'dudect':
+        tool_flags = tool_flags.replace('-std=c11', '')
     executable_keypair = f'{candidate}_keypair/{test_keypair}'
     executable_sign = f'{candidate}_sign/{test_sign}'
     path_to_sh_script = f'{path_to_sh_script_folder}/{sh_script}.sh'
@@ -3006,8 +3020,6 @@ def generic_init_compile_with_sh(tools_list, signature_type,
 # ===================================================================================
 
 # ================================== QR-UOV ==========================================
-# [TODO:Rename functions if needed/if not working with new script keep old script ...]
-
 def qr_uov_main_makefile(path_to_tool_folder, subfolder):
     path_to_makefile = path_to_tool_folder+'/Makefile'
     makefile_content = f'''
@@ -3046,8 +3058,6 @@ def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
         if '-static ' in tool_flags:
             link_flag = '-static'
     libs_str = ""
-    # tool_libs = tool_libs.replace("-lm", "")
-    # tool_libs = tool_libs.strip()
     if tool_libs:
         libs_str = tool_libs.replace("-l", "")
         libs_list = libs_str.split()
@@ -3180,11 +3190,21 @@ def compile_run_qr_uov(tools_list, signature_type, candidate,
 
 
 # ===============================  snova ==========================================
+def get_snova_parameters(subfolder):
+    subfolder_split = subfolder.split('-')
+    snova, snova_v, snova_o, fixed_val, snova_l, key = subfolder_split
+    esk_or_ssk = 0
+    if key == 'ssk':
+        esk_or_ssk = 1
+    return snova_v, snova_o, snova_l, esk_or_ssk
+
+
 def makefile_snova(path_to_makefile_folder, subfolder, tool_name, candidate):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    snova_v, snova_o, snova_l, esk_or_ssk = get_snova_parameters(subfolder)
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -3259,12 +3279,12 @@ def makefile_snova(path_to_makefile_folder, subfolder, tool_name, candidate):
         OLIST = $(BUILD_OUT_PATH)rng.o $(BUILD_OUT_PATH)snova.o
         
         # snova params
-        SNOVA_V = 24
-        SNOVA_O = 5
-        SNOVA_L = 4
-        SK_IS_SEED = 0 # 0: sk = ssk; 1: sk = esk 
+        SNOVA_V = {snova_v}
+        SNOVA_O = {snova_o}
+        SNOVA_L = {snova_l}
+        SK_IS_SEED = {esk_or_ssk} # 0: sk = ssk; 1: sk = esk 
         TURBO = 1
-        CRYPTO_ALGNAME = "SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)"
+        CRYPTO_ALGNAME = \\"SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)\\"
         SNOVA_PARAMS = -D v_SNOVA=$(SNOVA_V) -D o_SNOVA=$(SNOVA_O) -D l_SNOVA=$(SNOVA_L) -D sk_is_seed=$(SK_IS_SEED) \
         -D CRYPTO_ALGNAME=$(CRYPTO_ALGNAME) -D TURBO=$(TURBO)
         
@@ -4156,8 +4176,13 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate):
 def aimer_level_parameters(subfolder):
     subfold_basename = os.path.basename(subfolder)
     subfold_basename_split = subfold_basename.split('-')
-    params_level = subfold_basename_split[0][1]
-    return params_level
+    params_level = subfold_basename_split[1][1]
+    security_level = 128
+    if params_level == '3':
+        security_level = 192
+    elif params_level == '5':
+        security_level = 256
+    return params_level, security_level
 
 
 def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
@@ -4165,7 +4190,7 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    params_level = aimer_level_parameters(subfolder)
+    params_level, security_level = aimer_level_parameters(subfolder)
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -4217,11 +4242,11 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
         # SPDX-License-Identifier: MIT
         
         CC = gcc
-        CFLAGS += -I. -O3 -g -Wall -Wextra -march=native -fomit-frame-pointer
+        BASE_DIR = ../../{subfolder}
+        CFLAGS += -I. -O3 -g -Wall -Wextra -march=native -fomit-frame-pointer -I$(BASE_DIR)
         NISTFLAGS = -Wno-sign-compare -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-result
         AVX2FLAGS = -mavx2 -mpclmul
         
-        BASE_DIR = ../../{subfolder}
         
         SHAKE_PATH = $(BASE_DIR)/shake
         SHAKE_LIB = libshake.a
@@ -4251,14 +4276,14 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
         \t$(MAKE) -C $(SHAKE_PATH)
         
         
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c\
-        $(BASE_DIR)/aim128.c $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c \
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field{security_level}.c\
+        $(BASE_DIR)/aim{security_level}.c $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c \
         $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
         \tmkdir -p $(BUILD_KEYPAIR) 
         \t$(CC) -D_BSD_SOURCE -D_DEFAULT_SOURCE $(CFLAGS) $(TOOL_FLAGS) $(AVX2FLAGS)  -D_AIMER_L={params_level} \
          $^ $(LDFLAGS) $(TOOL_LIBS) -lcrypto -o $(BUILD)/$@
         
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field128.c $(BASE_DIR)/aim128.c \
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(BASE_DIR)/api.c $(BASE_DIR)/field/field{security_level}.c $(BASE_DIR)/aim{security_level}.c \
         $(BASE_DIR)/rng.c $(BASE_DIR)/hash.c $(BASE_DIR)/tree.c $(BASE_DIR)/aimer_internal.c \
         $(BASE_DIR)/aimer_instances.c $(BASE_DIR)/aimer.c
         \tmkdir -p $(BUILD_SIGN) 
@@ -4275,12 +4300,20 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # ================================ ascon_sign ===================================
+def get_ascon_sign_robust_or_simple_type(subfolder):
+    subfolder_split = subfolder.split('/')
+    subfolder_split = subfolder_split[0]
+    robust_or_simple = subfolder_split.split('_')[-1]
+    return robust_or_simple
+
 
 def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    robust_or_simple = get_ascon_sign_robust_or_simple_type(subfolder)
+    robust_or_simple = robust_or_simple.lower()
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -4329,7 +4362,7 @@ def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate
         '''
     else:
         makefile_content = f'''
-        THASH = robust
+        THASH = {robust_or_simple}
     
         CC=/usr/bin/gcc
         CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)

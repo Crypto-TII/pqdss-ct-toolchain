@@ -806,7 +806,7 @@ def flowtracker_sign_xml_content(xml_file, api,
                     <parameter>{msg_len}</parameter>
                 </public>
                 <secret>
-                    <parameter>{sk}</parameter>       <!--Secret key-->
+                    <parameter>{sk}</parameter>   <!--Secret key-->
                 </secret>
             </function>
         </sources>
@@ -865,7 +865,7 @@ def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_
 
 
 # BINSEC: script for crypto_sign
-def cfg_content_keypair(cfg_file_keypair, with_core_dump="no"):
+def cfg_content_keypair(cfg_file_keypair, with_core_dump="yes"):
     if 'no' in with_core_dump.lower():
         print("Binsec: only test with core dump is taken into account.")
     script_file = cfg_file_keypair
@@ -988,6 +988,7 @@ def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: s
     if not gdb_script.endswith('.gdb'):
         gdb_script = f'{gdb_script}.gdb'
     snapshot = f'''
+    set pagination off
     set env LD_BIND_NOW=1
     set env GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_Usable
     b main
@@ -1028,7 +1029,7 @@ def run_ctgrind(binary_file, output_file):
 
 # Run DUDECT
 def run_dudect(executable_file, output_file):
-    command = f'timeout 86400 ./{executable_file}'
+    command = f'timeout 60 ./{executable_file}' #86400
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
     output, error = execution.communicate()
@@ -1219,7 +1220,7 @@ def flowtracker_generic_run(flowtracker_folder, signature_type,
 def generic_run(tools_list, signature_type,
                 candidate, optimized_imp_folder,
                 opt_src_folder_list_dir, depth,
-                build_folder, binary_patterns, with_core_dump='no'):
+                build_folder, binary_patterns, with_core_dump='yes'):
     for tool_name in tools_list:
         if 'binsec' in tool_name.lower():
             binsec_folder = tool_name
@@ -1356,7 +1357,7 @@ def tool_initialize_candidate(path_to_opt_src_folder,
                               path_to_tool_keypair_folder,
                               path_to_tool_sign_folder, api,
                               sign, rng, add_includes,
-                              with_core_dump="no"):
+                              with_core_dump="yes"):
     list_of_path_to_folders = [path_to_tool_folder,
                                path_to_tool_keypair_folder,
                                path_to_tool_sign_folder]
@@ -1429,7 +1430,7 @@ def tool_initialize_candidate(path_to_opt_src_folder,
 def initialization(tools_list, signature_type,
                    candidate, optimized_imp_folder,
                    instance_folder, api, sign,
-                   rng, add_includes, with_core_dump="no"):
+                   rng, add_includes, with_core_dump="yes"):
     path_to_opt_src_folder = signature_type + '/' + candidate + '/' + optimized_imp_folder
     tools_list_lowercase = [tool_name.lower() for tool_name in tools_list]
 
@@ -1455,7 +1456,7 @@ def initialization(tools_list, signature_type,
 def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
                                       optimized_imp_folder, instance_folders_list,
                                       rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                      add_includes, rng_outside_instance_folder="no", with_core_dump="no"):
+                                      add_includes, rng_outside_instance_folder="no", with_core_dump="yes"):
     if not instance_folders_list:
         instance_folder = ""
         api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
@@ -1492,245 +1493,17 @@ def set_include_correct_format(api, sign, rng):
 
 # generic_init_compile: in addition to initializing a given candidate for desired tools and instances, generates
 # a Makefile/CMakeLists.txt and performs compilation/build.
-def generic_init_compile1(tools_list, signature_type, candidate,
-                         optimized_imp_folder, instance_folders_list,
-                         rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                         add_includes, build_folder, with_cmake,
-                         rng_outside_instance_folder="no", with_core_dump="no"):
-    api, sign, rng = set_include_correct_format(rel_path_to_api, rel_path_to_sign, rel_path_to_rng)
-    rel_path_to_api = api
-    rel_path_to_sign = sign
-    rel_path_to_rng = rng
-    cmd = []
-    path_to_opt_impl_folder = signature_type + '/' + candidate + '/' + optimized_imp_folder
-    if not instance_folders_list:
-        generic_initialize_nist_candidate(tools_list, signature_type,
-                                          candidate, optimized_imp_folder,
-                                          instance_folders_list, rel_path_to_api,
-                                          rel_path_to_sign, rel_path_to_rng,
-                                          add_includes, rng_outside_instance_folder, with_core_dump)
-        instance = '""'
-        for tool_type in tools_list:
-            path_to_build_folder = ""
-            path_to_cmakelist_file = ""
-            path_to_makefile_folder = ""
-            if with_cmake == 'yes':
-                path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type
-                path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
-                path_to_makefile_folder = ""
-                path_function_pattern_file = path_to_cmakelist_file
-                arguments = f'path_function_pattern_file,instance,tool_type,candidate'
-                funct = f'build_cand.cmake_candidate({arguments})'
-                exec(f'{funct}')
-            elif "sh" in with_cmake:
-                cwd = os.getcwd()
-                path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}'
-                path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
-                arguments = f'path_to_sh_folder, instance, tool_type, candidate'
-                funct = f'build_cand.sh_candidate({arguments})'
-                exec(f'{funct}')
-                sh_script = find_ending_pattern(path_to_sh_folder, ".sh")
-                sh_script = os.path.basename(sh_script)
-                os.chdir(path_to_sh_folder)
-                cmd_str = f"sudo chmod u+x ./{sh_script}"
-                cmd = cmd_str.split()
-                subprocess.call(cmd, stdin=sys.stdin)
-                cmd_str = f"./{sh_script}"
-                cmd = cmd_str.split()
-                subprocess.call(cmd, stdin=sys.stdin, shell=True)
-                os.chdir(cwd)
-            else:
-                path_to_makefile_folder = path_to_opt_impl_folder + '/' + tool_type
-                path_to_build_folder = path_to_makefile_folder + '/' + build_folder
-                path_to_cmakelist_file = ""
-                path_function_pattern_file = path_to_makefile_folder
-                arguments = f'path_function_pattern_file,instance,tool_type,candidate'
-                funct = f'build_cand.makefile_candidate({arguments})'
-                exec(f'{funct}')
-            if not os.path.isdir(path_to_build_folder):
-                cmd = ["mkdir", "-p", path_to_build_folder]
-                subprocess.call(cmd, stdin=sys.stdin)
-            if "sh" not in with_cmake:
-                if not os.path.isdir(path_to_build_folder):
-                    cmd = ["mkdir", "-p", path_to_build_folder]
-                    subprocess.call(cmd, stdin=sys.stdin)
-                compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
-                                                                             path_to_makefile_folder,
-                                                                             path_to_build_folder,
-                                                                             "all")
-            if 'yes' in with_core_dump.lower():
-                # crypto_sign_keypair
-                keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
-                executable_keypair = os.listdir(keypair_build_folder)[0]
-                executable_keypair = os.path.basename(executable_keypair)
-                path_to_keypair_snapshot_file = f'{executable_keypair}.snapshot'
-                path_to_gdb_script_keypair = f'{keypair_build_folder}/{executable_keypair}.gdb'
-                binsec_generate_gdb_script(path_to_gdb_script_keypair, path_to_keypair_snapshot_file)
-                path_to_executable_file = f'{keypair_build_folder}/{executable_keypair}'
-                binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_keypair)
-                # crypto_sign
-                sign_build_folder = f'{path_to_build_folder}/{candidate}_sign'
-                executable_sign = os.listdir(sign_build_folder)[0]
-                executable_sign = os.path.basename(executable_sign)
-                path_to_sign_snapshot_file = f'{executable_sign}.snapshot'
-                path_to_gdb_script_sign = f'{sign_build_folder}/{executable_sign}.gdb'
-                binsec_generate_gdb_script(path_to_gdb_script_sign, path_to_sign_snapshot_file)
-                path_to_executable_file = f'{sign_build_folder}/{executable_sign}'
-                binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
-
-    else:
-        for instance in instance_folders_list:
-            generic_initialize_nist_candidate(tools_list, signature_type,
-                                              candidate, optimized_imp_folder,
-                                              instance_folders_list, rel_path_to_api,
-                                              rel_path_to_sign, rel_path_to_rng,
-                                              add_includes, rng_outside_instance_folder, with_core_dump)
-            for tool_type in tools_list:
-                path_to_build_folder = ""
-                path_to_cmakelist_file = ""
-                path_to_makefile_folder = ""
-                if with_cmake == 'yes':
-                    path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type + '/' + instance
-                    path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
-                    path_to_makefile_folder = ""
-                    path_function_pattern_file = path_to_cmakelist_file
-                    arguments = f'path_function_pattern_file,instance,tool_type,candidate'
-                    funct = f'build_cand.cmake_candidate({arguments})'
-                    exec(f'{funct}')
-                elif "sh" in with_cmake:
-                    cwd = os.getcwd()
-                    path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
-                    path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
-                    arguments = f'path_to_sh_folder, instance, tool_type, candidate'
-                    funct = f'build_cand.sh_candidate({arguments})'
-                    exec(f'{funct}')
-                    sh_script = find_ending_pattern(path_to_sh_folder, ".sh")
-                    sh_script = os.path.basename(sh_script)
-                    os.chdir(path_to_sh_folder)
-                    cmd_str = f"sudo chmod u+x ./{sh_script}"
-                    cmd = cmd_str.split()
-                    subprocess.call(cmd, stdin=sys.stdin)
-                    cmd_str = f"./{sh_script}"
-                    cmd = cmd_str.split()
-                    subprocess.call(cmd, stdin=sys.stdin, shell=True)
-                    os.chdir(cwd)
-                else:
-                    path_to_makefile_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
-                    path_to_build_folder = f'{path_to_makefile_folder}/{build_folder}'
-                    path_to_cmakelist_file = ""
-                    path_function_pattern_file = path_to_makefile_folder
-                    arguments = f'path_function_pattern_file,instance,tool_type,candidate'
-                    funct = f'build_cand.makefile_candidate({arguments})'
-                    exec(funct)
-                if "sh" not in with_cmake:
-                    if not os.path.isdir(path_to_build_folder):
-                        cmd = ["mkdir", "-p", path_to_build_folder]
-                        subprocess.call(cmd, stdin=sys.stdin)
-                    compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
-                                                                                 path_to_makefile_folder,
-                                                                                 path_to_build_folder,
-                                                                                 "all")
-
-                if 'yes' in with_core_dump.lower():
-                    keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
-                    executable_keypair = os.listdir(keypair_build_folder)[0]
-                    executable_keypair = os.path.basename(executable_keypair)
-                    path_to_keypair_snapshot_file = f'{executable_keypair}.snapshot'
-                    path_to_gdb_script_keypair = f'{keypair_build_folder}/{executable_keypair}.gdb'
-                    binsec_generate_gdb_script(path_to_gdb_script_keypair, path_to_keypair_snapshot_file)
-                    path_to_executable_file = f'{keypair_build_folder}/{executable_keypair}'
-                    binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_keypair)
-                    # crypto_sign
-                    sign_build_folder = f'{path_to_build_folder}/{candidate}_sign'
-                    executable_sign = os.listdir(sign_build_folder)[0]
-                    executable_sign = os.path.basename(executable_sign)
-                    path_to_sign_snapshot_file = f'{executable_sign}.snapshot'
-                    path_to_gdb_script_sign = f'{sign_build_folder}/{executable_sign}.gdb'
-                    binsec_generate_gdb_script(path_to_gdb_script_sign, path_to_sign_snapshot_file)
-                    path_to_executable_file = f'{sign_build_folder}/{executable_sign}'
-                    binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
-
-
-
-# def test(with_cmake, tool_name, path_to_build_folder):
-#     path_to_build_folder = ""
-#     path_to_cmakelist_file = ""
-#     path_to_makefile_folder = ""
-#     if with_cmake == 'yes':
-#         path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_name + '/' + instance
-#         path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
-#         path_to_makefile_folder = ""
-#         path_function_pattern_file = path_to_cmakelist_file
-#         arguments = f'path_function_pattern_file,instance,tool_type,candidate'
-#         funct = f'build_cand.cmake_candidate({arguments})'
-#         exec(f'{funct}')
-#     elif "sh" in with_cmake:
-#         cwd = os.getcwd()
-#         path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
-#         path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
-#         arguments = f'path_to_sh_folder, instance, tool_type, candidate'
-#         funct = f'build_cand.sh_candidate({arguments})'
-#         exec(f'{funct}')
-#         sh_script = find_ending_pattern(path_to_sh_folder, ".sh")
-#         sh_script = os.path.basename(sh_script)
-#         os.chdir(path_to_sh_folder)
-#         cmd_str = f"sudo chmod u+x ./{sh_script}"
-#         cmd = cmd_str.split()
-#         subprocess.call(cmd, stdin=sys.stdin)
-#         cmd_str = f"./{sh_script}"
-#         cmd = cmd_str.split()
-#         subprocess.call(cmd, stdin=sys.stdin, shell=True)
-#         os.chdir(cwd)
-#     else:
-#         path_to_makefile_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
-#         path_to_build_folder = f'{path_to_makefile_folder}/{build_folder}'
-#         path_to_cmakelist_file = ""
-#         path_function_pattern_file = path_to_makefile_folder
-#         arguments = f'path_function_pattern_file,instance,tool_type,candidate'
-#         funct = f'build_cand.makefile_candidate({arguments})'
-#         exec(funct)
-#     if "sh" not in with_cmake:
-#         if not os.path.isdir(path_to_build_folder):
-#             cmd = ["mkdir", "-p", path_to_build_folder]
-#             subprocess.call(cmd, stdin=sys.stdin)
-#         compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
-#                                                                      path_to_makefile_folder,
-#                                                                      path_to_build_folder,
-#                                                                      "all")
-#
-#     if 'yes' in with_core_dump.lower():
-#         keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
-#         executable_keypair = os.listdir(keypair_build_folder)[0]
-#         executable_keypair = os.path.basename(executable_keypair)
-#         path_to_keypair_snapshot_file = f'{executable_keypair}.snapshot'
-#         path_to_gdb_script_keypair = f'{keypair_build_folder}/{executable_keypair}.gdb'
-#         binsec_generate_gdb_script(path_to_gdb_script_keypair, path_to_keypair_snapshot_file)
-#         path_to_executable_file = f'{keypair_build_folder}/{executable_keypair}'
-#         binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_keypair)
-#         # crypto_sign
-#         sign_build_folder = f'{path_to_build_folder}/{candidate}_sign'
-#         executable_sign = os.listdir(sign_build_folder)[0]
-#         executable_sign = os.path.basename(executable_sign)
-#         path_to_sign_snapshot_file = f'{executable_sign}.snapshot'
-#         path_to_gdb_script_sign = f'{sign_build_folder}/{executable_sign}.gdb'
-#         binsec_generate_gdb_script(path_to_gdb_script_sign, path_to_sign_snapshot_file)
-#         path_to_executable_file = f'{sign_build_folder}/{executable_sign}'
-#         binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
-
-
-
-
 def generic_init_compile(tools_list, signature_type, candidate,
                          optimized_imp_folder, instance_folders_list,
                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                          add_includes, build_folder, with_cmake,
-                         rng_outside_instance_folder="no", with_core_dump="no"):
+                         rng_outside_instance_folder="no", with_core_dump="yes"):
     api, sign, rng = set_include_correct_format(rel_path_to_api, rel_path_to_sign, rel_path_to_rng)
     rel_path_to_api = api
     rel_path_to_sign = sign
     rel_path_to_rng = rng
     cmd = []
-    path_to_opt_impl_folder = signature_type + '/' + candidate + '/' + optimized_imp_folder
+    path_to_opt_impl_folder = f'{signature_type}/{candidate}/{optimized_imp_folder}'
     if not instance_folders_list:
         generic_initialize_nist_candidate(tools_list, signature_type,
                                           candidate, optimized_imp_folder,
@@ -1786,25 +1559,6 @@ def generic_init_compile(tools_list, signature_type, candidate,
                                                                              path_to_makefile_folder,
                                                                              path_to_build_folder,
                                                                              "all")
-            # if 'yes' in with_core_dump.lower():
-            #     # crypto_sign_keypair
-            #     keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
-            #     executable_keypair = os.listdir(keypair_build_folder)[0]
-            #     executable_keypair = os.path.basename(executable_keypair)
-            #     path_to_keypair_snapshot_file = f'{executable_keypair}.snapshot'
-            #     path_to_gdb_script_keypair = f'{keypair_build_folder}/{executable_keypair}.gdb'
-            #     binsec_generate_gdb_script(path_to_gdb_script_keypair, path_to_keypair_snapshot_file)
-            #     path_to_executable_file = f'{keypair_build_folder}/{executable_keypair}'
-            #     binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_keypair)
-            #     # crypto_sign
-            #     sign_build_folder = f'{path_to_build_folder}/{candidate}_sign'
-            #     executable_sign = os.listdir(sign_build_folder)[0]
-            #     executable_sign = os.path.basename(executable_sign)
-            #     path_to_sign_snapshot_file = f'{executable_sign}.snapshot'
-            #     path_to_gdb_script_sign = f'{sign_build_folder}/{executable_sign}.gdb'
-            #     binsec_generate_gdb_script(path_to_gdb_script_sign, path_to_sign_snapshot_file)
-            #     path_to_executable_file = f'{sign_build_folder}/{executable_sign}'
-            #     binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
 
     else:
         for instance in instance_folders_list:
@@ -1858,27 +1612,6 @@ def generic_init_compile(tools_list, signature_type, candidate,
                                                                                  path_to_makefile_folder,
                                                                                  path_to_build_folder,
                                                                                  "all")
-
-                # if 'yes' in with_core_dump.lower():
-                #     keypair_build_folder = f'{path_to_build_folder}/{candidate}_keypair'
-                #     executable_keypair = os.listdir(keypair_build_folder)[0]
-                #     executable_keypair = os.path.basename(executable_keypair)
-                #     path_to_keypair_snapshot_file = f'{executable_keypair}.snapshot'
-                #     path_to_gdb_script_keypair = f'{keypair_build_folder}/{executable_keypair}.gdb'
-                #     binsec_generate_gdb_script(path_to_gdb_script_keypair, path_to_keypair_snapshot_file)
-                #     path_to_executable_file = f'{keypair_build_folder}/{executable_keypair}'
-                #     binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_keypair)
-                #     # crypto_sign
-                #     sign_build_folder = f'{path_to_build_folder}/{candidate}_sign'
-                #     executable_sign = os.listdir(sign_build_folder)[0]
-                #     executable_sign = os.path.basename(executable_sign)
-                #     path_to_sign_snapshot_file = f'{executable_sign}.snapshot'
-                #     path_to_gdb_script_sign = f'{sign_build_folder}/{executable_sign}.gdb'
-                #     binsec_generate_gdb_script(path_to_gdb_script_sign, path_to_sign_snapshot_file)
-                #     path_to_executable_file = f'{sign_build_folder}/{executable_sign}'
-                #     binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script_sign)
-
-
 
 
 # generic_compile_run_candidate: initializes, compiles and runs given tools for the given instances
@@ -1889,7 +1622,7 @@ def generic_compile_run_candidate(tools_list, signature_type, candidate,
                                   with_cmake, add_includes, to_compile, to_run,
                                   depth, build_folder, binary_patterns,
                                   rng_outside_instance_folder="no",
-                                  with_core_dump="no"):
+                                  with_core_dump="yes"):
     candidate = candidate
     if 'y' in to_compile.lower() and 'y' in to_run.lower():
         generic_init_compile(tools_list, signature_type, candidate,
@@ -1920,7 +1653,7 @@ def add_cli_arguments(subparser,
                       rel_path_to_rng='""',
                       is_rng_in_cwd="no",
                       candidate_default_list_of_folders=None,
-                      with_core_dump="no"):
+                      with_core_dump="yes"):
     if candidate_default_list_of_folders is None:
         candidate_default_list_of_folders = []
     candidate_parser = subparser.add_parser(f'{candidate}',
