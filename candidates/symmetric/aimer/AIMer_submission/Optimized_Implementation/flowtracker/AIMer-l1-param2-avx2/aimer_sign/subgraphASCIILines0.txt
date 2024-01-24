@@ -1,3 +1,0 @@
-Vulnerability from  ' line 47 to line 17
-	 '
-Line 17
