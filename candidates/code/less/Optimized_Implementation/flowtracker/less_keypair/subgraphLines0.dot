@@ -1,9 +1,0 @@
-digraph "Vulnerability from 'file ..//lib/sign.c line 33 to file ..//lib/sign.c line 83 '  "{
-label="Vulnerability from  'file ..//lib/sign.c line 33 to file ..//lib/sign.c line 83 ' ";
-node_86[shape=ellipse,style=solid,label="..//lib/sign.c Line  83", color=red]
-node_85[shape=ellipse,style=dashed,label="", color=red]
-node_87[shape=octagon,style=solid,label="..//lib/sign.c Line  83", color=red]
-"node_85"->"node_87" [color=red]
-"node_87"->"node_86" [color=red]
-}
-
