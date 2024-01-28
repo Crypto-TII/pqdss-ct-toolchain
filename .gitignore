@@ -55,3 +55,6 @@ Thumbs.db
 
 # Objects files
 *.o
+
+#Static libraries
+*.a
