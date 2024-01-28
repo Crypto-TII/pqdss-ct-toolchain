@@ -20,20 +20,24 @@ import generic_functions as generic
 def compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                       binary_patterns, rng_outside_instance_folder="no", with_core_dump="yes"):
+                       binary_patterns, rng_outside_instance_folder="no", with_core_dump="yes",
+                       number_of_measurements='1e4', timeout='86400'):
     """ Function: compile_run_qr_uov"""
 
     build_candidate.compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
                                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
                                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                                       binary_patterns, rng_outside_instance_folder)
+                                       binary_patterns, rng_outside_instance_folder, with_core_dump,
+                                       number_of_measurements, timeout)
 
 
 # compile_run_candidate: generic function to run a given candidate with given tools
 def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_folder,
                           instance_folders_list, rel_path_to_api, rel_path_to_sign,
                           rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                          binary_patterns, rng_outside_instance_folder="no", with_core_dump="yes"):
+                          binary_patterns, rng_outside_instance_folder="no", with_core_dump="yes",
+                          additional_cmake_definitions=None, security_level=None,
+                          number_of_measurements='1e4', timeout='86400'):
     """ Function: compile_run_candidate"""
     candidates_to_build_with_makefile = ["mirith", "mira", "mqom", "perk", "ryde", "pqsigrm", "wave", "prov",
                                          "snova", "tuov", "uov", "vox", "aimer", "ascon_sign", "faest",
@@ -50,7 +54,9 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
                                               rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                               with_cmake, add_includes, to_compile, to_run,
                                               depth, build_folder, binary_patterns,
-                                              rng_outside_instance_folder, with_core_dump)
+                                              rng_outside_instance_folder, with_core_dump,
+                                              additional_cmake_definitions, security_level,
+                                              number_of_measurements, timeout)
     if candidate in candidate_to_build_with_cmake:
         add_includes = []
         with_cmake = 'yes'
@@ -63,7 +69,9 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
                                               rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                               with_cmake, add_includes, to_compile, to_run,
                                               depth, build_folder, binary_patterns,
-                                              rng_outside_instance_folder, with_core_dump)
+                                              rng_outside_instance_folder, with_core_dump,
+                                              additional_cmake_definitions, security_level,
+                                              number_of_measurements, timeout)
     # Special cases
     if candidate == "raccoon":
         add_includes = []
@@ -75,12 +83,15 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
                                               rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                               with_cmake, add_includes, to_compile, to_run,
                                               depth, build_folder, binary_patterns,
-                                              rng_outside_instance_folder, with_core_dump)
+                                              rng_outside_instance_folder, with_core_dump,
+                                              additional_cmake_definitions, security_level,
+                                              number_of_measurements, timeout)
     if candidate == "qr_uov":
         compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
                            instance_folders_list, rel_path_to_api, rel_path_to_sign,
                            rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                           binary_patterns, rng_outside_instance_folder, with_core_dump)
+                           binary_patterns, rng_outside_instance_folder, with_core_dump,
+                           number_of_measurements, timeout)
 
 
 # =============================== CLI: use argparse module ===========================
@@ -106,12 +117,18 @@ def run_cli_candidate(args_parse):
     executable_patterns = args_parse.algorithms_patterns
     is_rng_in_different_folder = args_parse.rng_outside
     with_core_dump = args_parse.core_dump
+    cmake_additional_definitions = args_parse.cmake_definition
+    security_level = args_parse.security_level
+    number_measurements = args_parse.number_measurements
+    timeout = args_parse.timeout
     arguments = f'''{list_of_tools}, f'{type_based_signature}', f'{target_candidate}',
                      f'{optimization_folder}', {list_of_instance_folders},
                      {relative_path_to_api}, f'{relative_path_to_sign}', {relative_path_to_rng},
                      f'{compile_candidate}', f'{run_candidate}', {binsec_depth_flag},
                      f'{build_directory}', {executable_patterns},
-                     f'{is_rng_in_different_folder}', f'{with_core_dump}' '''
+                     f'{is_rng_in_different_folder}', f'{with_core_dump}',
+                    {cmake_additional_definitions}, f'{security_level}',
+                    f'{number_measurements}', f'{timeout}' '''
     target = f'compile_run_candidate({arguments})'
     exec(target)
 
@@ -251,10 +268,12 @@ generic.add_cli_arguments(subparser, 'candidates/code', 'fuleeca',
 
 # ==================================== less ======================================================
 less_default_list_of_folders = []
+avx2_build = ["-DAVX2_OPTIMIZED=ON"]
 generic.add_cli_arguments(subparser, 'candidates/code', 'less',
                           'Optimized_Implementation',
                           '"../../include/api.h"', '""',
-                          '"../../include/rng.h"')
+                          '"../../include/rng.h"','no',
+                          'None', 'yes', avx2_build)
 
 # ==================================== meds ======================================================
 meds_opt_folder = "candidates/code/meds/Optimized_Implementation"
@@ -431,12 +450,15 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'hppc',
 
 
 # =============================================== mayo ===========================================
-mayo_default_list_of_folders = []
+mayo_default_list_of_folders = ["src/mayo_1", "src/mayo_2", "src/mayo_3", "src/mayo_5"]
+avx2_build = ["-DMAYO_BUILD_TYPE=avx2"]
 generic.add_cli_arguments(subparser, 'candidates/multivariate', 'mayo',
                           'Optimized_Implementation',
                           '"../../../../api.h"', '""',
                           '"../../../../../include/rng.h"',
-                          'yes')
+                          'yes', mayo_default_list_of_folders, 'yes', avx2_build)
+
+
 
 
 # ================================================ prov ===========================================
@@ -510,10 +532,14 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'uov',
 
 
 # ==================================================== vox =======================================
+vox_default_list_of_folders = ["vox_sign"]
 generic.add_cli_arguments(subparser, 'candidates/multivariate', 'vox',
                           'Reference_Implementation/vox_sign',
                           '"../../../../api.h"', '""',
-                          '"../../../../rng/rng.h"')
+                          '"../../../../rng/rng.h"', 'no', vox_default_list_of_folders,
+                          "yes", None, "256")
+
+
 
 
 # ==================================================== SYMMETRIC ==================================

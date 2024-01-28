@@ -426,7 +426,7 @@ def sign_test_harness_content(test_harness_file, api,
     '''
     arguments = f'{args_names[0]}, &{args_names[1]}, {args_names[2]}, {args_names[3]}, {args_names[4]}'
     test_harness_file_content_block2 = f'''
-    #define msg_length  256
+    #define msg_length  3300
     {args_types[0]} {args_names[0]}[CRYPTO_BYTES+msg_length] ; //CRYPTO_BYTES + msg_len
     {args_types[1]} {args_names[1]} ;
     {args_types[3]} {args_names[3]} = msg_length ;
@@ -574,7 +574,7 @@ def dudect_keypair_dude_content(taint_file, api,
                                 function_return_type,
                                 function_name,
                                 args_types,
-                                args_names):
+                                args_names, number_of_measurements='1e4'):
     taint_file_content_block_include = f'''
     #include <stdio.h>
     #include <sys/types.h>
@@ -614,7 +614,7 @@ def dudect_keypair_dude_content(taint_file, api,
 
     \tdudect_config_t config = {{
     \t\t.chunk_size = 32,
-    \t\t.number_measurements = 1e4,
+    \t\t.number_measurements = {number_of_measurements},
     \t}};
     \tdudect_ctx_t ctx;
 
@@ -646,7 +646,7 @@ def dudect_sign_dude_content(taint_file, api,
                              function_return_type,
                              function_name,
                              args_types,
-                             args_names):
+                             args_names, number_of_measurements='1e4'):
     taint_file_content_block_include = f'''
     #include <stdio.h>
     #include <sys/types.h>
@@ -722,7 +722,7 @@ def dudect_sign_dude_content(taint_file, api,
 
     \tdudect_config_t config = {{
     \t\t.chunk_size = chunk_size,
-    \t\t.number_measurements = 1e4,
+    \t\t.number_measurements = {number_of_measurements},
     \t}};
     \tdudect_ctx_t ctx;
 
@@ -845,12 +845,6 @@ def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_
         return buffen
     end
 
-    import <brk>, <__curbrk> from libc.so.6
-
-    replace <brk> (addr) by
-        @[<__curbrk>, 8] := addr
-        return 0
-    end
     '''
     exploration_goal = f'''
     explore all'''
@@ -882,13 +876,6 @@ def cfg_content_keypair(cfg_file_keypair, with_core_dump="yes"):
             @[buf + i] := nondet as urandom
         end
         return buffen
-    end
-
-    import <brk>, <__curbrk> from libc.so.6
-
-    replace <brk> (addr) by
-        @[<__curbrk>, 8] := addr
-        return 0
     end
     '''
     exploration_goal = f'''
@@ -927,6 +914,7 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None):
         cmd.extend(optional_flags)
     cmd_ext = ["../"]
     cmd.extend(cmd_ext)
+    print("...........command cmake: ", cmd)
     subprocess.call(cmd, stdin=sys.stdin)
     cmd = ["make", "-j"]
     subprocess.call(cmd, stdin=sys.stdin)
@@ -946,10 +934,10 @@ def compile_with_makefile(path_to_makefile, default=""):
 def compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
                                                                  path_to_makefile,
                                                                  path_to_build_folder,
-                                                                 default=""):
+                                                                 default="", additional_cmake_definitions=None):
 
     if not path_to_cmakelist_file == "":
-        compile_with_cmake(path_to_build_folder)
+        compile_with_cmake(path_to_build_folder, additional_cmake_definitions)
     else:
         compile_with_makefile(path_to_makefile, default)
 
@@ -1028,8 +1016,14 @@ def run_ctgrind(binary_file, output_file):
 
 
 # Run DUDECT
-def run_dudect(executable_file, output_file):
-    command = f'timeout 60 ./{executable_file}' #86400
+def run_dudect(executable_file, output_file, timeout='86400'):
+    command = ""
+    if timeout and timeout.lower() == 'no':
+        command += f'./{executable_file}'
+    elif timeout and timeout.lower() != 'no':
+        command = f'timeout {timeout} ./{executable_file}'
+    else:
+        command = f'timeout 86400 ./{executable_file}'
     cmd_args_lst = command.split()
     execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
     output, error = execution.communicate()
@@ -1146,7 +1140,7 @@ def ctgrind_generic_run(ctgrind_folder, signature_type,
 def dudect_generic_run(dudect_folder, signature_type,
                        candidate, optimized_imp_folder,
                        opt_src_folder_list_dir,
-                       build_folder, binary_patterns):
+                       build_folder, binary_patterns, timeout='86400'):
     optimized_imp_folder_full_path = f'{signature_type}/{candidate}/{optimized_imp_folder}'
     dudect_folder_full_path = f'{optimized_imp_folder_full_path}/{dudect_folder}'
     list_of_instances = []
@@ -1170,7 +1164,7 @@ def dudect_generic_run(dudect_folder, signature_type,
                 output_file = f'{path_to_pattern_subfolder}/{bin_basename}_output.txt'
                 abs_path_to_executable = f'{path_to_binary_pattern_subfolder}/{executable}'
                 print("::::Running:", abs_path_to_executable)
-                run_dudect(abs_path_to_executable, output_file)
+                run_dudect(abs_path_to_executable, output_file, timeout)
 
 
 def flowtracker_generic_run(flowtracker_folder, signature_type,
@@ -1220,7 +1214,8 @@ def flowtracker_generic_run(flowtracker_folder, signature_type,
 def generic_run(tools_list, signature_type,
                 candidate, optimized_imp_folder,
                 opt_src_folder_list_dir, depth,
-                build_folder, binary_patterns, with_core_dump='yes'):
+                build_folder, binary_patterns, with_core_dump='yes',
+                timeout='86400'):
     for tool_name in tools_list:
         if 'binsec' in tool_name.lower():
             binsec_folder = tool_name
@@ -1241,7 +1236,7 @@ def generic_run(tools_list, signature_type,
             dudect_generic_run(dudect_folder, signature_type,
                                candidate, optimized_imp_folder,
                                opt_src_folder_list_dir, build_folder,
-                               binary_patterns)
+                               binary_patterns, timeout)
     for tool_name in tools_list:
         if 'flowtracker' in tool_name.lower():
             flowtracker_folder = tool_name
@@ -1357,7 +1352,8 @@ def tool_initialize_candidate(path_to_opt_src_folder,
                               path_to_tool_keypair_folder,
                               path_to_tool_sign_folder, api,
                               sign, rng, add_includes,
-                              with_core_dump="yes"):
+                              with_core_dump="yes",
+                              number_of_measurements='1e4'):
     list_of_path_to_folders = [path_to_tool_folder,
                                path_to_tool_keypair_folder,
                                path_to_tool_sign_folder]
@@ -1414,7 +1410,8 @@ def tool_initialize_candidate(path_to_opt_src_folder,
                                     f_basename_kp, args_types_kp, args_names_kp)
         dudect_sign_dude_content(test_sign, api, sign,
                                  add_includes, return_type_s,
-                                 f_basename_s, args_types_s, args_names_s)
+                                 f_basename_s, args_types_s,
+                                 args_names_s, number_of_measurements)
     if tool_name == 'flowtracker':
         flowtracker_keypair_xml_content(test_keypair, api, sign,
                                         add_includes, return_type_kp,
@@ -1430,7 +1427,8 @@ def tool_initialize_candidate(path_to_opt_src_folder,
 def initialization(tools_list, signature_type,
                    candidate, optimized_imp_folder,
                    instance_folder, api, sign,
-                   rng, add_includes, with_core_dump="yes"):
+                   rng, add_includes, with_core_dump="yes",
+                   number_of_measurements='1e4'):
     path_to_opt_src_folder = signature_type + '/' + candidate + '/' + optimized_imp_folder
     tools_list_lowercase = [tool_name.lower() for tool_name in tools_list]
 
@@ -1448,7 +1446,8 @@ def initialization(tools_list, signature_type,
                                   path_to_tool_folder,
                                   path_to_tool_keypair_folder,
                                   path_to_tool_sign_folder, api,
-                                  sign, rng, add_includes, with_core_dump)
+                                  sign, rng, add_includes,
+                                  with_core_dump, number_of_measurements)
 
 
 # generic_initialize_nist_candidate: generalisation of the function 'initialization', taking into account the fact
@@ -1456,7 +1455,8 @@ def initialization(tools_list, signature_type,
 def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
                                       optimized_imp_folder, instance_folders_list,
                                       rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                      add_includes, rng_outside_instance_folder="no", with_core_dump="yes"):
+                                      add_includes, rng_outside_instance_folder="no",
+                                      with_core_dump="yes", number_of_measurements='1e4'):
     if not instance_folders_list:
         instance_folder = ""
         api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
@@ -1467,7 +1467,8 @@ def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
         initialization(tools_list, signature_type,
                        candidate, optimized_imp_folder,
                        instance_folder, api, sign,
-                       rng, add_includes, with_core_dump)
+                       rng, add_includes, with_core_dump,
+                       number_of_measurements)
     else:
         for instance_folder in instance_folders_list:
             api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
@@ -1478,7 +1479,8 @@ def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
             initialization(tools_list, signature_type,
                            candidate, optimized_imp_folder,
                            instance_folder, api, sign,
-                           rng, add_includes, with_core_dump)
+                           rng, add_includes, with_core_dump,
+                           number_of_measurements)
 
 
 def set_include_correct_format(api, sign, rng):
@@ -1497,7 +1499,9 @@ def generic_init_compile(tools_list, signature_type, candidate,
                          optimized_imp_folder, instance_folders_list,
                          rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                          add_includes, build_folder, with_cmake,
-                         rng_outside_instance_folder="no", with_core_dump="yes"):
+                         rng_outside_instance_folder="no", with_core_dump="yes",
+                         additional_cmake_definitions=None, security_level=None,
+                         number_of_measurements='1e4'):
     api, sign, rng = set_include_correct_format(rel_path_to_api, rel_path_to_sign, rel_path_to_rng)
     rel_path_to_api = api
     rel_path_to_sign = sign
@@ -1509,7 +1513,8 @@ def generic_init_compile(tools_list, signature_type, candidate,
                                           candidate, optimized_imp_folder,
                                           instance_folders_list, rel_path_to_api,
                                           rel_path_to_sign, rel_path_to_rng,
-                                          add_includes, rng_outside_instance_folder, with_core_dump)
+                                          add_includes, rng_outside_instance_folder,
+                                          with_core_dump, number_of_measurements)
         instance = '""'
         for tool_type in tools_list:
             path_to_build_folder = ""
@@ -1545,7 +1550,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                 path_to_build_folder = path_to_makefile_folder + '/' + build_folder
                 path_to_cmakelist_file = ""
                 path_function_pattern_file = path_to_makefile_folder
-                arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                arguments = f'path_function_pattern_file,instance,tool_type,candidate,security_level'
                 funct = f'build_cand.makefile_candidate({arguments})'
                 exec(f'{funct}')
             if not os.path.isdir(path_to_build_folder):
@@ -1558,7 +1563,8 @@ def generic_init_compile(tools_list, signature_type, candidate,
                 compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
                                                                              path_to_makefile_folder,
                                                                              path_to_build_folder,
-                                                                             "all")
+                                                                             "all",
+                                                                             additional_cmake_definitions)
 
     else:
         for instance in instance_folders_list:
@@ -1566,7 +1572,8 @@ def generic_init_compile(tools_list, signature_type, candidate,
                                               candidate, optimized_imp_folder,
                                               instance_folders_list, rel_path_to_api,
                                               rel_path_to_sign, rel_path_to_rng,
-                                              add_includes, rng_outside_instance_folder, with_core_dump)
+                                              add_includes, rng_outside_instance_folder,
+                                              with_core_dump, number_of_measurements)
             for tool_type in tools_list:
                 path_to_build_folder = ""
                 path_to_cmakelist_file = ""
@@ -1601,7 +1608,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     path_to_build_folder = f'{path_to_makefile_folder}/{build_folder}'
                     path_to_cmakelist_file = ""
                     path_function_pattern_file = path_to_makefile_folder
-                    arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                    arguments = f'path_function_pattern_file,instance,tool_type,candidate,security_level'
                     funct = f'build_cand.makefile_candidate({arguments})'
                     exec(funct)
                 if "sh" not in with_cmake:
@@ -1611,7 +1618,8 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
                                                                                  path_to_makefile_folder,
                                                                                  path_to_build_folder,
-                                                                                 "all")
+                                                                                 "all",
+                                                                                 additional_cmake_definitions)
 
 
 # generic_compile_run_candidate: initializes, compiles and runs given tools for the given instances
@@ -1622,25 +1630,31 @@ def generic_compile_run_candidate(tools_list, signature_type, candidate,
                                   with_cmake, add_includes, to_compile, to_run,
                                   depth, build_folder, binary_patterns,
                                   rng_outside_instance_folder="no",
-                                  with_core_dump="yes"):
+                                  with_core_dump="yes", additional_cmake_definitions=None,
+                                  security_level=None, number_of_measurements='1e4',
+                                  timeout='86400'):
     candidate = candidate
     if 'y' in to_compile.lower() and 'y' in to_run.lower():
         generic_init_compile(tools_list, signature_type, candidate,
                              optimized_imp_folder, instance_folders_list,
                              rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                              add_includes, build_folder, with_cmake,
-                             rng_outside_instance_folder, with_core_dump)
+                             rng_outside_instance_folder, with_core_dump,
+                             additional_cmake_definitions, security_level,
+                             number_of_measurements)
         generic_run(tools_list, signature_type, candidate, optimized_imp_folder,
-                    instance_folders_list, depth, build_folder, binary_patterns, with_core_dump)
+                    instance_folders_list, depth, build_folder, binary_patterns, with_core_dump, timeout)
     elif 'y' in to_compile.lower() and 'n' in to_run.lower():
         generic_init_compile(tools_list, signature_type, candidate,
                              optimized_imp_folder, instance_folders_list,
                              rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                              add_includes, build_folder, with_cmake,
-                             rng_outside_instance_folder, with_core_dump)
+                             rng_outside_instance_folder, with_core_dump,
+                             additional_cmake_definitions, security_level,
+                             number_of_measurements)
     if 'n' in to_compile.lower() and 'y' in to_run.lower():
         generic_run(tools_list, signature_type, candidate, optimized_imp_folder,
-                    instance_folders_list, depth, build_folder, binary_patterns, with_core_dump)
+                    instance_folders_list, depth, build_folder, binary_patterns, with_core_dump, timeout)
 
 
 # add_cli_arguments: creates a parser for a given candidate
@@ -1653,7 +1667,11 @@ def add_cli_arguments(subparser,
                       rel_path_to_rng='""',
                       is_rng_in_cwd="no",
                       candidate_default_list_of_folders=None,
-                      with_core_dump="yes"):
+                      with_core_dump="yes",
+                      additional_cmake_definitions=None,
+                      security_level=None,
+                      number_of_measurements='1e4',
+                      timeout='86400'):
     if candidate_default_list_of_folders is None:
         candidate_default_list_of_folders = []
     candidate_parser = subparser.add_parser(f'{candidate}',
@@ -1707,5 +1725,21 @@ def add_cli_arguments(subparser,
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
     arguments = f"'--with_core_dump','-core_dump',dest='core_dump', default=f'{with_core_dump}',help = 'no'"
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--cmake_addtional_definitions','-cmake_definition', nargs='+', dest='cmake_definition', \
+    default={additional_cmake_definitions},help = 'List of CMake additional definitions if any'"
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = (f"'--security_level','-security_level', dest='security_level', default={security_level},\
+    help = 'Instance security level'")
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = (f"'--number_measurements','-number_measurements', dest='number_measurements',\
+     default={number_of_measurements}, help = 'Number of measurements (Dudect)'")
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = (f"'--timeout','-timeout', dest='timeout',\
+     default={timeout}, help = 'timeout (Dudect)'")
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)

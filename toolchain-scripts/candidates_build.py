@@ -27,9 +27,8 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate):
         
         BASE_DIR = ../../{subfolder}
         
-        INCS = $(wildcard $(BASE_DIR)/*.h)
-        #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
-        SRC  = $(filter-out  $(SRC_DIR)/sign.c ,$(wildcard $(SRC_DIR)/*.c))
+        INCS = $(wildcard $(BASE_DIR)/*.h) 
+        SRC  = $(filter-out  $(BASE_DIR)/sign.c ,$(wildcard $(BASE_DIR)/*.c))
         SIGN = $(BASE_DIR)/sign.c
         
         BUILD			= build
@@ -1466,211 +1465,6 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # =========================== LESS ==============================================
-# [TODO: Modify and remove if condition]
-def cmake_less1(path_to_cmakelist, subfolder, tool_name, candidate):
-    tool_type = gen_funct.Tools(tool_name)
-    test_keypair, test_sign = tool_type.get_tool_test_file_name()
-    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
-    subfolder = ""
-    path_to_cmakelist = path_to_cmakelist+'/CMakeLists.txt'
-    cmake_file_content_src_block1 = f'''
-    cmake_minimum_required(VERSION 3.9.4)
-    project(LESS C)
-
-    # build type can be case-sensitive!
-    string(TOUPPER "${{CMAKE_BUILD_TYPE}}" UPPER_CMAKE_BUILD_TYPE)
-    
-    set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -Wall -pedantic -Wuninitialized -Wsign-conversion -Wno-strict-prototypes")
-    
-    include(CheckCCompilerFlag)
-    unset(COMPILER_SUPPORTS_MARCH_NATIVE CACHE)
-    check_c_compiler_flag(-march=native COMPILER_SUPPORTS_MARCH_NATIVE)
-    
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT lto_supported OUTPUT error)
-    
-    if(UPPER_CMAKE_BUILD_TYPE MATCHES DEBUG)
-        message(STATUS "Building in Debug mode!")
-    else() # Release, RELEASE, MINSIZEREL, etc
-        set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -mtune=native -O3 -g")   
-        if(COMPILER_SUPPORTS_MARCH_NATIVE)
-            set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -march=native")
-        endif()
-        if(lto_supported)
-            message(STATUS "IPO / LTO enabled")
-            set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-        endif()
-    endif()
-    
-    option(COMPRESS_CMT_COLUMNS "Enable COMPRESS_CMT_COLUMNS to compress commitment in SG and VY before hashing" OFF)
-    if(COMPRESS_CMT_COLUMNS)
-        message(STATUS "COMPRESS_CMT_COLUMNS is enabled")
-        add_definitions(-DCOMPRESS_CMT_COLUMNS)
-    else()
-        message(STATUS "COMPRESS_CMT_COLUMNS is disabled")
-    endif()
-    unset(COMPRESS_CMT_COLUMNS CACHE)
-    
-    set(SANITIZE "")
-    message(STATUS "Compilation flags:" ${{CMAKE_C_FLAGS}})
-    
-    set(CMAKE_C_STANDARD 11)
-    
-    find_library(KECCAK_LIB keccak)
-    if(NOT KECCAK_LIB)
-        set(STANDALONE_KECCAK 1)
-    endif()
-    
-    # selection of specialized compilation units differing between ref and opt implementations.
-    option(AVX2_OPTIMIZED "Use the AVX2 Optimized Implementation. Else the Reference Implementation will be used." OFF)
-    
-    #set(BASE_DIR  ../Optimized_Implementation) 
-    set(BASE_DIR  ../)  
-    set(HEADERS
-            ${{BASE_DIR}}/include/api.h
-            ${{BASE_DIR}}/include/codes.h
-            ${{BASE_DIR}}/include/fips202.h
-            ${{BASE_DIR}}/include/fq_arith.h
-            ${{BASE_DIR}}/include/keccakf1600.h
-            ${{BASE_DIR}}/include/LESS.h
-            ${{BASE_DIR}}/include/monomial_mat.h
-            ${{BASE_DIR}}/include/parameters.h
-            ${{BASE_DIR}}/include/rng.h
-            ${{BASE_DIR}}/include/seedtree.h
-            ${{BASE_DIR}}/include/sha3.h
-            ${{BASE_DIR}}/include/utils.h
-            )
-    
-    if(STANDALONE_KECCAK)
-        message(STATUS "Employing standalone SHA-3")
-        set(KECCAK_EXTERNAL_LIB "")
-        set(KECCAK_EXTERNAL_ENABLE "")
-        list(APPEND COMMON_SOURCES ${{BASE_DIR}}/lib/keccakf1600.c)
-        list(APPEND COMMON_SOURCES ${{BASE_DIR}}/lib/fips202.c)
-    else()
-        message(STATUS "Employing libkeccak")
-        set(KECCAK_EXTERNAL_LIB keccak)
-        set(KECCAK_EXTERNAL_ENABLE "-DSHA_3_LIBKECCAK")
-    endif()
-    
-    '''
-    cmake_file_content_find_ctgrind_lib = ""
-    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
-        cmake_file_content_find_ctgrind_lib = f'''
-        find_library(CT_GRIND_LIB ctgrind)
-        if(NOT CT_GRIND_LIB)
-        \tmessage("${{CT_GRIND_LIB}} library not found")
-        endif()
-        find_library(CT_GRIND_SHARED_LIB ctgrind.so)
-        if(NOT CT_GRIND_SHARED_LIB)
-        \tmessage("${{CT_GRIND_SHARED_LIB}} library not found")
-        \tset(CT_GRIND_SHARED_LIB /usr/lib/libctgrind.so)
-        endif()
-        '''
-    cmake_file_content_src_block2 = f'''
-    set(SOURCES
-            ${{COMMON_SOURCES}}
-            ${{BASE_DIR}}/lib/codes.c
-            ${{BASE_DIR}}/lib/LESS.c
-            ${{BASE_DIR}}/lib/monomial.c
-            ${{BASE_DIR}}/lib/rng.c
-            ${{BASE_DIR}}/lib/seedtree.c
-            ${{BASE_DIR}}/lib/utils.c
-            ${{BASE_DIR}}/lib/sign.c
-            )
-    set(BUILD build)
-    set(BUILD_KEYPAIR {candidate}_keypair)
-    set(BUILD_SIGN {candidate}_sign)
-    '''
-    cmake_file_content_block_loop = f'''
-    foreach(category RANGE 1 5 2)
-        if(category EQUAL 1)
-            set(PARAM_TARGETS SIG_SIZE BALANCED PK_SIZE)
-        else()
-            set(PARAM_TARGETS SIG_SIZE PK_SIZE)
-        endif()
-        foreach(optimiz_target ${{PARAM_TARGETS}})
-        '''
-    cmake_file_content_loop_content_block_keypair = ""
-    if tool_name.lower() == 'binsec':
-        cmake_file_content_loop_content_block_keypair = f'''
-            set(TEST_HARNESS ./{tool_type}/{candidate}_keypair/{test_keypair}.c \
-            ./{tool_name}/{candidate}_sign/{test_sign}.c)
-            set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{optimiz_target}})  
-            add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_keypair/{test_keypair}.c)
-            target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
-            target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
-                    ${{BASE_DIR}}/include
-                    ./include)
-            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
-            '''
-    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
-        cmake_file_content_loop_content_block_keypair = f'''
-        set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{optimiz_target}})  
-            add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_keypair/{test_keypair}.c)
-            target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
-                    ${{BASE_DIR}}/include
-                    ./include)
-            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
-            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{CT_GRIND_LIB}} ${{CT_GRIND_SHARED_LIB}})
-            '''
-
-    cmake_file_content_loop_content_block2 = f'''
-            set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
-            set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
-                    COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}} ")
-            '''
-    cmake_file_content_loop_content_block_sign = ""
-    if tool_name.lower() == 'binsec':
-        cmake_file_content_loop_content_block_sign = f'''
-            #Test harness for crypto_sign
-            set(TARGET_BINARY_NAME {test_sign}_${{category}}_${{optimiz_target}})
-            add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_sign/{test_sign}.c)   
-            target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)
-            target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
-                    ${{BASE_DIR}}/include
-                    ./include)
-            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
-            '''
-    if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
-        cmake_file_content_loop_content_block_sign = f'''    
-        #Test harness for crypto_sign
-            set(TARGET_BINARY_NAME {test_sign}_sign_${{category}}_${{optimiz_target}})
-            add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
-                    ./{candidate}_sign/{test_sign}.c)   
-            target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
-                    ${{BASE_DIR}}/include
-                    ./include)
-            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
-            target_link_libraries(${{TARGET_BINARY_NAME}} m ${{CT_GRIND_LIB}} ${{CT_GRIND_SHARED_LIB}})
-            '''
-    cmake_file_content_loop_content_block3 = f'''
-            set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}}) 
-            set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
-                    COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}}")
-            '''
-    cmake_file_content_block_loop_end = f'''
-            #endforeach(t_harness)
-        endforeach(optimiz_target)
-    endforeach(category)
-    '''
-    with open(path_to_cmakelist, "w") as cmake_file:
-        cmake_file.write(textwrap.dedent(cmake_file_content_src_block1))
-        if 'ctgrind' in tool_name.lower() or 'ct_grind' in tool_name.lower():
-            cmake_file.write(textwrap.dedent(cmake_file_content_find_ctgrind_lib))
-        cmake_file.write(textwrap.dedent(cmake_file_content_src_block2))
-        cmake_file.write(textwrap.dedent(cmake_file_content_block_loop))
-        cmake_file.write(textwrap.dedent(cmake_file_content_loop_content_block_keypair))
-        cmake_file.write(textwrap.dedent(cmake_file_content_loop_content_block2))
-        cmake_file.write(textwrap.dedent(cmake_file_content_loop_content_block_sign))
-        cmake_file.write(textwrap.dedent(cmake_file_content_loop_content_block3))
-        cmake_file.write(textwrap.dedent(cmake_file_content_block_loop_end))
-
-
-
 def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
@@ -1824,6 +1618,8 @@ def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         # selection of specialized compilation units differing between ref and opt implementations.
         option(AVX2_OPTIMIZED "Use the AVX2 Optimized Implementation. Else the Reference Implementation will be used." OFF)
         
+        message(".....Checking AVX2_OPTIMIZED:  " ${{AVX2_OPTIMIZED}})
+        
         #set(BASE_DIR  ../Optimized_Implementation) 
         set(BASE_DIR  ../)  
         set(HEADERS
@@ -1863,6 +1659,12 @@ def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
                 ${{BASE_DIR}}/lib/utils.c
                 ${{BASE_DIR}}/lib/sign.c
                 )
+        if(AVX2_OPTIMIZED)
+                set(SOURCES ${{SOURCES}} ${{BASE_DIR}}/lib/avx2_table.c)
+                set(HEADERS ${{HEADERS}} ${{BASE_DIR}}/include/avx2_macro.h)
+                message("------------AVX2 OPT is ON")
+        endif()
+        
         set(BUILD build)
         set(BUILD_KEYPAIR {candidate}_keypair)
         set(BUILD_SIGN {candidate}_sign)
@@ -3176,7 +2978,7 @@ def compile_run_qr_uov(tools_list, signature_type, candidate,
                        rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                        to_compile, to_run, depth, build_folder,
                        binary_patterns, rng_outside_instance_folder="no",
-                       with_core_dump="no"):
+                       with_core_dump="no", number_of_measurements='1e4', timeout='86400'):
     add_includes = []
     compile_with_cmake = 'no'
     custom_folder = "custom_makefile"
@@ -3186,7 +2988,8 @@ def compile_run_qr_uov(tools_list, signature_type, candidate,
                                             instance_folders_list, rel_path_to_api, rel_path_to_sign,
                                             rel_path_to_rng, compile_with_cmake, add_includes, to_compile,
                                             to_run, depth, build_folder,
-                                            binary_patterns,rng_outside_instance_folder, with_core_dump)
+                                            binary_patterns,rng_outside_instance_folder, with_core_dump,
+                                            None, number_of_measurements, timeout)
 
 
 # ===============================  snova ==========================================
@@ -3463,11 +3266,10 @@ def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         
         
         if (${{MAYO_BUILD_TYPE}} MATCHES "avx2")
-            set(INC_PLATFORM ${{PROJECT_SOURCE_DIR}}/src/AVX2)
+            set(INC_PLATFORM ${{BASE_DIR}}/src/AVX2)
             add_definitions(-DMAYO_AVX)
         else()
             set(INC_PLATFORM ${{BASE_DIR}}/src/generic)
-            # set(INC_PLATFORM ${{PROJECT_SOURCE_DIR}}/src/generic)
         endif()
         '''
         find_libs_block = ''
@@ -4043,14 +3845,14 @@ def makefile_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 # ===============================  VOX =====================================
 # [TODO]
-def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate, security_level):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     if tool_name == 'flowtracker':
         makefile_content = f'''
-        PARAM ?= VOX256
+        PARAM ?= VOX{security_level}
         
         VOX_PARAMS = -DPARAM_SET_$(PARAM)
         CC = clang
@@ -4100,7 +3902,8 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate):
     else:
         makefile_content = f'''
         # select parameter set (one of: VOX128 VOX192 VOX256)
-        PARAM ?= VOX256
+        PARAM ?= VOX{security_level}
+        
         
         CC=gcc
         CFLAGS = -std=c99 -pedantic -Wall -Wextra -O3 -funroll-loops -march=native -DPARAM_SET_$(PARAM)
@@ -4338,7 +4141,7 @@ def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate
          
         
         
-        $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN) #$(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
         \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
@@ -4346,7 +4149,7 @@ def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
         
-        $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
+        $(EXECUTABLE_SIGN_BC): $(SIGN) #$(SRC) $(INCS)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
         \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
@@ -4878,7 +4681,7 @@ def makefile_alteq(path_to_makefile_folder, subfolder, tool_name, candidate):
 # ============================================================================
 # =========================== sqisign ========================================
 
-def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate):
+def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate, security_level=None):
     if candidate == "mirith":
         makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate)
     if candidate == "mira":
@@ -4904,7 +4707,7 @@ def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate)
     if candidate == "uov":
         makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate)
     if candidate == "vox":
-        makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate, security_level)
     if candidate == "aimer":
         makefile_aimer(path_to_makefile_folder, subfolder, tool_type, candidate)
     if candidate == "ascon_sign":
