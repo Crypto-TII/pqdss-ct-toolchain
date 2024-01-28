@@ -1,7 +1,0 @@
-/tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo_1/build/CMakeFiles/rebuild_cache.dir
-/tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo_1/build/CMakeFiles/edit_cache.dir
-/tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo_1/build/CMakeFiles/test_harness_crypto_sign_keypair_mayo_1.dir
-/tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo_1/build/CMakeFiles/test_harness_crypto_sign_mayo_1.dir
-/tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo_1/build/CMakeFiles/mayo_1_nistapi.dir
-/tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo_1/build/CMakeFiles/mayo_1.dir
-/tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/binsec/src/mayo_1/build/CMakeFiles/mayo_common_sys.dir

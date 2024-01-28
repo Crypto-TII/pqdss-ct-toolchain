@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmayo_1_nistapi.a  CMakeFiles/mayo_1_nistapi.dir/tmp/binsec_new_image/multivariate/mayo/Optimized_Implementation/src/mayo_1/api.c.o
-/usr/bin/ranlib libmayo_1_nistapi.a

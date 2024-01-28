@@ -1,6 +1,0 @@
-Vulnerability from  ' line 15 to line 58
-	 '
-Line 58
-Line 56
-Line 45
-Line 22
