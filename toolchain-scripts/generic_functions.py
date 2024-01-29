@@ -61,7 +61,7 @@ class Candidate(object):
         self.candidate_basename = ""
         self.candidate_test_harness_name = ""
         self.candidate_source_file_name = ""
-        self.candidate_executable = ""  # One call it "base_name-candidate_bin"
+        self.candidate_executable = ""
         self.candidate_secret_data = []
         self.candidate_public_data = []
         self.candidate_has_arguments_status = True
@@ -87,9 +87,6 @@ class Candidate(object):
 
     def get_candidate_configuration_basename(self):
         return self.candidate_basename + ".cfg"
-
-    def get_candidate_stats_file_basename(self):
-        return self.candidate_basename + ".toml"
 
     def get_arg_names(self):
         return self.candidate_args_names
@@ -914,7 +911,6 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None):
         cmd.extend(optional_flags)
     cmd_ext = ["../"]
     cmd.extend(cmd_ext)
-    print("...........command cmake: ", cmd)
     subprocess.call(cmd, stdin=sys.stdin)
     cmd = ["make", "-j"]
     subprocess.call(cmd, stdin=sys.stdin)
@@ -1089,11 +1085,13 @@ def binsec_generic_run(binsec_folder, signature_type, candidate,
             path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{binsec_folder_basename}'
             path_to_pattern_subfolder = f'{instance}/{binsec_folder_basename}'
             bin_files = os.listdir(path_to_binary_pattern_subfolder)
+            bin_files = [binary for binary in bin_files if not binary.endswith('.gdb') and not binary.endswith('.gdb')]
             for executable in bin_files:
                 binary = os.path.basename(executable)
                 path_to_snapshot_file = f'{binary}.snapshot'
                 path_to_gdb_script = f'{path_to_binary_pattern_subfolder}/{binary}.gdb'
-                binsec_generate_gdb_script(path_to_gdb_script, path_to_snapshot_file)
+                if not os.path.isfile(path_to_gdb_script):
+                    binsec_generate_gdb_script(path_to_gdb_script, path_to_snapshot_file)
                 path_to_executable_file = f'{path_to_binary_pattern_subfolder}/{binary}'
                 binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script)
                 bin_basename = binary.split('test_harness_')[-1]
@@ -1452,7 +1450,7 @@ def initialization(tools_list, signature_type,
 
 # generic_initialize_nist_candidate: generalisation of the function 'initialization', taking into account the fact
 # that some candidates have only 'one' instance
-def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
+def generic_initialize_nist_candidate1(tools_list, signature_type, candidate,
                                       optimized_imp_folder, instance_folders_list,
                                       rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                                       add_includes, rng_outside_instance_folder="no",
@@ -1481,6 +1479,30 @@ def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
                            instance_folder, api, sign,
                            rng, add_includes, with_core_dump,
                            number_of_measurements)
+
+
+def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
+                                      optimized_imp_folder, instance_folders_list,
+                                      rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                                      add_includes, rng_outside_instance_folder="no",
+                                      with_core_dump="yes", number_of_measurements='1e4'):
+    list_of_instances = []
+    if not instance_folders_list:
+        list_of_instances = [""]
+    else:
+        for instance_folder in instance_folders_list:
+            list_of_instances.append(instance_folder)
+    for instance_folder in list_of_instances:
+        api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
+                                                                        rel_path_to_api,
+                                                                        rel_path_to_sign,
+                                                                        rel_path_to_rng,
+                                                                        rng_outside_instance_folder)
+        initialization(tools_list, signature_type,
+                       candidate, optimized_imp_folder,
+                       instance_folder, api, sign,
+                       rng, add_includes, with_core_dump,
+                       number_of_measurements)
 
 
 def set_include_correct_format(api, sign, rng):

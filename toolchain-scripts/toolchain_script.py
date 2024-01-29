@@ -161,11 +161,12 @@ default_help_message = 'compile and run test'
 # the function add_cli_arguments(...)
 # ===================================== MPC-IN-THE-HEAD ========================================
 # ===================================== cross ==================================================
-
+cross_default_list_of_folders = []
 generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'cross',
                           'Optimized_Implementation',
                           '"../../../Reference_Implementation/include/api.h"', '""',
-                          '"../../../Additional_Implementations/KAT_Generation/include/KAT_NIST_rng.h"')
+                          '"../../../Additional_Implementations/KAT_Generation/include/KAT_NIST_rng.h"',
+                          'no', cross_default_list_of_folders)
 
 # ============================== mira ==========================================================
 # In case of second run, for example when ctgrind folder is already created by the first run
@@ -178,7 +179,8 @@ mira_default_list_of_folders = generic.get_default_list_of_folders(mira_default_
 generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'mira',
                           'Optimized_Implementation',
                           '"../../../src/api.h"', '""',
-                          '"../../../lib/randombytes/randombytes.h"')
+                          '"../../../lib/randombytes/randombytes.h"','no',
+                          mira_default_list_of_folders,'yes')
 
 
 # ============================ Mirith ===========================================================
@@ -187,10 +189,12 @@ mirith_default_list_of_folders = os.listdir(mirith_opt_folder)
 mirith_default_list_of_folders = generic.get_default_list_of_folders(mirith_default_list_of_folders,
                                                                      default_tools_list)
 
+
 generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'mirith',
                           'Optimized_Implementation',
                           '"../../../api.h"', '"../../../sign.h"',
-                          '"../../../nist/rng.h"')
+                          '"../../../nist/rng.h"',
+                          'no', mirith_default_list_of_folders,'yes')
 
 
 # ================================ perk =========================================================
@@ -203,7 +207,8 @@ perk_default_list_of_folders = generic.get_default_list_of_folders(perk_default_
 generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'perk',
                           'Optimized_Implementation',
                           '"../../../src/api.h"', '""',
-                          '"../../../lib/randombytes/rng.h"')
+                          '"../../../lib/randombytes/rng.h"',
+                          'no', perk_default_list_of_folders)
 
 
 # ================================ SDITH ==========================================================
@@ -227,7 +232,8 @@ mqom_default_list_of_folders = generic.get_default_list_of_folders(mqom_default_
 generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'mqom',
                           'Optimized_Implementation',
                           '"../../../api.h"', '""',
-                          '"../../../generator/rng.h"')
+                          '"../../../generator/rng.h"',
+                          'no', mqom_default_list_of_folders)
 
 
 # ============================== ryde =============================================================
@@ -240,7 +246,8 @@ ryde_default_list_of_folders = generic.get_default_list_of_folders(ryde_default_
 generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'ryde',
                           'Optimized_Implementation',
                           '"../../../src/api.h"', '""',
-                          '"../../../lib/randombytes/randombytes.h"')
+                          '"../../../lib/randombytes/randombytes.h"',
+                          'no', ryde_default_list_of_folders)
 
 
 # ====================================== CODE ======================================================
@@ -250,7 +257,8 @@ pqsigrm_default_list_of_folders = []
 generic.add_cli_arguments(subparser, 'candidates/code', 'pqsigrm',
                           'Optimized_Implementation',
                           '"../../pqsigrm613/src/api.h"', '""',
-                          '"../../pqsigrm613/src/rng.h"')
+                          '"../../pqsigrm613/src/rng.h"',
+                          'no', pqsigrm_default_list_of_folders)
 
 
 # =============================== fuleeca ========================================================
@@ -263,7 +271,8 @@ fuleeca_default_list_of_folders = default_list
 generic.add_cli_arguments(subparser, 'candidates/code', 'fuleeca',
                           'Optimized_Implementation',
                           '"../../../Reference_Implementation/api.h"', '""',
-                          '"../../../Reference_Implementation/rng.h"')
+                          '"../../../Reference_Implementation/rng.h"',
+                          'no', fuleeca_default_list_of_folders)
 
 
 # ==================================== less ======================================================
@@ -273,7 +282,7 @@ generic.add_cli_arguments(subparser, 'candidates/code', 'less',
                           'Optimized_Implementation',
                           '"../../include/api.h"', '""',
                           '"../../include/rng.h"','no',
-                          'None', 'yes', avx2_build)
+                          less_default_list_of_folders, 'yes')
 
 # ==================================== meds ======================================================
 meds_opt_folder = "candidates/code/meds/Optimized_Implementation"
@@ -284,7 +293,7 @@ meds_default_list_of_folders = generic.get_default_list_of_folders(meds_default_
 generic.add_cli_arguments(subparser, 'candidates/code', 'meds',
                           'Optimized_Implementation',
                           '"../../../api.h"', '""',
-                          '"../../../rng.h"')
+                          '"../../../rng.h"', 'no', meds_default_list_of_folders)
 
 
 # =================================== wave =======================================================
@@ -299,7 +308,7 @@ wave_default_list_of_folders = generic.get_default_list_of_folders(wave_default_
 generic.add_cli_arguments(subparser, 'candidates/code', 'wave',
                           'Optimized_Implementation',
                           '"../../../api.h"', '""',
-                          '"../../../NIST-kat/rng.h"')
+                          '"../../../NIST-kat/rng.h"', 'no', wave_default_list_of_folders)
 
 
 # ====================================== LATTICE =================================================
@@ -315,7 +324,8 @@ squirrels_signature_type = 'candidates/lattice'
 generic.add_cli_arguments(subparser, 'candidates/lattice', 'squirrels',
                           'Optimized_Implementation',
                           '"../../../api.h"', '""',
-                          '"../../../NIST-kat/rng.h"')
+                          '"../../../NIST-kat/rng.h"',
+                          'no', squirrels_default_list_of_folders)
 
 
 # ======================================= haetae ================================================
@@ -323,52 +333,22 @@ haetae_default_list_of_folders = []
 generic.add_cli_arguments(subparser, 'candidates/lattice', 'haetae',
                           'Optimized_Implementation',
                           '""', '"../../include/sign.h"',
-                          '"../../include/randombytes.h"')
-
-
-# ========================================= eaglesign ===========================================
-opt_folder = 'Specifications_and_Supporting_Documentation/Optimized_Implementation'
-eaglesign_opt_folder = f'candidates/lattice/eaglesign/{opt_folder}'
-eaglesign_default_list_of_folders = os.listdir(eaglesign_opt_folder)
-default_list = generic.get_default_list_of_folders(eaglesign_default_list_of_folders,
-                                                   default_tools_list)
-eaglesign_default_list_of_folders = default_list
-
-generic.add_cli_arguments(subparser, 'candidates/lattice', 'eaglesign',
-                          opt_folder,
-                          '""', '"../../../sign.h"',
-                          '"../../../rng.h"')
-
-
-# ========================================== ehtv3v4 ==========================================
-ehtv3v4_opt_folder = "candidates/lattice/ehtv3v4/Optimized_Implementation/crypto_sign"
-ehtv3v4_default_list_of_folders = os.listdir(ehtv3v4_opt_folder)
-default_list = generic.get_default_list_of_folders(ehtv3v4_default_list_of_folders,
-                                                   default_tools_list)
-ehtv3v4_default_list_of_folders = default_list
-
-generic.add_cli_arguments(subparser, 'candidates/lattice', 'ehtv3v4',
-                          'Optimized_Implementation/crypto_sign',
-                          '"../../../../api.h"', '""',
-                          '"../../../../rng.h"')
+                          '"../../include/randombytes.h"',
+                          'no', haetae_default_list_of_folders)
 
 
 # ========================================== HAWK ==============================================
-#hawk_opt_folder = "candidates/lattice/hawk/Optimized_Implementation/avx2"
 hawk_opt_folder = "candidates/lattice/hawk/Optimized_Implementation/avx2"
 hawk_default_list_of_folders = os.listdir(hawk_opt_folder)
 hawk_default_list_of_folders = generic.get_default_list_of_folders(hawk_default_list_of_folders,
                                                                    default_tools_list)
 
-# generic.add_cli_arguments(subparser, 'candidates/lattice', 'hawk',
-#                           'Optimized_Implementation/avx2',
-#                           '"../../../api.h"', '""',
-#                           '"../../../rng.h"')
-
 generic.add_cli_arguments(subparser, 'candidates/lattice', 'hawk',
-                          'Reference_Implementation',
+                          'Optimized_Implementation/avx2',
                           '"../../../api.h"', '""',
-                          '"../../../rng.h"')
+                          '"../../../rng.h"',
+                          'no', haetae_default_list_of_folders)
+
 
 # =========================================== hufu ==============================================
 hufu_opt_folder = "candidates/lattice/hufu/HuFu/Optimized_Implementation/crypto_sign"
@@ -379,7 +359,8 @@ hufu_default_list_of_folders = generic.get_default_list_of_folders(hufu_default_
 generic.add_cli_arguments(subparser, 'candidates/lattice', 'hufu',
                           'HuFu/Optimized_Implementation/crypto_sign',
                           '"../../../api.h"', '""',
-                          '"../../../rng.h"')
+                          '"../../../rng.h"',
+                          'no', hufu_default_list_of_folders)
 
 
 # ============================================ raccoon ===========================================
@@ -391,13 +372,8 @@ raccoon_default_list_of_folders = default_list
 generic.add_cli_arguments(subparser, 'candidates/lattice', 'raccoon',
                           'Optimized_Implementation',
                           '"../../../api.h"', '""',
-                          '"../../../rng.h"')
-
-
-generic.add_cli_arguments(subparser, 'candidates/code', 'wave',
-                          'Optimized_Implementation',
-                          '"../../../api.h"', '""',
-                          '"../../../NIST-kat/rng.h"')
+                          '"../../../rng.h"',
+                          'no', raccoon_default_list_of_folders)
 
 
 # ============================================= MULTIVARIATE ===================================
@@ -410,55 +386,18 @@ snova_default_list_of_folders = generic.get_default_list_of_folders(snova_defaul
 generic.add_cli_arguments(subparser, 'candidates/multivariate', 'snova',
                           'Optimized_Implementation',
                           '"../../../api.h"', '""',
-                          '"../../../rng.h"')
-
-# ================================================ biscuit ====================================
-biscuit_opt_folder = "candidates/multivariate/biscuit/Optimized_Implementation"
-biscuit_default_list_of_folders = os.listdir(biscuit_opt_folder)
-default_list = generic.get_default_list_of_folders(biscuit_default_list_of_folders,
-                                                   default_tools_list)
-biscuit_default_list_of_folders = default_list
-generic.add_cli_arguments(subparser, 'candidates/multivariate', 'biscuit',
-                          'Optimized_Implementation',
-                          '"../../../api.h"', '""',
-                          '"../../../rng.h"')
-
-
-# ================================================ dme_sign ====================================
-# [TODO:]
-# each subfolder of DME-SIGN_nist-pqc-2023 has Reference_Implementation
-# and Optimized_Implementaton folder
-dme_sign_opt_folder = "candidates/multivariate/dme_sign/DME-SIGN_nist-pqc-2023/\
-                    dme-3rnds-8vars-32bits-sign/Optimized_Implementation"
-# dme_sign_default_list_of_folders = os.listdir(dme_sign_opt_folder)
-dme_sign_default_list_of_folders = []
-opt_fold = 'DME-SIGN_nist-pqc-2023/dme-3rnds-8vars-32bits-sign/Optimized_Implementation'
-generic.add_cli_arguments(subparser, 'candidates/multivariate', 'dme_sign',
-                          opt_fold,
-                          '"../../../api.h"')
-
-
-# ================================================= hppc ========================================
-hppc_opt_folder = "candidates/multivariate/hppc/Optimized_Implementation"
-hppc_default_list_of_folders = os.listdir(hppc_opt_folder)
-hppc_default_list_of_folders = generic.get_default_list_of_folders(hppc_default_list_of_folders,
-                                                                   default_tools_list)
-generic.add_cli_arguments(subparser, 'candidates/multivariate', 'hppc',
-                          'Optimized_Implementation',
-                          '"../../../api.h"', '""',
-                          '"../../../rng.h"')
+                          '"../../../rng.h"',
+                          'no', snova_default_list_of_folders)
 
 
 # =============================================== mayo ===========================================
 mayo_default_list_of_folders = ["src/mayo_1", "src/mayo_2", "src/mayo_3", "src/mayo_5"]
-avx2_build = ["-DMAYO_BUILD_TYPE=avx2"]
+mayo_avx2_build = ["-DMAYO_BUILD_TYPE=avx2"]
 generic.add_cli_arguments(subparser, 'candidates/multivariate', 'mayo',
                           'Optimized_Implementation',
                           '"../../../../api.h"', '""',
                           '"../../../../../include/rng.h"',
-                          'yes', mayo_default_list_of_folders, 'yes', avx2_build)
-
-
+                          'yes', mayo_default_list_of_folders, 'yes', mayo_avx2_build)
 
 
 # ================================================ prov ===========================================
@@ -469,7 +408,8 @@ prov_default_list_of_folders = generic.get_default_list_of_folders(prov_default_
 generic.add_cli_arguments(subparser, 'candidates/multivariate', 'prov',
                           'Optimized_Implementation',
                           '"../../../api.h"', '""',
-                          '"../../../rng.h"')
+                          '"../../../rng.h"',
+                          'no', prov_default_list_of_folders)
 
 
 # ================================================= qr_uov =========================================
@@ -482,7 +422,8 @@ qruov_default_list_of_folders = ["qruov1q7L10v740m100", "qruov1q31L3v165m60",
 generic.add_cli_arguments(subparser, 'candidates/multivariate', 'qr_uov',
                           'QR_UOV/Optimized_Implementation',
                           '"../../../portable64/api.h"', '""',
-                          '"../../../portable64/rng.h"')
+                          '"../../../portable64/rng.h"',
+                          'no', qruov_default_list_of_folders)
 
 
 # ================================================= tuov ========================================
@@ -496,7 +437,7 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'tuov',
                           'TUOV/Optimized_Implementation',
                           '"../../../api.h"', '""',
                           '"../../../nistkat/rng.h"',
-                          'yes')
+                          'yes', tuov_default_list_of_folders)
 
 
 # ================================================== uov ========================================
@@ -528,7 +469,7 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'uov',
                           'UOV/Optimized_Implementation',
                           '"../../../../api.h"', '""',
                           '"../../../../nistkat/rng.h"',
-                          'yes')
+                          'yes', uov_default_list_of_folders)
 
 
 # ==================================================== vox =======================================
@@ -538,8 +479,6 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'vox',
                           '"../../../../api.h"', '""',
                           '"../../../../rng/rng.h"', 'no', vox_default_list_of_folders,
                           "yes", None, "256")
-
-
 
 
 # ==================================================== SYMMETRIC ==================================
@@ -552,7 +491,8 @@ aimer_default_list_of_folders = generic.get_default_list_of_folders(aimer_defaul
 generic.add_cli_arguments(subparser, 'candidates/symmetric', 'aimer',
                           'AIMer_submission/Optimized_Implementation',
                           '"../../../api.h"', '""',
-                          '"../../../rng.h"')
+                          '"../../../rng.h"',
+                          'no', aimer_default_list_of_folders)
 
 # ===================================================== ascon_sign =================================
 ascon_opt_folder = "candidates/symmetric/ascon_sign/Optimized_Implementation"
@@ -575,7 +515,8 @@ ascon_default_list_of_folders.extend(simple_ext)
 generic.add_cli_arguments(subparser, 'candidates/symmetric', 'ascon_sign',
                           'Optimized_Implementation',
                           '"../../../../api.h"', '""',
-                          '"../../../../rng.h"')
+                          '"../../../../rng.h"',
+                          'no', ascon_default_robust_and_simple_folders)
 
 
 # ============================================== faest ===========================================
@@ -587,7 +528,8 @@ faest_default_list_of_folders = generic.get_default_list_of_folders(faest_defaul
 generic.add_cli_arguments(subparser, 'candidates/symmetric', 'faest',
                           'Reference_Implementation',
                           '"../../../api.h"', '""',
-                          '"../../../NIST-KATs/rng.h"')
+                          '"../../../NIST-KATs/rng.h"',
+                          'no', faest_default_list_of_folders)
 
 
 
@@ -601,7 +543,8 @@ sphincs_default_list_of_folders = default_list
 generic.add_cli_arguments(subparser, 'candidates/symmetric', 'sphincs_alpha',
                           'Optimized_Implementation',
                           '"../../../api.h"', '""',
-                          '"../../../rng.h"')
+                          '"../../../rng.h"',
+                          'no', sphincs_default_list_of_folders)
 
 
 # =============================================== OTHER =========================================
@@ -629,54 +572,8 @@ preon_default_list_of_folders.extend(p256_ext)
 generic.add_cli_arguments(subparser, 'candidates/other', 'preon',
                           'Optimized_Implementation',
                           '"../../../../api.h"', '""',
-                          '"../../../../rng.h"')
-
-
-# =================================================== alteq ===================================
-# [TODO:figure out and modify path to api]
-alteq_opt_folder = "candidates/other/alteq/Optimized_Implementation"
-alteq_default_list_of_folders = []
-
-generic.add_cli_arguments(subparser, 'candidates/other', 'alteq',
-                          'Optimized_Implementation',
-                          '"../../../api/api.h"', '""',
-                          '"../../../include/rng.h"')
-
-
-# ==================================================== emle2_0 ==============================
-emle2_0_opt_folder = "candidates/other/emle2_0/Additional_Implementations/aesni/crypto_sign"
-emle2_0_default_list_of_folders = os.listdir(emle2_0_opt_folder)
-default_list = generic.get_default_list_of_folders(emle2_0_default_list_of_folders,
-                                                   default_tools_list)
-emle2_0_default_list_of_folders = default_list
-
-generic.add_cli_arguments(subparser, 'candidates/other', 'emle2_0',
-                          'Additional_Implementations/aesni/crypto_sign',
-                          '"../../../../../api.h"', '""',
-                          '"../../../../../rng.h"')
-
-
-# ==================================================== kaz_sign ==============================
-kaz_sign_opt_folder = "candidates/other/kaz_sign/Optimized_Implementation"
-kaz_sign_default_list_of_folders = os.listdir(kaz_sign_opt_folder)
-default_list = generic.get_default_list_of_folders(kaz_sign_default_list_of_folders,
-                                                   default_tools_list)
-kaz_sign_default_list_of_folders = default_list
-
-generic.add_cli_arguments(subparser, 'candidates/other', 'kaz_sign',
-                          'Optimized_Implementation',
-                          '"../../../api.h"', '""',
-                          '"../../../rng.h"')
-
-
-# ======================================================= xifrat ============================
-xifrat_opt_folder = "candidates/other/xifrat/Optimized_Implementation"
-xifrat_default_list_of_folders = []
-
-generic.add_cli_arguments(subparser, 'candidates/other', 'xifrat',
-                          'Optimized_Implementation',
-                          '"../../../Reference_Implementation/api.h"', '""',
-                          '"../../../Reference_Implementation/rng.h"')
+                          '"../../../../rng.h"',
+                          'no', preon_default_list_of_folders)
 
 
 # ======================================================= ISOGENY ============================
