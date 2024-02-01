@@ -85,7 +85,6 @@ python3 toolchain_script.py mirith -h
 - `algorithms_patterns`: the patterns of the algorithm to be tested. default value: ***keypair***, ***sign***
 - `is_rng_outside_folder`: for some of the candidates, the folder containing the header file, (rng.h, randombytes, etc.), in which is defined
 the function that generates random data.
-- `with_core_dump`: option to run binsec from core dump. By default, it's ***yes***.
 - `cmake_addtional_definitions`: additional CMakeLists.txt definitions to compile the target candidate
 - `security_level`: candidate instance security level. This flag is specially for vox. The default value is ***256***
 - `number_measurements`: number of measurements for Dudect. The default value is ***1e4***.
@@ -207,7 +206,7 @@ Actually, Vox has no instance. The optimized implementation folder is: `Referenc
 We consider the instance of vox as: `vox_sign`
 The default vox instance security level is 256. Use the option `--security_level` to run the tests the desired ones. 
 ```
-python3 toolchain-scripts/toolchain_script.py vox --tools TOOLS --instance_folders_list vox_sign --security_level 128
+python3 toolchain-scripts/toolchain_script.py vox --tools TOOLS  --security_level 128
 ```
 
 ### Mayo
