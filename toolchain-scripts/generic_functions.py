@@ -1085,7 +1085,7 @@ def binsec_generic_run(binsec_folder, signature_type, candidate,
             path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{binsec_folder_basename}'
             path_to_pattern_subfolder = f'{instance}/{binsec_folder_basename}'
             bin_files = os.listdir(path_to_binary_pattern_subfolder)
-            bin_files = [binary for binary in bin_files if not binary.endswith('.gdb') and not binary.endswith('.gdb')]
+            bin_files = [exe for exe in bin_files if not exe.endswith('.gdb') and not exe.endswith('.snapshot')]
             for executable in bin_files:
                 binary = os.path.basename(executable)
                 path_to_snapshot_file = f'{binary}.snapshot'
