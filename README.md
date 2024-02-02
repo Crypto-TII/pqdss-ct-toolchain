@@ -1,20 +1,18 @@
 # Toolchain consisting of binsec - ctgrind - dudect - flowtracker
 
 
-
-
 ## What is in this repository ? 
 This repository contains the following folders: 
 * `candidates`: contains the Post-Quantum Digital Signatures Schemes (PQDSS) implementations, submitted in the context of NIST Call 
 for proposals for PQC-based signature schemes. The candidates are classified according to the type-based signature scheme. Here 
 are the different folders: `code`, `lattice`, `mpc-in-the-head`, `symmetric`, `isogeny`, `mutlivariate` and `other`.
 
-* `toolchain`: contains required files (Dockerfile, .sh files) to build a Docker image consisting of the required packages
-and requirements to compile and run candidates with the following constant-time check tools: binsec - ctgrind - dudect and flowtracker
+* `toolchain`: contains required files (*Dockerfile*, *.sh* files) to build a Docker image consisting of the required packages
+and requirements to compile and run candidates with the following constant-time check tools: binsec, ctgrind, dudect and flowtracker
 
 * `toolchain-scripts`: consist of the following files 
-  * `candidates_build.py`:  contains the functions that generate the CMakeLists.txt/Makefile of the candidates. For almost each candidate, the 
-  content of the CMakeLists.txt/Makefile is a copie, except the targets for tests and kat files generation, of the one proposed in the candidate implementation.
+  * `candidates_build.py`:  contains the functions that generate the *CMakeLists.txt/Makefile* of the candidates. For almost each candidate, the 
+  content of the *CMakeLists.txt/Makefile* is a copy, except the targets for tests and kat files generation, of the one proposed in the candidate implementation.
   * `generic_functions.py`: contains generic functions for tools templates and other required files generation, functions to compile and run tools on the targets candidates 
   * `toolchain_script.py`: contains the functions `compile_run_candidate` 
   that allows to compile targets and run tests with a given tool. The scripts that create main parser and subparsers 
@@ -24,11 +22,11 @@ and requirements to compile and run candidates with the following constant-time 
 
 ## Benefits of using our toolchain
 
-- Tools libraries/packages: each of the tools above-mentioned has its requirements, necessary packages/libraries for 
+- Tools libraries/packages: each of the tools above-mentioned has its requirements and necessary packages/libraries for 
 compilation and execution of a given target. Our Dockerfile allows to not worry about 
  all those requirements as "everything" is already taken into account.
-- Tools required files to test a candidate: each of the tools need a specific file, related to the candidate
-  to test. Our scripts allow to generate all needed files (.c, .xml, .ini, etc.).
+- Tool's required files to test a candidate: each of the tools need a specific file, related to the candidate
+  to test. Our scripts allow to generate automatically all needed files (.c, .xml, .ini, etc.).
 - Tools commands to run a candidate: each tool has its own commands (including necessary flags for compilation and commands for execution). 
 Those requirements are also taken into account by our scripts.
 - Test many instances of a (many) candidate(s):  generating required files, compiling and running a given candidate for all tools
@@ -37,10 +35,35 @@ many instances of many candidates. Our scripts allow to gain a significant amoun
 - With our scripts, one can generate templates, improve them manually, compile and run tests. 
 
 
+## Docker
 
-## Help
+### Docker Installation
 
-To see the list of all candidates, type:
+For Docker Desktop installation, please visit:  https://docs.docker.com/install/
+
+### Build locally Docker image
+
+```shell
+cd toochain
+docker build -t DOCKER_IMAGE_NAME:VERSION .
+```
+
+### Create a docker container mounted on the local repository
+
+```shell
+docker run -it -v $PWD:/home/CONTAINER_NAME DOCKER_IMAGE_NAME:VERSION /bin/bash
+```
+
+## Build Binsec from sources
+
+If for any reason one encounters issues on running binsec on some platforms, building 
+binsec from source could help. Please visit: https://github.com/binsec/binsec/blob/master/INSTALL.md
+
+
+
+## List of candidates already integrated
+
+To see the list of all integrated candidates, type:
 
 ```
 python3 toolchain-scripts/toolchain_script.py -h
@@ -69,19 +92,19 @@ python3 toolchain_script.py mirith -h
 - `instance_folders_list`: the list of the different parameters set based folders. 
     Ex: mirith_avx2_Ia_fast  mirith_hypercube_avx2_IIIb_shortest etc.. The instance folders are white space-separated.
 - `rel_path_to_api`: the relative path to api.h from 
-   TOOL_TYPE/INSTANCE_FOLDER/CANDIDATE_keypair(or sign). 
-   Ex: From the folder mpc-in-the-head/mirith/Optimized_Implementation/ctgrind/mirith_avx2_Ia_fast/mirith_keypair, the real
-   relative path to api.h would be: rel_path_to_api ="../../../mirith_avx2_Ia_fast/api.h". But the script would add automatically the 
-   name of the instance. So rel_path_to_api ="../../../api.h".
-   If the file api.h doesn't contain the declaration of the crypto_sign_keypair and crypto_sign functions, then
-   rel_path_to_api = "".
+   *TOOL_NAME/INSTANCE_FOLDER/CANDIDATE_keypair(or sign)*. 
+   Ex: From the folder *mpc-in-the-head/mirith/Optimized_Implementation/ctgrind/mirith_avx2_Ia_fast/mirith_keypair*, the real
+   relative path to *api.h* would be: *rel_path_to_api ="../../../mirith_avx2_Ia_fast/api.h"*. But the script would add automatically the 
+   name of the instance. Thus, *rel_path_to_api ="../../../api.h"*.
+   If the file *api.h* doesn't contain the declaration of the crypto_sign_keypair and crypto_sign functions, then
+   *rel_path_to_api = ""*.
 - `rel_path_to_sign`: Similar to *rel_path_to_api*.
 - `compile`: by default, its value is ***yes***. If the targeted executable has already been generated in a previous execution, and if 
    we just want to run the test, then set this option to ***no***.
 - `run`: by default, its value is ***yes***. If we just want to compile, then set this option to ***no***.
 - `depth`: this flag is meant for the use of binsec tool. The default value in our implementation is ***1000000***. But the default value
     set by the authors of binsec tool is ***1000***.
-- `build`: the default value is *build*.
+- `build`: the default name of build folder is *build*.
 - `algorithms_patterns`: the patterns of the algorithm to be tested. default value: ***keypair***, ***sign***
 - `is_rng_outside_folder`: for some of the candidates, the folder containing the header file, (rng.h, randombytes, etc.), in which is defined
 the function that generates random data.
@@ -189,7 +212,7 @@ mpc-in-the-head
 
 ```
 
-## Especial cases
+## Special cases
 
 For the following candidates, run the commands:
 
