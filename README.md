@@ -56,8 +56,8 @@ docker run -it -v $PWD:/home/CONTAINER_NAME DOCKER_IMAGE_NAME:VERSION /bin/bash
 
 ## Build Binsec from sources
 
-If for any reason one encounters issues on running binsec on some platforms, building 
-binsec from source could help. Please visit: https://github.com/binsec/binsec/blob/master/INSTALL.md
+If, for any reason, one encounters issues on running binsec on some platforms, please build 
+binsec from source by referring to: https://github.com/binsec/binsec/blob/master/INSTALL.md
 
 
 
@@ -74,7 +74,7 @@ python3 toolchain-scripts/toolchain_script.py -h
 To see the list of all options for test of a given target (candidate), type:
 
 ```
-python3 toolchain-scripts/toolchain_script.py CANDIDATE_NAME -h
+python3 toolchain-scripts/toolchain_script.py CANDIDATE -h
 ```
 
 ## Example
@@ -119,17 +119,45 @@ the function that generates random data.
 
 To test a candidate by a targeted tool, run:
 
+### Given one or more instances of the candidate
+
 ```
-python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS --instance_folders_list PARAMETER_SET_FOLDER --algorithms_patterns PATTERN
+python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS --instance_folders_list INSTANCE_1 INSTANCE_2 ... 
 ```
+
+### All instances of the candidate
+
+```
+python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS
+```
+
 
 ## Example
 
+- 1 instance of mirith
+
 ````
-python3 toolchain-scripts/toolchain_script.py mirith --tools ctgrind --instance_folders_list mirith_avx2_Ia_fast --algorithms_patterns sign
+python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast
 ````
 
+- 2 instances of mirith
 
+````
+python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast  mirith_avx2_Ia_short
+````
+
+- all instances of mirith
+
+
+````
+python3 toolchain-scripts/toolchain_script.py mirith --tools binsec
+````
+
+If we want to run the tests for the `sign()` function only:
+
+````
+python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast --algorithms_patterns sign
+````
 
 
 ## How to add/enable tests for a new candidate in the CLI
@@ -149,23 +177,23 @@ To be able to test a <new> candidate, in this project, proceed as follows:
 
 ```
 type-based signature
-    candidate
-        Optimization folder
-            Tool name
-                Instance
-                    candidate_keypair
-                        required files for tests (.c file, .xml, .ini)
-                        output file of the test (.txt)
-                    candidate_sign
-                        required files for tests (.c file, .xml, .ini)
-                        output file of the test (.txt)
-                    build
-                        candidate_keypair
-                            binary_file for crypto_sign_keypair
-                            (if tool = binsec: gdb script, .snapshot file)
-                        candidate_sign
-                            binary_file for crypto_sign
-                            (if tool = binsec: gdb script, .snapshot file)
+└── candidate
+    ├── Optimization folder
+        ├── Tool name
+            ├── Instance
+                ├── candidate_keypair
+                │   ├── required files for tests (.c file, .xml, .ini)
+                │   ├── output file of the test (.txt)
+                ├── candidate_sign
+                │   ├── required files for tests (.c file, .xml, .ini)
+                │   ├── output file of the test (.txt)
+                ├── build
+                │   ├── candidate_keypair
+                │   │   ├── binary_file for crypto_sign_keypair
+                │   │   ├── (if tool = binsec: gdb script, .snapshot file)
+                │   ├── candidate_sign
+                │   │   ├── binary_file for crypto_sign
+                │   │   ├── (if tool = binsec: gdb script, .snapshot file)
 
 ```
 
@@ -190,25 +218,25 @@ Here's the structure of the generated files:
 
 ```
 mpc-in-the-head
-    mirith
-        Optimized_Implementation
-            binsec
-                mirith_avx2_Ia_fast
-                    mirith_keypair
-                        cfg_keypair.ini, test_harness_crypto_sign_keypair.c
-                        (if binsec is run: crypto_sign_keypair_output.txt)
-                    candidate_sign
-                        cfg_sign.ini, test_harness_crypto_sign.c
-                        (if binsec is run: crypto_sign_output.txt)
-                    build
-                        mirith_keypair
-                            test_harness_crypto_sign_keypair (executable)
-                            test_harness_crypto_sign_keypair.gdb
-                            test_harness_crypto_sign_keypair.snapshot
-                        candidate_sign
-                            test_harness_crypto_sign (executable)
-                            test_harness_crypto_sign.gdb
-                            test_harness_crypto_sign.snapshot
+└── mirith
+        ├── Optimized_Implementation
+            ├── binsec
+                ├── mirith_avx2_Ia_fast
+                    ├── mirith_keypair
+                    │    ├── cfg_keypair.ini, test_harness_crypto_sign_keypair.c
+                    │    ├── (if binsec is run: crypto_sign_keypair_output.txt)
+                    ├── candidate_sign
+                    │    ├── cfg_sign.ini, test_harness_crypto_sign.c
+                    │    ├── (if binsec is run: crypto_sign_output.txt)
+                    ├── build
+                    │    ├── mirith_keypair
+                    │    │    ├── test_harness_crypto_sign_keypair (executable)
+                    │    │    ├── test_harness_crypto_sign_keypair.gdb
+                    │    │    ├── test_harness_crypto_sign_keypair.snapshot
+                    │    ├── candidate_sign
+                    │    │    ├── test_harness_crypto_sign (executable)
+                    │    │    ├── test_harness_crypto_sign.gdb
+                    │    │    ├── test_harness_crypto_sign.snapshot
 
 ```
 
