@@ -161,7 +161,7 @@ subparser = parser.add_subparsers(help="", dest='binsec_test')
 
 parser.add_argument('-a', '--all',
                     action=RunAllCandidates,
-                    help='Convert md files into latex, pdf, html',
+                    help='Run a given tool on all instances of all candidates',
                     )
 
 

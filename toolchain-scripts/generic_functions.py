@@ -1784,7 +1784,7 @@ def run_given_tool_on_all_candidates(tools_list: list, list_all_candidates: list
             algorithms_patterns = element.split('=')[-1]
     for tool in tools_list:
         for candidate in list_all_candidates:
-            command_str = f'''python3 cpy-toolchain-scripts/toolchain_script.py {candidate} --tools {tool} '''
+            command_str = f'''python3 toolchain-scripts/toolchain_script.py {candidate} --tools {tool} '''
             if ref_opt_add_impl_folder:
                 command_str += f'--ref_opt_add_implementation {ref_opt_add_impl_folder} '
             if timeout:
