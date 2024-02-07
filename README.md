@@ -3,6 +3,7 @@
 
 ## What is in this repository ? 
 This repository contains the following folders: 
+* `binsec-from-sources`: contains binsec and gmp-6.1.2 folders, a README.md and a Dockerfile that allow to build binsec from sources.
 * `candidates`: contains the Post-Quantum Digital Signatures Schemes (PQDSS) implementations, submitted in the context of NIST Call 
 for proposals for PQC-based signature schemes. The candidates are classified according to the type-based signature scheme. Here 
 are the different folders: `code`, `lattice`, `mpc-in-the-head`, `symmetric`, `isogeny`, `mutlivariate` and `other`.
@@ -113,6 +114,8 @@ the function that generates random data.
 - `number_measurements`: number of measurements for Dudect. The default value is ***1e4***.
 - `timeout`: timeout for dudect execution. The default value is ***86400***. To run dudect without *timeout*, set the value of this
   option to ***no***
+- `ref_opt_add_implementation`: The target implementation to test. The possible values are: ***opt***, ***ref*** and ***add** for 
+ Reference, Optimized and Additional Implementations respectively.
 
 
 ## Compile and/or Run a candidate
