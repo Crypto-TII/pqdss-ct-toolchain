@@ -131,6 +131,17 @@ python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS --instance
 python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS
 ```
 
+### All instances of all candidates
+
+```
+python3 toolchain-scripts/toolchain_script.py -a  TOOLS OPTION1=VALUE1 OPTION2=VALUE2
+```
+where possible `OPTIONi` are: 
+- number_measurements (for Dudect)
+- timeout (for Dudect)
+- depth (for binsec)
+- ref_opt_add_implementation (for all tools)
+- algorithms_patterns (for all tools)
 
 ## Example
 
@@ -159,6 +170,18 @@ If we want to run the tests for the `sign()` function only:
 python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast --algorithms_patterns sign
 ````
 
+- all instances of all candidates
+
+`NOTE`: this option works only on the optimized implementation for now.
+It could work on the additional and reference implementations, but some changes
+need to be done in the script. We are working on it to make it automatic. 
+
+Run dudect on the `Optimized implementation` of `crypto_sign()` algorithm for all instances of all integrated candidates with a timeout of `10` minutes (`600` s),
+ with `100K` number of measurements.
+
+```
+python3 toolchain-scripts/toolchain_script.py -a  dudect ref_opt_add_implementation=opt number_measurements=1e5  timeout=600 algorithms_patterns=sign
+```
 
 ## How to add/enable tests for a new candidate in the CLI
 
