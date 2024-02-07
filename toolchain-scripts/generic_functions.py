@@ -1327,15 +1327,6 @@ def find_api_sign_abs_path(path_to_opt_src_folder, api, sign, opt_implementation
         sign_folder = sign_folder.split('"')
         sign_folder = sign_folder[0]
         abs_path_to_api_or_sign = f'{folder}/{sign_folder}'
-    if ref_implementation_name in abs_path_to_api_or_sign:
-        candidate_folder_list = abs_path_to_api_or_sign.split("/")
-        if opt_implementation_name == ref_implementation_name:
-            abs_path_to_api_or_sign = "/".join(candidate_folder_list)
-        else:
-            if opt_implementation_name in candidate_folder_list:
-                candidate_folder_list.remove(opt_implementation_name)
-        candidate_folder = "/".join(candidate_folder_list)
-        abs_path_to_api_or_sign = candidate_folder
     return abs_path_to_api_or_sign
 
 
@@ -1523,7 +1514,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                          add_includes, build_folder, with_cmake,
                          rng_outside_instance_folder="no", with_core_dump="yes",
                          additional_cmake_definitions=None, security_level=None,
-                         number_of_measurements='1e4'):
+                         number_of_measurements='1e4', implementation_type='opt'):
     api, sign, rng = set_include_correct_format(rel_path_to_api, rel_path_to_sign, rel_path_to_rng)
     rel_path_to_api = api
     rel_path_to_sign = sign
@@ -1547,7 +1538,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                 path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
                 path_to_makefile_folder = ""
                 path_function_pattern_file = path_to_cmakelist_file
-                arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                arguments = f'path_function_pattern_file,instance,tool_type,candidate, implementation_type'
                 funct = f'build_cand.cmake_candidate({arguments})'
                 exec(f'{funct}')
             elif "sh" in with_cmake:
@@ -1572,7 +1563,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                 path_to_build_folder = path_to_makefile_folder + '/' + build_folder
                 path_to_cmakelist_file = ""
                 path_function_pattern_file = path_to_makefile_folder
-                arguments = f'path_function_pattern_file,instance,tool_type,candidate,security_level'
+                arguments = f'path_function_pattern_file,instance,tool_type,candidate,security_level, implementation_type'
                 funct = f'build_cand.makefile_candidate({arguments})'
                 exec(f'{funct}')
             if not os.path.isdir(path_to_build_folder):
@@ -1605,7 +1596,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
                     path_to_makefile_folder = ""
                     path_function_pattern_file = path_to_cmakelist_file
-                    arguments = f'path_function_pattern_file,instance,tool_type,candidate'
+                    arguments = f'path_function_pattern_file,instance,tool_type,candidate, implementation_type'
                     funct = f'build_cand.cmake_candidate({arguments})'
                     exec(f'{funct}')
                 elif "sh" in with_cmake:
@@ -1630,7 +1621,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     path_to_build_folder = f'{path_to_makefile_folder}/{build_folder}'
                     path_to_cmakelist_file = ""
                     path_function_pattern_file = path_to_makefile_folder
-                    arguments = f'path_function_pattern_file,instance,tool_type,candidate,security_level'
+                    arguments = f'path_function_pattern_file,instance,tool_type,candidate,security_level, implementation_type'
                     funct = f'build_cand.makefile_candidate({arguments})'
                     exec(funct)
                 if "sh" not in with_cmake:
@@ -1654,7 +1645,7 @@ def generic_compile_run_candidate(tools_list, signature_type, candidate,
                                   rng_outside_instance_folder="no",
                                   with_core_dump="yes", additional_cmake_definitions=None,
                                   security_level=None, number_of_measurements='1e4',
-                                  timeout='86400'):
+                                  timeout='86400', implementation_type='opt'):
     candidate = candidate
     if 'y' in to_compile.lower() and 'y' in to_run.lower():
         generic_init_compile(tools_list, signature_type, candidate,
@@ -1663,7 +1654,7 @@ def generic_compile_run_candidate(tools_list, signature_type, candidate,
                              add_includes, build_folder, with_cmake,
                              rng_outside_instance_folder, with_core_dump,
                              additional_cmake_definitions, security_level,
-                             number_of_measurements)
+                             number_of_measurements, implementation_type)
         generic_run(tools_list, signature_type, candidate, optimized_imp_folder,
                     instance_folders_list, depth, build_folder, binary_patterns, with_core_dump, timeout)
     elif 'y' in to_compile.lower() and 'n' in to_run.lower():
@@ -1673,7 +1664,7 @@ def generic_compile_run_candidate(tools_list, signature_type, candidate,
                              add_includes, build_folder, with_cmake,
                              rng_outside_instance_folder, with_core_dump,
                              additional_cmake_definitions, security_level,
-                             number_of_measurements)
+                             number_of_measurements, implementation_type)
     if 'n' in to_compile.lower() and 'y' in to_run.lower():
         generic_run(tools_list, signature_type, candidate, optimized_imp_folder,
                     instance_folders_list, depth, build_folder, binary_patterns, with_core_dump, timeout)
@@ -1693,7 +1684,8 @@ def add_cli_arguments(subparser,
                       additional_cmake_definitions=None,
                       security_level=None,
                       number_of_measurements='1e4',
-                      timeout='86400'):
+                      timeout='86400',
+                      implementation_type='opt'):
     if candidate_default_list_of_folders is None:
         candidate_default_list_of_folders = []
     candidate_parser = subparser.add_parser(f'{candidate}',
@@ -1713,7 +1705,8 @@ def add_cli_arguments(subparser,
     arguments = f"'--candidate', '-candidate',dest='candidate',type=str,default=f'{candidate}',help ='{candidate}'"
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
-    arguments = f"'--optimization_folder', '-opt_folder',dest='ref_opt', type=str,default=f'{optimized_imp_folder}'"
+    arguments = (f"'--optimization_folder', '-opt_folder',dest='ref_opt', type=str, default=f'{optimized_imp_folder}',"
+                 f"help = '{optimized_imp_folder}'")
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
     arguments = f"'--instance_folders_list', nargs='+', default={candidate_default_list_of_folders}"
@@ -1765,3 +1758,43 @@ def add_cli_arguments(subparser,
      default={timeout}, help = 'timeout (Dudect)'")
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
+    arguments = (f"'--ref_opt_add_implementation','-ref_opt_add', dest='ref_opt_add_implementation',\
+     default=f'{implementation_type}', help = 'Opt., Add. or Ref. implementation'")
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+
+
+# run_given_tool_on_all_candidates: Run a given tool on all integrated candidates
+def run_given_tool_on_all_candidates(tools_list: list, list_all_candidates: list, list_of_options):
+    ref_opt_add_impl_folder = ""
+    timeout = ""
+    depth = ""
+    number_of_measurements = ""
+    algorithms_patterns = ""
+    for element in list_of_options:
+        if 'ref_opt_add_implementation' in element:
+            ref_opt_add_impl_folder = element.split('=')[-1]
+        if 'timeout' in element:
+            timeout = element.split('=')[-1]
+        if 'number_measurements' in element:
+            number_of_measurements = element.split('=')[-1]
+        if 'depth' in element:
+            depth = element.split('=')[-1]
+        if 'algorithms_patterns' in element:
+            algorithms_patterns = element.split('=')[-1]
+    for tool in tools_list:
+        for candidate in list_all_candidates:
+            command_str = f'''python3 cpy-toolchain-scripts/toolchain_script.py {candidate} --tools {tool} '''
+            if ref_opt_add_impl_folder:
+                command_str += f'--ref_opt_add_implementation {ref_opt_add_impl_folder} '
+            if timeout:
+                command_str += f'--timeout {timeout} '
+            if number_of_measurements:
+                command_str += f'--number_measurements {number_of_measurements} '
+            if depth:
+                command_str += f'--depth {depth} '
+            if algorithms_patterns:
+                command_str += f'--algorithms_patterns {algorithms_patterns} '
+
+            command = command_str.split()
+            subprocess.call(command, stdin=sys.stdin)

@@ -15,8 +15,6 @@ import generic_functions as generic
 # Special cases: the following candidates need special steps for compilation
 
 # =================================== QR-UOV ======================================
-# [TODO:Rename functions if needed/if not working with new script keep old script ...]
-# [TODO: rng_outside_instance_folder]
 def compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
                        instance_folders_list, rel_path_to_api, rel_path_to_sign,
                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
@@ -37,7 +35,7 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
                           rel_path_to_rng, to_compile, to_run, depth, build_folder,
                           binary_patterns, rng_outside_instance_folder="no", with_core_dump="yes",
                           additional_cmake_definitions=None, security_level=None,
-                          number_of_measurements='1e4', timeout='86400'):
+                          number_of_measurements='1e4', timeout='86400', implementation_type='opt'):
     """ Function: compile_run_candidate"""
     candidates_to_build_with_makefile = ["mirith", "mira", "mqom", "perk", "ryde", "pqsigrm", "wave", "prov",
                                          "snova", "tuov", "uov", "vox", "aimer", "ascon_sign", "faest",
@@ -56,7 +54,7 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
                                               depth, build_folder, binary_patterns,
                                               rng_outside_instance_folder, with_core_dump,
                                               additional_cmake_definitions, security_level,
-                                              number_of_measurements, timeout)
+                                              number_of_measurements, timeout, implementation_type)
     if candidate in candidate_to_build_with_cmake:
         add_includes = []
         with_cmake = 'yes'
@@ -71,7 +69,7 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
                                               depth, build_folder, binary_patterns,
                                               rng_outside_instance_folder, with_core_dump,
                                               additional_cmake_definitions, security_level,
-                                              number_of_measurements, timeout)
+                                              number_of_measurements, timeout, implementation_type)
     # Special cases
     if candidate == "raccoon":
         add_includes = []
@@ -85,7 +83,7 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
                                               depth, build_folder, binary_patterns,
                                               rng_outside_instance_folder, with_core_dump,
                                               additional_cmake_definitions, security_level,
-                                              number_of_measurements, timeout)
+                                              number_of_measurements, timeout, implementation_type)
     if candidate == "qr_uov":
         compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
                            instance_folders_list, rel_path_to_api, rel_path_to_sign,
@@ -96,6 +94,7 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
 
 # =============================== CLI: use argparse module ===========================
 # ====================================================================================
+
 
 # run_cli_candidate: Run candidate with CLI
 def run_cli_candidate(args_parse):
@@ -121,6 +120,13 @@ def run_cli_candidate(args_parse):
     security_level = args_parse.security_level
     number_measurements = args_parse.number_measurements
     timeout = args_parse.timeout
+    implementation_type = args_parse.ref_opt_add_implementation
+    candidate_implementation_folder = f'{candidate}_implementations_folders'
+    impl_folder = f"folder = {candidate_implementation_folder}['{implementation_type}']"
+    loc = {}
+    exec(impl_folder, globals_vars, loc)
+    folder = loc['folder']
+    optimization_folder = folder
     arguments = f'''{list_of_tools}, f'{type_based_signature}', f'{target_candidate}',
                      f'{optimization_folder}', {list_of_instance_folders},
                      {relative_path_to_api}, f'{relative_path_to_sign}', {relative_path_to_rng},
@@ -128,24 +134,55 @@ def run_cli_candidate(args_parse):
                      f'{build_directory}', {executable_patterns},
                      f'{is_rng_in_different_folder}', f'{with_core_dump}',
                     {cmake_additional_definitions}, f'{security_level}',
-                    f'{number_measurements}', f'{timeout}' '''
+                    f'{number_measurements}', f'{timeout}', f'{implementation_type}' '''
     target = f'compile_run_candidate({arguments})'
     exec(target)
+
+
+# Define a new class action for the flag -a (--all).
+class RunAllCandidates(argparse.Action):
+    def __init__(self, option_strings,  dest, **kwargs):
+        return super().__init__(option_strings , dest, nargs='+', default=argparse.SUPPRESS, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string, **kwargs):
+        tools_list = [val for val in values if '=' not in val]
+        list_of_options = [opt for opt in values if opt not in tools_list]
+        generic.run_given_tool_on_all_candidates(tools_list, list_of_integrated_candidates, list_of_options)
+        parser.exit()
 
 
 # Create a parser
 parser = argparse.ArgumentParser(prog="NIST-Signature",
                                  description="Constant time check with Binsec, Ctgrind, Dudect and Flowtracker",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+
 subparser = parser.add_subparsers(help="", dest='binsec_test')
+
+parser.add_argument('-a', '--all',
+                    action=RunAllCandidates,
+                    help='Convert md files into latex, pdf, html',
+                    )
 
 
 # ============ Common default arguments ==============================================
+# List of integrated candidates so far
+list_of_integrated_candidates = ["mirith", "mira", "mqom", "perk", "ryde", "pqsigrm", "wave", "prov",
+                                 "snova", "tuov", "uov", "vox", "aimer", "ascon_sign", "faest",
+                                 "sphincs_alpha", "preon", "squirrels", "hawk", "meds", "haeatae",
+                                 "hufu", "meds", "cross", "less", "mayo", "sqisign", "haetae",
+                                 "raccoon", "qr_uov"]
 
 # Default tools list
 default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker"]
 # Default algorithms pattern to test
 default_binary_patterns = ["keypair", "sign"]
+
+# Global variables for consisting in a dictionary of whose (key, values) are the pairs
+# (CANDIDATE_implementation_folders, CANDIDATE_implementation_folders) such that CANDIDATE_implementation_folders is
+# also a dictionary whose keys are the keywords for Reference, Optimized and Additional implementation and the values
+# are the corresponding folders.
+globals_vars = {}
 
 # [TODO]
 # Improve the message for help
@@ -159,17 +196,30 @@ default_help_message = 'compile and run test'
 # [TODO:]
 # Take into account the case where api.h and sign.h are both needed in
 # the function add_cli_arguments(...)
+
+
+
 # ===================================== MPC-IN-THE-HEAD ========================================
 # ===================================== cross ==================================================
+cross_implementations_folders = {'ref': 'Reference_Implementation',
+                                 'opt': 'Optimized_Implementation',
+                                 'add': ''}
+globals_vars['cross_implementations_folders'] = cross_implementations_folders
 cross_default_list_of_folders = []
 generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'cross',
                           'Optimized_Implementation',
                           '"../../../Reference_Implementation/include/api.h"', '""',
                           '"../../../Additional_Implementations/KAT_Generation/include/KAT_NIST_rng.h"',
-                          'no', cross_default_list_of_folders)
+                          'no', cross_default_list_of_folders, 'yes',
+                          None, None, '1e4',
+                          '100', 'opt')
 
 # ============================== mira ==========================================================
-# In case of second run, for example when ctgrind folder is already created by the first run
+mira_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': ''}
+globals_vars['mira_implementations_folders'] = mira_implementations_folders
+
 mira_opt_folder = "candidates/mpc-in-the-head/mira/Optimized_Implementation"
 mira_default_list_of_folders = os.listdir(mira_opt_folder)
 mira_default_list_of_folders.remove('README.md')
@@ -184,20 +234,30 @@ generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'mira',
 
 
 # ============================ Mirith ===========================================================
+mirith_implementation = "candidates/mpc-in-the-head/mirith"
+mirith_implementations_folders = {'ref': 'Reference_Implementation',
+                                  'opt': 'Optimized_Implementation',
+                                  'add': ''}
+globals_vars['mirith_implementations_folders'] = mirith_implementations_folders
+
 mirith_opt_folder = "candidates/mpc-in-the-head/mirith/Optimized_Implementation"
 mirith_default_list_of_folders = os.listdir(mirith_opt_folder)
 mirith_default_list_of_folders = generic.get_default_list_of_folders(mirith_default_list_of_folders,
                                                                      default_tools_list)
 
-
 generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'mirith',
                           'Optimized_Implementation',
                           '"../../../api.h"', '"../../../sign.h"',
                           '"../../../nist/rng.h"',
-                          'no', mirith_default_list_of_folders,'yes')
+                          'no', mirith_default_list_of_folders,'yes',None,None,'1e4','100', 'opt')
 
 
 # ================================ perk =========================================================
+perk_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': ''}
+globals_vars['perk_implementations_folders'] = perk_implementations_folders
+
 perk_opt_folder = "candidates/mpc-in-the-head/perk/Optimized_Implementation"
 perk_default_list_of_folders = os.listdir(perk_opt_folder)
 perk_default_list_of_folders.remove('README')
@@ -212,6 +272,10 @@ generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'perk',
 
 
 # ================================ SDITH ==========================================================
+sdith_implementations_folders = {'ref': 'Reference_Implementation',
+                                 'opt': 'Optimized_Implementation',
+                                 'add': ''}
+globals_vars['sdith_implementations_folders'] = sdith_implementations_folders
 sdith_opt_folder = "candidates/mpc-in-the-head/sdith/Optimized_Implementation"
 sdith_default_list_of_folders = os.listdir(sdith_opt_folder)
 sdith_default_list_of_folders = generic.get_default_list_of_folders(sdith_default_list_of_folders,
@@ -224,6 +288,11 @@ generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'sdith',
 
 
 # ================================ mqom ===========================================================
+mqom_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': ''}
+globals_vars['mqom_implementations_folders'] = mqom_implementations_folders
+
 mqom_opt_folder = "candidates/mpc-in-the-head/mqom/Optimized_Implementation"
 mqom_default_list_of_folders = os.listdir(mqom_opt_folder)
 mqom_default_list_of_folders = generic.get_default_list_of_folders(mqom_default_list_of_folders,
@@ -237,6 +306,10 @@ generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'mqom',
 
 
 # ============================== ryde =============================================================
+ryde_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': ''}
+globals_vars['ryde_implementations_folders'] = ryde_implementations_folders
 ryde_opt_folder = "candidates/mpc-in-the-head/ryde/Optimized_Implementation"
 ryde_default_list_of_folders = os.listdir(ryde_opt_folder)
 ryde_default_list_of_folders.remove('README')
@@ -252,8 +325,11 @@ generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'ryde',
 
 # ====================================== CODE ======================================================
 # ====================================== pqsigrm ===================================================
+pqsigrm_implementations_folders = {'ref': 'Reference_Implementation',
+                                   'opt': 'Optimized_Implementation',
+                                   'add': ''}
+globals_vars['pqsigrm_implementations_folders'] = pqsigrm_implementations_folders
 pqsigrm_default_list_of_folders = []
-
 generic.add_cli_arguments(subparser, 'candidates/code', 'pqsigrm',
                           'Optimized_Implementation',
                           '"../../pqsigrm613/src/api.h"', '""',
@@ -262,6 +338,10 @@ generic.add_cli_arguments(subparser, 'candidates/code', 'pqsigrm',
 
 
 # =============================== fuleeca ========================================================
+fuleeca_implementations_folders = {'ref': 'Reference_Implementation',
+                                   'opt': 'Reference_Implementation',
+                                   'add': ''}
+globals_vars['fuleeca_implementations_folders'] = fuleeca_implementations_folders
 fuleeca_opt_folder = "candidates/code/fuleeca/Reference_Implementation"
 fuleeca_default_list_of_folders = os.listdir(fuleeca_opt_folder)
 default_list = generic.get_default_list_of_folders(fuleeca_default_list_of_folders,
@@ -276,6 +356,11 @@ generic.add_cli_arguments(subparser, 'candidates/code', 'fuleeca',
 
 
 # ==================================== less ======================================================
+less_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': 'Additional_Implementations/AVX2'}
+globals_vars['less_implementations_folders'] = less_implementations_folders
+
 less_default_list_of_folders = []
 avx2_build = ["-DAVX2_OPTIMIZED=ON"]
 generic.add_cli_arguments(subparser, 'candidates/code', 'less',
@@ -285,6 +370,10 @@ generic.add_cli_arguments(subparser, 'candidates/code', 'less',
                           less_default_list_of_folders, 'yes')
 
 # ==================================== meds ======================================================
+meds_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': ''}
+globals_vars['meds_implementations_folders'] = meds_implementations_folders
 meds_opt_folder = "candidates/code/meds/Optimized_Implementation"
 meds_default_list_of_folders = os.listdir(meds_opt_folder)
 meds_default_list_of_folders = generic.get_default_list_of_folders(meds_default_list_of_folders,
@@ -297,6 +386,10 @@ generic.add_cli_arguments(subparser, 'candidates/code', 'meds',
 
 
 # =================================== wave =======================================================
+wave_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': ''}
+globals_vars['wave_implementations_folders'] = wave_implementations_folders
 wave_opt_folder = "candidates/code/wave/Optimized_Implementation"
 wave_default_list_of_folders = os.listdir(wave_opt_folder)
 wave_default_list_of_folders.remove('README.md')
@@ -314,6 +407,10 @@ generic.add_cli_arguments(subparser, 'candidates/code', 'wave',
 # ====================================== LATTICE =================================================
 # ====================================== squirrels ===============================================
 # [TODO:Path to /KAT/generator/katrng.h]
+squirrels_implementations_folders = {'ref': 'Reference_Implementation',
+                                     'opt': 'Optimized_Implementation',
+                                     'add': ''}
+globals_vars['squirrels_implementations_folders'] = squirrels_implementations_folders
 squirrels_opt_folder = "candidates/lattice/squirrels/Optimized_Implementation"
 squirrels_default_list_of_folders = os.listdir(squirrels_opt_folder)
 default_list = generic.get_default_list_of_folders(squirrels_default_list_of_folders,
@@ -329,6 +426,10 @@ generic.add_cli_arguments(subparser, 'candidates/lattice', 'squirrels',
 
 
 # ======================================= haetae ================================================
+haetae_implementations_folders = {'ref': 'Reference_Implementation',
+                                  'opt': 'Optimized_Implementation',
+                                  'add': ''}
+globals_vars['haetae_implementations_folders'] = haetae_implementations_folders
 haetae_default_list_of_folders = []
 generic.add_cli_arguments(subparser, 'candidates/lattice', 'haetae',
                           'Optimized_Implementation',
@@ -338,6 +439,10 @@ generic.add_cli_arguments(subparser, 'candidates/lattice', 'haetae',
 
 
 # ========================================== HAWK ==============================================
+hawk_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': ''}
+globals_vars['hawk_implementations_folders'] = hawk_implementations_folders
 hawk_opt_folder = "candidates/lattice/hawk/Optimized_Implementation/avx2"
 hawk_default_list_of_folders = os.listdir(hawk_opt_folder)
 hawk_default_list_of_folders = generic.get_default_list_of_folders(hawk_default_list_of_folders,
@@ -351,6 +456,16 @@ generic.add_cli_arguments(subparser, 'candidates/lattice', 'hawk',
 
 
 # =========================================== hufu ==============================================
+hufu_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': ''}
+globals_vars['hufu_implementations_folders'] = hufu_implementations_folders
+hufu_implementations_folders = {'ref': 'HuFu/Reference_Implementation',
+                                'opt': 'HuFu/Optimized_Implementation',
+                                'add': 'HuFu/Additional_Implementation/avx2'}
+globals_vars['hufu_implementations_folders'] = hufu_implementations_folders
+
+
 hufu_opt_folder = "candidates/lattice/hufu/HuFu/Optimized_Implementation/crypto_sign"
 hufu_default_list_of_folders = os.listdir(hufu_opt_folder)
 hufu_default_list_of_folders = generic.get_default_list_of_folders(hufu_default_list_of_folders,
@@ -358,12 +473,16 @@ hufu_default_list_of_folders = generic.get_default_list_of_folders(hufu_default_
 
 generic.add_cli_arguments(subparser, 'candidates/lattice', 'hufu',
                           'HuFu/Optimized_Implementation/crypto_sign',
-                          '"../../../api.h"', '""',
-                          '"../../../rng.h"',
+                          '"../../../../api.h"', '""',
+                          '"../../../../rng.h"',
                           'no', hufu_default_list_of_folders)
 
 
 # ============================================ raccoon ===========================================
+raccoon_implementations_folders = {'ref': 'Reference_Implementation',
+                                   'opt': 'Optimized_Implementation',
+                                   'add': ''}
+globals_vars['raccoon_implementations_folders'] = raccoon_implementations_folders
 raccoon_opt_folder = "candidates/lattice/raccoon/Optimized_Implementation"
 raccoon_default_list_of_folders = os.listdir(raccoon_opt_folder)
 default_list = generic.get_default_list_of_folders(raccoon_default_list_of_folders,
@@ -378,6 +497,10 @@ generic.add_cli_arguments(subparser, 'candidates/lattice', 'raccoon',
 
 # ============================================= MULTIVARIATE ===================================
 # ============================================= snova ==========================================
+snova_implementations_folders = {'ref': 'Reference_Implementation',
+                                 'opt': 'Optimized_Implementation',
+                                 'add': ''}
+globals_vars['snova_implementations_folders'] = snova_implementations_folders
 snova_opt_folder = "candidates/multivariate/snova/Optimized_Implementation"
 snova_default_list_of_folders = os.listdir(snova_opt_folder)
 snova_default_list_of_folders = generic.get_default_list_of_folders(snova_default_list_of_folders,
@@ -391,6 +514,11 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'snova',
 
 
 # =============================================== mayo ===========================================
+mayo_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': 'Additional_Implementations'}
+globals_vars['mayo_implementations_folders'] = mayo_implementations_folders
+
 mayo_default_list_of_folders = ["src/mayo_1", "src/mayo_2", "src/mayo_3", "src/mayo_5"]
 mayo_avx2_build = ["-DMAYO_BUILD_TYPE=avx2"]
 generic.add_cli_arguments(subparser, 'candidates/multivariate', 'mayo',
@@ -401,6 +529,10 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'mayo',
 
 
 # ================================================ prov ===========================================
+prov_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': ''}
+globals_vars['prov_implementations_folders'] = prov_implementations_folders
 prov_opt_folder = "candidates/multivariate/prov/Optimized_Implementation"
 prov_default_list_of_folders = os.listdir(prov_opt_folder)
 prov_default_list_of_folders = generic.get_default_list_of_folders(prov_default_list_of_folders,
@@ -413,6 +545,10 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'prov',
 
 
 # ================================================= qr_uov =========================================
+qr_uov_implementations_folders = {'ref': 'QR_UOV/Reference_Implementation',
+                                  'opt': 'QR_UOV/Optimized_Implementation',
+                                  'add': 'QR_UOV/Alternative_Implementation'}
+globals_vars['qr_uov_implementations_folders'] = qr_uov_implementations_folders
 qruov_default_list_of_folders = ["qruov1q7L10v740m100", "qruov1q31L3v165m60",
                                  "qruov1q31L10v600m70", "qruov1q127L3v156m54",
                                  "qruov3q7L10v1100m140", "qruov3q31L3v246m87",
@@ -427,6 +563,10 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'qr_uov',
 
 
 # ================================================= tuov ========================================
+tuov_implementations_folders = {'ref': 'TUOV/Reference_Implementation',
+                                'opt': 'TUOV/Optimized_Implementation',
+                                'add': ''}
+globals_vars['tuov_implementations_folders'] = tuov_implementations_folders
 tuov_opt_folder = "candidates/multivariate/tuov/TUOV/Optimized_Implementation"
 tuov_default_list_of_folders = os.listdir(tuov_opt_folder)
 tuov_default_list_of_folders = generic.get_default_list_of_folders(tuov_default_list_of_folders,
@@ -441,6 +581,10 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'tuov',
 
 
 # ================================================== uov ========================================
+uov_implementations_folders = {'ref': 'UOV/Reference_Implementation',
+                               'opt': 'UOV/Optimized_Implementation',
+                               'add': ''}
+globals_vars['uov_implementations_folders'] = uov_implementations_folders
 uov_opt_folder = "candidates/multivariate/uov/UOV/Optimized_Implementation"
 uov_amd64_avx2_neon_folders = os.listdir(uov_opt_folder)
 uov_amd64_avx2_neon_folders = generic.get_default_list_of_folders(uov_amd64_avx2_neon_folders,
@@ -473,6 +617,11 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'uov',
 
 
 # ==================================================== vox =======================================
+vox_implementations_folders = {'ref': 'Reference_Implementation/vox_sign',
+                               'opt': 'Reference_Implementation/vox_sign',
+                               'add': 'Additional_Implementations/avx2/vox_sign'}
+# Take into account the folder 'flint' in Additional implementations
+globals_vars['vox_implementations_folders'] = vox_implementations_folders
 vox_default_list_of_folders = ["vox_sign"]
 generic.add_cli_arguments(subparser, 'candidates/multivariate', 'vox',
                           'Reference_Implementation/vox_sign',
@@ -483,6 +632,10 @@ generic.add_cli_arguments(subparser, 'candidates/multivariate', 'vox',
 
 # ==================================================== SYMMETRIC ==================================
 # ==================================================== aimer ======================================
+aimer_implementations_folders = {'ref': 'AIMer_submission/Reference_Implementation',
+                                 'opt': 'AIMer_submission/Optimized_Implementation',
+                                 'add': ''}
+globals_vars['aimer_implementations_folders'] = aimer_implementations_folders
 aimer_opt_folder = "candidates/symmetric/aimer/AIMer_submission/Optimized_Implementation"
 aimer_default_list_of_folders = os.listdir(aimer_opt_folder)
 aimer_default_list_of_folders = generic.get_default_list_of_folders(aimer_default_list_of_folders,
@@ -495,6 +648,10 @@ generic.add_cli_arguments(subparser, 'candidates/symmetric', 'aimer',
                           'no', aimer_default_list_of_folders)
 
 # ===================================================== ascon_sign =================================
+ascon_sign_implementations_folders = {'ref': 'Reference_Implementation',
+                                      'opt': 'Optimized_Implementation',
+                                      'add': ''}
+globals_vars['ascon_sign_implementations_folders'] = ascon_sign_implementations_folders
 ascon_opt_folder = "candidates/symmetric/ascon_sign/Optimized_Implementation"
 ascon_default_robust_and_simple_folders = os.listdir(ascon_opt_folder)
 ascon_default_robust_and_simple_folders.remove('Readme')
@@ -520,6 +677,10 @@ generic.add_cli_arguments(subparser, 'candidates/symmetric', 'ascon_sign',
 
 
 # ============================================== faest ===========================================
+faest_implementations_folders = {'ref': 'Reference_Implementation',
+                                 'opt': 'Reference_Implementation',
+                                 'add': 'Additional_Implementations/avx2'}
+globals_vars['faest_implementations_folders'] = faest_implementations_folders
 faest_opt_folder = "candidates/symmetric/faest/Reference_Implementation"
 faest_default_list_of_folders = os.listdir(faest_opt_folder)
 faest_default_list_of_folders = generic.get_default_list_of_folders(faest_default_list_of_folders,
@@ -534,6 +695,10 @@ generic.add_cli_arguments(subparser, 'candidates/symmetric', 'faest',
 
 
 # =============================================== Sphincs_alpha ==================================
+sphincs_alpha_implementations_folders = {'ref': 'Reference_Implementation',
+                                         'opt': 'Optimized_Implementation',
+                                         'add': 'Additional_Implementation/avx2'}
+globals_vars['sphincs_alpha_implementations_folders'] = sphincs_alpha_implementations_folders
 sphincs_opt_folder = "candidates/symmetric/sphincs_alpha/Optimized_Implementation"
 sphincs_default_list_of_folders = os.listdir(sphincs_opt_folder)
 default_list = generic.get_default_list_of_folders(sphincs_default_list_of_folders,
@@ -549,6 +714,11 @@ generic.add_cli_arguments(subparser, 'candidates/symmetric', 'sphincs_alpha',
 
 # =============================================== OTHER =========================================
 # =============================================== preon =========================================
+preon_implementations_folders = {'ref': 'Reference_Implementation',
+                                 'opt': 'Optimized_Implementation',
+                                 'add': ''}
+globals_vars['preon_implementations_folders'] = preon_implementations_folders
+
 preon_opt_folder = "candidates/other/preon/Optimized_Implementation"
 preon_default_128_192_256_folders = os.listdir(preon_opt_folder)
 default_list = generic.get_default_list_of_folders(preon_default_128_192_256_folders,
@@ -578,7 +748,11 @@ generic.add_cli_arguments(subparser, 'candidates/other', 'preon',
 
 # ======================================================= ISOGENY ============================
 # ======================================================= sqisign ============================
-# [TODO: to test and to round up]
+# [TODO]
+sqisign_implementations_folders = {'ref': 'Reference_Implementation',
+                                   'opt': '',
+                                   'add': 'Additional_Implementations/broadwell'}
+globals_vars['sqisign_implementations_folders'] = sqisign_implementations_folders
 sqisign_opt_folder = "candidates/isogeny/sqisign/Additional_Implementations/broadwell"
 sqisign_default_list_of_folders = []
 

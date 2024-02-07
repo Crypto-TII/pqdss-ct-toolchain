@@ -13,12 +13,37 @@ import generic_functions as gen_funct
 # ============================== MPC-IN-THE-HEAD ================
 # ===============================================================
 
+def implementation_required_flags(ref_impl: str=None, opt_impl: str=None,
+                                  add_avx2_impl: str=None, add_neon_impl: str=None,
+                                  impl_flags: list=None, special_src_files: list=None):
+
+    ref_flags = []
+    opt_flags = []
+    add_avx2_flags = []
+    add_neon_flags = []
+    special_additional_src_files = special_src_files
+    if ref_impl:
+        ref_flags = impl_flags
+    if opt_impl:
+        opt_flags = impl_flags
+    if add_avx2_impl:
+        add_avx2_flags = impl_flags
+    if add_neon_impl:
+        add_neon_flags = impl_flags
+    return ref_flags, opt_flags, add_avx2_flags, add_neon_flags, special_additional_src_files
+
+
 # ================================ MIRITH ========================
-def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    add_cflags = ""
+    asm_flags = ""
+    if implementation_type == 'opt':
+        add_cflags = f'-mavx2'
+        asm_flags = f'ASMFLAGS := ${{CFLAGS}} -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1'
     makefile_content = ''
     if tool_name == 'flowtracker':
         makefile_content = f'''
@@ -67,7 +92,7 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate):
 
         makefile_content = f'''
         CC=gcc
-        CFLAGS=-std=c11 -Wall -Wextra -pedantic -mavx2 -g 
+        CFLAGS=-std=c11 -Wall -Wextra -pedantic {add_cflags}
         
         BASE_DIR = ../../{subfolder}
         
@@ -78,10 +103,12 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate):
         
         UNAME_S := $(shell uname -s)
         ifeq ($(UNAME_S),Linux)
-        \tASMFLAGS := ${{CFLAGS}}
+        \tCFLAGS := ${{CFLAGS}} -lcrypto
         endif
         ifeq ($(UNAME_S),Darwin)
-        \tASMFLAGS := ${{CFLAGS}} -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1
+        \tCFLAGS := ${{CFLAGS}} -I/usr/local/opt/openssl/include
+        \tLIBS :=-L/usr/local/opt/openssl/lib -lcrypto
+        \t{asm_flags}
         endif
         
         BUILD					= build
@@ -110,7 +137,6 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate):
         \tmkdir -p $(BUILD_SIGN)
         \t$(CC) $(LIBDIR) -o $(BUILD)/$@ $^ $(CFLAGS) $(LIBS) $(TOOL_LIBS) $(TOOL_FLAGS)
         
-        
         .PHONY: clean
           
         clean:
@@ -122,11 +148,17 @@ def makefile_mirith(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # ========================================== PERK ============================
-def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    add_cflags = ""
+    asm_flags = ""
+    if implementation_type == 'opt':
+        add_cflags = f'-mavx2 -mpclmul -msse4.2 -maes'
+        asm_flags = f'ASMFLAGS := -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1'
+    #
     makefile_content = ''
     if tool_name == 'flowtracker':
         makefile_content = f'''
@@ -182,10 +214,11 @@ def makefile_perk(path_to_makefile_folder, subfolder, tool_name, candidate):
         CC = gcc
         CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-all-loops -march=native \
         \t-Wimplicit-function-declaration -Wredundant-decls \
-        \t-Wundef -Wshadow  -mavx2 -mpclmul -msse4.2 -maes
+        \t-Wundef -Wshadow  {add_cflags}
             #-Wno-newline-eof
-        ASMFLAGS := -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1
+        # ASMFLAGS := -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1
         LDFLAGS:= -lcrypto
+        {asm_flags}
         ADDITIONAL_CFLAGS:= -Wno-missing-prototypes -Wno-sign-compare -Wno-unused-but-set-variable -Wno-unused-parameter
         
         BASE_DIR = ../../{subfolder}
@@ -289,13 +322,25 @@ def get_mqom_params_index(subfolder):
     return cat_index, gf_index
 
 
-def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content = ''
+    add_cflags = ""
+    asm_flags = ""
     cat_index, gf_index = get_mqom_params_index(subfolder)
+    implementation_type = implementation_type.strip()
+    implementation_type = implementation_type.lower()
+    arch = ""
+    if implementation_type == 'ref':
+        arch = 'opt64'
+    if implementation_type == 'opt':
+        arch = 'avx2'
+        add_cflags = '-DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4 -DPRGX4 -mavx '
+        asm_flags = ''
+
+    makefile_content = ''
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -350,9 +395,9 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
         makefile_content = f'''    
         CC?=gcc
         ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow \
-        \t-DPARAM_HYPERCUBE_7R -DPARAM_GF{gf_index} -DPARAM_L{cat_index} -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4  -DPRGX4 -DNDEBUG -mavx
+        \t-DPARAM_HYPERCUBE_7R -DPARAM_GF{gf_index} -DPARAM_L{cat_index} -DNDEBUG
         
-        ALL_FLAGS+=$(EXTRA_ALL_FLAGS) -g 
+        ALL_FLAGS+=$(EXTRA_ALL_FLAGS) {add_cflags}
         
         BASE_DIR = ../../{subfolder}
         
@@ -363,8 +408,8 @@ def makefile_mqom(path_to_makefile_folder, subfolder, tool_name, candidate):
         \t$(BASE_DIR)/sign-mpcith-hypercube.o $(BASE_DIR)/tree.o
         
         HASH_PATH=$(BASE_DIR)/sha3
-        HASH_MAKE_OPTIONS=PLATFORM=avx2 
-        HASH_INCLUDE=-I$(BASE_DIR)/sha3 -I. -I$(BASE_DIR)/sha3/avx2
+        HASH_MAKE_OPTIONS=PLATFORM={arch}
+        HASH_INCLUDE=-I$(BASE_DIR)/sha3 -I. -I$(BASE_DIR)/sha3/{arch}
         
         BUILD					= build
         BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
@@ -423,7 +468,7 @@ def get_ryde_secret_level(subfolder):
     return rbc_level
 
 
-def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -583,7 +628,7 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # =============================== MIRA =================================
-def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -732,7 +777,7 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # =================================== SDITH ====================================
-def makefile_sdith(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_sdith(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -882,7 +927,7 @@ def makefile_sdith(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # =============================== CROSS =========================================
-def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate):
+def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -1114,7 +1159,7 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate):
 # ===========================================================================
 
 # ===============================  PQSIGRM ==================================
-def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -1227,11 +1272,20 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # =========================== LESS ==============================================
-def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
+def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_cmakelists = f'{path_to_cmakelists_folder}/CMakeLists.txt'
+    add_cflags = ""
+    asm_flags = ""
+    avx2_optimized_option = "OFF"
+    if implementation_type == 'opt':
+        add_cflags = f''
+        asm_flags = f''
+    if implementation_type == 'add':
+        avx2_optimized_option = "ON"
+
     cmake_file_content = ''
     target_link_opt_block = ''
     link_flag = ''
@@ -1374,7 +1428,8 @@ def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         endif()
         
         # selection of specialized compilation units differing between ref and opt implementations.
-        option(AVX2_OPTIMIZED "Use the AVX2 Optimized Implementation. Else the Reference Implementation will be used." OFF)
+        option(AVX2_OPTIMIZED "Use the AVX2 Optimized Implementation. 
+        Else the Reference Implementation will be used." {avx2_optimized_option})
         
         message(".....Checking AVX2_OPTIMIZED:  " ${{AVX2_OPTIMIZED}})
         
@@ -1475,10 +1530,9 @@ def cmake_less(path_to_cmakelists_folder, subfolder, tool_name, candidate):
         cmake_file.write(textwrap.dedent(cmake_file_content))
 
 
-
 # ========================== FULEECA ========================================
 # [TODO]
-def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -1547,8 +1601,7 @@ def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # ============================= MEDS =====================================
-# [TODO]
-def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -1660,7 +1713,7 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # =================================== WAVE ======================================
-def makefile_wave(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_wave(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -1778,7 +1831,7 @@ def squirrels_level(subfolder):
     return level
 
 
-def makefile_squirrels(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_squirrels(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     level = squirrels_level(subfolder)
     tool_type = gen_funct.Tools(tool_name)
@@ -1935,9 +1988,7 @@ def makefile_squirrels(path_to_makefile_folder, subfolder, tool_name, candidate)
 
 
 # =============================== HAETAE ===================================
-# [TODO: Modify and remove if condition]
-
-def cmake_haetae(path_to_cmakelist, subfolder, tool_name, candidate):
+def cmake_haetae(path_to_cmakelist, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -2145,7 +2196,7 @@ def cmake_haetae(path_to_cmakelist, subfolder, tool_name, candidate):
 
 
 # =========================== HAWK ============================================
-def makefile_hawk(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_hawk(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -2295,17 +2346,18 @@ def makefile_hawk(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # ========================= HUFU ====================================
-def makefile_hufu(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_hufu(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+
     makefile_content = ''
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
         
-        BASE_DIR = ../../{subfolder}
+        BASE_DIR = ../../../{subfolder}
         INCS_DIR = $(BASE_DIR)
         
         SIGN = $(BASE_DIR)/sign.c
@@ -2362,16 +2414,17 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_name, candidate):
         CFLAGS= -mavx2 -mbmi2 -mpopcnt -O3 -std=gnu11 -march=native -Wextra -DNIX -mfpmath=sse -msse2 -ffp-contract=off
         LDFLAGS= -lm -lssl -lcrypto
         
-        BASE_DIR = ../../{subfolder}
+        BASE_DIR = ../../../{subfolder}
         
         SOURCES  = $(filter-out  $(BASE_DIR)/PQCgenKAT_sign.c ,$(wildcard $(BASE_DIR)/*.c))
-        SOURCES += $(BASE_DIR)/aes/aes.c $(BASE_DIR)/aes/aes_ni.c $(BASE_DIR)/random/random.c\
-        $(BASE_DIR)/sha3/fips202.c $(BASE_DIR)/sha3/shake.c $(BASE_DIR)/rANS/compress.c\
-        $(BASE_DIR)/normaldist/fixpoint.c $(BASE_DIR)/normaldist/normaldist.c $(BASE_DIR)/sampling/samplez.c \
-        $(BASE_DIR)/sampling/sampling.c
+        SOURCES += $(wildcard $(BASE_DIR)/aes/*.c) $(BASE_DIR)/random/random.c\
+        $(wildcard $(BASE_DIR)/sha3/*.c) $(BASE_DIR)/rANS/compress.c\
+        $(wildcard $(BASE_DIR)/normaldist/*.c) $(wildcard $(BASE_DIR)/sampling/*.c)
         
-        HEADERS = $(wildcard $(BASE_DIR)/*.h) $(BASE_DIR)/aes/aes.h $(BASE_DIR)/aes/aes_local.h \
-            $(BASE_DIR)/random/random.h $(BASE_DIR)/sha3/fips202.h $(BASE_DIR)/sha3/shake.h
+        HEADERS = $(wildcard $(BASE_DIR)/*.h) $(wildcard $(BASE_DIR)/aes/*.h) \
+            $(BASE_DIR)/random/random.h $(wildcard $(BASE_DIR)/sha3/*.h) \
+            $(BASE_DIR)/rANS/compress.h \
+            $(wildcard $(BASE_DIR)/normaldist/*.h) $(wildcard $(BASE_DIR)/sampling/*.h)
         
                 
         
@@ -2445,7 +2498,7 @@ def sh_build_raccoon(path_to_sh_script_folder, sh_script, subfolder, tool_name, 
         mfile.write(textwrap.dedent(block_binary_files))
 
 
-def makefile_raccoon(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_raccoon(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -2594,7 +2647,7 @@ def qr_uov_main_makefile(path_to_tool_folder, subfolder):
         mfile.write(textwrap.dedent(makefile_content))
 
 
-def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -2724,7 +2777,7 @@ def compile_run_qr_uov(tools_list, signature_type, candidate,
                        rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
                        to_compile, to_run, depth, build_folder,
                        binary_patterns, rng_outside_instance_folder="no",
-                       with_core_dump="no", number_of_measurements='1e4', timeout='86400'):
+                       with_core_dump="no", number_of_measurements='1e4', timeout='86400', implementation_type='opt'):
     add_includes = []
     compile_with_cmake = 'no'
     custom_folder = "custom_makefile"
@@ -2735,7 +2788,8 @@ def compile_run_qr_uov(tools_list, signature_type, candidate,
                                             rel_path_to_rng, compile_with_cmake, add_includes, to_compile,
                                             to_run, depth, build_folder,
                                             binary_patterns,rng_outside_instance_folder, with_core_dump,
-                                            None, number_of_measurements, timeout)
+                                            None, number_of_measurements, timeout,
+                                            implementation_type)
 
 
 # ===============================  snova ==========================================
@@ -2748,7 +2802,7 @@ def get_snova_parameters(subfolder):
     return snova_v, snova_o, snova_l, esk_or_ssk
 
 
-def makefile_snova(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_snova(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -2876,7 +2930,7 @@ def makefile_snova(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # ==================================  MAYO ===============================
-def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate):
+def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     mayo_instance_subfolder = subfolder.split('/')[-1]
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
@@ -3104,7 +3158,7 @@ def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate):
 
 
 # ==================================  PROV ===================================
-def makefile_prov(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_prov(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -3214,7 +3268,7 @@ def makefile_prov(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 
 # =================================  TUOV =================================
-def makefile_tuov(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_tuov(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -3413,7 +3467,7 @@ def get_uov_additional_cflags_and_ld(subfolder):
     return additional_cflags, ld
 
 
-def makefile_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_uov(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -3571,7 +3625,7 @@ def makefile_uov(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 # ===============================  VOX =====================================
 # [TODO]
-def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate, security_level):
+def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate, security_level, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -3713,7 +3767,7 @@ def aimer_level_parameters(subfolder):
     return params_level, security_level
 
 
-def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -3833,7 +3887,7 @@ def get_ascon_sign_robust_or_simple_type(subfolder):
     return robust_or_simple
 
 
-def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -3935,7 +3989,7 @@ def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate
 
 # ================================= faest ========================================
 
-def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -4040,7 +4094,7 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 # =================================== Sphincs-alpha ===========================
 
-def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -4175,7 +4229,7 @@ def preon_subfolder_parser(subfolder):
     return security_level, security_level_labeled
 
 
-def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     security_level, security_level_labeled = preon_subfolder_parser(subfolder)
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
@@ -4276,7 +4330,7 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate):
 
 # ============================== ALTEQ ==========================================
 # [TODO]
-def makefile_alteq(path_to_makefile_folder, subfolder, tool_name, candidate):
+def makefile_alteq(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
@@ -4399,55 +4453,56 @@ def makefile_alteq(path_to_makefile_folder, subfolder, tool_name, candidate):
 # ============================================================================
 # =========================== sqisign ========================================
 
-def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate, security_level=None):
+def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate,
+                       security_level=None, implementation_type='opt'):
     if candidate == "mirith":
-        makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_mirith(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "mira":
-        makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_mira(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "mqom":
-        makefile_mqom(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_mqom(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "perk":
-        makefile_perk(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_perk(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "ryde":
-        makefile_ryde(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_ryde(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "pqsigrm":
-        makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "wave":
-        makefile_wave(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_wave(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "prov":
-        makefile_prov(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_prov(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "qr_uov":
-        makefile_qr_uov(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_qr_uov(path_to_makefile_folder, subfolder, tool_type, candidate,  implementation_type)
     if candidate == "snova":
-        makefile_snova(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_snova(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "tuov":
-        makefile_tuov(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_tuov(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "uov":
-        makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_uov(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "vox":
-        makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate, security_level)
+        makefile_vox(path_to_makefile_folder, subfolder, tool_type, candidate, security_level, implementation_type)
     if candidate == "aimer":
-        makefile_aimer(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_aimer(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "ascon_sign":
-        makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "faest":
-        makefile_faest(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_faest(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "sphincs_alpha":
-        makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "preon":
-        makefile_preon(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_preon(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "squirrels":
-        makefile_squirrels(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_squirrels(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "raccoon":
-        makefile_raccoon(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_raccoon(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "hawk":
-        makefile_hawk(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_hawk(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "meds":
-        makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "hufu":
-        makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "meds":
-        makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate)
+        makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     # =======================================================================================
     # The following candidates are supposed to be compiled with cmake. But if the chosen tool is flowtraker,
     # then these candidates are compiled with Makefile. Indeed, the function 'cmake_cross', etc., will generate
@@ -4455,24 +4510,24 @@ def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate,
     # ========================= LESS ==============================================
     # The function makefile_less is meant for the use of the tool flowtracker only
     if candidate == "cross":
-        cmake_cross(path_to_makefile_folder, subfolder, tool_type, candidate)
+        cmake_cross(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "less":
-        cmake_less(path_to_makefile_folder, subfolder, tool_type, candidate)
+        cmake_less(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "mayo":
-        cmake_mayo(path_to_makefile_folder, subfolder, tool_type, candidate)
+        cmake_mayo(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "haetae":
-        cmake_haetae(path_to_makefile_folder, subfolder, tool_type, candidate)
+        cmake_haetae(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
 
 
-def cmake_candidate(path_to_cmake_lists, subfolder, tool_type, candidate):
+def cmake_candidate(path_to_cmake_lists, subfolder, tool_type, candidate, implementation_type='opt'):
     if candidate == "cross":
-        cmake_cross(path_to_cmake_lists, subfolder, tool_type, candidate)
+        cmake_cross(path_to_cmake_lists, subfolder, tool_type, candidate, implementation_type)
     if candidate == "mayo":
-        cmake_mayo(path_to_cmake_lists, subfolder, tool_type, candidate)
+        cmake_mayo(path_to_cmake_lists, subfolder, tool_type, candidate, implementation_type)
     if candidate == "less":
-        cmake_less(path_to_cmake_lists, subfolder, tool_type, candidate)
+        cmake_less(path_to_cmake_lists, subfolder, tool_type, candidate, implementation_type)
     if candidate == "haetae":
-        cmake_haetae(path_to_cmake_lists, subfolder, tool_type, candidate)
+        cmake_haetae(path_to_cmake_lists, subfolder, tool_type, candidate, implementation_type)
     if candidate == "sqisign":
         pass
 
@@ -4481,4 +4536,4 @@ def cmake_candidate(path_to_cmake_lists, subfolder, tool_type, candidate):
 def sh_candidate(path_to_sh_file, subfolder, tool_type, candidate):
     if candidate == "raccoon":
         sh_script = 'compile_raccoon'
-        sh_build_raccoon(path_to_sh_file, sh_script, subfolder,tool_type,candidate)
+        sh_build_raccoon(path_to_sh_file, sh_script, subfolder, tool_type, candidate)
