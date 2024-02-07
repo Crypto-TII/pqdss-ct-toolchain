@@ -4,13 +4,14 @@
 ## Clone binsec repository
 Clone binsec repository at: https://github.com/binsec/binsec
 
-## Download gmp (6.1)
-Please visit: https://gmplib.org/#DOWNLOAD
+
+
+## Build gmp
 
 For more details, please visit:
 https://rstudio-pubs-static.s3.amazonaws.com/493124_a46782f9253a4b8193595b6b2a037d58.html
 
-## Build gmp
+
 ```bash
 $ cd gmp-6.1.2
 $ ./configure --prefix=/usr  --enable-cxx
