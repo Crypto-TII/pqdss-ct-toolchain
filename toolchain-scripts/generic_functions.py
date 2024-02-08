@@ -1545,7 +1545,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                 cwd = os.getcwd()
                 path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}'
                 path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
-                arguments = f'path_to_sh_folder, instance, tool_type, candidate'
+                arguments = f'path_to_sh_folder, instance, tool_type, candidate, implementation_type'
                 funct = f'build_cand.sh_candidate({arguments})'
                 exec(f'{funct}')
                 sh_script = find_ending_pattern(path_to_sh_folder, ".sh")
@@ -1603,7 +1603,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     cwd = os.getcwd()
                     path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
                     path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
-                    arguments = f'path_to_sh_folder, instance, tool_type, candidate'
+                    arguments = f'path_to_sh_folder, instance, tool_type, candidate, implementation_type'
                     funct = f'build_cand.sh_candidate({arguments})'
                     exec(f'{funct}')
                     sh_script = find_ending_pattern(path_to_sh_folder, ".sh")

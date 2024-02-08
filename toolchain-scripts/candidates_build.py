@@ -473,6 +473,10 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate, impl
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    add_cflags = ""
+    if implementation_type == 'opt':
+        add_cflags = '-mavx2 -mpclmul -msse4.2 -maes'
+
     makefile_content = ''
     rbc_level = get_ryde_secret_level(subfolder)
     if tool_name == 'flowtracker':
@@ -529,8 +533,8 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         SCRIPT_AUTHOR=RYDE team
         
         CC=gcc
-        C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4
-        C_FLAGS_VERBOSE:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -DVERBOSE
+        C_FLAGS:=-O3 -flto {add_cflags} -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4
+        C_FLAGS_VERBOSE:=-O3 -flto {add_cflags} -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -DVERBOSE
         
         BASE_DIR = ../../{subfolder}
         
@@ -932,6 +936,10 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate, impl
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_cmakelists = f'{path_to_cmakelists_folder}/CMakeLists.txt'
+    ref_option = 0
+    if implementation_type == 'ref':
+        ref_option = 1
+
     cmake_file_content = ''
     target_link_opt_block = ''
     link_flag = ''
@@ -939,14 +947,11 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate, impl
         if '-static' in tool_flags:
             link_flag = '-static'
     libs_str = ""
-    # tool_libs = tool_libs.replace("-lm", "")
-    # tool_libs = tool_libs.strip()
     libs_list = []
     if tool_libs:
         libs_str = tool_libs.replace("-l", "")
         libs_list = libs_str.split()
     if tool_name == 'flowtracker':
-        print(":::: flowtracker wit cross")
         path_to_cmakelists = f'{path_to_cmakelists_folder}/Makefile'
         cmake_file_content = f'''
         CC = clang
@@ -1014,14 +1019,14 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate, impl
         
         set(CC gcc)
         
-        set(CMAKE_C_FLAGS  "${{CMAKE_C_FLAGS}} -Wall -pedantic -Wuninitialized -march=haswell -O3 -g") 
+        set(CMAKE_C_FLAGS  "${{CMAKE_C_FLAGS}} -Wall -pedantic -Wuninitialized -march=native -O3 -g {tool_flags}") 
         
         set(CMAKE_C_FLAGS  "${{CMAKE_C_FLAGS}} ${{SANITIZE}}")
         message("Compilation flags:" ${{CMAKE_C_FLAGS}})
         
         # default compilation picks reference codebase
         if(NOT DEFINED REFERENCE)
-           set(REFERENCE 0)
+           set(REFERENCE {ref_option})
         endif()
         
         set(CSPRNG_ALGO SHAKE_CSPRNG)
@@ -1050,12 +1055,20 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate, impl
         set(REFERENCE_CODE_DIR ../../Reference_Implementation) 
         set(OPTIMIZED_CODE_DIR ../../Optimized_Implementation) 
         
-        message("Compiling optimized code")
-        set(SPEC_HEADERS )
-        set(SPEC_SOURCES
-                ${{OPTIMIZED_CODE_DIR}}/lib/aes256.c
-        )
-        # endif()
+        if(REFERENCE)
+            message("Compiling portable reference code")
+            set(SPEC_HEADERS  )
+            set(SPEC_SOURCES
+                    ${{REFERENCE_CODE_DIR}}/lib/aes256.c
+            )
+            else()
+            message("Compiling optimized code")
+            set(SPEC_HEADERS )
+            set(SPEC_SOURCES
+                    ${{OPTIMIZED_CODE_DIR}}/lib/aes256.c
+            )
+        endif()
+        
         
         set(BASE_DIR ${{REFERENCE_CODE_DIR}})
         set(HEADERS
@@ -1104,6 +1117,7 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate, impl
             ${{BASE_DIR}}/lib/sha2.c
             ${{BASE_DIR}}/lib/sign.c 
         )
+        
         set(BUILD build)
         set(BUILD_KEYPAIR {candidate}_keypair)
         set(BUILD_SIGN {candidate}_sign)
@@ -1163,6 +1177,9 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate, i
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    add_cflags = ''
+    if implementation_type == 'opt':
+        add_cflags = '-mavx2'
     subfolder = 'pqsigrm613'
     path_to_makefile = path_to_makefile_folder+'/Makefile'
     if tool_name == 'flowtracker':
@@ -1214,13 +1231,13 @@ def makefile_pqsigrm(path_to_makefile_folder, subfolder, tool_name, candidate, i
         makefile_content = f'''
         CC = gcc
         LDFLAGS =  -L/usr/local/lib
-        CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
+        CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function {add_cflags}
         LIBFLAGS = -lcrypto -lssl -lm
         
         BASE_DIR = ../{subfolder}
-         
         
         CFILES := $(shell find $(BASE_DIR)/src -name '*.c' | sed -e 's/\.c/\.o/')
+        
         
         OBJS = $(CFILES)
         
@@ -1606,6 +1623,9 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate, impl
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    message = ''
+    if implementation_type == 'ref':
+        message = '# Same as Optimized implementation'
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -1653,7 +1673,7 @@ def makefile_meds(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         makefile_content = f'''
         
         SHELL := /bin/bash
-
+        {message}
         LIBS = -lssl -lcrypto
         CC := gcc
         
@@ -1718,6 +1738,9 @@ def makefile_wave(path_to_makefile_folder, subfolder, tool_name, candidate, impl
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    message = ''
+    if implementation_type == 'ref':
+        message = '# Same as Optimized implementation'
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -1764,6 +1787,7 @@ def makefile_wave(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         '''
     else:
         makefile_content = f'''
+        {message}
         CC=gcc
         BASE_DIR = ../../{subfolder}
         CFLAGS=-I. -O3 -Wall -march=native -I$(BASE_DIR)
@@ -1993,6 +2017,21 @@ def cmake_haetae(path_to_cmakelist, subfolder, tool_name, candidate, implementat
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     cmakelists = f'{path_to_cmakelist}/CMakeLists.txt'
+    add_src_files = ''
+    add_cflags = ''
+    add_fips_src_files = ''
+    ntt_src = '${BASE_DIR}/src/ntt.c'
+    if implementation_type == 'opt':
+        ntt_src = '${BASE_DIR}/src/ntt.S'
+        add_src_files = f'''
+        ${{BASE_DIR}}/src/consts.c
+        ${{BASE_DIR}}/src/invntt.S
+        ${{BASE_DIR}}/src/pointwise.S
+        ${{BASE_DIR}}/src/shuffle.S
+        '''
+        add_cflags = '-mavx2'
+        add_fips_src_files = '${BASE_DIR}/src/fips202x4.c ${BASE_DIR}/src/f1600x4.S'
+
     cmake_file_content = ''
     target_link_opt_block = ''
     link_flag = ''
@@ -2080,12 +2119,9 @@ def cmake_haetae(path_to_cmakelist, subfolder, tool_name, candidate, implementat
         set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
         
         set(HAETAE_SRCS
-          ${{BASE_DIR}}/src/consts.c
+          {add_src_files}
+          {ntt_src}
           ${{BASE_DIR}}/src/poly.c
-          ${{BASE_DIR}}/src/ntt.S
-          ${{BASE_DIR}}/src/invntt.S
-          ${{BASE_DIR}}/src/pointwise.S
-          ${{BASE_DIR}}/src/shuffle.S
           ${{BASE_DIR}}/src/fft.c
           ${{BASE_DIR}}/src/reduce.c
           ${{BASE_DIR}}/src/polyvec.c
@@ -2103,12 +2139,12 @@ def cmake_haetae(path_to_cmakelist, subfolder, tool_name, candidate, implementat
           ${{HAETAE_SRCS}}
           ${{BASE_DIR}}/src/symmetric-shake.c
         )
-        set(FIPS202_SRCS ${{BASE_DIR}}/src/fips202.c ${{BASE_DIR}}/src/fips202x4.c ${{BASE_DIR}}/src/f1600x4.S)
+        set(FIPS202_SRCS ${{BASE_DIR}}/src/fips202.c {add_fips_src_files})
         
         if(MSVC)
           set(C_FLAGS /nologo /O2 /W4 /wd4146 /wd4244)
         else()
-          set(C_FLAGS -O3 -fomit-frame-pointer -mavx2 -Wall -Wextra -Wpedantic)
+          set(C_FLAGS -O3 -fomit-frame-pointer {add_cflags} -Wall -Wextra -Wpedantic)
         endif()
         
         find_package(OpenSSL REQUIRED)
@@ -2135,7 +2171,7 @@ def cmake_haetae(path_to_cmakelist, subfolder, tool_name, candidate, implementat
         link_directories(${{BASE_DIR}}/libs)
         
         add_library(fips202 SHARED ${{FIPS202_SRCS}})
-        target_compile_options(fips202 PRIVATE -O3 -mavx2 -fomit-frame-pointer -fPIC)
+        target_compile_options(fips202 PRIVATE -O3 {add_cflags} -fomit-frame-pointer -fPIC)
         add_library(RNG SHARED ${{PROJECT_SOURCE_DIR}}/${{BASE_DIR}}/src/randombytes.c)
         target_compile_options(RNG PRIVATE -O3 -fomit-frame-pointer -fPIC)
         target_link_libraries(RNG PUBLIC OpenSSL::Crypto)
@@ -2465,11 +2501,13 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_name, candidate, impl
 
 
 # =========================== RACCOON =============================
-def sh_build_raccoon(path_to_sh_script_folder, sh_script, subfolder, tool_name, candidate):
+def sh_build_raccoon(path_to_sh_script_folder, sh_script, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
-
+    opt_level = ''
+    if implementation_type == 'opt':
+        opt_level = '-O2'
     if tool_name.lower() == 'ctgrind':
         tool_flags = tool_flags.replace('-std=c99', '')
     if tool_name.lower() == 'dudect':
@@ -2486,12 +2524,12 @@ def sh_build_raccoon(path_to_sh_script_folder, sh_script, subfolder, tool_name, 
     SRC=$(find {base_dir}/* -name "*.c" ! -name  PQCgenKAT_sign.c)
     mkdir -p {build}
     mkdir -p {build_keypair}
-    gcc -o {build}/{executable_keypair} -Wall -O2 {tool_flags} {executable_keypair}.c\
+    gcc -o {build}/{executable_keypair} -Wall {opt_level} {tool_flags} {executable_keypair}.c\
     $SRC -lcrypto {tool_libs}
     
     mkdir -p {build}
     mkdir -p {build_sign}
-    gcc -o {build}/{executable_sign} -Wall -O2 {tool_flags} {executable_sign}.c \
+    gcc -o {build}/{executable_sign} -Wall {opt_level} {tool_flags} {executable_sign}.c \
     $SRC -lcrypto {tool_libs}
     '''
     with open(path_to_sh_script, "w") as mfile:
@@ -2556,7 +2594,8 @@ def generic_init_compile_with_sh(tools_list, signature_type,
                                  instance_folders_list, rel_path_to_api,
                                  rel_path_to_sign, rel_path_to_rng,
                                  add_includes, build_folder, sh_script,
-                                 rng_outside_instance_folder="no"):
+                                 rng_outside_instance_folder="no",
+                                 implementation_type='opt'):
     path_to_optimized_implementation_folder = signature_type+'/'+candidate+'/'+optimized_imp_folder
     if not instance_folders_list:
         gen_funct.generic_initialize_nist_candidate(tools_list, signature_type,
@@ -2578,7 +2617,7 @@ def generic_init_compile_with_sh(tools_list, signature_type,
                 subprocess.call(cmd, stdin=sys.stdin)
             else:
                 os.chdir(path_to_build_folder)
-                sh_build_raccoon(path_to_build_folder, sh_script, instance, tool_type, candidate)
+                sh_build_raccoon(path_to_build_folder, sh_script, instance, tool_type, candidate, implementation_type)
 
                 cmd_str = f"sudo chmod u+x ./{sh_script}.sh"
                 cmd = cmd_str.split()
@@ -2606,7 +2645,8 @@ def generic_init_compile_with_sh(tools_list, signature_type,
                     cmd = ["make"]
                     subprocess.call(cmd, stdin=sys.stdin)
                 else:
-                    sh_build_raccoon(path_to_build_folder, sh_script, instance, tool_type, candidate)
+                    sh_build_raccoon(path_to_build_folder, sh_script, instance,
+                                     tool_type, candidate, implementation_type)
                     os.chdir(path_to_build_folder)
                     cmd_str = f"sudo chmod u+x ./{sh_script}.sh"
                     cmd = cmd_str.split()
@@ -2621,10 +2661,15 @@ def generic_init_compile_with_sh(tools_list, signature_type,
 # ===================================================================================
 
 # ================================== QR-UOV ==========================================
-def qr_uov_main_makefile(path_to_tool_folder, subfolder):
+def qr_uov_main_makefile(path_to_tool_folder, subfolder, implementation_type='opt'):
     path_to_makefile = path_to_tool_folder+'/Makefile'
+    platform = 'portable64'
+    if implementation_type == 'ref':
+        platform = 'ref'
+    if implementation_type == 'add':
+        platform = 'avx2'
     makefile_content = f'''
-    platform := portable64
+    platform := {platform}
     
     BASE_DIR = ..
     subdirs :={subfolder}
@@ -2634,11 +2679,10 @@ def qr_uov_main_makefile(path_to_tool_folder, subfolder):
     all: $(subdirs)
     
     $(subdirs): $(BASE_DIR)/qruov_config.src
-    #\tsh -c "cd .. || true"
-    \tmkdir -p $(BASE_DIR)/$@/$(platform)
-    \tgrep $@ $(BASE_DIR)/qruov_config.src > $(BASE_DIR)/$@/$(platform)/qruov_config.txt
-    \tsh -c "cd $(BASE_DIR)/$@/$(platform) ; ln -s ../$(BASE_DIR)/$(platform)/* . || true"
-    \t$(MAKE) -C $(BASE_DIR)/$@/$(platform)
+    \tmkdir -p $(BASE_DIR)/$@
+    \tgrep $@ $(BASE_DIR)/qruov_config.src > $(BASE_DIR)/$@/qruov_config.txt
+    \tsh -c "cd $(BASE_DIR)/$@ ; ln -s $(BASE_DIR)/$(platform)/* . || true"
+    \t$(MAKE) -C $(BASE_DIR)/$@
     
     clean:
     \trm -rf $(subdirs)
@@ -2652,6 +2696,15 @@ def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate, im
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    platform = 'ref'
+    add_cflags = ''
+    if implementation_type == 'opt':
+        add_cflags = '-Wno-aggressive-loop-optimizations'
+        platform = 'portable64'
+    if implementation_type == 'add':
+        add_cflags = '-Wno-aggressive-loop-optimizations -march=native'
+        platform = 'avx2'
+
     makefile_content = ''
     target_link_opt_block = ''
     link_flag = ''
@@ -2666,7 +2719,8 @@ def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate, im
         makefile_content = f'''
         CC = clang
         
-        BASE_DIR = ../../{subfolder}/portable64
+        #BASE_DIR = ../../{subfolder}/{platform}
+        BASE_DIR = ../../{subfolder}
         
         INCS = $(wildcard $(BASE_DIR)/*.h)
         SRC  = $(filter-out  $(BASE_DIR)/sign.c $(BASE_DIR)/PQCgenKAT_sign.c, $(wildcard $(BASE_DIR)/*.c))
@@ -2714,11 +2768,11 @@ def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate, im
     else:
         makefile_content = f'''
         CC=gcc
-        CFLAGS=-O3 -fomit-frame-pointer -Wno-unused-result -Wno-aggressive-loop-optimizations \
-        -I. -fopenmp # -DQRUOV_HASH_LEGACY # -ggdb3 
+        CFLAGS=-O3 -fomit-frame-pointer -Wno-unused-result {add_cflags} -I. -fopenmp
         LDFLAGS=-lcrypto -Wl,-Bstatic -lcrypto -Wl,-Bdynamic -lm
         
-        BASE_DIR = ../../{subfolder}/portable64
+        # BASE_DIR = ../../{subfolder}/{platform}
+        BASE_DIR = ../../{subfolder}
         BUILD           = build
         BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
         BUILD_SIGN		= $(BUILD)/{candidate}_sign
@@ -2756,13 +2810,18 @@ def makefile_qr_uov(path_to_makefile_folder, subfolder, tool_name, candidate, im
         mfile.write(textwrap.dedent(makefile_content))
 
 
-def custom_init_compile_qr_uov(custom_makefile_folder, instance_folders_list):
-    path_to_tool_folder = f'candidates/multivariate/qr_uov/QR_UOV/Optimized_Implementation/{custom_makefile_folder}'
+def custom_init_compile_qr_uov(custom_makefile_folder, instance_folders_list, implementation_type):
+    implementation_folder = 'Optimized_Implementation'
+    if implementation_type == 'ref':
+        implementation_folder = 'Reference_Implementation'
+    if implementation_type == 'add':
+        implementation_folder = 'Alternative_Implementation'
+    path_to_tool_folder = f'candidates/multivariate/qr_uov/QR_UOV/{implementation_folder}/{custom_makefile_folder}'
     if not os.path.isdir(path_to_tool_folder):
         cmd = ["mkdir", "-p", path_to_tool_folder]
         subprocess.call(cmd, stdin=sys.stdin)
     subfolders = " ".join(instance_folders_list)
-    qr_uov_main_makefile(path_to_tool_folder, subfolders)
+    qr_uov_main_makefile(path_to_tool_folder, subfolders, implementation_type)
     cwd = os.getcwd()
     os.chdir(path_to_tool_folder)
     cmd = ["make"]
@@ -2782,14 +2841,15 @@ def compile_run_qr_uov(tools_list, signature_type, candidate,
     compile_with_cmake = 'no'
     custom_folder = "custom_makefile"
     for tool in tools_list:
-        custom_init_compile_qr_uov(custom_folder, instance_folders_list)
+        custom_init_compile_qr_uov(custom_folder, instance_folders_list, implementation_type)
     gen_funct.generic_compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_folder,
                                             instance_folders_list, rel_path_to_api, rel_path_to_sign,
                                             rel_path_to_rng, compile_with_cmake, add_includes, to_compile,
                                             to_run, depth, build_folder,
                                             binary_patterns,rng_outside_instance_folder, with_core_dump,
-                                            None, number_of_measurements, timeout,
+                                            None, None,number_of_measurements, timeout,
                                             implementation_type)
+
 
 
 # ===============================  snova ==========================================
@@ -2807,6 +2867,11 @@ def makefile_snova(path_to_makefile_folder, subfolder, tool_name, candidate, imp
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    add_snova_params = ''
+    snova_turbo = ''
+    if implementation_type == 'opt':
+        add_snova_params = '-D TURBO=$(TURBO)'
+        snova_turbo = 'TURBO = 1'
     snova_v, snova_o, snova_l, esk_or_ssk = get_snova_parameters(subfolder)
     if tool_name == 'flowtracker':
         makefile_content = f'''
@@ -2885,22 +2950,14 @@ def makefile_snova(path_to_makefile_folder, subfolder, tool_name, candidate, imp
         SNOVA_O = {snova_o}
         SNOVA_L = {snova_l}
         SK_IS_SEED = {esk_or_ssk} # 0: sk = ssk; 1: sk = esk 
-        TURBO = 1
+        {snova_turbo}
         CRYPTO_ALGNAME = \\"SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)\\"
         SNOVA_PARAMS = -D v_SNOVA=$(SNOVA_V) -D o_SNOVA=$(SNOVA_O) -D l_SNOVA=$(SNOVA_L) -D sk_is_seed=$(SK_IS_SEED) \
-        -D CRYPTO_ALGNAME=$(CRYPTO_ALGNAME) -D TURBO=$(TURBO)
+        -D CRYPTO_ALGNAME=$(CRYPTO_ALGNAME) {add_snova_params}
         
         
         all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
         
-        # $(BASE_DIR)/build/rng.o:
-        # \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/rng.o $(BASE_DIR)/rng.c -lcrypto
-        # 
-        # $(BASE_DIR)/build/snova.o: $(BASE_DIR)/build/rng.o
-        # \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c -o $(BASE_DIR)/build/snova.o $(BASE_DIR)/snova.c -lcrypto
-        # 
-        # $(BASE_DIR)/build/sign.o: $(BASE_DIR)/build/snova.o
-        # \t$(CC) $(CFLAGS) $(SNOVA_PARAMS) -c -o $(BASE_DIR)/build/sign.o $(BASE_DIR)/sign.c -lcrypto
         
         $(BUILD)/rng.o:
         \t$(CC) $(CFLAGS) -c -o $(BUILD)/rng.o $(BASE_DIR)/rng.c -lcrypto
@@ -2936,6 +2993,10 @@ def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate, imple
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_cmakelists = f'{path_to_cmakelists_folder}/CMakeLists.txt'
+    mayo_build_type = 'avx2'
+    if implementation_type == 'ref':
+        mayo_build_type = 'ref'
+
     cmake_file_content = ''
     target_link_opt_block = ''
     link_flag = ''
@@ -3057,7 +3118,9 @@ def cmake_mayo(path_to_cmakelists_folder, subfolder, tool_name, candidate, imple
         )
         
         
-        if (${{MAYO_BUILD_TYPE}} MATCHES "avx2")
+        set(MAYO_BUILD_TYPE_REDEFINED {mayo_build_type})
+        if (${{MAYO_BUILD_TYPE_REDEFINED}} MATCHES "avx2")
+            message("avx2 implementation is chosen")
             set(INC_PLATFORM ${{BASE_DIR}}/src/AVX2)
             add_definitions(-DMAYO_AVX)
         else()
@@ -3163,6 +3226,9 @@ def makefile_prov(path_to_makefile_folder, subfolder, tool_name, candidate, impl
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    message = ''
+    if implementation_type == 'ref':
+        message = '# Same flags as for the optimized implementation.'
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -3209,6 +3275,7 @@ def makefile_prov(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         '''
     else:
         makefile_content = f'''
+        {message}
         CC=gcc
         WARNING_FLAGS=-Wall -Wextra -Wpedantic
         
@@ -3273,12 +3340,18 @@ def makefile_tuov(path_to_makefile_folder, subfolder, tool_name, candidate, impl
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    platform = 'u64'
+    add_cflags = ''
+    if implementation_type == 'opt':
+        platform = 'avx2'
+        add_cflags = '-mavx2 -maes'
+
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
         
         ifndef opt
-        opt = avx2
+        opt = {platform}
         #opt = u64
         endif
         
@@ -3340,7 +3413,7 @@ def makefile_tuov(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         LD=    gcc
         
         ifndef opt
-        opt = avx2
+        opt = {platform}
         #opt = u64
         endif
         
@@ -3355,13 +3428,12 @@ def makefile_tuov(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         PROJ        = {subfolder}
         SRC_DIR     := $(BASE_DIR)/$(PROJ)
         
-        CFLAGS	 := -O3 -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer
+        CFLAGS	 := -O3 -std=c11 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer {add_cflags}
         INCPATH  := -I/usr/local/include -I/opt/local/include -I/usr/include -I$(SRC_DIR)
         LDFLAGS  := $(LDFLAGS)
         LIBPATH  = -L/usr/local/lib -L/opt/local/lib -L/usr/lib
         LIBS     = -lcrypto
         
-        CFLAGS += -mavx2 -maes
         
         ifeq ($(opt), avx2)
             CFLAGS += -D_BLAS_AVX2_
@@ -3630,6 +3702,13 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate, secur
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    vox_add_src_files = ''
+    vox_add_build_dir = ''
+
+    if implementation_type == 'add':
+        vox_add_src_files = 'SRC += $(BASE_DIR)/fips202/fips202x4.c $(BASE_DIR)/fips202/keccak4x/KeccakP-1600-times4-SIMD256.c'
+        vox_add_build_dir = 'BUILD_DIRS_ALL += $(BUILD_DIR)/fips202/keccak4x'
+
     if tool_name == 'flowtracker':
         makefile_content = f'''
         PARAM ?= VOX{security_level}
@@ -3637,7 +3716,7 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate, secur
         VOX_PARAMS = -DPARAM_SET_$(PARAM)
         CC = clang
         
-        BASE_DIR = ../../../{subfolder}
+        BASE_DIR = ../../{subfolder}
         
         INCS_DIR = $(BASE_DIR)
         
@@ -3691,16 +3770,17 @@ def makefile_vox(path_to_makefile_folder, subfolder, tool_name, candidate, secur
         BUILD           = build
         BUILD_DIR = $(BUILD)
         
-        BASE_DIR = ../../../{subfolder}
+        BASE_DIR = ../../{subfolder}
         
         # Sources
         ###########
         HDR = $(wildcard $(BASE_DIR)/*.h) $(BASE_DIR)/fips202/fips202.h $(BASE_DIR)/rng/rng.h
         SRC = $(wildcard $(BASE_DIR)/*.c) $(BASE_DIR)/fips202/fips202.c $(BASE_DIR)/rng/rng.c
-        #BUILD_DIRS_ALL = $(BASE_DIR)/$(BUILD_DIR) $(BASE_DIR)/$(BUILD_DIR)/fips202 $(BASE_DIR)/$(BUILD_DIR)/rng
         BUILD_DIRS_ALL = $(BUILD_DIR) $(BUILD_DIR)/fips202 $(BUILD_DIR)/rng
         
-        BUILD_DIRS_ALL += $(BUILD_DIR)/fips202/keccak4x
+
+        {vox_add_src_files}
+        {vox_add_build_dir}
         
         OBJ = $(patsubst $(BASE_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC))
         
@@ -3772,6 +3852,10 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate, imp
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    avx2_flags = ''
+    if implementation_type == 'opt':
+        avx2_flags = 'AVX2FLAGS = -mavx2 -mpclmul'
+
     params_level, security_level = aimer_level_parameters(subfolder)
     if tool_name == 'flowtracker':
         makefile_content = f'''
@@ -3825,8 +3909,7 @@ def makefile_aimer(path_to_makefile_folder, subfolder, tool_name, candidate, imp
         BASE_DIR = ../../{subfolder}
         CFLAGS += -I. -O3 -g -Wall -Wextra -march=native -fomit-frame-pointer -I$(BASE_DIR)
         NISTFLAGS = -Wno-sign-compare -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-result
-        AVX2FLAGS = -mavx2 -mpclmul
-        
+        {avx2_flags}
         
         SHAKE_PATH = $(BASE_DIR)/shake
         SHAKE_LIB = libshake.a
@@ -3892,6 +3975,9 @@ def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    ascon_specific_src_files = '$(BASE_DIR)/ascon/ascon.c'
+    if implementation_type == 'opt':
+        ascon_specific_src_files = '$(BASE_DIR)/ascon_opt64/ascon.c $(BASE_DIR)/ascon_opt64/permutations.c'
     robust_or_simple = get_ascon_sign_robust_or_simple_type(subfolder)
     robust_or_simple = robust_or_simple.lower()
     if tool_name == 'flowtracker':
@@ -3955,8 +4041,7 @@ def makefile_ascon_sign(path_to_makefile_folder, subfolder, tool_name, candidate
         SOURCES =  $(BASE_DIR)/address.c $(BASE_DIR)/randombytes.c $(BASE_DIR)/merkle.c $(BASE_DIR)/wots.c \
         $(BASE_DIR)/wotsx1.c $(BASE_DIR)/utils.c $(BASE_DIR)/utilsx1.c $(BASE_DIR)/fors.c $(BASE_DIR)/sign.c
         
-        SOURCES += $(BASE_DIR)/hash_ascon.c $(BASE_DIR)/ascon_opt64/ascon.c $(BASE_DIR)/ascon_opt64/permutations.c  \
-        $(BASE_DIR)/thash_ascon_$(THASH).c
+        SOURCES += $(BASE_DIR)/hash_ascon.c {ascon_specific_src_files} $(BASE_DIR)/thash_ascon_$(THASH).c
         
         
         DET_SOURCES = $(SOURCES:randombytes.%=rng.%)
@@ -3994,6 +4079,19 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate, imp
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    specific_cflags = '-O3 -std=gnu11'
+    cpp_cflags = '-I. -Isha3 -DNDEBUG -DHAVE_OPENSSL'
+    filter_out_src = '$(SRC_DIR)/randomness.c'
+    specific_src_files = '$(wildcard $(SRC_DIR)/sha3/*.c) $(wildcard $(SRC_DIR)/sha3/*.s)'
+    specific_randomness = 'randomness'
+    rng = '$(SRC_DIR)/NIST-KATs/rng.c'
+    if implementation_type == 'add':
+        specific_cflags = '-O2 -mtune=native -std=c11'
+        cpp_cflags = '-DHAVE_OPENSSL -DNDEBUG -MMD -MP -MF $*.d'
+        filter_out_src = '$(SRC_DIR)/randomness_os.c $(SRC_DIR)/randomness_randombytes.c $(SRC_DIR)/rng.c'
+        specific_src_files = '$(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/*.s)'
+        specific_randomness = 'randomness_randombytes'
+        rng = '$(SRC_DIR)/rng.c'
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -4043,7 +4141,8 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate, imp
         makefile_content = f'''
         CC?=gcc
         CXX?=g++
-        CFLAGS+=-g -O3 -std=gnu11 -march=native
+        CFLAGS+=-g {specific_cflags} -march=native
+        CPPFLAGS+={cpp_cflags}
         
         SRC_DIR = ../../{subfolder}
         BUILD           = build
@@ -4052,8 +4151,8 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate, imp
         
         CPPFLAGS+=-I$(SRC_DIR)/sha3
         
-        SOURCES=$(filter-out $(SRC_DIR)/randomness.c,$(wildcard $(SRC_DIR)/*.c)) $(wildcard $(SRC_DIR)/sha3/*.c) $(wildcard $(SRC_DIR)/sha3/*.s)
-        SOURCES +=$(SRC_DIR)/NIST-KATs/rng.c
+        SOURCES=$(filter-out {filter_out_src}, $(wildcard $(SRC_DIR)/*.c)) {specific_src_files}
+        #SOURCES +=$(SRC_DIR)/NIST-KATs/rng.c
         
         LIBFAEST=$(SRC_DIR)/libfaest.a
         
@@ -4073,12 +4172,12 @@ def makefile_faest(path_to_makefile_folder, subfolder, tool_name, candidate, imp
         %.c.o: %.c
         \t$(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
         
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c.o $(LIBFAEST) $(SRC_DIR)/randomness.c.o
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c.o $(LIBFAEST) $(SRC_DIR)/{specific_randomness}.c.o
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
         \t$(CC) $(CPPFLAGS) $(TOOL_FLAGS) $(LDFLAGS) $^ -lcrypto $(TOOL_LIBS) -o $(BUILD)/$@
         
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c.o $(LIBFAEST) $(SRC_DIR)/randomness.c.o
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c.o $(LIBFAEST) $(SRC_DIR)/{specific_randomness}.c.o
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
         \t$(CC) $(CPPFLAGS) $(TOOL_FLAGS) $(LDFLAGS) $^ -lcrypto $(TOOL_LIBS) -o $(BUILD)/$@
@@ -4533,7 +4632,7 @@ def cmake_candidate(path_to_cmake_lists, subfolder, tool_type, candidate, implem
 
 
 # Candidates that are compiled with a sh script
-def sh_candidate(path_to_sh_file, subfolder, tool_type, candidate):
+def sh_candidate(path_to_sh_file, subfolder, tool_type, candidate, implementation_type='opt'):
     if candidate == "raccoon":
         sh_script = 'compile_raccoon'
-        sh_build_raccoon(path_to_sh_file, sh_script, subfolder, tool_type, candidate)
+        sh_build_raccoon(path_to_sh_file, sh_script, subfolder, tool_type, candidate, implementation_type)
