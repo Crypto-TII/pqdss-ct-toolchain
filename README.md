@@ -146,6 +146,11 @@ where possible `OPTIONi` are:
 - ref_opt_add_implementation (for all tools)
 - algorithms_patterns (for all tools)
 
+`NOTE`: That option works only on the optimized implementation for now.
+It could work on the additional and reference implementations, but some changes
+need to be done in the script. We are working on it to make it automatic.
+
+
 ## Example
 
 - 1 instance of mirith
@@ -174,10 +179,6 @@ python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_f
 ````
 
 - all instances of all candidates
-
-`NOTE`: this option works only on the optimized implementation for now.
-It could work on the additional and reference implementations, but some changes
-need to be done in the script. We are working on it to make it automatic. 
 
 Run dudect on the `Optimized implementation` of `crypto_sign()` algorithm for all instances of all integrated candidates with a timeout of `10` minutes (`600` s),
  with `100K` number of measurements.
