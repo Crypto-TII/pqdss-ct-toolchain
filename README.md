@@ -3,10 +3,13 @@
 
 ## What is in this repository ? 
 This repository contains the following folders: 
-* `binsec-from-sources`: contains binsec and gmp-6.1.2 folders, a README.md and a Dockerfile that allow to build binsec from sources.
+* `binsec-from-sources`: contains the folder gmp-6.1.2, a README.md and a Dockerfile that allow to build binsec from sources.
 * `candidates`: contains the Post-Quantum Digital Signatures Schemes (PQDSS) implementations, submitted in the context of NIST Call 
 for proposals for PQC-based signature schemes. The candidates are classified according to the type-based signature scheme. Here 
-are the different folders: `code`, `lattice`, `mpc-in-the-head`, `symmetric`, `isogeny`, `mutlivariate` and `other`.
+are the different folders: `code`, `lattice`, `mpc-in-the-head`, `symmetric`, `isogeny`, `mutlivariate` and `other`. The folder `candidates` contains
+  the file `toolchain_randombytes.h` in which is defined the function `randombytes()` (copy of the function `randombytes()` of `dudect`). That function 
+ is used to generate a random message as an input of `crypto_sign()` for the candidate `CROSS` (when the given tool is `ctgrind`). Indeed, we have some issues 
+ to use the function `KAT_NIST_rng.h`  proposed by `CROSS` submitters.
 
 * `toolchain`: contains required files (*Dockerfile*, *.sh* files) to build a Docker image consisting of the required packages
 and requirements to compile and run candidates with the following constant-time check tools: binsec, ctgrind, dudect and flowtracker
