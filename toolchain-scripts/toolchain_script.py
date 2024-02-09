@@ -209,7 +209,7 @@ cross_default_list_of_folders = []
 generic.add_cli_arguments(subparser, 'candidates/mpc-in-the-head', 'cross',
                           'Optimized_Implementation',
                           '"../../include/api.h"', '""',
-                          '"../../../Additional_Implementations/KAT_Generation/include/KAT_NIST_rng.h"',
+                          '""',
                           'no', cross_default_list_of_folders, 'yes',
                           None, None, '1e4',
                           '100', 'opt')

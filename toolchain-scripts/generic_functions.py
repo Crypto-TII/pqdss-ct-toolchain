@@ -5,6 +5,7 @@
 """
 
 import os
+import shutil
 import glob
 import re
 import subprocess
@@ -508,6 +509,14 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
     args_types[4] = re.sub("const ", "", args_types[4])
     type_sk_with_no_const = args_types[4]
     secret_key = args_names[4]
+
+    if rng == '""' or rng == '':
+        rng = '"../toolchain_randombytes.h"'
+    taint_file_folder_split = taint_file.split('/')[0:-2]
+    taint_file_folder = "/".join(taint_file_folder_split)
+    toolchain_rand = 'candidates/toolchain_randombytes.h'
+    toolchain_rand_cpy = f'{taint_file_folder}/toolchain_randombytes.h'
+    shutil.copyfile(toolchain_rand, toolchain_rand_cpy)
     taint_file_content_block_include = f'''
     #include <stdio.h>
     #include <sys/types.h>
@@ -1297,12 +1306,15 @@ def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_
                         break
                 rng_relative = '/'.join(rel_path_to_rng_split)
         else:
-            rel_path_to_rng_split = rel_path_to_rng.split('/')
-            for i in range(1, len(rel_path_to_rng_split)):
-                if not rel_path_to_rng_split[i] == '..':
-                    rel_path_to_rng_split.insert(i, instance_folder)
-                    break
-            rng_relative = '/'.join(rel_path_to_rng_split)
+            if rel_path_to_rng == '""' or rel_path_to_rng == '':
+                rel_path_to_rng = '""'
+            else:
+                rel_path_to_rng_split = rel_path_to_rng.split('/')
+                for i in range(1, len(rel_path_to_rng_split)):
+                    if not rel_path_to_rng_split[i] == '..':
+                        rel_path_to_rng_split.insert(i, instance_folder)
+                        break
+                rng_relative = '/'.join(rel_path_to_rng_split)
     return api_relative, sign_relative, rng_relative
 
 

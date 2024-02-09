@@ -637,6 +637,9 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate, impl
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    add_clfags = ''
+    if implementation_type == 'opt':
+        add_clfags = '-mavx2 -mpclmul -msse4.2 -maes'
     makefile_content = ''
     if tool_name == 'flowtracker':
         makefile_content = f'''
@@ -687,7 +690,7 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         SCRIPT_AUTHOR=MIRA team
         
         CC=gcc
-        C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -g 
+        C_FLAGS:=-O3 -flto {add_clfags} -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4
         
         BASE_DIR = ../../{subfolder}
         
@@ -1136,8 +1139,7 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate, impl
             cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)'
         cmake_file_content += f''' 
                     target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
-                                                ${{BASE_DIR}}/include
-                                                ./include) 
+                                                ${{BASE_DIR}}/include) 
                      target_link_libraries(${{TARGET_BINARY_NAME}} m {libs_str} ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
                      set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
                      set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
@@ -1154,8 +1156,7 @@ def cmake_cross(path_to_cmakelists_folder, subfolder, tool_name, candidate, impl
             cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE -static)'
         cmake_file_content += f''' 
                target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
-                                                ${{BASE_DIR}}/include
-                                                ./include) 
+                                                ${{BASE_DIR}}/include) 
                      target_link_libraries(${{TARGET_BINARY_NAME}} {libs_str} m ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
                      set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}})   
                      set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
@@ -4198,6 +4199,33 @@ def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candid
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    sphincs_alpha_thash = 'simple'
+    specific_content_simple = f'''
+        ifneq (,$(findstring shake,$(PARAMS)))
+            \tSOURCES += $(BASE_DIR)/fips202.c $(BASE_DIR)/hash_shake.c $(BASE_DIR)/thash_shake_$(THASH).c
+            \tHEADERS += $(BASE_DIR)/fips202.h
+        endif
+        ifneq (,$(findstring haraka,$(PARAMS)))
+            \tSOURCES += $(BASE_DIR)/haraka.c $(BASE_DIR)/hash_haraka.c $(BASE_DIR)/thash_haraka_$(THASH).c
+            \tHEADERS += $(BASE_DIR)/haraka.h
+        endif
+        ifneq (,$(findstring sha2,$(PARAMS)))
+            \tSOURCES += $(BASE_DIR)/sha2.c $(BASE_DIR)/hash_sha2.c $(BASE_DIR)/thash_sha2_$(THASH).c
+            \tHEADERS += $(BASE_DIR)/sha2.h
+        endif
+        '''
+    add_cflags = '-Wconversion'
+    specific_src_files = '$(BASE_DIR)/wotsx1.c  $(BASE_DIR)/utilsx1.c'
+    specific_header_files = '$(BASE_DIR)/wotsx1.h  $(BASE_DIR)/utilsx1.h '
+    if implementation_type == 'add':
+        sphincs_alpha_thash = 'robust'
+        add_cflags = '-march=native -flto -fomit-frame-pointer'
+        specific_src_files = f'''$(BASE_DIR)/hash_sha2.c $(BASE_DIR)/hash_sha2x8.c $(BASE_DIR)/thash_sha2_$(THASH).c\
+        $(BASE_DIR)/thash_sha2_$(THASH)x8.c $(BASE_DIR)/sha2.c $(BASE_DIR)/sha256x8.c $(BASE_DIR)/sha512x4.c \
+         $(BASE_DIR)/sha256avx.c  $(BASE_DIR)/utilsx8.c'''
+        specific_header_files = f'''$(BASE_DIR)/hashx8.h  $(BASE_DIR)/thashx8.h  $(BASE_DIR)/sha2.h  \
+        $(BASE_DIR)/sha256x8.h $(BASE_DIR)/sha512x4.h $(BASE_DIR)/sha256avx.h  $(BASE_DIR)/utilsx8.h'''
+        specific_content_simple = ''
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -4205,7 +4233,7 @@ def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candid
         
         
         PARAMETERS = {subfolder}
-        THASH = simple
+        THASH = {sphincs_alpha_thash}
         
         CFLAGS = $(EXTRA_CFLAGS) -DPARAMS=$(PARAMETERS)
         PARAMS_INCS = $(BASE_DIR)/params
@@ -4252,32 +4280,22 @@ def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candid
         makefile_content = f'''
         PARAMS = {subfolder}
         #PARAMS = sphincs-a-sha2-128f
-        THASH = simple
+        THASH = {sphincs_alpha_thash}
         
         CC=/usr/bin/gcc
-        CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
+        CFLAGS=-Wall -Wextra -Wpedantic -Wmissing-prototypes -O3 -std=c99 -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS) {add_cflags}
+               
         
         BASE_DIR = ../../{subfolder}
         
         SOURCES =  $(BASE_DIR)/address.c $(BASE_DIR)/randombytes.c $(BASE_DIR)/merkle.c $(BASE_DIR)/wots.c \
-                    $(BASE_DIR)/wotsx1.c $(BASE_DIR)/utils.c $(BASE_DIR)/utilsx1.c $(BASE_DIR)/fors.c \
-                    $(BASE_DIR)/sign.c $(BASE_DIR)/uintx.c
-        HEADERS = $(BASE_DIR)/params.h $(BASE_DIR)/address.h $(BASE_DIR)/randombytes.h $(BASE_DIR)/merkle.h \
-                    $(BASE_DIR)/wots.h $(BASE_DIR)/wotsx1.h $(BASE_DIR)/utils.h $(BASE_DIR)/utilsx1.h \
-                    $(BASE_DIR)/fors.h $(BASE_DIR)/api.h  $(BASE_DIR)/hash.h $(BASE_DIR)/thash.h $(BASE_DIR)/uintx.h
+                $(BASE_DIR)/utils.c $(BASE_DIR)/fors.c $(BASE_DIR)/sign.c $(BASE_DIR)/uintx.c {specific_src_files}
+                
+        HEADERS = $(BASE_DIR)/params.h $(BASE_DIR)/address.h $(BASE_DIR)/randombytes.h  $(BASE_DIR)/merkle.h \
+         $(BASE_DIR)/wots.h $(BASE_DIR)/utils.h $(BASE_DIR)/fors.h $(BASE_DIR)/api.h $(BASE_DIR)/hash.h \
+          $(BASE_DIR)/thash.h $(BASE_DIR)/uintx.h {specific_header_files}
         
-        ifneq (,$(findstring shake,$(PARAMS)))
-        \tSOURCES += $(BASE_DIR)/fips202.c $(BASE_DIR)/hash_shake.c $(BASE_DIR)/thash_shake_$(THASH).c
-        \tHEADERS += $(BASE_DIR)/fips202.h
-        endif
-        ifneq (,$(findstring haraka,$(PARAMS)))
-        \tSOURCES += $(BASE_DIR)/haraka.c $(BASE_DIR)/hash_haraka.c $(BASE_DIR)/thash_haraka_$(THASH).c
-        \tHEADERS += $(BASE_DIR)/haraka.h
-        endif
-        ifneq (,$(findstring sha2,$(PARAMS)))
-        \tSOURCES += $(BASE_DIR)/sha2.c $(BASE_DIR)/hash_sha2.c $(BASE_DIR)/thash_sha2_$(THASH).c
-        \tHEADERS += $(BASE_DIR)/sha2.h
-        endif
+        {specific_content_simple}
         
         DET_SOURCES = $(SOURCES:randombytes.%=rng.%)
         DET_HEADERS = $(HEADERS:randombytes.%=rng.%)
@@ -4334,6 +4352,9 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate, imp
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
+    specific_opt_flag_level = '-O3'
+    if implementation_type == 'ref':
+        specific_opt_flag_level = '-O0'
     if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
@@ -4341,7 +4362,7 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate, imp
         BASE_DIR = ../../../{subfolder}
         INCS_DIR = $(BASE_DIR)
         
-        CFLAGS := ${{CFLAGS}} -DUSE_PREON{security_level_labeled} -DAES{security_level}=1 -DUSE_PRNG -O3
+        CFLAGS := ${{CFLAGS}} -DUSE_PREON{security_level_labeled} -DAES{security_level}=1 -DUSE_PRNG {specific_opt_flag_level}
         
         SIGN = $(BASE_DIR)/api.c
         
@@ -4383,7 +4404,7 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate, imp
     else:
         makefile_content = f''' 
         CC = cc
-        CFLAGS := ${{CFLAGS}} -DUSE_PREON{security_level_labeled} -DAES{security_level}=1 -DUSE_PRNG -O3
+        CFLAGS := ${{CFLAGS}} -DUSE_PREON{security_level_labeled} -DAES{security_level}=1 -DUSE_PRNG {specific_opt_flag_level}
         LFLAGS := ${{LFLAGS}} -lm -lssl -lcrypto
         
        
