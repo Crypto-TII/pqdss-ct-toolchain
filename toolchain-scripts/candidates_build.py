@@ -2394,7 +2394,7 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         makefile_content = f'''
         CC = clang
         
-        BASE_DIR = ../../../{subfolder}
+        BASE_DIR = ../../{subfolder}
         INCS_DIR = $(BASE_DIR)
         
         SIGN = $(BASE_DIR)/sign.c
@@ -2451,7 +2451,7 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         CFLAGS= -mavx2 -mbmi2 -mpopcnt -O3 -std=gnu11 -march=native -Wextra -DNIX -mfpmath=sse -msse2 -ffp-contract=off
         LDFLAGS= -lm -lssl -lcrypto
         
-        BASE_DIR = ../../../{subfolder}
+        BASE_DIR = ../../{subfolder}
         
         SOURCES  = $(filter-out  $(BASE_DIR)/PQCgenKAT_sign.c ,$(wildcard $(BASE_DIR)/*.c))
         SOURCES += $(wildcard $(BASE_DIR)/aes/*.c) $(BASE_DIR)/random/random.c\
