@@ -117,7 +117,7 @@ the function that generates random data.
 - `number_measurements`: number of measurements for Dudect. The default value is ***1e4***.
 - `timeout`: timeout for dudect execution. The default value is ***86400***. To run dudect without *timeout*, set the value of this
   option to ***no***
-- `ref_opt_add_implementation`: The target implementation to test. The possible values are: ***opt***, ***ref*** and ***add** for 
+- `ref_opt_add_implementation`: The target implementation to test. The possible values are: ***opt***, ***ref*** and ***add*** for 
  Reference, Optimized and Additional Implementations respectively.
 
 
@@ -125,16 +125,16 @@ the function that generates random data.
 
 To test a candidate by a targeted tool, run:
 
-### Given one or more instances of the candidate
+### Given one instance of the candidate
 
 ```
-python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS --instance_folders_list INSTANCE_1 INSTANCE_2 ... 
+python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS --instance_folders_list INSTANCE --ref_opt_add_implementation TARGET_IMPLEMENTATION 
 ```
 
 ### All instances of the candidate
 
 ```
-python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS
+python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS --ref_opt_add_implementation TARGET_IMPLEMENTATION
 ```
 
 ### All instances of all candidates
@@ -149,6 +149,8 @@ where possible `OPTIONi` are:
 - ref_opt_add_implementation (for all tools)
 - algorithms_patterns (for all tools)
 
+and `TOOLS` are among the chosen tools of our toolchain.
+
 `NOTE`: That option works only on the optimized implementation for now.
 It could work on the additional and reference implementations, but some changes
 need to be done in the script. We are working on it to make it automatic.
@@ -156,29 +158,23 @@ need to be done in the script. We are working on it to make it automatic.
 
 ## Example
 
-- 1 instance of mirith
+- 1 instance of the optimized implementation of mirith
 
 ````
-python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast
+python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast --ref_opt_add_implementation opt
 ````
 
-- 2 instances of mirith
-
-````
-python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast  mirith_avx2_Ia_short
-````
-
-- all instances of mirith
+- all instances of the optimized implementation of mirith
 
 
 ````
-python3 toolchain-scripts/toolchain_script.py mirith --tools binsec
+python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --ref_opt_add_implementation opt
 ````
 
 If we want to run the tests for the `sign()` function only:
 
 ````
-python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast --algorithms_patterns sign
+python3 toolchain-scripts/toolchain_script.py mirith --tools binsec  --ref_opt_add_implementation opt --algorithms_patterns sign
 ````
 
 - all instances of all candidates
@@ -194,13 +190,18 @@ python3 toolchain-scripts/toolchain_script.py -a  dudect ref_opt_add_implementat
 
 To be able to test a <new> candidate, in this project, proceed as follows:
 
-1. `candidates_build.py`: write a function that generates the `Makefile` or `CMakeLists` for the candidate. 
-   - cmake_CANDIDATE(path_to_cmake_lists,tool_type,candidate)
-   - makefile_CANDIDATE(path_to_makefile_folder, subfolder, tool_name, candidate)
-   - Call the function just written in the body of the function `makefile_candidate` or `cmake_candidate`
-3. `toolchain_script.py`: Add the name of the candidate in one of the lists `candidates_to_build_with_makefile` 
-   or `candidate_to_build_with_cmake` , local variables of the function `compile_run_candidate`
-4. `toolchain_script.py`: add `generic.add_cli_arguments`: See the part: `# Create a parser for every function in the sub-parser name
+1. `candidates_build.py`:
+   - write a function that generates the `Makefile` or `CMakeLists` for the candidate.
+     - cmake_CANDIDATE(path_to_cmake_lists,tool_type,candidate)
+     - makefile_CANDIDATE(path_to_makefile_folder, subfolder, tool_name, candidate)
+     - Call the function just written in the body of the function `makefile_candidate` or `cmake_candidate`
+2. `toolchain_script.py`: 
+   - Add the name of the candidate in one of the lists `candidates_to_build_with_makefile` 
+      or `candidate_to_build_with_cmake` , local variables of the function `compile_run_candidate`
+   - Add the candidate name to the list `list_of_integrated_candidates`. 
+   - Add the candidate name to the dictionary `signature_type_based_candidates_dict` depending on its category. 
+   - Add the candidate required data to the dictionary `candidates_api_sign_rng_path`
+   - Define the candidate implementation folders, just like `mirith_implementations_folders`. Refer to the part `CANDIDATES IMPLEMENTATION FOLDERS`.
 
 
 ## Structure of the folders created with the scripts
