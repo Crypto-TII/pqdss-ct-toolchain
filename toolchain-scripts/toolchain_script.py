@@ -274,7 +274,7 @@ candidates_api_sign_rng_path = {'fuleeca': ['"../../../Reference_Implementation/
                                 'qr_uov': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'snova': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'tuov': ['"../../../api.h"', '""', '"../../../nistkat/rng.h"', 'yes'],
-                                'vox': ['"../../../../api.h"', '""', '"../../../../rng/rng.h"', 'no'],
+                                'vox': ['"../../../api.h"', '""', '"../../../rng/rng.h"', 'no'],
                                 'aimer': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'ascon_sign': ['"../../../../api.h"', '""', '"../../../../rng.h"', 'no'],
                                 'faest': ['"../../../api.h"', '""', '"../../../NIST-KATs/rng.h"', 'no'],
@@ -290,6 +290,7 @@ candidates_api_sign_rng_path = {'fuleeca': ['"../../../Reference_Implementation/
 # Take into account the case where api.h and sign.h are both needed in
 # the function add_cli_arguments(...)
 
+# =================== CANDIDATES IMPLEMENTATION FOLDERS =======================================
 
 # ===================================== MPC-IN-THE-HEAD ========================================
 # ===================================== cross ==================================================
