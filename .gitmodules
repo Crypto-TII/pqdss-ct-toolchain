@@ -1,3 +1,17 @@
 [submodule "kem/kyber"]
 	path = kem/kyber
 	url = https://github.com/pq-crystals/kyber
+[submodule "toolchain/ctverif/tools/boogie"]
+	path = toolchain/ctverif/tools/boogie
+	url = https://github.com/boogie-org/boogie.git
+[submodule "toolchain/ctverif/tools/z3"]
+	path = toolchain/ctverif/tools/z3
+	url = https://github.com/Z3Prover/z3.git
+[submodule "toolchain/ctverif/tools/smack"]
+	path = toolchain/ctverif/tools/smack
+	url = https://github.com/smackers/smack
+	branch = develop
+[submodule "toolchain/ctverif/tools/bam-bam-boogieman"]
+	path = toolchain/ctverif/tools/bam-bam-boogieman
+	url = https://github.com/michael-emmi/bam-bam-boogieman
+	branch = develop
