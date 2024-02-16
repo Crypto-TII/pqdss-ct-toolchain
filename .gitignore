@@ -58,3 +58,6 @@ Thumbs.db
 
 #Static libraries
 *.a
+
+# Text files
+*.txt
