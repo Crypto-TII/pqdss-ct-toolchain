@@ -4,11 +4,12 @@ ARG NUM_PROCESSORS=8
 #Since binsec image is not working root as user we need to specify it so that it can run the packages
 USER root
 # Intstall packages
-RUN apt-get update                                   && \
-    apt-get install -y --no-install-recommends graphviz          \
-        bzip2 libc6-dbg gcc g++ wget xz-utils python    \
-        git make wget build-essential libssl-dev        \
-        libffi-dev python3-pip cmake flex bison
+RUN apt-get update   && \
+    apt-get install -y --no-install-recommends graphviz  \
+        bzip2 libc6-dbg gcc g++ wget xz-utils python  \
+        git make wget build-essential libssl-dev sudo gpg-agent  \
+        libffi-dev python3-pip cmake flex bison software-properties-common \
+        ruby ruby-dev
 
 
 
@@ -67,7 +68,14 @@ RUN chmod u+x /tmp/dudect/install.sh && \
     /tmp/dudect/install.sh           && \
     rm -r /tmp/dudect
 
+# Install ctverif
+# Install smack.
+COPY ctverif /tmp/ctverif
+RUN chmod u+x /tmp/ctverif/install.sh && \
+    /tmp/ctverif/install.sh  && \
+    rm -r /tmp/ctverif
 
 ENV PATH="/usr/share/valgrind/bin:$PATH"
 
 
+# RUN gem install bam-bam-boogieman
