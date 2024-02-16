@@ -2388,7 +2388,9 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_name, candidate, impl
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-
+    specific_filter_out = ''
+    if implementation_type == 'add':
+        specific_filter_out = '$(BASE_DIR)/main.c'
     makefile_content = ''
     if tool_name == 'flowtracker':
         makefile_content = f'''
@@ -2453,7 +2455,7 @@ def makefile_hufu(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         
         BASE_DIR = ../../{subfolder}
         
-        SOURCES  = $(filter-out  $(BASE_DIR)/PQCgenKAT_sign.c ,$(wildcard $(BASE_DIR)/*.c))
+        SOURCES  = $(filter-out {specific_filter_out} $(BASE_DIR)/PQCgenKAT_sign.c ,$(wildcard $(BASE_DIR)/*.c))
         SOURCES += $(wildcard $(BASE_DIR)/aes/*.c) $(BASE_DIR)/random/random.c\
         $(wildcard $(BASE_DIR)/sha3/*.c) $(BASE_DIR)/rANS/compress.c\
         $(wildcard $(BASE_DIR)/normaldist/*.c) $(wildcard $(BASE_DIR)/sampling/*.c)
@@ -4294,6 +4296,150 @@ def makefile_sphincs_alpha(path_to_makefile_folder, subfolder, tool_name, candid
         HEADERS = $(BASE_DIR)/params.h $(BASE_DIR)/address.h $(BASE_DIR)/randombytes.h  $(BASE_DIR)/merkle.h \
          $(BASE_DIR)/wots.h $(BASE_DIR)/utils.h $(BASE_DIR)/fors.h $(BASE_DIR)/api.h $(BASE_DIR)/hash.h \
           $(BASE_DIR)/thash.h $(BASE_DIR)/uintx.h {specific_header_files}
+        
+        {specific_content_simple}
+        
+        DET_SOURCES = $(SOURCES:randombytes.%=rng.%)
+        DET_HEADERS = $(HEADERS:randombytes.%=rng.%)
+        
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+        
+        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_keypair}
+        \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_sign}
+        
+        .PHONY: clean 
+        
+        default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES) $(DET_HEADERS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto $(TOOL_LIBS)
+            
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES) $(DET_HEADERS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< -lcrypto $(TOOL_LIBS)
+        
+         
+        clean:
+        \t-$(RM) $(EXECUTABLE_KEYPAIR)
+        \t-$(RM) $(EXECUTABLE_SIGN)
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
+def makefile_sphincs_alpha1(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    sphincs_alpha_thash = 'simple'
+    sphincs_alpha_thash_other = 'robust'
+    specific_content_simple = f'''
+        ifneq (,$(findstring shake,$(PARAMS)))
+            \tSOURCES += $(BASE_DIR)/fips202.c $(BASE_DIR)/hash_shake.c $(BASE_DIR)/thash_shake_$(THASH).c
+            \tHEADERS += $(BASE_DIR)/fips202.h
+        endif
+        ifneq (,$(findstring haraka,$(PARAMS)))
+            \tSOURCES += $(BASE_DIR)/haraka.c $(BASE_DIR)/hash_haraka.c $(BASE_DIR)/thash_haraka_$(THASH).c
+            \tHEADERS += $(BASE_DIR)/haraka.h
+        endif
+        ifneq (,$(findstring sha2,$(PARAMS)))
+            \tSOURCES += $(BASE_DIR)/sha2.c $(BASE_DIR)/hash_sha2.c $(BASE_DIR)/thash_sha2_$(THASH).c
+            \tHEADERS += $(BASE_DIR)/sha2.h
+        endif
+        '''
+    add_cflags = '-Wconversion'
+    specific_src_files = '$(BASE_DIR)/wotsx1.c  $(BASE_DIR)/utilsx1.c'
+    specific_header_files = '$(BASE_DIR)/wotsx1.h  $(BASE_DIR)/utilsx1.h '
+    if implementation_type == 'add':
+        sphincs_alpha_thash = 'robust'
+        sphincs_alpha_thash_other = 'simple'
+        add_cflags = '-march=native -flto -fomit-frame-pointer'
+        specific_src_files = f'''$(BASE_DIR)/hash_sha2.c $(BASE_DIR)/hash_sha2x8.c $(BASE_DIR)/thash_sha2_$(THASH).c\
+        $(BASE_DIR)/thash_sha2_$(THASH)x8.c $(BASE_DIR)/sha2.c $(BASE_DIR)/sha256x8.c $(BASE_DIR)/sha512x4.c \
+         $(BASE_DIR)/sha256avx.c  $(BASE_DIR)/utilsx8.c'''
+        specific_header_files = f'''$(BASE_DIR)/hashx8.h  $(BASE_DIR)/thashx8.h  $(BASE_DIR)/sha2.h  \
+        $(BASE_DIR)/sha256x8.h $(BASE_DIR)/sha512x4.h $(BASE_DIR)/sha256avx.h  $(BASE_DIR)/utilsx8.h'''
+        specific_content_simple = ''
+    if tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        BASE_DIR = ../../{subfolder}
+        
+        
+        PARAMETERS = {subfolder}
+        THASH = {sphincs_alpha_thash}
+        
+        CFLAGS = $(EXTRA_CFLAGS) -DPARAMS=$(PARAMETERS)
+        PARAMS_INCS = $(BASE_DIR)/params
+        
+        INCS_DIR = $(BASE_DIR)
+        SIGN = $(BASE_DIR)/sign.c
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm $(CFLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm $(CFLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        PARAMS = {subfolder}
+        #PARAMS = sphincs-a-sha2-128f
+        THASH = {sphincs_alpha_thash}
+        THASH_OPP = {sphincs_alpha_thash_other}
+        
+        CC=/usr/bin/gcc
+        CFLAGS=-Wall -Wextra -Wpedantic -Wmissing-prototypes -O3 -std=c99 -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS) {add_cflags}
+            
+        BASE_DIR = ../../{subfolder}
+        SOURCES = $(filter-out $(BASE_DIR)/thash_sha2_$(THASH_OPP)x8.c $(BASE_DIR)/PQCgenKAT_sign.c $(BASE_DIR)/rng.c  $(BASE_DIR)/thash_sha2_$(THASH_OPP).c,$(wildcard $(BASE_DIR)/*.c))
+        HEADERS = $(filter-out  $(BASE_DIR)/rng.h $(BASE_DIR)/params.h, $(wildcard $(BASE_DIR)/*.h))
+        # SOURCES =  $(BASE_DIR)/address.c $(BASE_DIR)/randombytes.c $(BASE_DIR)/merkle.c $(BASE_DIR)/wots.c \
+        #         $(BASE_DIR)/utils.c $(BASE_DIR)/fors.c $(BASE_DIR)/sign.c $(BASE_DIR)/uintx.c {specific_src_files}
+                
+        # HEADERS = $(BASE_DIR)/params.h $(BASE_DIR)/address.h $(BASE_DIR)/randombytes.h  $(BASE_DIR)/merkle.h \
+        #  $(BASE_DIR)/wots.h $(BASE_DIR)/utils.h $(BASE_DIR)/fors.h $(BASE_DIR)/api.h $(BASE_DIR)/hash.h \
+        #   $(BASE_DIR)/thash.h $(BASE_DIR)/uintx.h {specific_header_files}
         
         {specific_content_simple}
         

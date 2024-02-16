@@ -427,7 +427,7 @@ def sign_test_harness_content(test_harness_file, api,
     #define msg_length  3300
     {args_types[0]} {args_names[0]}[CRYPTO_BYTES+msg_length] ; //CRYPTO_BYTES + msg_len
     {args_types[1]} {args_names[1]} ;
-    {args_types[3]} {args_names[3]} = msg_length ;
+    volatile {args_types[3]} {args_names[3]} = msg_length ;
     {args_types[2]} {args_names[2]}[msg_length] ;
     {args_types[4]} {args_names[4]}[CRYPTO_SECRETKEYBYTES] ;
     
@@ -713,7 +713,7 @@ def dudect_sign_dude_content(taint_file, api,
     \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
     \t\t\t\tconst size_t offset = (size_t)i * c->chunk_size;
     \t\t\t\t{type_sk_with_no_const} pk[CRYPTO_PUBLICKEYBYTES] = {{0}};
-    \t\t\t\t{type_sk_with_no_const} *sk = input_data + offset + MESSAGE_LENGTH;
+    \t\t\t\t{type_sk_with_no_const} *sk = ({type_sk_with_no_const})input_data + offset + MESSAGE_LENGTH*sizeof({type_msg});
     \t\t\t\t(void)crypto_sign_keypair(pk, sk);
     \t\t\t}}
     \t\t}}
@@ -929,6 +929,9 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None):
 def compile_with_makefile(path_to_makefile, default=""):
     cwd = os.getcwd()
     os.chdir(path_to_makefile)
+    # Run make clean first in case objects files have already been obtained with the flags of a different tool.
+    cmd_clean = ["make", "clean"]
+    subprocess.call(cmd_clean, stdin=sys.stdin)
     cmd = ["make"]
     if not default == "":
         cmd.append(default)

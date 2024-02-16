@@ -399,7 +399,7 @@ hawk_default_list_of_folders = generic.get_default_list_of_folders(hawk_default_
 # =========================================== hufu ==============================================
 hufu_implementations_folders = {'ref': 'HuFu/Reference_Implementation/crypto_sign',
                                 'opt': 'HuFu/Optimized_Implementation/crypto_sign',
-                                'add': 'HuFu/Additional_Implementation/avx2'}
+                                'add': 'HuFu/Additional_Implementation/avx2/crypto_sign'}
 hufu_opt_folder = "candidates/lattice/hufu/HuFu/Optimized_Implementation/crypto_sign"
 hufu_default_list_of_folders = os.listdir(hufu_opt_folder)
 hufu_default_list_of_folders = generic.get_default_list_of_folders(hufu_default_list_of_folders,
