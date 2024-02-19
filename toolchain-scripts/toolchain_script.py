@@ -100,57 +100,82 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
 def run_cli_candidate(args_parse):
     """ Function: run_cli_candidate"""
     candidate = args.binsec_test
-    print("========= Target candidate: ", candidate)
     list_of_tools = args_parse.tools
-    type_based_signature = args_parse.type
-    target_candidate = args_parse.candidate
-    optimization_folder = args_parse.ref_opt
-    list_of_instance_folders = args_parse.instance_folders_list
-    relative_path_to_api = args_parse.api
-    relative_path_to_sign = args_parse.sign
-    relative_path_to_rng = args_parse.rng
-    compile_candidate = args_parse.compile
-    run_candidate = args_parse.run
-    binsec_depth_flag = args_parse.depth
     build_directory = args_parse.build
-    executable_patterns = args_parse.algorithms_patterns
-    is_rng_in_different_folder = args_parse.rng_outside
-    with_core_dump = args_parse.core_dump
-    cmake_additional_definitions = args_parse.cmake_definition
     security_level = args_parse.security_level
     number_measurements = args_parse.number_measurements
     timeout = args_parse.timeout
-    implementation_type = args_parse.ref_opt_add_implementation
-    # Get candidate implementation folder
-    candidate_implementation_folder = f'{candidate}_implementations_folders'
-    impl_folder = f"candidate_chosen_implementation_folder = {candidate_implementation_folder}['{implementation_type}']"
-    loc = {}
-    exec(impl_folder, globals_vars, loc)
-    candidate_chosen_implementation_folder = loc['candidate_chosen_implementation_folder']
-    optimization_folder = candidate_chosen_implementation_folder
-    # Set candidate default list of folders according to the chosen implementation
-    candidate_chosen_implementation_folder = f"{optimization_folder}"
-    candidate_list_of_instances = list_of_instance_folders
-    if len(list_of_instance_folders) >= 2:
-        path_to_candidate_opt_folder = f'{type_based_signature}/{candidate}/{candidate_chosen_implementation_folder}'
-        candidate_list_of_instances = os.listdir(path_to_candidate_opt_folder)
-        candidate_list_of_instances = [inst for inst in candidate_list_of_instances if '.' not in inst]
-        exclude_files = ['README', 'Readme', 'LICENSE', 'Makefile']
-        candidate_list_of_instances = [inst for inst in candidate_list_of_instances if inst not in exclude_files]
-    list_of_instance_folders = candidate_list_of_instances
-    arguments = f'''{list_of_tools}, f'{type_based_signature}', f'{target_candidate}',
-                     f'{optimization_folder}', {list_of_instance_folders},
-                     {relative_path_to_api}, f'{relative_path_to_sign}', {relative_path_to_rng},
-                     f'{compile_candidate}', f'{run_candidate}', {binsec_depth_flag},
-                     f'{build_directory}', {executable_patterns},
-                     f'{is_rng_in_different_folder}', f'{with_core_dump}',
-                    {cmake_additional_definitions}, f'{security_level}',
-                    f'{number_measurements}', f'{timeout}', f'{implementation_type}' '''
-    target = f'compile_run_candidate({arguments})'
-    if optimization_folder:
-        exec(target)
+    if candidate == 'generic_tests':
+        print("::::::: Running generic tests")
+        target_header_file = args_parse.header
+        target_basename = args_parse.target
+        test_harness = args_parse.test_harness
+        target_secret_inputs = args_parse.secret_inputs
+        target_required_src_files = args_parse.required_sources_files
+        target_required_include_files = args_parse.required_include_files
+        target_include_directories = args_parse.include_directories
+        target_cflags = args_parse.cflags
+        target_libraries = args_parse.libraries
+        target_runtime_output_directory = args_parse.runtime
+        target_template_only = args_parse.template_only
+        target_compile_run = args_parse.compile_run
+        target_redirect_output = args_parse.redirect_output
+        generic_arguments = f'''{list_of_tools}, f'{target_header_file}', f'{target_basename}',
+                         f'{test_harness}', {target_secret_inputs},
+                         {target_required_src_files}, f'{target_required_include_files}', {target_include_directories},
+                         f'{target_cflags}', f'{target_libraries}', {build_directory},
+                         f'{target_runtime_output_directory}', {target_template_only},
+                         f'{target_compile_run}', f'{target_redirect_output}',
+                        f'{security_level}',
+                        f'{number_measurements}', f'{timeout}' '''
     else:
-        print("---'{}' has no Additional Implementation or it is not taken into account yet.".format(candidate.upper()))
+        print(":::::::Running NIST-pqc signatures candidates tests")
+        print("======= Target candidate: ", candidate)
+        type_based_signature = args_parse.type
+        target_candidate = args_parse.candidate
+        optimization_folder = args_parse.ref_opt
+        list_of_instance_folders = args_parse.instance_folders_list
+        relative_path_to_api = args_parse.api
+        relative_path_to_sign = args_parse.sign
+        relative_path_to_rng = args_parse.rng
+        compile_candidate = args_parse.compile
+        run_candidate = args_parse.run
+        binsec_depth_flag = args_parse.depth
+        executable_patterns = args_parse.algorithms_patterns
+        is_rng_in_different_folder = args_parse.rng_outside
+        with_core_dump = args_parse.core_dump
+        cmake_additional_definitions = args_parse.cmake_definition
+        implementation_type = args_parse.ref_opt_add_implementation
+        # Get candidate implementation folder
+        candidate_implementation_folder = f'{candidate}_implementations_folders'
+        impl_folder = f"candidate_chosen_implementation_folder = {candidate_implementation_folder}['{implementation_type}']"
+        loc = {}
+        exec(impl_folder, globals_vars, loc)
+        candidate_chosen_implementation_folder = loc['candidate_chosen_implementation_folder']
+        optimization_folder = candidate_chosen_implementation_folder
+        # Set candidate default list of folders according to the chosen implementation
+        candidate_chosen_implementation_folder = f"{optimization_folder}"
+        candidate_list_of_instances = list_of_instance_folders
+        if len(list_of_instance_folders) >= 2:
+            path_to_candidate_opt_folder = f'{type_based_signature}/{candidate}/{candidate_chosen_implementation_folder}'
+            candidate_list_of_instances = os.listdir(path_to_candidate_opt_folder)
+            candidate_list_of_instances = [inst for inst in candidate_list_of_instances if '.' not in inst]
+            exclude_files = ['README', 'Readme', 'LICENSE', 'Makefile']
+            candidate_list_of_instances = [inst for inst in candidate_list_of_instances if inst not in exclude_files]
+        list_of_instance_folders = candidate_list_of_instances
+        arguments = f'''{list_of_tools}, f'{type_based_signature}', f'{target_candidate}',
+                         f'{optimization_folder}', {list_of_instance_folders},
+                         {relative_path_to_api}, f'{relative_path_to_sign}', {relative_path_to_rng},
+                         f'{compile_candidate}', f'{run_candidate}', {binsec_depth_flag},
+                         f'{build_directory}', {executable_patterns},
+                         f'{is_rng_in_different_folder}', f'{with_core_dump}',
+                        {cmake_additional_definitions}, f'{security_level}',
+                        f'{number_measurements}', f'{timeout}', f'{implementation_type}' '''
+        target = f'compile_run_candidate({arguments})'
+        if optimization_folder:
+            exec(target)
+        else:
+            print("---'{}' has no Additional Implementation or it is not taken into account yet.".format(candidate.upper()))
 
 
 # Add_cli_arguments_for_all_candidates: Create a parser for all candidates in the sub-parser and
@@ -214,6 +239,9 @@ parser.add_argument('-a', '--all',
                     help='Run a given tool on all instances of all candidates',
                     )
 
+# Add a subparser for manual tests for any target implementation, not necessarily one of the signatures
+#generic_subparser = parser.add_subparsers(help="", dest='generic_test')
+generic.add_generic_cli_templates_arguments(subparser, 'generic_tests', 'template', '')
 
 # ============ Common default arguments ==============================================
 # List of integrated candidates so far

@@ -713,7 +713,7 @@ def dudect_sign_dude_content(taint_file, api,
     \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
     \t\t\t\tconst size_t offset = (size_t)i * c->chunk_size;
     \t\t\t\t{type_sk_with_no_const} pk[CRYPTO_PUBLICKEYBYTES] = {{0}};
-    \t\t\t\t{type_sk_with_no_const} *sk = ({type_sk_with_no_const})input_data + offset + MESSAGE_LENGTH*sizeof({type_msg});
+    \t\t\t\t{type_sk_with_no_const} *sk = ({type_sk_with_no_const} *)input_data + offset + MESSAGE_LENGTH*sizeof({type_msg});
     \t\t\t\t(void)crypto_sign_keypair(pk, sk);
     \t\t\t}}
     \t\t}}
@@ -1685,7 +1685,8 @@ def generic_compile_run_candidate(tools_list, signature_type, candidate,
                     instance_folders_list, depth, build_folder, binary_patterns, with_core_dump, timeout)
 
 
-# add_cli_arguments: creates a parser for a given candidate
+
+# add_cli_arguments: create a parser for a given candidate
 def add_cli_arguments(subparser,
                       signature_type,
                       candidate,
@@ -1776,6 +1777,102 @@ def add_cli_arguments(subparser,
     arguments = (f"'--ref_opt_add_implementation','-ref_opt_add', dest='ref_opt_add_implementation',\
      default=f'{implementation_type}', help = 'Opt., Add. or Ref. implementation'")
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+
+
+# add_generic_cli_templates_arguments: for generic tests, create a subparser for a given target
+def add_generic_cli_templates_arguments(subparser,
+                                        generate_template_run,
+                                        tools_list=None,
+                                        target_basename=None,
+                                        path_to_header_file=None,
+                                        path_to_target_test_file=None,
+                                        target_secret_inputs=None,
+                                        target_dependent_src_files=None,
+                                        target_dependent_header_files=None,
+                                        target_include_directory=None,
+                                        target_cflags=None,
+                                        target_libraries=None,
+                                        target_build_directory=None,
+                                        runtime_output_directory=None,
+                                        template_only=None,
+                                        compile_and_run_only=None,
+                                        redirect_test_output_to_file=None,
+                                        security_level=None,
+                                        number_of_measurements='1e4',
+                                        timeout='86400'):
+
+    # if candidate_default_list_of_folders is None:
+    #     candidate_default_list_of_folders = []
+    generic_parser = subparser.add_parser(f'{generate_template_run}',
+                                            help=f'{generate_template_run}:...',
+                                            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    # Default tools list
+    default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker", "ctverif"]
+    arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = '{tools_list}'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--target_header', '-type',dest='header',type=str,default=f'{path_to_header_file}', \
+    help=' {path_to_header_file}'"
+    add_args_commdand = f"generic_parser.add_argument(f{arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--target_basename', '-target',dest='target',type=str,default=f'{target_basename}', \
+    help ='target basename'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = (f"'--test_harness', '-test_harness',dest='test_harness', type=str, \
+    default=f'{path_to_target_test_file}',"
+                 f"help = 'path to the test harness file'")
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--secret_inputs', nargs='+', default={target_secret_inputs}"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--required_sources_files', nargs='+', default={target_dependent_src_files}, \
+    help = 'required source files'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--required_include_files', nargs='+', default={target_dependent_header_files}, \
+    help = 'required header files'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--include_directories', nargs='+', default={target_include_directory}, help = 'include directories'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--cflags', nargs='+', default={target_cflags}, help = 'target cflags for compilation'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--libraries', nargs='+', default={target_libraries}, help = 'target link libraries'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--build', '-build', dest='build',default=f'{target_build_directory}'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--runtime_output_directory', '-runtime_output_directory', dest='runtime', \
+    default=f'{runtime_output_directory}'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--template_only','-template_only',dest='template_only', default=f'{template_only}',help = 'no'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--compile_run','-compile_run',dest='compile_run', default=f'{compile_and_run_only}', help='no'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--redirect_output','-redirect_output',dest='redirect_output', \
+    default=f'{redirect_test_output_to_file}', help='no'"
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = (f"'--security_level','-security_level', dest='security_level', default={security_level},\
+    help = 'Instance security level'")
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = (f"'--number_measurements','-number_measurements', dest='number_measurements',\
+     default={number_of_measurements}, help = 'Number of measurements (Dudect)'")
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = (f"'--timeout','-timeout', dest='timeout',\
+     default={timeout}, help = 'timeout (Dudect)'")
+    add_args_commdand = f"generic_parser.add_argument({arguments})"
     exec(add_args_commdand)
 
 
