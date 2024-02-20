@@ -647,7 +647,7 @@ def dudect_keypair_dude_content(taint_file, api,
 
 
 # DUDECT: for crypto_sign
-def dudect_sign_dude_content(taint_file, api,
+def dudect_sign_dude_content1(taint_file, api,
                              sign, add_includes,
                              function_return_type,
                              function_name,
@@ -738,6 +738,135 @@ def dudect_sign_dude_content(taint_file, api,
     \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
     \t\tstate = dudect_main(&ctx);
     \t}}
+    \tdudect_free(&ctx);
+    \treturn (int)state;
+    }}
+    '''
+    with open(taint_file, "w") as t_file:
+        t_file.write(textwrap.dedent(taint_file_content_block_include))
+        if not add_includes == []:
+            for include in add_includes:
+                t_file.write(f'#include {include}\n')
+        if not sign == '""':
+            t_file.write(f'#include {sign}\n')
+        if not api == '""':
+            t_file.write(f'#include {api}\n')
+        t_file.write(textwrap.dedent(taint_file_content_block_main))
+
+
+def dudect_sign_dude_content(taint_file, api,
+                             sign, add_includes,
+                             function_return_type,
+                             function_name,
+                             args_types,
+                             args_names, number_of_measurements='1e4'):
+    taint_file_content_block_include = f'''
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    #include <string.h>
+    #include <stdlib.h>
+    
+    #define DUDECT_IMPLEMENTATION
+    #include <dudect.h>
+    
+    #define MESSAGE_LENGTH 3300
+    
+    #define SECRET_KEY_BYTE_LENGTH CRYPTO_SECRETKEYBYTES
+    #define SIGNATURE_MESSAGE_BYTE_LENGTH (MESSAGE_LENGTH + CRYPTO_BYTES)
+    
+    '''
+    type_msg = args_types[2]
+    type_sk = args_types[4]
+
+    type_sk_with_no_const = type_sk.replace('const', '')
+    type_sk_with_no_const = type_sk_with_no_const.strip()
+
+    sig_msg = args_names[0]
+    sig_msg_len = args_names[1]
+    msg = args_names[2]
+    msg_len = args_names[3]
+    sk = args_names[4]
+    ret_type = function_return_type
+
+    taint_file_split = taint_file.split('/')
+    taint_file_folder = "/".join(taint_file_split[0:-1])
+    static_class_execution_times = f'{taint_file_folder}/static.txt'
+    random_class_execution_times = f'{taint_file_folder}/random.txt'
+
+    taint_file_content_block_main = f'''
+    uint8_t do_one_computation(uint8_t *data) {{
+    
+    \t{args_types[1]} {sig_msg_len} = SIGNATURE_MESSAGE_BYTE_LENGTH; //the signature length could be initialized to 0.
+    \t{args_types[0]} {sig_msg}[SIGNATURE_MESSAGE_BYTE_LENGTH] = {{0}};
+    \t{args_types[3]} {msg_len} = MESSAGE_LENGTH; //  the message length could be also randomly generated.
+    \t{type_msg} *{msg} = ({type_msg}*)data + 0; 
+    \t{type_sk} *{sk} = ({type_sk}*)data + MESSAGE_LENGTH*sizeof({type_msg}) ; 
+    
+    \tuint8_t ret_val = 0;
+    \tconst {ret_type} result = {function_name}({sig_msg}, &{sig_msg_len}, {msg}, {msg_len}, {sk});
+    \tret_val ^= (uint8_t) result ^ {sig_msg}[0] ^ {sig_msg}[SIGNATURE_MESSAGE_BYTE_LENGTH - 1];
+    \treturn ret_val;
+    }}
+    
+    void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
+    \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
+    \t{type_sk_with_no_const} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
+    \t{type_sk_with_no_const} fixed_secret_key[CRYPTO_SECRETKEYBYTES] = {{0}};
+    \t(void)crypto_sign_keypair(public_key, fixed_secret_key);
+    \tfor (size_t i = 0; i < c->number_measurements; i++) {{
+    \t\tclasses[i] = randombit();
+    \t\t\tif (classes[i] == 0) {{
+     \t\t\t\t//Uncomment this line if you want to have a fixed message in this class.
+    \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
+    \t\t\t\tmemcpy(input_data + (size_t)i * c->chunk_size+MESSAGE_LENGTH*sizeof({type_msg}), 
+    \t\t\t\t        fixed_secret_key, SECRET_KEY_BYTE_LENGTH*sizeof({type_sk}));
+    \t\t\t}} else {{
+    \t\t\t\t//Uncomment this line if you want to have a fixed message in this class.
+    \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
+    \t\t\t\tconst size_t offset = (size_t)i * c->chunk_size;
+    \t\t\t\t{type_sk_with_no_const} pk[CRYPTO_PUBLICKEYBYTES] = {{0}};
+    \t\t\t\t{type_sk_with_no_const} *sk = ({type_sk_with_no_const} *)input_data + offset + MESSAGE_LENGTH*sizeof({type_msg});
+    \t\t\t\t(void)crypto_sign_keypair(pk, sk);
+    \t\t\t}}
+    \t\t}}
+    \t}}
+    
+    int main(int argc, char **argv)
+    {{
+    \t(void)argc;
+    \t(void)argv;
+    
+    \tconst size_t chunk_size = sizeof({type_msg})*MESSAGE_LENGTH + SECRET_KEY_BYTE_LENGTH*sizeof({type_sk}); 
+
+    \tdudect_config_t config = {{
+    \t\t.chunk_size = chunk_size,
+    \t\t.number_measurements = {number_of_measurements},
+    \t}};
+    \tdudect_ctx_t ctx;
+
+    \tdudect_init(&ctx, &config);
+    
+    FILE *static_distribution, *random_distribution;
+    static_distribution = fopen("{static_class_execution_times}", "w");
+    random_distribution = fopen("{random_class_execution_times}", "w");
+    fprintf(static_distribution, "%s", "Static distribution measurements\\n");
+    fprintf(random_distribution, "%s", "Random distribution measurements\\n");
+
+    \tdudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
+    \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
+    \t\tstate = dudect_main(&ctx);
+    \t\tfor(int i=0;i<{number_of_measurements};i++){{
+    \t\t\tif (ctx.classes[i] == 0){{
+    \t\t\t\tfprintf(static_distribution, "%ld\\n", ctx.exec_times[i]);
+    \t\t\t}}
+    \t\t\telse{{
+    \t\t\t\tfprintf(random_distribution, "%ld\\n", ctx.exec_times[i]);
+    \t\t\t}}
+    \t\t}}
+    \t}}
+    \tfclose(static_distribution);
+    \tfclose(random_distribution);
     \tdudect_free(&ctx);
     \treturn (int)state;
     }}
