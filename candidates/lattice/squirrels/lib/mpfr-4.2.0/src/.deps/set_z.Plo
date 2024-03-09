@@ -64,9 +64,10 @@ set_z.lo: set_z.c /usr/include/stdc-predef.h mpfr-impl.h \
  /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
  /usr/lib/gcc/x86_64-linux-gnu/9/include/float.h mpfr-cvers.h \
  mpfr-thread.h \
- /home/symmetric/lattice/squirrels/lib/build/gmp/include/gmp.h mpfr.h \
- mpfr-gmp.h mpfr-sassert.h mparam.h x86_64/mparam.h generic/mparam.h \
- /usr/include/locale.h /usr/include/x86_64-linux-gnu/bits/locale.h
+ /home/code/candidates/lattice/squirrels/lib/build/gmp/include/gmp.h \
+ mpfr.h mpfr-gmp.h mpfr-sassert.h mparam.h x86_64/mparam.h \
+ generic/mparam.h /usr/include/locale.h \
+ /usr/include/x86_64-linux-gnu/bits/locale.h
 
 /usr/include/stdc-predef.h:
 
@@ -216,7 +217,7 @@ mpfr-cvers.h:
 
 mpfr-thread.h:
 
-/home/symmetric/lattice/squirrels/lib/build/gmp/include/gmp.h:
+/home/code/candidates/lattice/squirrels/lib/build/gmp/include/gmp.h:
 
 mpfr.h:
 
