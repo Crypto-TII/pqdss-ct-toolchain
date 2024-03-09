@@ -11,150 +11,43 @@ import textwrap
 import re
 
 
+
+global_errors_dict = {}
+
+
 def find_target_by_basename(target_basename: str, path_to_target_header_file: str) -> str:
-    file = open(path_to_target_header_file, 'r')
-    file_content = file.read()
-    find_target_object = re.search(rf"[\w\s]*\W{target_basename}\W[\s*\(]*[\w\s*,\[\+\]\(\)-]*;", file_content)
     target = ''
-    if find_target_object is not None:
-        matching_string = find_target_object.group()
-        matching_string_lines = matching_string.split('\n')
-        target_basename_nb_of_occurrence = matching_string.count(target_basename)
-        if target_basename_nb_of_occurrence >= 2:
-            for line in matching_string_lines:
-                if target_basename in line and (':' in line or '#' in line or 'define' in line):
-                    matching_string_lines.remove(line)
-        matching_string = "\n".join(matching_string_lines)
-        matching_string_split = matching_string.split()
-        matching_string_list_strip = [word.strip() for word in matching_string_split]
-        target = " ".join(matching_string_list_strip)
-    else:
-        print("Could not find {0} definition into the file {1}".format(target_basename, path_to_target_header_file))
+    try:
+        with open(path_to_target_header_file, 'r') as file:
+            file_content = file.read()
+            find_target_object = re.search(rf"[\w\s]*\W{target_basename}\W[\s*\(]*[\w\s*,\[\+\]\(\)-]*;", file_content)
+            if find_target_object is not None:
+                matching_string = find_target_object.group()
+                matching_string_lines = matching_string.split('\n')
+                target_basename_nb_of_occurrence = matching_string.count(target_basename)
+                if target_basename_nb_of_occurrence >= 2:
+                    for line in matching_string_lines:
+                        if target_basename in line and (':' in line or '#' in line or 'define' in line):
+                            matching_string_lines.remove(line)
+                matching_string = "\n".join(matching_string_lines)
+                matching_string_split = matching_string.split()
+                matching_string_list_strip = [word.strip() for word in matching_string_split]
+                target = " ".join(matching_string_list_strip)
+            else:
+                error_message = f'''
+                Could not find {target_basename} into the file {path_to_target_header_file}
+                '''
+                print(print(textwrap.dedent(error_message)))
+    except:
+        print("Could not open file '{}' .".format(path_to_target_header_file))
+
     return target
 
 
 # Take into account the case in which one have a pointer input
 # that points to just one value (not really as an array)
-
-def tokenize_argument(argument: str) -> tuple:
-    """
-    input: an argument (input) of a function
-    output:  argument type, argument name and a default declaration of the argument
-    """
-    type_arg = ""
-    name_arg = ""
-    argument_declaration = ""
-    default_length = "1000"
-    is_pointer = False
-    is_array = False
-    is_array_with_special_length = False
-    if "*" in argument and "[" not in argument:
-        is_pointer = True
-    elif "[" in argument and "*" not in argument:
-        is_array = True
-    elif "*" in argument and "[" in argument:
-        is_array_with_special_length = True
-
-    argument = argument.strip()
-    argument_split = re.split(r"\s", argument)
-    argument_split_without_space = [el for el in argument_split if el != '']
-    no_space = argument_split_without_space
-    if is_pointer:
-        no_space = [re.sub(r"\*", "", strg) for strg in no_space]
-        no_space = [el for el in no_space if el != '']
-        if len(no_space) > 2:
-            type_arg = " ".join(no_space[0:-1])
-        else:
-            type_arg = no_space[0]
-        name_arg = no_space[-1]
-        argument_declaration = type_arg + " " + name_arg + "[" + default_length + "];"
-    elif is_array:
-        initial_length_array = re.search(r"\[(.+?)]", argument)
-        if initial_length_array:
-            if not initial_length_array.group(1) == "" and not initial_length_array.group(1) == " ":
-                default_length = initial_length_array.group(1)
-                no_space = [re.sub(r"\[", "", strg) for strg in no_space]
-                no_space = [re.sub(r"]", "", strg) for strg in no_space]
-                no_space = [el for el in no_space if el != '']
-                if no_space[-1] == default_length:
-                    name_arg = no_space[-2]
-                    if len(no_space) > 3:
-                        type_arg = " ".join(no_space[0:-2])
-                    else:
-                        type_arg = no_space[0]
-                    argument_declaration = type_arg + " " + name_arg + "[" + default_length + "];"
-                else:
-                    n_arg = re.split(default_length, no_space[-1])
-                    name_arg = n_arg[0]
-                    if len(no_space) > 2:
-                        type_arg = " ".join(no_space[0:-1])
-                    else:
-                        type_arg = no_space[0]
-                    argument_declaration = type_arg + " " + name_arg + "[" + default_length + "];"
-        else:
-            no_space = [re.sub(r"\[", "", strg) for strg in no_space]
-            no_space = [re.sub("]", "", strg) for strg in no_space]
-            no_space = [el for el in no_space if el != '']
-            if len(no_space) > 2:
-                type_arg = " ".join(no_space[0:-1])
-            else:
-                type_arg = no_space[0]
-            name_arg = no_space[-1]
-            argument_declaration = type_arg + " " + name_arg + "[" + default_length + "];"
-    elif is_array_with_special_length:
-        initial_length_array = re.search(r"\[(.+?)]", argument)
-        default_length = initial_length_array.group(1)
-        # initial_length_array = initial_length_array.group(0)
-        no_space = re.split(r"\[", argument)
-        no_space = no_space[0:-1]
-        argument_split = re.split(r"\s", no_space[0])
-        no_space = [el for el in argument_split if el != '']
-        name_arg = no_space[-1]
-        if len(no_space) > 2:
-            type_arg = " ".join(no_space[0:-1])
-        else:
-            type_arg = no_space[0]
-        argument_declaration = type_arg + " " + name_arg + "[" + default_length + "];"
-    else:
-        if len(no_space) > 2:
-            type_arg = " ".join(no_space[0:-1])
-        else:
-            type_arg = no_space[0]
-        name_arg = no_space[-1]
-        argument_declaration = type_arg + " " + name_arg + ";"
-
-    return type_arg, name_arg, argument_declaration
-
-
-def tokenize_target1(target: str) -> tuple:
-    """
-    :param target:
-    :return (return type):
-    """
-    target_split = re.split(r"[()]\s*", target)
-    ret_type_basename = target_split[0].split(" ")
-    target_return_type = ret_type_basename[0]
-    target_base_name = ret_type_basename[1]
-    target_args = target_split[1]
-    if target_args == '' or target_args == ' ':
-        print("The function {} has no arguments", target_base_name)
-    else:
-        target_input_names = []
-        target_input_initialization = []
-        target_all_types_of_input = []
-        for input_arg in re.split(r",", target_args):
-            type_arg, name_arg, input_declaration = tokenize_argument(input_arg)
-            target_all_types_of_input.append(type_arg)
-            target_input_names.append(name_arg)
-            target_input_initialization.append(input_declaration)
-        output = (target_return_type, target_base_name,
-                  target_all_types_of_input, target_input_names,
-                  target_input_initialization)
-        return output
-
-
 def tokenize_target(target: str) -> tuple:
-    target_declaration_split = target.split('(')
+    target_declaration_split = target.split('(', 1)
     target_args = target_declaration_split[-1]
     target_return_type_and_basename = target_declaration_split[0]
     target_return_type_and_basename_split = target_return_type_and_basename.split()
@@ -171,7 +64,17 @@ def tokenize_target(target: str) -> tuple:
     arg_name = ''
     arg_type = ''
     target_all_types_of_input = []
-    for input_arg in target_args.split(','):
+    target_args_split = target_args.split(',')
+    reconstructed_target_args_split = []
+    arg_index = 0
+    while arg_index < len(target_args_split):
+        current_arg = target_args_split[arg_index]
+        while current_arg.count('(') != current_arg.count(')'):
+            current_arg = ",".join(target_args_split[arg_index:arg_index+2])
+            arg_index += 1
+        arg_index += 1
+        reconstructed_target_args_split.append(current_arg)
+    for input_arg in reconstructed_target_args_split:
         input_arg = input_arg.strip()
         default_length = None
         arg_match_array = re.search(r'\s*\[(.*)]', input_arg)
@@ -210,18 +113,69 @@ def tokenize_target(target: str) -> tuple:
     return output
 
 
-target_basename = 'crypto_sign_unpacked_keys'
-path_to_target_header_file = 'candidates/mpc-in-the-head/mirith/Reference_Implementation/mirith_IIIa_fast/sign.h'
-target = find_target_by_basename(target_basename, path_to_target_header_file)
-print("--target")
-print(target)
-output = tokenize_target(target)
-print('....target_return_type: ',output[0])
-print('....target_basename: ',output[1])
-print('....target_all_types_of_input: ',output[2])
-print('....target_input_names: ',output[3])
-print('....target_input_initialization: ',output[4])
-print('....target_args_length: ',output[5])
+# A target is a string. It refers to as the declaration of a function.
+# An object of type target has many attributes like the base name of a given target,
+# its list of arguments in the (type name) format, the list of its names of arguments, etc.
+# Such type of object also incorporate many methods used to set some attributes. For example,
+# the arguments names are given by the method get_target_arguments_names().
+class Target(object):
+    """class: Target"""
+    def __init__(self, target: str = None, target_basename: str = None, target_header_file: str = None):
+        self.target = target
+        self.target_basename = target_basename
+        self.target_return_type = ''
+        self.target_types = []
+        self.target_args_length = []
+        self.target_args_declaration = []
+        self.target_args_names = []
+        self.target_executable = ""
+        self.target_test_file = f'test_{self.target_basename}.c'
+        self.target_secret_data = []
+        self.target_public_data = []
+        self.path_to_target_header_file = target_header_file
+        self.target_arguments_with_types = {}
+        self.target_has_arguments = True
+        # Set the attributes of the target
+        self.get_target_attributes()
+
+    def find_by_basename(self, basename, path_to_target_header_file: str) -> str:
+        self.target = find_target_by_basename(basename, path_to_target_header_file)
+        return self.target
+
+    def is_valid_target(self):
+        if '(' not in self.target or ')' not in self.target:
+            if self.path_to_target_header_file is None or self.path_to_target_header_file.strip() == '':
+                invalid_target_error_message = f'''
+                '{self.target.upper()}' is not a valid target.
+                Please give the target basename name and the path to its header file.
+                Alternatively, give the full target declaration '''
+                print(textwrap.dedent(invalid_target_error_message))
+            else:
+                self.target = self.find_by_basename(self.target_basename, self.path_to_target_header_file)
+        if self.target.strip() == '':
+            invalid_target_error_message = f'''
+            The given target is empty
+            '''
+            print(textwrap.dedent(invalid_target_error_message))
+
+    def get_target_attributes(self):
+        self.is_valid_target()
+        target_split = re.split(r"[()]\s*", self.target)
+        target_args = target_split[-1]
+        if target_args == '' or target_args == ' ':
+            self.target_has_arguments = False
+            print("Target '{}' has no arguments".format(self.target_basename.upper()))
+        else:
+            self.target_has_arguments = True
+            token = tokenize_target(self.target)
+            self.target_return_type = token[0]
+            self.target_basename = token[1]
+            self.target_types = token[2]
+            self.target_args_names = token[3]
+            self.target_args_declaration = token[4]
+            self.target_args_length = token[5]
+        return self.target_has_arguments
+
 
 # ==================== EXECUTION =====================================
 # ====================================================================
@@ -328,185 +282,6 @@ def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
     subprocess.call(command, stdin=sys.stdin)
 
 
-class Templates(object):
-    """ Templates: create a template for a given candidate for the given tool"""
-    def __init__(self, tool_name):
-        self.tool_name = tool_name
-
-    def tool_template(self, target_basename: str, target_header_file: str,
-                      secret_arguments: list, path_to_test_harness: str, includes: list):
-        if self.tool_name.lower() == 'binsec':
-            binsec_test_harness_template(target_basename, target_header_file,
-                                         secret_arguments, path_to_test_harness, includes)
-        if self.tool_name.lower() == 'ctgrind':
-            ctgrind_test_harness_template(target_basename, target_header_file,
-                                          secret_arguments, path_to_test_harness, includes)
-        if self.tool_name.lower() == 'dudect':
-            dudect_test_harness_template(target_basename, target_header_file,
-                                         secret_arguments, path_to_test_harness, includes)
-        if self.tool_name.lower() == 'flowtracker':
-            flowtracker_test_harness_template(target_basename, target_header_file,
-                                              secret_arguments, path_to_test_harness)
-        if self.tool_name.lower() == 'ctverif':
-            pass
-        if self.tool_name.lower() == 'libfuzzer':
-            libfuzzer_fuzz_target_template(target_basename, target_header_file,
-                                           path_to_test_harness, includes)
-
-    def tool_execution(self, executable_file: str, config_file: str = None,
-                       output_file: str = None, sse_depth: int = 1000000, stats_file: str = None,
-                       timeout: str | None = None, additional_options: list | None = None) -> None:
-
-        if self.tool_name.lower() == 'binsec':
-            run_binsec(executable_file, config_file, stats_file, output_file, sse_depth, additional_options)
-        if self.tool_name.lower() == 'ctgrind':
-            run_ctgrind(executable_file, output_file)
-        if self.tool_name.lower() == 'dudect':
-            run_dudect(executable_file, output_file, timeout)
-        if self.tool_name.lower() == 'flowtracker':
-            # run_flowtracker(executable_file,config_file, output_file)
-            pass
-        if self.tool_name.lower() == 'ctverif':
-            pass
-
-
-# A target is a string. It refers to as the declaration of a function.
-# An object of type target has many attributes like the base name of a given target,
-# its list of arguments in the (type name) format, the list of its names of arguments, etc.
-# Such type of object also incorporate many methods used to set some attributes. For example,
-# the arguments names are given by the method get_target_arguments_names().
-
-# Call it Target instead of target
-class Target(object):
-    def __init__(self, target: str):
-        self.target = target
-        self.target_arguments_with_types = {}
-        self.target_return_type = ""
-        self.target_types = ""
-        self.target_args_names = ""
-        self.target_args_declaration = ""
-        self.target_basename = ""
-        self.target_test_harness_name = ""
-        self.target_source_file_name = ""
-        self.target_executable = ""
-        self.target_configuration_file = ""
-        self.target_stats_file = ""
-        self.target_assumption = ""
-        self.parent_header_file = ""
-        self.parent_source_file = ""
-        self.target_secret_data = []
-        self.target_public_data = []
-
-        self.target_has_arguments_status = True
-        self.target_split = re.split(r"[()]\s*", target)
-        self.target_args = self.target_split[1]
-        self.get_target_has_arguments_status()
-
-    def get_target_has_arguments_status(self):
-        if self.target_args == '' or self.target_args == ' ':
-            self.target_has_arguments_status = False
-        else:
-            self.target_has_arguments_status = True
-            token = tokenize_target(self.target)
-            self.target_return_type = token[0]
-            self.target_basename = token[1]
-            self.target_types = token[2]
-            self.target_args_names = token[3]
-            self.target_args_declaration = token[4]
-        return self.target_has_arguments_status
-
-    def get_target_basename(self):
-        return self.target_basename
-
-    def get_target_source_file_basename(self):
-        return self.target_basename + ".c"
-
-    def get_arg_names(self):
-        return self.target_args_names
-
-    def get_target_arguments_names(self):
-        return self.target_args_names
-
-    def target_arguments_declaration(self):
-        return self.target_args_declaration
-
-
-class FindTarget(object):
-    """ Find a target definition, given the basename (name of the function), or a pattern"""
-    def __init__(self):
-        self.target = ""
-        self.all_targets_by_starting_patterns = ""
-        self.target_found_status = 1
-        self.target_basename = ""
-        self.target_starting_pattern = ""
-        self.target_ending_pattern = ""
-
-    def find_by_basename(self, basename, path_to_target_header_file) -> str:
-        self.target = find_target_by_basename(basename, path_to_target_header_file)
-        return self.target
-
-
-# A target is a string. It refers to as the declaration of a function.
-# An object of type target has many attributes like the base name of a given target,
-# its list of arguments in the (type name) format, the list of its names of arguments, etc.
-# Such type of object also incorporate many methods used to set some attributes. For example,
-# the arguments names are given by the method get_target_arguments_names().
-
-# Call it Target instead of target
-class Target(object):
-    def __init__(self, target: str):
-        self.target = target
-        self.target_arguments_with_types = {}
-        self.target_return_type = ""
-        self.target_types = ""
-        self.target_args_names = ""
-        self.target_args_declaration = ""
-        self.target_basename = ""
-        self.target_test_harness_name = ""
-        self.target_source_file_name = ""
-        self.target_executable = ""
-        self.target_configuration_file = ""
-        self.target_stats_file = ""
-        self.target_assumption = ""
-        self.parent_header_file = ""
-        self.parent_source_file = ""
-        self.target_secret_data = []
-        self.target_public_data = []
-
-        self.target_has_arguments_status = True
-        self.target_split = re.split(r"[()]\s*", target)
-        self.target_args = self.target_split[1]
-        self.get_target_has_arguments_status()
-
-    def get_target_has_arguments_status(self):
-        if self.target_args == '' or self.target_args == ' ':
-            self.target_has_arguments_status = False
-        else:
-            self.target_has_arguments_status = True
-            token = tokenize_target(self.target)
-            self.target_return_type = token[0]
-            self.target_basename = token[1]
-            self.target_types = token[2]
-            self.target_args_names = token[3]
-            self.target_args_declaration = token[4]
-        return self.target_has_arguments_status
-
-    def get_target_basename(self):
-        return self.target_basename
-
-    def get_target_source_file_basename(self):
-        return self.target_basename + ".c"
-
-    def get_arg_names(self):
-        return self.target_args_names
-
-    def get_target_arguments_names(self):
-        return self.target_args_names
-
-    def target_arguments_declaration(self):
-        return self.target_args_declaration
-
-
 def binsec_test_harness_template(target_basename: str, target_header_file: str,
                                  secret_arguments: list, path_to_test_harness: str, includes: list) -> None:
     """binsec_template_test_harness:  Generate a test harness template (default) for binsec"""
@@ -518,10 +293,8 @@ def binsec_test_harness_template(target_basename: str, target_header_file: str,
         print("--- creating {} directory".format(test_harness_directory))
         cmd = ["mkdir", "-p", test_harness_directory]
         subprocess.call(cmd, stdin=sys.stdin)
-    find_target_obj = FindTarget()
-    target = find_target_obj.find_by_basename(target_basename, target_header_file)
-    target_obj = Target(target)
-    arguments_declaration = target_obj.target_arguments_declaration()
+    target_obj = Target('', target_basename, target_header_file)
+    arguments_declaration = target_obj.target_args_declaration
     args_names = target_obj.target_args_names
     targ_return_type = target_obj.target_return_type
     args_names_string = ", ".join(args_names)
@@ -565,10 +338,8 @@ def ctgrind_test_harness_template(target_basename: str, target_header_file: str,
         print("--- creating {} directory".format(test_harness_directory))
         cmd = ["mkdir", "-p", test_harness_directory]
         subprocess.call(cmd, stdin=sys.stdin)
-    find_target_obj = FindTarget()
-    target = find_target_obj.find_by_basename(target_basename, target_header_file)
-    target_obj = Target(target)
-    arguments_declaration = target_obj.target_arguments_declaration()
+    target_obj = Target('', target_basename, target_header_file)
+    arguments_declaration = target_obj.target_args_declaration
     args_names = target_obj.target_args_names
     args_types = target_obj.target_types
     targ_return_type = target_obj.target_return_type
@@ -655,10 +426,8 @@ def dudect_test_harness_template(target_basename: str, target_header_file: str,
         print("--- creating {} directory".format(test_harness_directory))
         cmd = ["mkdir", "-p", test_harness_directory]
         subprocess.call(cmd, stdin=sys.stdin)
-    find_target_obj = FindTarget()
-    target = find_target_obj.find_by_basename(target_basename, target_header_file)
-    target_obj = Target(target)
-    arguments_declaration = target_obj.target_arguments_declaration()
+    target_obj = Target('', target_basename, target_header_file)
+    arguments_declaration = target_obj.target_args_declaration
     args_names = target_obj.target_args_names
     args_types = target_obj.target_types
     targ_return_type = target_obj.target_return_type
@@ -773,9 +542,7 @@ def flowtracker_test_harness_template(target_basename: str, target_header_file: 
         print("--- creating {} directory".format(test_harness_directory))
         cmd = ["mkdir", "-p", test_harness_directory]
         subprocess.call(cmd, stdin=sys.stdin)
-    find_target_obj = FindTarget()
-    target = find_target_obj.find_by_basename(target_basename, target_header_file)
-    target_obj = Target(target)
+    target_obj = Target('', target_basename, target_header_file)
     args_names = target_obj.target_args_names
     public_arguments = [arg for arg in args_names if arg not in secret_arguments]
 
@@ -827,10 +594,8 @@ def libfuzzer_fuzz_target_template(target_basename: str, target_header_file: str
         print("--- creating {} directory".format(fuzz_target_directory))
         cmd = ["mkdir", "-p", fuzz_target_directory]
         subprocess.call(cmd, stdin=sys.stdin)
-    find_target_obj = FindTarget()
-    target = find_target_obj.find_by_basename(target_basename, target_header_file)
-    target_obj = Target(target)
-    arguments_declaration = target_obj.target_arguments_declaration()
+    target_obj = Target('', target_basename, target_header_file)
+    arguments_declaration = target_obj.target_args_declaration
     args_names = target_obj.target_args_names
     args_names_string = ", ".join(args_names)
     headers_block = f'''
@@ -857,3 +622,130 @@ def libfuzzer_fuzz_target_template(target_basename: str, target_header_file: str
             decl_args = f'{decl}\n'
             fuzz_file.write(textwrap.dedent(decl_args))
         fuzz_file.write(textwrap.dedent(main_function_block))
+
+
+class Tools(object):
+    """ Tools: create a template for a given candidate for the given tool
+                Run a binary with the given tool"""
+    def __init__(self, tool_name):
+        self.tool_name = tool_name
+        self.tool_flags = ""
+        self.tool_libs = ""
+        self.tool_test_file_name = ""
+        self.tool_name = tool_name
+
+    def get_tool_flags_and_libs(self):
+        if self.tool_name == 'binsec':
+            self.tool_flags = "-g" # -static
+            return self.tool_flags, self.tool_libs
+        if self.tool_name == 'ctgrind':
+            self.tool_flags = "-Wall -ggdb  -std=c99  -Wextra"
+            self.tool_libs = "-lctgrind -lm"
+            return self.tool_flags, self.tool_libs
+        if self.tool_name == 'dudect':
+            self.tool_flags = "-std=c11"
+            self.tool_libs = "-lm"
+            return self.tool_flags, self.tool_libs
+        if self.tool_name == 'flowtracker':
+            self.tool_flags = "-emit-llvm -g"
+            self.tool_libs = ""
+            return self.tool_flags, self.tool_libs
+
+    def get_tool_test_file_name(self):
+        if self.tool_name == 'binsec':
+            self.tool_test_file_name = "test_harness"
+            keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+            sign = f'{self.tool_test_file_name}_crypto_sign'
+            return keypair, sign
+        if self.tool_name == 'ctgrind':
+            self.tool_test_file_name = "taint"
+            keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+            sign = f'{self.tool_test_file_name}_crypto_sign'
+            return keypair, sign
+        if self.tool_name == 'dudect':
+            self.tool_test_file_name = "dude"
+            keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+            sign = f'{self.tool_test_file_name}_crypto_sign'
+            return keypair, sign
+        if self.tool_name == 'flowtracker':
+            self.tool_test_file_name = "rbc"
+            keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+            sign = f'{self.tool_test_file_name}_crypto_sign'
+            return keypair, sign
+
+    @staticmethod
+    def binsec_configuration_files():
+        kp_cfg = "cfg_keypair"
+        sign_cfg = "cfg_sign"
+        return kp_cfg, sign_cfg
+
+    def tool_template(self, target_basename: str, target_header_file: str,
+                      secret_arguments: list, path_to_test_harness: str, includes: list):
+        if self.tool_name.lower() == 'binsec':
+            binsec_test_harness_template(target_basename, target_header_file,
+                                         secret_arguments, path_to_test_harness, includes)
+        if self.tool_name.lower() == 'ctgrind':
+            ctgrind_test_harness_template(target_basename, target_header_file,
+                                          secret_arguments, path_to_test_harness, includes)
+        if self.tool_name.lower() == 'dudect':
+            dudect_test_harness_template(target_basename, target_header_file,
+                                         secret_arguments, path_to_test_harness, includes)
+        if self.tool_name.lower() == 'flowtracker':
+            flowtracker_test_harness_template(target_basename, target_header_file,
+                                              secret_arguments, path_to_test_harness)
+        if self.tool_name.lower() == 'ctverif':
+            pass
+        if self.tool_name.lower() == 'libfuzzer':
+            libfuzzer_fuzz_target_template(target_basename, target_header_file,
+                                           path_to_test_harness, includes)
+
+    def tool_execution(self, executable_file: str, config_file: str = None,
+                       output_file: str = None, sse_depth: int = 1000000, stats_file: str = None,
+                       timeout: str | None = None, additional_options: list | None = None) -> None:
+
+        if self.tool_name.lower() == 'binsec':
+            run_binsec(executable_file, config_file, stats_file, output_file, sse_depth, additional_options)
+        if self.tool_name.lower() == 'ctgrind':
+            run_ctgrind(executable_file, output_file)
+        if self.tool_name.lower() == 'dudect':
+            run_dudect(executable_file, output_file, timeout)
+        if self.tool_name.lower() == 'flowtracker':
+            # run_flowtracker(executable_file,config_file, output_file)
+            pass
+        if self.tool_name.lower() == 'ctverif':
+            pass
+
+
+def generic_template(tools_list: list, target_basename: str, target_header_file,
+                      secret_arguments, path_to_test_harness, includes):
+    path_to_test_harness_split = path_to_test_harness.split('/')
+    if path_to_test_harness is None or path_to_test_harness == 'None':
+        path_to_test_harness_split = []
+        path_to_test_harness = ''
+    test_harness_basename = os.path.basename(path_to_test_harness)
+    test_file_basename = test_harness_basename
+    if not test_file_basename.endswith('.c'):
+        test_file_basename = f'test_{target_basename}.c'
+    for tool_name in tools_list:
+        tool_obj = Tools(tool_name)
+        full_path_to_test_harness = ''
+        path_to_test_harness_split_extend = path_to_test_harness_split.copy()
+        if not path_to_test_harness_split_extend:
+            full_path_to_test_harness = f'{tool_name}/{test_file_basename}'
+        else:
+            if tool_name.strip() not in path_to_test_harness_split:
+                if len(path_to_test_harness_split) == 1:
+                    if test_harness_basename.endswith('.c'):
+                        path_to_test_harness_split_extend.insert(0, tool_name)
+                    else:
+                        path_to_test_harness_split_extend.append(tool_name)
+                        path_to_test_harness_split_extend.append(test_file_basename)
+                else:
+                    if test_harness_basename.endswith('.c'):
+                        path_to_test_harness_split_extend.insert(len(path_to_test_harness_split_extend)-1, tool_name)
+                    else:
+                        path_to_test_harness_split_extend.append(tool_name)
+                        path_to_test_harness_split_extend.append(test_file_basename)
+            full_path_to_test_harness = "/".join(path_to_test_harness_split_extend)
+        tool_obj.tool_template(target_basename, target_header_file, secret_arguments, full_path_to_test_harness, includes)
+

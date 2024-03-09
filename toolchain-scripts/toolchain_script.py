@@ -6,6 +6,8 @@
 
 import os
 import argparse
+import subprocess
+import sys
 
 
 import candidates_build as build_candidate
@@ -39,14 +41,34 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
     """ Function: compile_run_candidate"""
     candidates_to_build_with_makefile = ["mirith", "mira", "mqom", "perk", "ryde", "pqsigrm", "wave", "prov",
                                          "snova", "tuov", "uov", "vox", "aimer", "ascon_sign", "faest",
-                                         "sphincs_alpha", "preon", "squirrels", "hawk", "meds", "haetae",
-                                         "hufu", "meds"]
+                                         "sphincs_alpha", "preon", "squirrels", "hawk", "meds",
+                                         "hufu", "meds", "fuleeca", "eaglesign", "ehtv3v4", "sdith", "biscuit",
+                                         "dme_sign", "hppc", "wise", "alteq", "emle", "kaz_sign", "xifrat"]
     candidate_to_build_with_cmake = ["cross", "less", "mayo", "sqisign", "haetae"]
     if candidate in candidates_to_build_with_makefile:
         add_includes = []
         with_cmake = 'no'
         if candidate == "tuov" or candidate == "uov":
             rng_outside_instance_folder = 'yes'
+        if candidate == "eaglesign":
+            for inst in instance_folders_list:
+                incs = f'"../../../{inst}/params.h"'
+                add_includes.append(incs)
+        if candidate == 'alteq':
+            path_to_impl_folder = f'candidates/other/alteq/{optimized_imp_folder}'
+            cmd_str = f'cp {path_to_impl_folder}/api/api.h.1.fe {path_to_impl_folder}/api.h'
+            cmd = cmd_str.split()
+            subprocess.call(cmd, stdin=sys.stdin)
+        if candidate == 'xifrat':
+            print('-------')
+            # if optimized_imp_folder != 'Reference_Implementation':
+            #     path_to_impl_folder = f'candidates/other/xifrat/{optimized_imp_folder}'
+            #     cmd_str = f'cp candidates/other/xifrat/Reference_Implementation/api.h {path_to_impl_folder}/api.h'
+            #     cmd = cmd_str.split()
+            #     subprocess.call(cmd, stdin=sys.stdin)
+            #     cmd_str = f'cp candidates/other/xifrat/Reference_Implementation/rgn.h {path_to_impl_folder}/rng.h'
+            #     cmd = cmd_str.split()
+            #     subprocess.call(cmd, stdin=sys.stdin)
         generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
                                               optimized_imp_folder, instance_folders_list,
                                               rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
@@ -245,15 +267,18 @@ generic.add_generic_cli_templates_arguments(subparser, 'generic_tests', 'templat
 
 # ============ Common default arguments ==============================================
 # List of integrated candidates so far
-list_of_integrated_candidates = ["mirith", "mira", "mqom", "perk", "ryde", "pqsigrm", "wave", "prov",
-                                 "snova", "tuov", "vox", "aimer", "ascon_sign", "faest",
+list_of_integrated_candidates = ["mira", "mqom", "perk", "ryde", "pqsigrm", "wave", "prov",
+                                 "snova", "tuov", "uov", "vox", "aimer", "ascon_sign", "faest",
                                  "sphincs_alpha", "preon", "meds", "haetae", "fuleeca",
-                                 "hufu", "meds", "cross", "less", "mayo", "raccoon", "qr_uov"]
+                                 "hufu", "meds", "cross", "less", "mayo", "raccoon", 'squirrels', "qr_uov", "mirith",
+                                 "eaglesign", "ehtv3v4", "sdith", "biscuit", "dme_sign", "hppc", "wise",
+                                 "alteq", "emle", "kaz_sign", "xifrat"]
 
-# hawk - squirrels - uov - sqisign -
+
+
 
 # Default tools list
-default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker"]
+default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker", "ctverif"]
 # Default algorithms pattern to test
 default_binary_patterns = ["keypair", "sign"]
 
@@ -270,18 +295,19 @@ default_help_message = 'compile and run test'
 
 # Dictionary whose keys are the signature categories and the values are the list of candidates based on that category
 signature_type_based_candidates_dict = {'code': ['fuleeca', 'less', 'meds', 'pqsigrm', 'wave'],
-                                        'lattice': ['haetae', 'hufu', 'raccoon'],
-                                        'mpc-in-the-head': ['cross', 'mira', 'mirith', 'mqom', 'perk', 'ryde'],
-                                        'multivariate': ['mayo', 'prov', 'qr_uov', 'snova', 'tuov', 'vox'],
+                                        'lattice': ['haetae', 'hufu', 'raccoon', 'squirrels', 'eaglesign', 'ehtv3v4'],
+                                        'mpc-in-the-head': ['cross', 'mira', 'mirith', 'mqom', 'perk', 'ryde', 'sdith'],
+                                        'multivariate': ['mayo', 'prov', 'qr_uov', 'snova', 'tuov', 'uov',
+                                                         'vox', 'biscuit', "dme_sign", "hppc", "wise"],
                                         'symmetric': ['aimer', 'ascon_sign', 'faest', 'sphincs_alpha'],
-                                        'other': ['preon']}
+                                        'other': ['preon', 'alteq', 'emle', 'kaz_sign', 'xifrat']}
 
 # candidates_api_sign_rng_path: dictionary whose keys and values are such that:
 #   key:  candidate;
 #   values: list consisting of the api, sign, rng relative path (as explained in the README.md), respond to the
 #   'is the rng in the same folder as a given instance of the candidate'
 
-candidates_api_sign_rng_path = {'fuleeca': ['"../../../Reference_Implementation/api.h"', '""', '"../../../Reference_Implementation/rng.h"', 'no'],
+candidates_api_sign_rng_path = {'fuleeca': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'less': ['"../../include/api.h"', '""', '"../../include/rng.h"', 'no'],
                                 'meds': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'pqsigrm': ['"../../pqsigrm613/src/api.h"', '""', '"../../pqsigrm613/src/rng.h"', 'no'],
@@ -290,24 +316,36 @@ candidates_api_sign_rng_path = {'fuleeca': ['"../../../Reference_Implementation/
                                 'hufu': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'hawk': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'raccoon': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'squirrels': ['"../../../api.h"', '""', '"../../../NIST-kat/rng.h"', 'no'],
+                                'eaglesign': ['"../../../api.h"', '"../../../sign.h"', '"../../../rng.h"', 'no'],
+                                'ehtv3v4': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
+                                'squirrels': ['"../../../api.h"', '""', '"../../../../KAT/generator/katrng.h"', 'yes'],
                                 'cross': ['"../../include/api.h"', '""', '""', 'no'],
                                 'mira': ['"../../../src/api.h"', '""', '"../../../lib/randombytes/randombytes.h"','no'],
                                 'mirith': ['"../../../api.h"', '"../../../sign.h"', '"../../../nist/rng.h"', 'no'],
                                 'mqom': ['"../../../api.h"', '""', '"../../../generator/rng.h"', 'no'],
                                 'perk': ['"../../../src/api.h"', '""', '"../../../lib/randombytes/rng.h"', 'no'],
                                 'ryde': ['"../../../src/api.h"', '""', '"../../../lib/randombytes/randombytes.h"', 'no'],
+                                'sdith': ['"../../../../api.h"', '""', '"../../../../generator/rng.h"', 'no'],
+                                'biscuit': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
+                                'dme_sign': ['"../../../../api.h"', '""', '"../../../../rng.h"', 'no'],
+                                'hppc': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
+                                'wise': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'mayo': ['"../../../../api.h"', '""', '"../../../../../include/rng.h"', 'yes'],
                                 'prov': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'qr_uov': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'snova': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'tuov': ['"../../../api.h"', '""', '"../../../nistkat/rng.h"', 'yes'],
+                                'uov': ['"../../../../api.h"', '""', '"../../../../nistkat/rng.h"', 'yes'],
                                 'vox': ['"../../../api.h"', '""', '"../../../rng/rng.h"', 'no'],
                                 'aimer': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
                                 'ascon_sign': ['"../../../../api.h"', '""', '"../../../../rng.h"', 'no'],
                                 'faest': ['"../../../api.h"', '""', '"../../../NIST-KATs/rng.h"', 'no'],
                                 'sphincs_alpha': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'preon': ['"../../../../api.h"', '""', '"../../../../rng.h"', 'no']}
+                                'preon': ['"../../../../api.h"', '""', '"../../../../rng.h"', 'no'],
+                                'alteq': ['"../../api.h"', '""', '""', 'no'],
+                                'emle': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
+                                'kaz_sign': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
+                                'xifrat': ['"../../Reference_Implementation/api.h"', '""', '"../../Reference_Implementation/rng.h"', 'no']}
 
 
 # =============================================================================================
@@ -346,6 +384,8 @@ mirith_default_list_of_folders = generic.get_default_list_of_folders(mirith_defa
 # neon-based implementation is not taken into account yet
 mirith_default_list_of_folders = [instance for instance in mirith_default_list_of_folders if 'neon' not in instance]
 
+
+
 # ================================ perk =========================================================
 perk_implementations_folders = {'ref': 'Reference_Implementation',
                                 'opt': 'Optimized_Implementation',
@@ -368,6 +408,19 @@ ryde_implementations_folders = {'ref': 'Reference_Implementation',
                                 'opt': 'Optimized_Implementation',
                                 'add': ''}
 ryde_default_list_of_folders = ['ryde128f', 'ryde128s', 'ryde192f', 'ryde192s', 'ryde256f', 'ryde256s']
+# ============================== sdith =============================================================
+sdith_implementations_folders = {'ref': 'Reference_Implementation',
+                                 'opt': 'Optimized_Implementation',
+                                 'add': ''}
+sdith_opt_folder_hypercube = "candidates/mpc-in-the-head/sdith/Optimized_Implementation/Hypercube_Variant"
+sdith_opt_folder_threshold = "candidates/mpc-in-the-head/sdith/Optimized_Implementation/Threshold_Variant"
+hypercube_instances = os.listdir(sdith_opt_folder_hypercube)
+hypercube_instances = [f'Hypercube_Variant/{instance}' for instance in hypercube_instances]
+threshold_instances = os.listdir(sdith_opt_folder_threshold)
+threshold_instances = [f'Threshold_Variant/{instance}' for instance in threshold_instances]
+
+sdith_default_list_of_folders = hypercube_instances.copy()
+sdith_default_list_of_folders.extend(threshold_instances)
 # ====================================== CODE ======================================================
 # ====================================== pqsigrm ===================================================
 pqsigrm_implementations_folders = {'ref': 'Reference_Implementation',
@@ -401,6 +454,21 @@ wave_implementations_folders = {'ref': 'Reference_Implementation',
                                 'add': ''}
 wave_default_list_of_folders = ['Wave1249', 'Wave1644', 'Wave822']
 # ====================================== LATTICE =================================================
+# ====================================== eagle_sign ===============================================
+eaglesign_implementations_folders = {'ref': 'Specifications_and_Supporting_Documentation/Reference_Implementation',
+                                     'opt': 'Specifications_and_Supporting_Documentation/Optimized_Implementation',
+                                     'add': ''}
+eaglesign_default_list_of_folders = ['EagleSign3', 'EagleSign5']
+# eaglesign_opt_folder = f'candidates/lattice/eaglesign/'
+# eaglesign_opt_folder += f'Specifications_and_Supporting_Documentation/Optimized_Implementation'
+# eaglesign_default_list_of_folders = os.listdir(eaglesign_opt_folder)
+# eaglesign_default_list_of_folders = generic.get_default_list_of_folders(eaglesign_default_list_of_folders,
+#                                                                         default_tools_list)
+# ====================================== ehtv3v4 ===============================================
+ehtv3v4_implementations_folders = {'ref': 'Reference_Implementation/crypto_sign',
+                                   'opt': 'Optimized_Implementation/crypto_sign',
+                                   'add': ''}
+ehtv3v4_default_list_of_folders = ['ehtv3l1', 'ehtv3l3', 'ehtv3l5', 'ehtv4l1', 'ehtv4l5']
 # ====================================== squirrels ===============================================
 # [TODO:Path to /KAT/generator/katrng.h]
 squirrels_implementations_folders = {'ref': 'Reference_Implementation',
@@ -454,6 +522,31 @@ mayo_implementations_folders = {'ref': 'Reference_Implementation',
                                 'opt': 'Optimized_Implementation',
                                 'add': 'Additional_Implementations/AVX2'}
 mayo_default_list_of_folders = ["src/mayo_1", "src/mayo_2", "src/mayo_3", "src/mayo_5"]
+# =============================================== biscuit ===========================================
+biscuit_implementations_folders = {'ref': 'Reference_Implementation',
+                                   'opt': 'Optimized_Implementation',
+                                   'add': 'Additional_Implementations/ss2'}
+biscuit_default_list_of_folders = ["biscuit128f", "biscuit128s", "biscuit192f", "biscuit192s",
+                                   "biscuit256f", "biscuit256s"]
+# =============================================== dme_sign ===========================================
+dme_sign_implementations_folders = {'ref': 'DME-SIGN_nist-pqc-2023',
+                                    'opt': 'DME-SIGN_nist-pqc-2023',
+                                    'add': ''}
+dme_fold = 'DME-SIGN_nist-pqc-2023'
+opt_impl = 'Optimized_Implementation'
+dme_sign_default_list_of_folders = [f"{dme_fold}/dme-3rnds-8vars-32bits-sign/{opt_impl}",
+                                    f"{dme_fold}/dme-3rnds-8vars-48bits-sign/{opt_impl}",
+                                    f"{dme_fold}/dme-3rnds-8vars-64bits-sign/{opt_impl}"]
+# =============================================== hppc ===========================================
+hppc_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': ''}
+hppc_default_list_of_folders = ["HPPC128", "HPPC192", "HPPC256"]
+# =============================================== wise ===========================================
+wise_implementations_folders = {'ref': 'Reference_Implementation',
+                                'opt': 'Optimized_Implementation',
+                                'add': ''}
+wise_default_list_of_folders = ["3WISE-128", "3WISE-192", "3WISE-256"]
 # ================================================ prov ===========================================
 prov_implementations_folders = {'ref': 'Reference_Implementation',
                                 'opt': 'Optimized_Implementation',
@@ -556,6 +649,26 @@ preon_implementations_folders = {'ref': 'Reference_Implementation',
 preon_default_list_of_folders = ['Preon128/Preon128A', 'Preon128/Preon128B', 'Preon128/Preon128C',
                                  'Preon192/Preon192A', 'Preon192/Preon192B', 'Preon192/Preon192C',
                                  'Preon256/Preon256A', 'Preon256/Preon256B', 'Preon256/Preon256C']
+# =============================================== alteq ===========================================
+alteq_implementations_folders = {'ref': 'Reference_Implementation',
+                                 'opt': 'Optimized_Implementation',
+                                 'add': ''}
+alteq_default_list_of_folders = []
+# =============================================== emle ===========================================
+emle_implementations_folders = {'ref': 'Reference_Implementation/crypto_sign',
+                                'opt': 'Reference_Implementation/crypto_sign',
+                                'add': 'Additional_Implementations/aesni/crypto_sign'}
+emle_default_list_of_folders = ["eMLE-Sig-I", "eMLE-Sig-III", "eMLE-Sig-V"]
+# =============================================== kaz_sign ===========================================
+kaz_sign_implementations_folders = {'ref': 'Reference_Implementation',
+                                    'opt': 'Optimized_Implementation',
+                                    'add': ''}
+kaz_sign_default_list_of_folders = ["Kaz458", "Kaz738", "Kaz970"]
+# =============================================== xifrat ===========================================
+xifrat_implementations_folders = {'ref': 'Reference_Implementation',
+                                  'opt': 'Optimized_Implementation',
+                                  'add': 'ReduceSec_Implementation'}
+xifrat_default_list_of_folders = []
 # ======================================================= ISOGENY ============================
 # ======================================================= sqisign ============================
 # [TODO]

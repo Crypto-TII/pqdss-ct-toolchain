@@ -631,6 +631,202 @@ def makefile_ryde(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         mfile.write(textwrap.dedent(makefile_content))
 
 
+# =================================== SDITH ======================================
+def get_sdith_level_and_field(subfolder):
+    instance_basename = os.path.basename(subfolder)
+    instance_split = instance_basename.split('_')
+    sdith_field = instance_split[-1]
+    sdith_level = instance_split[2][-1]
+    return sdith_level, sdith_field
+
+
+def makefile_sdith(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    sdith_level, sdith_field = get_sdith_level_and_field(subfolder)
+    sdith_field = sdith_field.upper()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    ref_opt = 'avx2'
+    if implementation_type == 'ref':
+        ref_opt = 'ref'
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        CC=gcc
+        BASE_DIR = ../../../{subfolder}
+        
+        .POSIX:
+        
+        VARIANT = {ref_opt}
+        FIELD = {sdith_field}
+        SEC_LEVEL = CAT_{sdith_level}
+        
+        HASH_PATH=$(BASE_DIR)/sha3
+        HASH_INCLUDE=-I$(BASE_DIR)/sha3/avx2
+        
+        ifeq ($(VARIANT), avx2)
+        \tAVXFLAGS = -DAVX2 -mavx2 -mpclmul -mgfni -mavx -maes
+        \tHASH_MAKE_OPTIONS = PLATFORM=avx2
+        else
+        \tAVXFLAGS =
+        \tHASH_MAKE_OPTIONS = PLATFORM=opt64
+        endif
+        
+        CFLAGS = -W -Wall -O3 -fPIC -DNDEBUG -D${{SEC_LEVEL}} -std=c11
+        
+        
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        ifeq ($(VARIANT), avx2)
+            GF256_SRC = $(BASE_DIR)/gf256.c $(BASE_DIR)/gf2p32.c $(BASE_DIR)/gf256-avx2-polytable-ct.c \
+             $(BASE_DIR)/gf256-avx2.c $(BASE_DIR)/gf256-avx2-gfni.c $(BASE_DIR)/gf256-avx-pclmul.c
+            P251_SRC = $(BASE_DIR)/p251.c $(BASE_DIR)/p251p4.c $(BASE_DIR)/p251-avx2-ct.c
+        else
+            GF256_SRC = $(BASE_DIR)/gf2p32.c $(BASE_DIR)/gf256.c
+            P251_SRC = $(BASE_DIR)/p251.c $(BASE_DIR)/p251p4.c
+        endif
+        
+        ifeq ($(FIELD), GF256)
+            FIELD_SRC = ${{GF256_SRC}}
+        else
+            FIELD_SRC = ${{P251_SRC}}
+        endif
+        
+        CRYPTO_SRC = $(BASE_DIR)/hash-sha3.c $(BASE_DIR)/rng.c $(BASE_DIR)/treeprg.c
+        SDITH_SRC = $(BASE_DIR)/sdith.c $(BASE_DIR)/precomputed.c $(BASE_DIR)/sign.c
+        
+        
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+          
+        .PHONY: all
+        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        libhash:
+        \t$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH)
+        
+        
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c ${{SRC}} ${{FIELD_SRC}} ${{CRYPTO_SRC}} ${{SDITH_SRC}} \
+        $(BASE_DIR)/generator/rng.c  libhash
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t-${{CC}} ${{CFLAGS}} ${{AVXFLAGS}} $(TOOL_FLAGS) -o $(BUILD)/$@ ${{SRC}} ${{FIELD_SRC}} ${{CRYPTO_SRC}}\
+         ${{SDITH_SRC}} $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/generator/rng.c -I. ${{HASH_INCLUDE}} -L${{HASH_PATH}} -lcrypto -lhash $(TOOL_LIBS)
+         
+         
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c ${{SRC}} ${{FIELD_SRC}} ${{CRYPTO_SRC}} ${{SDITH_SRC}} \
+        $(BASE_DIR)/generator/rng.c  libhash
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t-${{CC}} ${{CFLAGS}} ${{AVXFLAGS}} $(TOOL_FLAGS) -o $(BUILD)/$@ ${{SRC}} ${{FIELD_SRC}} ${{CRYPTO_SRC}}\
+         ${{SDITH_SRC}} $(EXECUTABLE_SIGN).c $(BASE_DIR)/generator/rng.c -I. ${{HASH_INCLUDE}} -L${{HASH_PATH}} -lcrypto -lhash $(TOOL_LIBS)
+         
+        
+        clean:
+        \t-rm $(OBJS) $(BASE_DIR)/prng/prng.o $(BASE_DIR)/prng/prng-nist.o $(BASE_DIR)/NIST-kat/rng.o    
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
 # =============================== MIRA =================================
 def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
     tool_type = gen_funct.Tools(tool_name)
@@ -783,154 +979,154 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         mfile.write(textwrap.dedent(makefile_content))
 
 
-# =================================== SDITH ====================================
-def makefile_sdith(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
-    tool_type = gen_funct.Tools(tool_name)
-    test_keypair, test_sign = tool_type.get_tool_test_file_name()
-    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
-    path_to_makefile = path_to_makefile_folder+'/Makefile'
-    if tool_name == 'flowtracker':
-        makefile_content = f'''
-        CC = clang
-        
-        BASE_DIR = ../../{subfolder}/src
-        
-        INCS = $(wildcard $(BASE_DIR)/*.h)
-        #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
-        SRC  = $(filter-out  $(SRC_DIR)/sign.c $(SRC_DIR)/PQCgenKAT_sign.c,$(wildcard $(SRC_DIR)/*.c))
-        SIGN = $(BASE_DIR)/nist_sign.c
-        
-        BUILD			= build
-        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN		= $(BUILD)/{candidate}_sign
-        
-        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
-        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
-        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
-        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
-        
-        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
-         
-        
-        
-        $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
-        
-        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
-        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
-        
-        $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
-        
-        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
-        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
-            
-        .PHONY: clean
-          
-        clean:
-        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
-        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
-        '''
-    else:
-        makefile_content = f'''
-        SCRIPT_VERSION=v1.0
-        SCRIPT_AUTHOR=MIRA team
-        
-        CC=gcc
-        C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -g
-        
-        BASE_DIR = ../../{subfolder}
-        
-        RANDOMBYTES_SRC:=$(BASE_DIR)/lib/randombytes/randombytes.c
-        RANDOMBYTES_INCLUDE:=-I $(BASE_DIR)/lib/randombytes -lcrypto
-        
-        XKCP_SRC:=$(BASE_DIR)/lib/XKCP
-        XKCP_SRC_SIMPLE:=$(XKCP_SRC)/SimpleFIPS202.c
-        XKCP_INCLUDE:=-I$(XKCP_SRC) -I$(XKCP_SRC)/avx2
-        XKCP_INCLUDE_SIMPLE:=-I $(XKCP_SRC)
-        XKCP_LINKER:=-L$(XKCP_SRC) -lshake
-        
-        WRAPPER_SRC:=$(BASE_DIR)/src/wrapper
-        WRAPPER_INCLUDE:=-I $(WRAPPER_SRC)
-        
-        FFI_SRC:=$(BASE_DIR)/src/finite_fields
-        FFI_INCLUDE:=-I $(FFI_SRC)
-        
-        SRC:=$(BASE_DIR)/src
-        INCLUDE:=-I $(BASE_DIR)/src $(FFI_INCLUDE) $(WRAPPER_INCLUDE) $(XKCP_INCLUDE) $(RANDOMBYTES_INCLUDE)
-        
-        
-        MIRA_OBJS:=finite_fields.o keygen.o sign.o verify.o nist_sign.o mpc.o parsing.o tree.o
-        LIB_OBJS:=SimpleFIPS202.o randombytes.o
-        
-        BUILD:=build
-        BIN:=build/bin
-        BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN			= $(BUILD)/{candidate}_sign
-        
-        BINSEC_STATIC_FLAG      = -static
-        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
-        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
-        
-        TOOL_LIBS = {tool_libs}
-        TOOL_FLAGS = {tool_flags}
-        
-        folders:
-        \t@echo -e "### Creating build/bin folders"
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BIN)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \tmkdir -p $(BUILD_SIGN) 
-        
-        
-        randombytes.o: folders
-        \t@echo -e "### Compiling $@"
-        \t$(CC) $(C_FLAGS) -c $(RANDOMBYTES_SRC) $(RANDOMBYTES_INCLUDE) -o $(BIN)/$@
-        
-        SimpleFIPS202.o: folders
-        \t@echo -e "### Compiling $@"
-        \t$(CC) $(C_FLAGS) -c $(XKCP_SRC_SIMPLE) $(XKCP_INCLUDE_SIMPLE) $(XKCP_INCLUDE) $(XKCP_LINKER)\
-         -o $(BIN)/SimpleFIPS202.o
-        
-        xkcp: folders
-        \t@echo -e "### Compiling XKCP"
-        \tmake -C $(XKCP_SRC)
-        
-        
-        finite_fields.o: $(FFI_SRC)/finite_fields.c | folders
-        \t@echo -e "### Compiling finite_fields"
-        \t$(CC) $(C_FLAGS) -c $< $(FFI_INCLUDE) $(WRAPPER_INCLUDE) $(XKCP_INCLUDE) -o $(BIN)/$@
-        
-        %.o: $(SRC)/%.c | folders
-        \t@echo -e "### Compiling $@"
-        \t$(CC) $(C_FLAGS) -c $< $(INCLUDE) -o $(BIN)/$@
-        
-        
-        all:  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)  ##@Build Build all the project
-        
-        $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
-        \t@echo -e "### Compiling MIRA-128F (test harness keypair)"
-        \t$(CC) $(TOOL_FLAGs) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^)\
-         $(INCLUDE) $(XKCP_LINKER) $(TOOL_LIBS) -o $(BUILD)/$@
-        
-        $(EXECUTABLE_SIGN): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
-        \t@echo -e "### Compiling MIRA-128F (test harness sign)"
-        \t$(CC) $(TOOL_FLAGs) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^) \
-        $(INCLUDE) $(XKCP_LINKER) $(TOOL_LIBS) -o $(BUILD)/$@
-        
-        .PHONY: clean
-        clean:
-        \tmake -C $(XKCP_SRC) clean
-        \trm -f $(EXECUTABLE_KEYPAIR)
-        \trm -f $(EXECUTABLE_SIGN)
-        \trm -rf $(BUILD)/bin
-        '''
-    with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content))
+# # =================================== SDITH ====================================
+# def makefile_sdith(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+#     tool_type = gen_funct.Tools(tool_name)
+#     test_keypair, test_sign = tool_type.get_tool_test_file_name()
+#     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+#     path_to_makefile = path_to_makefile_folder+'/Makefile'
+#     if tool_name == 'flowtracker':
+#         makefile_content = f'''
+#         CC = clang
+#
+#         BASE_DIR = ../../{subfolder}/src
+#
+#         INCS = $(wildcard $(BASE_DIR)/*.h)
+#         #SRC  = $(wildcard $(BASE_DIR)/*.c))
+#         SRC  = $(filter-out  $(SRC_DIR)/sign.c $(SRC_DIR)/PQCgenKAT_sign.c,$(wildcard $(SRC_DIR)/*.c))
+#         SIGN = $(BASE_DIR)/nist_sign.c
+#
+#         BUILD			= build
+#         BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+#         BUILD_SIGN		= $(BUILD)/{candidate}_sign
+#
+#         EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+#         EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+#         EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+#         EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+#
+#         all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+#
+#
+#
+#         $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
+#         \tmkdir -p $(BUILD)
+#         \tmkdir -p $(BUILD_KEYPAIR)
+#         \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+#
+#         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+#         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+#
+#         $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
+#         \tmkdir -p $(BUILD)
+#         \tmkdir -p $(BUILD_SIGN)
+#         \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+#
+#         $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+#         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+#
+#         .PHONY: clean
+#
+#         clean:
+#         \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+#         \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+#         '''
+#     else:
+#         makefile_content = f'''
+#         SCRIPT_VERSION=v1.0
+#         SCRIPT_AUTHOR=MIRA team
+#
+#         CC=gcc
+#         C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -g
+#
+#         BASE_DIR = ../../{subfolder}
+#
+#         RANDOMBYTES_SRC:=$(BASE_DIR)/lib/randombytes/randombytes.c
+#         RANDOMBYTES_INCLUDE:=-I $(BASE_DIR)/lib/randombytes -lcrypto
+#
+#         XKCP_SRC:=$(BASE_DIR)/lib/XKCP
+#         XKCP_SRC_SIMPLE:=$(XKCP_SRC)/SimpleFIPS202.c
+#         XKCP_INCLUDE:=-I$(XKCP_SRC) -I$(XKCP_SRC)/avx2
+#         XKCP_INCLUDE_SIMPLE:=-I $(XKCP_SRC)
+#         XKCP_LINKER:=-L$(XKCP_SRC) -lshake
+#
+#         WRAPPER_SRC:=$(BASE_DIR)/src/wrapper
+#         WRAPPER_INCLUDE:=-I $(WRAPPER_SRC)
+#
+#         FFI_SRC:=$(BASE_DIR)/src/finite_fields
+#         FFI_INCLUDE:=-I $(FFI_SRC)
+#
+#         SRC:=$(BASE_DIR)/src
+#         INCLUDE:=-I $(BASE_DIR)/src $(FFI_INCLUDE) $(WRAPPER_INCLUDE) $(XKCP_INCLUDE) $(RANDOMBYTES_INCLUDE)
+#
+#
+#         MIRA_OBJS:=finite_fields.o keygen.o sign.o verify.o nist_sign.o mpc.o parsing.o tree.o
+#         LIB_OBJS:=SimpleFIPS202.o randombytes.o
+#
+#         BUILD:=build
+#         BIN:=build/bin
+#         BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
+#         BUILD_SIGN			= $(BUILD)/{candidate}_sign
+#
+#         BINSEC_STATIC_FLAG      = -static
+#         EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+#         EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+#
+#         TOOL_LIBS = {tool_libs}
+#         TOOL_FLAGS = {tool_flags}
+#
+#         folders:
+#         \t@echo -e "### Creating build/bin folders"
+#         \tmkdir -p $(BUILD)
+#         \tmkdir -p $(BIN)
+#         \tmkdir -p $(BUILD_KEYPAIR)
+#         \tmkdir -p $(BUILD_SIGN)
+#
+#
+#         randombytes.o: folders
+#         \t@echo -e "### Compiling $@"
+#         \t$(CC) $(C_FLAGS) -c $(RANDOMBYTES_SRC) $(RANDOMBYTES_INCLUDE) -o $(BIN)/$@
+#
+#         SimpleFIPS202.o: folders
+#         \t@echo -e "### Compiling $@"
+#         \t$(CC) $(C_FLAGS) -c $(XKCP_SRC_SIMPLE) $(XKCP_INCLUDE_SIMPLE) $(XKCP_INCLUDE) $(XKCP_LINKER)\
+#          -o $(BIN)/SimpleFIPS202.o
+#
+#         xkcp: folders
+#         \t@echo -e "### Compiling XKCP"
+#         \tmake -C $(XKCP_SRC)
+#
+#
+#         finite_fields.o: $(FFI_SRC)/finite_fields.c | folders
+#         \t@echo -e "### Compiling finite_fields"
+#         \t$(CC) $(C_FLAGS) -c $< $(FFI_INCLUDE) $(WRAPPER_INCLUDE) $(XKCP_INCLUDE) -o $(BIN)/$@
+#
+#         %.o: $(SRC)/%.c | folders
+#         \t@echo -e "### Compiling $@"
+#         \t$(CC) $(C_FLAGS) -c $< $(INCLUDE) -o $(BIN)/$@
+#
+#
+#         all:  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)  ##@Build Build all the project
+#
+#         $(EXECUTABLE_KEYPAIR): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
+#         \t@echo -e "### Compiling MIRA-128F (test harness keypair)"
+#         \t$(CC) $(TOOL_FLAGs) $(C_FLAGS) $(EXECUTABLE_KEYPAIR).c $(addprefix $(BIN)/, $^)\
+#          $(INCLUDE) $(XKCP_LINKER) $(TOOL_LIBS) -o $(BUILD)/$@
+#
+#         $(EXECUTABLE_SIGN): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build generate KAT files
+#         \t@echo -e "### Compiling MIRA-128F (test harness sign)"
+#         \t$(CC) $(TOOL_FLAGs) $(C_FLAGS) $(EXECUTABLE_SIGN).c $(addprefix $(BIN)/, $^) \
+#         $(INCLUDE) $(XKCP_LINKER) $(TOOL_LIBS) -o $(BUILD)/$@
+#
+#         .PHONY: clean
+#         clean:
+#         \tmake -C $(XKCP_SRC) clean
+#         \trm -f $(EXECUTABLE_KEYPAIR)
+#         \trm -f $(EXECUTABLE_SIGN)
+#         \trm -rf $(BUILD)/bin
+#         '''
+#     with open(path_to_makefile, "w") as mfile:
+#         mfile.write(textwrap.dedent(makefile_content))
 
 
 # =============================== CROSS =========================================
@@ -1554,66 +1750,164 @@ def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_name, candidate, i
     tool_type = gen_funct.Tools(tool_name)
     test_keypair, test_sign = tool_type.get_tool_test_file_name()
     tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
-    subfolder = ""
-    src_folder = 'pqsigrm613'
+    fuleeca_level = subfolder[-1]
     path_to_makefile = path_to_makefile_folder+'/Makefile'
-    makefile_content = f'''
-    CC = gcc
-    LDFLAGS =  -L/usr/local/lib
-    CFLAGS = -I/usr/local/include -Wunused-variable -Wunused-function -mavx2
-    LIBFLAGS = -lcrypto -lssl -lm
-    
-    BASE_DIR = ../{src_folder}
-     
-    
-    CFILES := $(shell find $(BASE_DIR)/src -name '*.c' | sed -e 's/\.c/\.o/')
-    
-    OBJS = ${{CFILES}}
-    
-    BUILD					= build
-    BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-    BUILD_SIGN			= $(BUILD)/{candidate}_sign
+    message = ''
+    if implementation_type == 'ref':
+        message = '# Same as Optimized implementation'
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
         
-    EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
-    EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
-    
-    TOOL_LIBS = {tool_libs}
-    TOOL_FLAGS = {tool_flags}
-    
-    
-    ifeq ($(DEBUG), 1)
-    \tDBG_FLAGS = -g -O0 -DDEBUG
-    else
-    \tDBG_FLAGS = -g -O2 -DNDEBUG -Wunused-variable -Wunused-function   
-    endif
-    
-    all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-    
-    %.o : %.c
-    \t$(CC) $(CFLAGS) $(DBG_FLAGS) -o $@ -c $<
-    
-    
-    $(EXECUTABLE_KEYPAIR): ${{OBJS}} {candidate}_keypair/$(EXECUTABLE_KEYPAIR).c
-    \tmkdir -p $(BUILD)
-    \tmkdir -p $(BUILD_KEYPAIR)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
-    
-    $(EXECUTABLE_SIGN): ${{OBJS}} {candidate}_sign/$(EXECUTABLE_SIGN).c
-    \tmkdir -p $(BUILD)
-    \tmkdir -p $(BUILD_SIGN)
-    \t$(CC) $(LDFLAGS) $(CFLAGS) $(TOOL_FLAGS) $(DBG_FLAGS) -o $(BUILD)/$@ $^ $(LIBFLAGS) $(TOOL_LIBS)
-    
-    matrix.o : matrix.h
-    rng.o : rng.h
-    api.o : api.h
-    
-    
-    clean:
-    \tcd  $(BASE_DIR)/src; rm -f *.o; cd ..
-    \trm -f *.o
-    \t cd ../../{candidate}
-    \trm -f  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-    '''
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/sign.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        {message}
+        CC ?= /usr/bin/cc
+        BASE_DIR = ../../{subfolder}
+        
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        CFLAGS += -std=c11 -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls \
+          -Wshadow -Wpointer-arith -Wreturn-local-addr -O3 -mtune=native -march=native
+        NISTFLAGS += -Wno-unused-result -O3
+        
+        SOURCES = $(BASE_DIR)/sign.c $(BASE_DIR)/poly.c $(BASE_DIR)/coeff.c $(BASE_DIR)/utils.c $(BASE_DIR)/encode.c
+        HEADERS = $(BASE_DIR)/config.h $(BASE_DIR)/params.h $(BASE_DIR)/api.h $(BASE_DIR)/sign.h $(BASE_DIR)/poly.h\
+        $(BASE_DIR)/coeff.h $(BASE_DIR)/utils.h $(BASE_DIR)/encode.h
+        KECCAK_SOURCES = $(SOURCES) $(BASE_DIR)/fips202.c
+        KECCAK_HEADERS = $(HEADERS) $(BASE_DIR)/fips202.h
+        
+        
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+          
+        .PHONY: all shared
+        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        shared: \
+        fuleeca{fuleeca_level}_ref.so \
+        fuleeca_fips202_ref.so \
+        
+        fuleeca_fips202_ref.so: fips202.c fips202.h
+        \t$(CC) -shared -fPIC $(CFLAGS) -o $@ $<
+
+        fuleeca{fuleeca_level}_ref.so: $(SOURCES) $(HEADERS)
+        \t$(CC) -shared -fPIC $(CFLAGS) -DLEESIGN_MODE={fuleeca_level} -o $@ $(SOURCES)
+        
+        
+        
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/rng.c $(BASE_DIR)/rng.h $(KECCAK_SOURCES) \
+         $(KECCAK_HEADERS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(TOOL_FLAGS) $(NISTFLAGS) -o $(BUILD)/$@  $< $(BASE_DIR)/rng.c $(KECCAK_SOURCES) $(LDFLAGS) -lcrypto  $(TOOL_LIBS)
+        
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(BASE_DIR)/rng.c $(BASE_DIR)/rng.h $(KECCAK_SOURCES) \
+         $(KECCAK_HEADERS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(TOOL_FLAGS) $(NISTFLAGS) -o $(BUILD)/$@  $< $(BASE_DIR)/rng.c $(KECCAK_SOURCES) $(LDFLAGS) -lcrypto  $(TOOL_LIBS)
+        
+        
+        clean:
+        \trm -f $(BASE_DIR)/*.o $(BASE_DIR)/*.i  $(BASE_DIR)/*.s
+        \trm -f $(BASE_DIR)/fuleeca{fuleeca_level}_ref.so
+        \trm -f $(BASE_DIR)/fuleeca_fips202_ref.so
+        '''
     with open(path_to_makefile, "w") as mfile:
         mfile.write(textwrap.dedent(makefile_content))
 
@@ -1742,7 +2036,55 @@ def makefile_wave(path_to_makefile_folder, subfolder, tool_name, candidate, impl
     message = ''
     if implementation_type == 'ref':
         message = '# Same as Optimized implementation'
-    if tool_name == 'flowtracker':
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
         
@@ -1838,8 +2180,324 @@ def makefile_wave(path_to_makefile_folder, subfolder, tool_name, candidate, impl
 
 # =============================== LATTICE ======================================
 # ==============================================================================
-# ===============================  SQUIRRELS ===================================
+# ========================== EAGLESIGN ========================================
+def makefile_eaglesign(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    eagle_sign_level = subfolder[-1]
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    avx2_flag = ''
+    if implementation_type == 'opt':
+        avx2_flag = '-mavx2'
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/sign.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        CC ?= /usr/bin/cc
+        BASE_DIR = ../../{subfolder}
+        
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        CFLAGS += {avx2_flag}
+        NISTFLAGS += {avx2_flag}
+        
+        
+        SOURCES = $(BASE_DIR)/sign.c $(BASE_DIR)/packing.c $(BASE_DIR)/polyvec.c $(BASE_DIR)/poly.c $(BASE_DIR)/ntt.c \
+         $(BASE_DIR)/reduce.c $(BASE_DIR)/polymatrix.c
+        HEADERS = $(BASE_DIR)/config.h $(BASE_DIR)/params.h $(BASE_DIR)/api.h $(BASE_DIR)/sign.h $(BASE_DIR)/packing.h \
+         $(BASE_DIR)/polymatrix.h $(BASE_DIR)/polyvec.h $(BASE_DIR)/poly.h $(BASE_DIR)/ntt.h \
+          $(BASE_DIR)/reduce.h $(BASE_DIR)/symmetric.h $(BASE_DIR)/randombytes.h
+        KECCAK_SOURCES = $(SOURCES) $(BASE_DIR)/fips202.c $(BASE_DIR)/symmetric-shake.c
+        KECCAK_HEADERS = $(HEADERS) $(BASE_DIR)/fips202.h
+            
+        
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+          
+        .PHONY: all shared
+        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        shared: \
+        \tlibpq_eaglesign{eagle_sign_level}_ref.so \
+        \tlibpq_fips202_ref.so \
+        \tlibpq_aes256ctr_ref.so \
+        
+        
+        libpq_fips202_ref.so: $(BASE_DIR)/fips202.c $(BASE_DIR)/fips202.h
+        \t$(CC) -shared -fPIC $(CFLAGS) -o $@ $<
 
+        libpq_aes256ctr_ref.so: $(BASE_DIR)/aes256ctr.c $(BASE_DIR)/aes256ctr.h
+        \t$(CC) -shared -fPIC $(CFLAGS) -o $@ $<
+        
+        libpq_eaglesign{eagle_sign_level}_ref.so: $(SOURCES) $(HEADERS) $(BASE_DIR)/symmetric-shake.c
+        \t$(CC) -shared -fPIC $(CFLAGS) -DEAGLESIGN_MODE={eagle_sign_level} \
+        \t -o $@ $(SOURCES) $(BASE_DIR)/symmetric-shake.c
+        
+        
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/rng.c $(KECCAK_SOURCES) $(KECCAK_HEADERS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(TOOL_FLAGS) $(NISTFLAGS) -DEAGLESIGN_MODE={eagle_sign_level} -o $(BUILD)/$@  $< $(BASE_DIR)/rng.c \
+         $(KECCAK_SOURCES) -lcrypto  $(TOOL_LIBS)
+        
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(BASE_DIR)/rng.c $(KECCAK_SOURCES) $(KECCAK_HEADERS)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(TOOL_FLAGS) $(NISTFLAGS) -DEAGLESIGN_MODE={eagle_sign_level} -o $(BUILD)/$@  $< $(BASE_DIR)/rng.c \
+         $(KECCAK_SOURCES) -lcrypto  $(TOOL_LIBS)
+        
+        
+        clean:
+        \trm -f $(BASE_DIR)/*.o
+        \trm -f $(BASE_DIR)/libpq_eaglesign{eagle_sign_level}_ref.so
+        \trm -f $(BASE_DIR)/libpq_fips202_ref.so
+        \trm -f $(BASE_DIR)/libpq_aes256ctr_ref.so
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
+# ========================== EHTV3V4 ========================================
+def makefile_ehtv3v4(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/sign.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        CC ?= /usr/bin/cc
+        BASE_DIR = ../../{subfolder}
+        
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        
+        CFLAGS = -g -O3 -std=c99
+        LDFLAGS = -static-libgcc -lssl -lcrypto -lm
+
+        HEADERS = $(wildcard $(BASE_DIR)/*.h)
+        SOURCES = $(filter-out  $(BASE_DIR)/PQCgenKAT_sign.c, $(wildcard $(BASE_DIR)/*.c))
+        
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+          
+        .PHONY: all
+        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(HEADERS) $(SOURCES) 
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(TOOL_FLAGS) $(CFLAGS) -o $(BUILD)/$@ $<  $(SOURCES) $(LDFLAGS)  $(TOOL_LIBS)
+        
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(HEADERS) $(SOURCES) 
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(TOOL_FLAGS) $(CFLAGS) -o $(BUILD)/$@ $< $(SOURCES) $(LDFLAGS)  $(TOOL_LIBS)
+        
+        
+        clean:
+        \trm -f $(BASE_DIR)/*.o
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
+# ===============================  SQUIRRELS ===================================
 def squirrels_level(subfolder):
     subfolder_split = subfolder.split("-")
     level_roman_digest = subfolder_split[-1]
@@ -1931,17 +2589,19 @@ def makefile_squirrels(path_to_makefile_folder, subfolder, tool_name, candidate,
         \t-L../../../lib/build/fplll/lib -Wl,-rpath,$(LIBSRPATH)/fplll/lib -lfplll \
         \t-lstdc++
         
-        OBJ1 = $(BASE_DIR)/build/codec.o $(BASE_DIR)/build/common.o $(BASE_DIR)/build/keygen_lll.o \
-        $(BASE_DIR)/build/keygen.o  $(BASE_DIR)/build/minors.o $(BASE_DIR)/build/nist.o $(BASE_DIR)/build/normaldist.o \
-        $(BASE_DIR)/build/param.o $(BASE_DIR)/build/sampler.o $(BASE_DIR)/build/shake.o $(BASE_DIR)/build/sign.o \
-        $(BASE_DIR)/build/vector.o
+        OBJ = $(BIN)/codec.o $(BIN)/common.o $(BIN)/keygen_lll.o \
+        $(BIN)/keygen.o  $(BIN)/minors.o $(BIN)/nist.o $(BIN)/normaldist.o \
+        $(BIN)/param.o $(BIN)/sampler.o $(BIN)/shake.o $(BIN)/sign.o \
+        $(BIN)/vector.o
         
         
-        HEAD1 = $(BASE_DIR)/api.h $(BASE_DIR)/fpr.h $(BASE_DIR)/inner.h $(BASE_DIR)/param.h
+        HEADERS = $(BASE_DIR)/api.h $(BASE_DIR)/fpr.h $(BASE_DIR)/inner.h $(BASE_DIR)/param.h
+        RNG_HEADER = ../../../KAT/generator/katrng.h
         
-        BUILD					= build
-        BUILD_KEYPAIR			= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN			= $(BUILD)/{candidate}_sign 
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign 
+        BIN			    = $(BUILD)/bin
         
         EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
         EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
@@ -1949,63 +2609,72 @@ def makefile_squirrels(path_to_makefile_folder, subfolder, tool_name, candidate,
         TOOL_LIBS = {tool_libs}
         TOOL_FLAGS = {tool_flags}
         
-        all: $(BASE_DIR)/lib $(BASE_DIR)/build $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
+        all: $(BASE_DIR)/lib build_folders $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
         
         $(BASE_DIR)/lib:
         \tmake -C ../../../lib 
         
-        $(BASE_DIR)/build:
-        \t-mkdir $(BASE_DIR)/build
+        build_folders:
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BIN)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tmkdir -p $(BUILD_SIGN)
         
         clean:
-        \t-rm -f  $(OBJ1)  $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN) 
-        
+        \t-rm -f  $(BIN) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
         
        
-        $(BASE_DIR)/build/codec.o: $(BASE_DIR)/codec.c $(HEAD1)
-        \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/codec.o $(BASE_DIR)/codec.c
+        $(BIN)/codec.o: $(BASE_DIR)/codec.c $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/codec.o $(BASE_DIR)/codec.c
         
-        $(BASE_DIR)/build/common.o: $(BASE_DIR)/common.c $(HEAD1)
-        \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/common.o $(BASE_DIR)/common.c
+        $(BIN)/common.o: $(BASE_DIR)/common.c $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/common.o $(BASE_DIR)/common.c
         
-        $(BASE_DIR)/build/keygen_lll.o: $(BASE_DIR)/keygen_lll.cpp $(HEAD1)
-        \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/keygen_lll.o $(BASE_DIR)/keygen_lll.cpp
+        $(BIN)/keygen_lll.o: $(BASE_DIR)/keygen_lll.cpp $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/keygen_lll.o $(BASE_DIR)/keygen_lll.cpp
         
-        $(BASE_DIR)/build/keygen.o: $(BASE_DIR)/keygen.c $(HEAD1)
-        \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/keygen.o $(BASE_DIR)/keygen.c
+        $(BIN)/keygen.o: $(BASE_DIR)/keygen.c $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/keygen.o $(BASE_DIR)/keygen.c
         
-        $(BASE_DIR)/build/minors.o: $(BASE_DIR)/minors.c $(HEAD1)
-        \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/minors.o $(BASE_DIR)/minors.c
+        $(BIN)/minors.o: $(BASE_DIR)/minors.c $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/minors.o $(BASE_DIR)/minors.c
+        
+        $(BIN)/normaldist.o: $(BASE_DIR)/normaldist.c $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/normaldist.o $(BASE_DIR)/normaldist.c
+        
+        $(BIN)/param.o: $(BASE_DIR)/param.c $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/param.o $(BASE_DIR)/param.c
+        
+        $(BIN)/sampler.o: $(BASE_DIR)/sampler.c $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/sampler.o $(BASE_DIR)/sampler.c
+        
+        $(BIN)/shake.o: $(BASE_DIR)/shake.c $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/shake.o $(BASE_DIR)/shake.c
+        
+        $(BIN)/sign.o: $(BASE_DIR)/sign.c $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/sign.o $(BASE_DIR)/sign.c
+        
+        $(BIN)/vector.o: $(BASE_DIR)/vector.c $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/vector.o $(BASE_DIR)/vector.c
+        
+        $(BIN)/nist.o: $(BASE_DIR)/nist.c $(HEADERS)
+        \t$(CC) $(CFLAGS) -c -o $(BIN)/nist.o $(BASE_DIR)/nist.c
+        
+        $(BIN)/katrng.o: ../../../KAT/generator/katrng.c $(BASE_DIR)/api.h $(RNG_HEADER)
+        \t$(CC) $(CFLAGS) -I . -c -o $(BIN)/katrng.o ../../../KAT/generator/katrng.c
         
         
-        $(BASE_DIR)/build/normaldist.o: $(BASE_DIR)/normaldist.c $(HEAD1)
-        \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/normaldist.o $(BASE_DIR)/normaldist.c
+        $(BIN)/{test_keypair}.o: $(EXECUTABLE_KEYPAIR).c $(HEADERS) $(RNG_HEADER)
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -I .  -c -o $@ $(EXECUTABLE_KEYPAIR).c
         
-        $(BASE_DIR)/build/param.o: $(BASE_DIR)/param.c $(HEAD1)
-        \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/param.o $(BASE_DIR)/param.c
-        
-        $(BASE_DIR)/build/sampler.o: $(BASE_DIR)/sampler.c $(HEAD1)
-        \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/sampler.o $(BASE_DIR)/sampler.c
-        
-        $(BASE_DIR)/build/shake.o: $(BASE_DIR)/shake.c $(HEAD1)
-        \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/shake.o $(BASE_DIR)/shake.c
-        
-        $(BASE_DIR)/build/sign.o: $(BASE_DIR)/sign.c $(HEAD1)
-        \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/sign.o $(BASE_DIR)/sign.c
-        
-        $(BASE_DIR)/build/vector.o: $(BASE_DIR)/vector.c $(HEAD1)
-        \t$(CC) $(CFLAGS) -c -o $(BASE_DIR)/build/vector.o $(BASE_DIR)/vector.c
-        
-    
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(HEAD1) $(BASE_DIR)/api.h 
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) $(TOOL_LIBS) -I . -c -o $(BUILD)/$$(EXECUTABLE_KEYPAIR)  $(EXECUTABLE_KEYPAIR).c 
-        
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(HEAD1) $(BASE_DIR)/api.h 
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(TOOL_FLAGS)  $(TOOL_LIBS) -I . -c -o $(BUILD)/$$(EXECUTABLE_SIGN)  $(EXECUTABLE_SIGN).c 
+        $(BIN)/{test_sign}.o: $(EXECUTABLE_SIGN).c $(HEADERS) $(RNG_HEADER)
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -I .  -c -o $@ $(EXECUTABLE_SIGN).c
+
+        $(EXECUTABLE_KEYPAIR): $(BIN)/{test_keypair}.o $(BIN)/katrng.o  $(OBJ)
+        \t$(CC) $(LDFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(BIN)/{test_keypair}.o $(BIN)/katrng.o $(OBJ)  $(LIBS) $(TOOL_LIBS)
+
+        $(EXECUTABLE_SIGN): $(BIN)/{test_sign}.o $(BIN)/katrng.o  $(OBJ)
+        \t$(CC) $(LDFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$(EXECUTABLE_SIGN) $(BIN)/{test_sign}.o $(BIN)/katrng.o $(OBJ)  $(LIBS) $(TOOL_LIBS)
         
         '''
     with open(path_to_makefile, "w") as mfile:
@@ -2662,6 +3331,663 @@ def generic_init_compile_with_sh(tools_list, signature_type,
 
 # ================================ MULTIVARIATE =====================================
 # ===================================================================================
+# =================================== BISCUIT =======================================
+def makefile_biscuit(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    sha3_target = 'generic64'
+    biscuit_file = 'biscuit.c'
+    uintx_bitsize = '64'
+    target_arch = ''
+    if implementation_type == 'ref':
+        biscuit_file = 'biscuit_mq_ref.c'
+        uintx_bitsize = '8'
+    if implementation_type == 'add':
+        sha3_target = 'AVX2'
+        uintx_bitsize = '256'
+        target_arch = '-msse2'
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        CC=gcc
+        BASE_DIR = ../../{subfolder}
+        
+        SHA3_TARGET = {sha3_target}
+        UINTX_BITSIZE = {uintx_bitsize}
+        BISCUIT_FILE = {biscuit_file}
+        TARGET_ARCH = {target_arch}
+
+        SHA3_ASM = $(wildcard $(BASE_DIR)/sha3/*.s) $(wildcard $(BASE_DIR)/sha3/$(SHA3_TARGET)/*.s)
+        SHA3_SRC = $(wildcard $(BASE_DIR)/sha3/*.c) $(wildcard $(BASE_DIR)/sha3/$(SHA3_TARGET)/*.c)
+        
+        
+        CFLAGS = -Wall -pedantic -Wextra -O3
+        CPPFLAGS = -I$(BASE_DIR)/sha3/$(SHA3_TARGET) -DUINTX_BITSIZE=$(UINTX_BITSIZE)
+        
+        HDR = $(BASE_DIR)/biscuit.h $(BASE_DIR)/utils.h $(BASE_DIR)/batch_tools.h $(wildcard $(BASE_DIR)/params*.h)
+        SRC = $(BASE_DIR)/$(BISCUIT_FILE) $(BASE_DIR)/utils.c $(BASE_DIR)/batch_tools.c
+        OBJ = $(SRC:.c=.o) $(SHA3_SRC:.c=.o) $(SHA3_ASM:.s=.o)
+        
+        API_OBJ = $(BASE_DIR)/rng.o $(BASE_DIR)/api.o
+        
+        OBJ_KEYPAIR =  $(EXECUTABLE_KEYPAIR).o
+        OBJ_SIGN =  $(EXECUTABLE_SIGN).o
+        
+        
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+            
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+          
+        # EXE: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        # EXE_KP = $(BUILD)/$(EXECUTABLE_KEYPAIR)
+        # EXE_SIGN = $(BUILD)/$(EXECUTABLE_SIGN)
+        # EXE = $(EXE_KP) #$(EXE_SIGN)
+        
+        CFLAGS += $(TOOL_FLAGS)
+        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        # folders:
+        # \tmkdir -p $(BUILD)
+        # \tmkdir -p $(BUILD_KEYPAIR)
+        # \tmkdir -p $(BUILD_SIGN)
+        # 
+        # $(EXE_KP): LDLIBS = -lcrypto $(TOOL_LIBS)
+        # $(EXE_KP): folders $(EXECUTABLE_KEYPAIR).c $(API_OBJ) $(OBJ)
+        
+        # $(EXE_SIGN): LDLIBS = -lcrypto $(TOOL_LIBS)
+        # $(EXE_sign): folders $(EXECUTABLE_SIGN).c $(API_OBJ) $(OBJ)
+        
+        
+        $(EXECUTABLE_KEYPAIR).o: $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/api.h $(BASE_DIR)/rng.h
+        \t$(CC) $(CFLAGS) -c -o $(EXECUTABLE_KEYPAIR).o $(EXECUTABLE_KEYPAIR).c
+        
+        $(EXECUTABLE_SIGN).o: $(EXECUTABLE_SIGN).c $(BASE_DIR)/api.h $(BASE_DIR)/rng.h
+        \t$(CC) $(CFLAGS) -c -o $(EXECUTABLE_SIGN).o $(EXECUTABLE_SIGN).c
+        
+         $(EXECUTABLE_KEYPAIR): $(OBJ_KEYPAIR) $(API_OBJ) $(OBJ)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(OBJ_KEYPAIR) $(API_OBJ) $(OBJ)  -lcrypto  $(TOOL_LIBS)
+            
+        $(EXECUTABLE_SIGN): $(OBJ_SIGN) $(API_OBJ) $(OBJ)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(OBJ_SIGN) $(API_OBJ) $(OBJ) -lcrypto  $(TOOL_LIBS)
+ 
+                
+        clean:
+        \t-rm $(API_OBJ) $(OBJ) $(EXE)    
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
+# =================================== DME-SIGN =======================================
+def makefile_dme_sign(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        BASE_DIR = ../../../{subfolder}
+        
+        
+        
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+            
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+          
+        .PHONY: all clean
+        
+        all:  build_folders $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        
+        OBJ = $(BIN)/rng.o $(BIN)/sign.o $(BIN)/sha3.o $(BIN)/dme.o
+        
+        BIN = bin
+        
+        build_folders:
+        \tmkdir -p $(BIN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tmkdir -p $(BUILD_SIGN)
+        
+        $(BIN)/rng.o: $(BASE_DIR)/rng.c $(BASE_DIR)/rng.h
+        \tgcc -c -o $@ $(BASE_DIR)/rng.c -O3
+        
+        $(BIN)/sign.o: $(BASE_DIR)/sign.c $(BASE_DIR)/api.h $(BASE_DIR)/sha3.h $(BASE_DIR)/dme.h $(BASE_DIR)/rng.h
+        \tgcc -c -o $@ $(BASE_DIR)/sign.c -Wall -Wextra -Werror -pedantic -std=gnu99 -O3
+        
+        $(BIN)/sha3.o: $(BASE_DIR)/sha3.c $(BASE_DIR)/sha3.h
+        \tgcc -c -o $@ $(BASE_DIR)/sha3.c -Wall -Wextra -Werror -pedantic -std=gnu99 -O3
+        
+        $(BIN)/dme.o: $(BASE_DIR)/dme.c $(BASE_DIR)/dme.h $(BASE_DIR)/rng.h
+        \tgcc -o $(BIN)/dme.o -c $(BASE_DIR)/dme.c -Wall -Wextra -Werror -pedantic -std=gnu99 -O3
+        
+        
+        
+        $(BIN)/{test_keypair}.o: $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/api.h $(BASE_DIR)/rng.h
+        \tgcc -c -o $@ $(EXECUTABLE_KEYPAIR).c
+        
+        $(BIN)/{test_sign}.o: $(EXECUTABLE_SIGN).c $(BASE_DIR)/api.h $(BASE_DIR)/rng.h
+        \tgcc -c -o $@ $(EXECUTABLE_SIGN).c
+        
+        $(EXECUTABLE_KEYPAIR): $(BIN)/{test_keypair}.o $(OBJ)
+        \tgcc -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(BIN)/{test_keypair}.o $(OBJ) -Wall -Wextra -O3 -lcrypto $(TOOL_LIBS)
+        
+        $(EXECUTABLE_SIGN): $(BIN)/{test_sign}.o $(OBJ)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \tgcc -o $(BUILD)/$(EXECUTABLE_SIGN) $(BIN)/{test_sign}.o $(OBJ) -Wall -Wextra -O3 -lcrypto $(TOOL_LIBS)
+            
+                
+        clean:
+        \t-rm $(OBJ) $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
+# =================================== HPPC =======================================
+def makefile_hppc(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        BASE_DIR = ../../{subfolder}
+        
+        LDFLAGS=-lm4ri -lflint -lgmp -lm -lstdc++ -lntl -ldl -lcrypto -pthread -lpthread -lgf2x
+        THREADED=-pthread -lpthread
+        OPTIMIZED=-Ofast -march=native
+        DFLAGS=-DMULT_STRASSEN
+
+
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        BIN             = bin
+            
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+        
+        SOURCES=$(BASE_DIR)/rng.c $(BASE_DIR)/sign.c $(BASE_DIR)/serializer.c $(BASE_DIR)/gen.c
+        HEADERS=$(BASE_DIR)/rng.h $(BASE_DIR)/serializer.h $(BASE_DIR)/gen.h $(BASE_DIR)/ntl_utils.h $(BASE_DIR)/api.h
+          
+        .PHONY: all clean
+        
+        all:  build_folders $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        
+        build_folders:
+        \tmkdir -p $(BIN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tmkdir -p $(BUILD_SIGN)
+        
+        
+        $(EXECUTABLE_KEYPAIR):
+        \tg++ -c -o $(BIN)/ntl_utils.o $(BASE_DIR)/ntl_utils.cpp $(THREADED) 
+        \tgcc $@.c $(HEADERS) $(SOURCES) $(BIN)/ntl_utils.o -o $(BUILD)/$@ $(LDFLAGS) $(OPTIMIZED)\
+         $(THREADED) $(TOOL_FLAGS) -std=c99 $(TOOL_LIBS)
+         
+        $(EXECUTABLE_SIGN):
+        \tg++ -c -o $(BIN)/ntl_utils.o $(BASE_DIR)/ntl_utils.cpp $(THREADED) 
+        \tgcc $@.c $(HEADERS) $(SOURCES) $(BIN)/ntl_utils.o -o $(BUILD)/$@ $(LDFLAGS) $(OPTIMIZED)\
+         $(THREADED) $(TOOL_FLAGS) -std=c99 $(TOOL_LIBS)
+                
+        clean:
+        \trm -f $(BIN)/*.o >/dev/null
+        \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
+# =================================== wise =======================================
+def makefile_wise(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        BASE_DIR = ../../{subfolder}
+        
+        LDFLAGS=-lflint -lgmp -lcrypto
+        OPTIMIZED=-Ofast -march=native
+        DFLAGS=-DMULT_STRASSEN
+
+
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        BIN             = bin
+            
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+        
+        SOURCES=$(BASE_DIR)/rng.c $(BASE_DIR)/sign.c $(BASE_DIR)/serializer.c $(BASE_DIR)/gen.c
+        HEADERS=$(BASE_DIR)/rng.h $(BASE_DIR)/serializer.h $(BASE_DIR)/gen.h $(BASE_DIR)/api.h
+          
+        .PHONY: all clean
+        
+        all:  build_folders $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        
+        build_folders:
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tmkdir -p $(BUILD_SIGN)
+        
+        
+        $(EXECUTABLE_KEYPAIR):
+        \tgcc $@.c $(HEADERS) $(SOURCES) -o $(BUILD)/$@ $(LDFLAGS) $(OPTIMIZED)\
+        $(TOOL_FLAGS) -std=c99 $(TOOL_LIBS)
+         
+        $(EXECUTABLE_SIGN): 
+        \tgcc $@.c $(HEADERS) $(SOURCES) -o $(BUILD)/$@ $(LDFLAGS) $(OPTIMIZED)\
+        $(TOOL_FLAGS) -std=c99 $(TOOL_LIBS)
+                
+        clean:
+        \trm -f $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
 
 # ================================== QR-UOV ==========================================
 def qr_uov_main_makefile(path_to_tool_folder, subfolder, implementation_type='opt'):
@@ -3627,7 +4953,7 @@ def makefile_uov(path_to_makefile_folder, subfolder, tool_name, candidate, imple
         PROJ        = {subfolder}
         SRC_DIR     := $(BASE_DIR)/$(PROJ)
         
-        CFLAGS   := -O3 $(CFLAGS) -std=c99 -Wall -Wextra -Wpedantic -Werror -fno-omit-frame-pointer
+        CFLAGS   := -O3 $(CFLAGS) -std=c99 -Wall -Wextra -Wpedantic -fno-omit-frame-pointer # -Werror
         INCPATH  := -I/usr/local/include -I/opt/local/include -I/usr/include -I$(SRC_DIR)
         LDFLAGS  := $(LDFLAGS)
         LIBPATH  = -L/usr/local/lib -L/opt/local/lib -L/usr/lib
@@ -4483,6 +5809,694 @@ def makefile_sphincs_alpha1(path_to_makefile_folder, subfolder, tool_name, candi
 
 # ==============================  OTHER =================================
 # =======================================================================
+# =================================== ALTEQ =======================================
+def makefile_alteq(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    alteq_opt = ''
+    alteq_opt2 = ''
+    if implementation_type == 'opt':
+        alteq_opt = '-mavx2 -mssse3 -maes'
+        alteq_opt2 = '-fwhole-program -flto -funroll-loops'
+
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        BASE_DIR = ..
+        
+        OPT = -lcrypto -O3  -Wall -pedantic {alteq_opt}
+        OPT2 = {alteq_opt2}
+        OPT3= -Wno-unused-function
+        LDFLAGS= -lssl -lcrypto -L/usr/local/opt/openssl/lib -lm
+        CFLAGS= -I/usr/local/opt/openssl/include
+        
+        # no need to force old standards for speed tests, this will save a lot of warnings
+        # STD = -ansi
+        STD =
+        # only use RDPMC if you can be sure you can use it. Otherwise default to RDTSC
+        # RDPMC = -D USE_RDPMC
+        RDPMC =
+        
+
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        BIN             = bin
+            
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+        
+        AES_SRC = $(wildcard $(BASE_DIR)/aes/*.c)
+        KECCAK_SRC = $(wildcard $(BASE_DIR)/keccak/*.c) $(wildcard $(BASE_DIR)/keccak/*.s)
+        SRC = $(BASE_DIR)/atf.c $(BASE_DIR)/compress.c $(BASE_DIR)/expand.c $(BASE_DIR)/field.c \
+        $(BASE_DIR)/matrix.c $(BASE_DIR)/sign.c
+        
+        SOURCES = $(AES_SRC) $(KECCAK_SRC) $(SRC)
+        
+        all_api = $(BASE_DIR)/api/api.h.1.fe $(BASE_DIR)/api/api.h.3.fe $(BASE_DIR)/api/api.h.5.fe \
+        $(BASE_DIR)/api/api.h.1.lp $(BASE_DIR)/api/api.h.3.lp $(BASE_DIR)/api/api.h.5.lp
+        
+        
+        .PHONY: all clean $(all_api)
+
+        all:  build_folders $(all_api)
+        
+        
+        build_folders:
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tmkdir -p $(BUILD_SIGN)
+        
+        
+        $(all_api):
+        \t@echo -e "### Processing $@"
+        \tcp $@ $(BASE_DIR)/api.h
+        \tgcc $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$(EXECUTABLE_KEYPAIR)_$(word 1, $(subst .,_,$(@F))) \
+        $(EXECUTABLE_KEYPAIR).c $(SOURCES) $(LDFLAGS) $(TOOL_LIBS)  $(STD) $(OPT) $(OPT3)
+        \tgcc $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$(EXECUTABLE_SIGN)_$(word 1, $(subst .,_,$(@F))) \
+        $(EXECUTABLE_SIGN).c $(SOURCES) $(LDFLAGS) $(TOOL_LIBS)  $(STD) $(OPT) $(OPT3)
+                
+        clean:
+        \trm -f $(BUILD)/$(EXECUTABLE_KEYPAIR)/*
+        \trm -f $(BUILD)/$(EXECUTABLE_SIGN)/*
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
+# =================================== EMLE =======================================
+def makefile_emle(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    add_cflags = ''
+    if implementation_type == 'add':
+        add_cflags = '-maes'
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        BASE_DIR = ../../{subfolder}
+        
+        CFLAGS = -O3 -Wall -Wextra -Wpedantic {add_cflags}
+        LDFLAGS = -fPIC -lssl -lcrypto
+        
+
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        BIN             = bin
+            
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+        
+        
+        OBJS = $(BIN)/impl.o $(BIN)/fips202.o $(BIN)/conv.o $(BIN)/aes256ctr.o $(BIN)/randvec.o $(BIN)/rng.o \
+        $(BIN)/nist.o 
+        
+
+        all:  build_folders $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        
+        build_folders:
+        \tmkdir -p $(BIN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tmkdir -p $(BUILD_SIGN)
+        
+        
+        
+        $(BIN)/%.o : $(BASE_DIR)/%.c
+        \tgcc $(CFLAGS) -o $@ -c $< 
+        
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c  $(OBJS) $(BASE_DIR)/api.h
+        \tgcc $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $^ $(LDFLAGS) $(TOOL_LIBS)
+        
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c  $(OBJS) $(BASE_DIR)/api.h $(BASE_DIR)/rng.h
+        \tgcc $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $^ $(LDFLAGS) $(TOOL_LIBS)
+        
+        
+        $(BIN)/impl.o: $(BASE_DIR)/impl.h $(BASE_DIR)/fips202.h $(BASE_DIR)/conv.h $(BASE_DIR)/aes256ctr.h \
+         $(BASE_DIR)/randvec.h $(BASE_DIR)/mod.h $(BASE_DIR)/impl.c
+        $(BIN)/fips202.o: $(BASE_DIR)/fips202.h $(BASE_DIR)/fips202.c
+        $(BIN)/conv.o: $(BASE_DIR)/conv.h $(BASE_DIR)/mod.h $(BASE_DIR)/conv.c
+        $(BIN)/aes256ctr.o: $(BASE_DIR)/aes256ctr.h $(BASE_DIR)/aes256ctr.c
+        $(BIN)/randvec.o: $(BASE_DIR)/randvec.h $(BASE_DIR)/aes256ctr.h $(BASE_DIR)/mod.h $(BASE_DIR)/littleendian.h \
+        $(BASE_DIR)/randvec.c
+        $(BIN)/rng.o: $(BASE_DIR)/rng.h $(BASE_DIR)/rng.c
+        $(BIN)/nist.o: $(BASE_DIR)/api.h $(BASE_DIR)/impl.h $(BASE_DIR)/rng.h $(BASE_DIR)/littleendian.h \
+        $(BASE_DIR)/nist.c
+        
+        
+        
+        .PHONY: clean
+        clean:
+        \trm -f $(BIN)/*
+        \trm -f $(BUILD)/$(EXECUTABLE_KEYPAIR) $(BUILD)/$(EXECUTABLE_SIGN)
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
+# =================================== KAZ_SIGN =======================================
+def makefile_kaz_sign(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        BASE_DIR = ../../{subfolder}
+        
+        CC=gcc
+        CFLAGS=
+        INC=-I/usr/include/openssl
+        LINK=-lcrypto -lgmp 
+        
+
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        BIN             = bin
+            
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+        
+        
+        all:  build_folders $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        
+        build_folders:
+        \tmkdir -p $(BIN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tmkdir -p $(BUILD_SIGN)
+        
+        
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(BASE_DIR)/api.h $(BASE_DIR)/gmp.h $(BIN)/sign.o \
+         $(BIN)/kaz_api.o $(BIN)/rng.o $(BIN)/sha256.o
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(EXECUTABLE_KEYPAIR).c $(BIN)/rng.o \
+         $(BIN)/sha256.o $(BIN)/kaz_api.o $(BIN)/sign.o $(INC) $(LINK) $(TOOL_LIBS)
+         
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(BASE_DIR)/api.h $(BASE_DIR)/gmp.h $(BIN)/sign.o \
+         $(BIN)/kaz_api.o $(BIN)/rng.o $(BIN)/sha256.o
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$(EXECUTABLE_SIGN) $(EXECUTABLE_SIGN).c $(BIN)/rng.o \
+         $(BIN)/sha256.o $(BIN)/kaz_api.o $(BIN)/sign.o $(INC) $(LINK) $(TOOL_LIBS)
+         
+        
+        $(BIN)/sign.o: $(BASE_DIR)/api.h $(BASE_DIR)/gmp.h $(BASE_DIR)/kaz_api.h $(BASE_DIR)/sign.c
+        \t$(CC) $(CFLAGS) -c $(BASE_DIR)/sign.c -o $(BIN)/sign.o $(INC)
+        
+        $(BIN)/kaz_api.o: $(BASE_DIR)/kaz_api.c $(BASE_DIR)/kaz_api.h
+        \t$(CC) $(CFLAGS) -c $(BASE_DIR)/kaz_api.c -o $(BIN)/kaz_api.o $(INC)
+        
+        $(BIN)/rng.o: $(BASE_DIR)/rng.c $(BASE_DIR)/rng.h
+        \t$(CC) $(CFLAGS) -c $(BASE_DIR)/rng.c -o $(BIN)/rng.o $(INC)
+        
+        $(BIN)/sha256.o: $(BASE_DIR)/sha256.c $(BASE_DIR)/sha256.h
+        \t$(CC) $(CFLAGS) -c $(BASE_DIR)/sha256.c -o $(BIN)/sha256.o $(INC)
+                
+        
+        
+        .PHONY: clean
+        clean:
+        \trm -f $(BIN)/*
+        \trm -f $(BUILD)/$(EXECUTABLE_KEYPAIR) $(BUILD)/$(EXECUTABLE_SIGN)
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
+
+# =================================== xifrat =======================================
+def makefile_xifrat(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_makefile = path_to_makefile_folder+'/Makefile'
+    src_folder = '../Reference_Implementation/'
+    if implementation_type == 'ref':
+        src_folder = ''
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
+        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
+        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
+        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        
+        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
+        
+        #$(EXECUTABLE_SIGN_BC): $(SIGN)
+        #\tmkdir -p $(BUILD)
+        #\tmkdir -p $(BUILD_SIGN)
+        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    elif tool_name == 'flowtracker':
+        makefile_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../../{subfolder}
+        
+        SIGN = $(BASE_DIR)/api.c
+        INCS_DIR = $(BASE_DIR)
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        makefile_content = f'''
+        BASE_DIR = ../..
+        
+        CFLAGS = -I.
+        
+
+        BUILD           = build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        BIN             = bin
+            
+            
+        EXECUTABLE_KEYPAIR	    = {candidate}_keypair/{test_keypair}
+        EXECUTABLE_SIGN		    = {candidate}_sign/{test_sign}
+        
+        TOOL_LIBS = {tool_libs}
+        TOOL_FLAGS = {tool_flags}
+        
+        
+        OBJS=\
+        $(BIN)/rng.o $(BIN)/sign.o $(BIN)/rijndael.o $(BIN)/shake.o $(BIN)/sponge.o \
+        $(BIN)/keccak-f-1600.o $(BASE_DIR)/endian.o $(BIN)/xifrat-sign.o $(BIN)/xifrat-funcs.o
+        
+        all:  build_folders $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
+        
+        
+        build_folders:
+        \tmkdir -p $(BIN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \tmkdir -p $(BUILD_SIGN)
+        
+        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(OBJ)
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$(EXECUTABLE_KEYPAIR) $(EXECUTABLE_KEYPAIR).c $(OBJ) $(TOOL_LIBS) $(LDFLAGS)
+        
+        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(OBJ)
+        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$(EXECUTABLE_SIGN) $(EXECUTABLE_SIGN).c $(OBJ) $(TOOL_LIBS) $(LDFLAGS)
+        
+        %.o: %.c
+        \t$(CC) $(CFLAGS) -o $@ -c $<
+        
+        common: \
+        $(BASE_DIR)/common.h  $(BASE_DIR)/{src_folder}mysuitea-common.h
+        
+        $(BIN)/rng.o: \
+        $(BASE_DIR)/{src_folder}rng.c $(BASE_DIR)/{src_folder}rng.h \
+        
+        $(BIN)/sign.o: \
+        $(BASE_DIR)/{src_folder}sign.c $(BASE_DIR)/{src_folder}sign.h \
+        
+        $(BIN)/sponge.o: \
+        $(BASE_DIR)/{src_folder}sponge.c $(BASE_DIR)/{src_folder}sponge.h common
+        
+        
+        $(BIN)/endian.o: \
+        $(BASE_DIR)/{src_folder}endian.c $(BASE_DIR)/{src_folder}endian.h common
+        
+        $(BIN)/shake.o: \
+        $(BASE_DIR)/{src_folder}shake.c $(BASE_DIR)/{src_folder}shake.h \
+        $(BASE_DIR)/{src_folder}keccak.h $(BASE_DIR)/{src_folder}sponge.h common
+        
+        $(BIN)/keccak-f-1600.o: \
+        $(BASE_DIR)/{src_folder}keccak-f-1600.c $(BASE_DIR)/{src_folder}keccak.c.h \
+        $(BASE_DIR)/{src_folder}keccak.h common
+        
+        $(BIN)/xifrat-sign.o: \
+        $(BASE_DIR)/{src_folder} $(BASE_DIR)/{src_folder}
+        
+        $(BIN)/xifrat-funcs.o: \
+        $(BASE_DIR)/xifrat-funcs.h common
+            
+            
+        .PHONY: clean
+        clean:
+        \trm -f $(BIN)/*
+        \trm -f $(BUILD)/$(EXECUTABLE_KEYPAIR) $(BUILD)/$(EXECUTABLE_SIGN)
+        '''
+    with open(path_to_makefile, "w") as mfile:
+        mfile.write(textwrap.dedent(makefile_content))
+
 # ============================== PREON ==================================
 def preon_subfolder_parser(subfolder):
     subfold_basename = os.path.basename(subfolder)
@@ -4594,127 +6608,6 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate, imp
         mfile.write(textwrap.dedent(makefile_content))
 
 
-# ============================== ALTEQ ==========================================
-# [TODO]
-def makefile_alteq(path_to_makefile_folder, subfolder, tool_name, candidate, implementation_type='opt'):
-    tool_type = gen_funct.Tools(tool_name)
-    test_keypair, test_sign = tool_type.get_tool_test_file_name()
-    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
-    path_to_makefile = path_to_makefile_folder+'/Makefile'
-    if tool_name == 'flowtracker':
-        makefile_content = f'''
-        CC = clang
-        
-        BASE_DIR = ../../{subfolder}
-        
-        INCS = $(wildcard $(BASE_DIR)/*.h)
-        #SRC  = $(wildcard $(BASE_DIR)/*.c)) 
-        SRC  = $(filter-out  $(SRC_DIR)/sign.c, $(wildcard $(SRC_DIR)/*.c))
-        SIGN = $(BASE_DIR)/sign.c
-        
-        BUILD			= build
-        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN		= $(BUILD)/{candidate}_sign
-        
-        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
-        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
-        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
-        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
-        
-        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
-         
-        
-        
-        $(EXECUTABLE_KEYPAIR_BC): $(SIGN) $(SRC) $(INCS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
-        
-        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
-        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
-        
-        $(EXECUTABLE_SIGN_BC): $(SIGN) $(SRC) $(INCS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
-        
-        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
-        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
-            
-        .PHONY: clean
-          
-        clean:
-        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
-        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
-        '''
-    else:
-        makefile_content = f'''
-        PARAMS = {subfolder}
-        #PARAMS = sphincs-a-sha2-128f
-        THASH = simple
-        
-        CC=/usr/bin/gcc
-        CFLAGS=-Wall -Wextra -Wpedantic -O3 -std=c99 -Wconversion -Wmissing-prototypes -DPARAMS=$(PARAMS) $(EXTRA_CFLAGS)
-        
-        BASE_DIR = ../../{subfolder}
-        
-        SOURCES =    $(BASE_DIR)/address.c $(BASE_DIR)/randombytes.c $(BASE_DIR)/merkle.c $(BASE_DIR)/wots.c \
-                    $(BASE_DIR)/wotsx1.c $(BASE_DIR)/utils.c $(BASE_DIR)/utilsx1.c $(BASE_DIR)/fors.c \
-                    $(BASE_DIR)/sign.c $(BASE_DIR)/uintx.c
-        HEADERS = $(BASE_DIR)/params.h $(BASE_DIR)/address.h $(BASE_DIR)/randombytes.h $(BASE_DIR)/merkle.h \
-                    $(BASE_DIR)/wots.h $(BASE_DIR)/wotsx1.h $(BASE_DIR)/utils.h $(BASE_DIR)/utilsx1.h $(BASE_DIR)/fors.h \
-                    $(BASE_DIR)/api.h  $(BASE_DIR)/hash.h $(BASE_DIR)/thash.h $(BASE_DIR)/uintx.h
-        
-        ifneq (,$(findstring shake,$(PARAMS)))
-        \tSOURCES += $(BASE_DIR)/fips202.c $(BASE_DIR)/hash_shake.c $(BASE_DIR)/thash_shake_$(THASH).c
-        \tHEADERS += $(BASE_DIR)/fips202.h
-        endif
-        ifneq (,$(findstring haraka,$(PARAMS)))
-        \tSOURCES += $(BASE_DIR)/haraka.c $(BASE_DIR)/hash_haraka.c $(BASE_DIR)/thash_haraka_$(THASH).c
-        \tHEADERS += $(BASE_DIR)/haraka.h
-        endif
-        ifneq (,$(findstring sha2,$(PARAMS)))
-        \tSOURCES += $(BASE_DIR)/sha2.c $(BASE_DIR)/hash_sha2.c $(BASE_DIR)/thash_sha2_$(THASH).c
-        \tHEADERS += $(BASE_DIR)/sha2.h
-        endif
-        
-        DET_SOURCES = $(SOURCES:randombytes.%=rng.%)
-        DET_HEADERS = $(HEADERS:randombytes.%=rng.%)
-        
-        TOOL_LIBS = {tool_libs}
-        TOOL_FLAGS = {tool_flags}
-        
-        BUILD           = build
-        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN		= $(BUILD)/{candidate}_sign
-        
-        \tEXECUTABLE_KEYPAIR	 = {candidate}_keypair/{test_keypair}
-        \tEXECUTABLE_SIGN		 = {candidate}_sign/{test_sign} 
-        
-        .PHONY: clean 
-        
-        default: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-        
-        all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
-        
-        $(EXECUTABLE_KEYPAIR): $(EXECUTABLE_KEYPAIR).c $(DET_SOURCES) $(DET_HEADERS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< $(TOOL_LIBS)
-            
-        $(EXECUTABLE_SIGN): $(EXECUTABLE_SIGN).c $(DET_SOURCES) $(DET_HEADERS)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) $(CFLAGS) $(TOOL_FLAGS) -o $(BUILD)/$@ $(DET_SOURCES) $< $(TOOL_LIBS)
-        
-        clean:
-        \t-$(RM) $(EXECUTABLE_KEYPAIR)
-        \t-$(RM) $(EXECUTABLE_SIGN)
-        '''
-    with open(path_to_makefile, "w") as mfile:
-        mfile.write(textwrap.dedent(makefile_content))
-
-
 # ==========================  ISOGENY ========================================
 # ============================================================================
 # =========================== sqisign ========================================
@@ -4769,8 +6662,32 @@ def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate,
         makefile_hufu(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "meds":
         makefile_meds(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "fuleeca":
+        makefile_fuleeca(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "eaglesign":
+        makefile_eaglesign(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "ehtv3v4":
+        makefile_ehtv3v4(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "sdith":
+        makefile_sdith(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "biscuit":
+        makefile_biscuit(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "dme_sign":
+        makefile_dme_sign(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "hppc":
+        makefile_hppc(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "wise":
+        makefile_wise(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "alteq":
+        makefile_alteq(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "emle":
+        makefile_emle(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "kaz_sign":
+        makefile_kaz_sign(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
+    if candidate == "xifrat":
+        makefile_xifrat(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     # =======================================================================================
-    # The following candidates are supposed to be compiled with cmake. But if the chosen tool is flowtraker,
+    # The following candidates are supposed to be compiled with cmake. But if the chosen tool is flowtracker,
     # then these candidates are compiled with Makefile. Indeed, the function 'cmake_cross', etc., will generate
     # a Makefile instead of a CMakeLists.txt
     # ========================= LESS ==============================================
@@ -4782,6 +6699,7 @@ def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate,
     if candidate == "mayo":
         cmake_mayo(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
     if candidate == "haetae":
+        print('==========CALL: cmake_haetae')
         cmake_haetae(path_to_makefile_folder, subfolder, tool_type, candidate, implementation_type)
 
 
@@ -4793,6 +6711,7 @@ def cmake_candidate(path_to_cmake_lists, subfolder, tool_type, candidate, implem
     if candidate == "less":
         cmake_less(path_to_cmake_lists, subfolder, tool_type, candidate, implementation_type)
     if candidate == "haetae":
+        print('------CALL: cmake_haetae')
         cmake_haetae(path_to_cmake_lists, subfolder, tool_type, candidate, implementation_type)
     if candidate == "sqisign":
         pass

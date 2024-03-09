@@ -129,6 +129,10 @@ class Tools(object):
             self.tool_flags = "-emit-llvm -g"
             self.tool_libs = ""
             return self.tool_flags, self.tool_libs
+        if self.tool_name == 'ctverif' or self.tool_name == 'ct-verif':
+            self.tool_flags = "--unroll 1 --loop-limit 1"
+            self.tool_libs = ""
+            return self.tool_flags, self.tool_libs
 
     def get_tool_test_file_name(self):
         if self.tool_name == 'binsec':
@@ -150,6 +154,11 @@ class Tools(object):
             self.tool_test_file_name = "rbc"
             keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
             sign = f'{self.tool_test_file_name}_crypto_sign'
+            return keypair, sign
+        if self.tool_name == 'ctverif' or self.tool_name == 'ct-verif':
+            self.tool_test_file_name = "wrapper"
+            keypair = f'crypto_sign_keypair_{self.tool_test_file_name}'
+            sign = f'crypto_sign_{self.tool_test_file_name}'
             return keypair, sign
 
     @staticmethod
@@ -322,7 +331,7 @@ def group_multiple_lines(file_content_list,
 
 
 # Get crypto_sign_keypair and crypto_sign functions declarations given the path to the header file (api.h/sign.h)
-def find_sign_and_keypair_definition_from_api_or_sign(api_sign_header_file):
+def find_sign_and_keypair_definition_from_api_or_sign1(api_sign_header_file):
     file = open(api_sign_header_file, 'r')
     file_content = file.read()
     file_content_line_by_line = file_content.split('\n')
@@ -342,6 +351,65 @@ def find_sign_and_keypair_definition_from_api_or_sign(api_sign_header_file):
                                                 ending_pattern, exclude_pattern,
                                                 starting_index, ending_index)
     file.close()
+    keypair_sign_def = [keypair_def, sign_def]
+    return keypair_sign_def
+
+
+def find_target_by_basename(target_basename: str, path_to_target_header_file: str) -> str:
+    target = ''
+    try:
+        with open(path_to_target_header_file, 'r') as file:
+            file_content = file.read()
+            find_target_object = re.search(rf"[\w\s]*\W{target_basename}\W[\s*\(]*[\w\s*,\[\+\]\(\)-]*;", file_content)
+            if find_target_object is not None:
+                matching_string = find_target_object.group()
+                matching_string_lines = matching_string.split('\n')
+                target_basename_nb_of_occurrence = matching_string.count(target_basename)
+                if target_basename_nb_of_occurrence >= 2:
+                    for line in matching_string_lines:
+                        if target_basename in line and (':' in line or '#' in line or 'define' in line):
+                            matching_string_lines.remove(line)
+                index_empty_str = matching_string_lines.index('')
+                matching_string_lines = matching_string_lines[index_empty_str+1:]
+                matching_string = "\n".join(matching_string_lines)
+                matching_string_split = matching_string.split()
+                matching_string_list_strip = [word.strip() for word in matching_string_split]
+                target = " ".join(matching_string_list_strip)
+            else:
+                error_message = f'''
+                Could not find {target_basename} into the file {path_to_target_header_file}
+                '''
+                print(print(textwrap.dedent(error_message)))
+    except:
+        print("Could not open file '{}' .".format(path_to_target_header_file))
+
+    return target
+
+
+def find_sign_and_keypair_definition_from_api_or_sign(api_sign_header_file):
+    # file = open(api_sign_header_file, 'r')
+    # file_content = file.read()
+    # file_content_line_by_line = file_content.split('\n')
+    # exclude_pattern = "open _seed_"
+    # ending_pattern = ");"
+    # included_pattern_keypair = "sign_keypair("
+    # starting_index = 0
+    # ending_index = len(file_content_line_by_line)
+    # keypair_def, start, end = group_multiple_lines(file_content_line_by_line,
+    #                                                included_pattern_keypair,
+    #                                                ending_pattern, exclude_pattern,
+    #                                                starting_index, ending_index)
+    # included_pattern_sign = "_sign("
+    # starting_index = end + 1
+    # sign_def, start, end = group_multiple_lines(file_content_line_by_line,
+    #                                             included_pattern_sign,
+    #                                             ending_pattern, exclude_pattern,
+    #                                             starting_index, ending_index)
+    # file.close()
+    keypair = 'crypto_sign_keypair'
+    sign = 'crypto_sign'
+    keypair_def = find_target_by_basename(keypair, api_sign_header_file)
+    sign_def = find_target_by_basename(sign, api_sign_header_file)
     keypair_sign_def = [keypair_def, sign_def]
     return keypair_sign_def
 
@@ -881,6 +949,96 @@ def dudect_sign_dude_content(taint_file, api,
         if not api == '""':
             t_file.write(f'#include {api}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
+
+
+def ctverif_keypair_wrapper(wrapper_file, api, sign,
+                            add_includes,
+                            function_return_type,
+                            function_name, args_types,
+                            args_names):
+    type_pk = args_types[0]
+    type_sk = args_types[1]
+    pk = args_names[0]
+    sk = args_names[1]
+    ret_type = function_return_type
+
+    wrapper_include_block = f'''
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    #include <string.h>
+    #include <stdlib.h>
+    
+    #include <smack.h>
+    #include "ctverif"
+    '''
+
+    wrapper_classification_block = f'''
+    {ret_type} {function_name}_wrapper({type_pk} *{pk}, {type_sk} *{sk}) {{
+    
+    \tpublic_in(__SMACK_value({pk}));
+    \tpublic_in(__SMACK_value({sk}));
+    
+    \t{function_return_type} result = {function_name}({args_names[0]},{args_names[1]});
+    \treturn result;
+    }}
+    '''
+    with open(wrapper_file, "w") as t_file:
+        t_file.write(textwrap.dedent(wrapper_include_block))
+        if not add_includes == []:
+            for include in add_includes:
+                t_file.write(f'#include {include}\n')
+        t_file.write(textwrap.dedent(wrapper_classification_block))
+
+
+def ctverif_sign_wrapper(taint_file, api, sign,
+                         add_includes,
+                         function_return_type,
+                         function_name, args_types,
+                         args_names):
+
+    sig_msg = args_names[0]
+    sig_msg_len = args_names[1]
+    msg = args_names[2]
+    msg_len = args_names[3]
+    sk = args_names[4]
+    ret_type = function_return_type
+
+    wrapper_include_block = f'''
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    #include <string.h>
+    #include <stdlib.h>
+    
+
+    #include <smack.h>
+    #include "ctverif"
+    '''
+    sig_block = f'{args_types[0]} *{sig_msg}, {args_types[1]} *{sig_msg_len}'
+    msg_block = f'{args_types[2]} *{msg}, {args_types[3]} {msg_len}'
+    sk_block = f'{args_types[4]} *{sk}'
+    function_signature = f'{sig_block}, {msg_block}, {sk_block}'
+    wrapper_classification_block = f'''
+    {ret_type} {function_name}_wrapper({function_signature}){{
+    
+    \tpublic_in(__SMACK_value({sig_msg}));
+    \tpublic_in(__SMACK_value({sig_msg_len}));
+    \tpublic_in(__SMACK_value({msg}));
+    \tpublic_in(__SMACK_value({msg_len}));
+    \tpublic_in(__SMACK_value({sk}));
+    
+    \t{ret_type} result = {function_name}({sig_msg}, {sig_msg_len}, {msg}, {msg_len}, {sk});
+    \treturn result;
+    }}
+    '''
+    with open(taint_file, "w") as t_file:
+        t_file.write(textwrap.dedent(wrapper_include_block))
+        if not add_includes == []:
+            for include in add_includes:
+                t_file.write(f'#include {include}\n')
+        t_file.write(textwrap.dedent(wrapper_classification_block))
+
 
 
 # FLOWTRACKER: xml file for crypto_sign_keypair
@@ -1552,6 +1710,13 @@ def tool_initialize_candidate(path_to_opt_src_folder,
         flowtracker_sign_xml_content(test_sign, api, sign,
                                      add_includes, return_type_s,
                                      f_basename_s, args_types_s, args_names_s)
+    if tool_name == 'ctverif' or tool_name == 'ct-verif':
+        ctverif_keypair_wrapper(test_keypair, api, sign,
+                                add_includes, return_type_kp,
+                                f_basename_kp, args_types_kp, args_names_kp)
+        ctverif_sign_wrapper(test_sign, api, sign,
+                             add_includes, return_type_s,
+                             f_basename_s, args_types_s, args_names_s)
 
 
 # initialization: given a candidate and its details (signature type, etc.), creates required arguments (folders)
@@ -1628,6 +1793,7 @@ def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
         for instance_folder in instance_folders_list:
             list_of_instances.append(instance_folder)
     for instance_folder in list_of_instances:
+
         api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
                                                                         rel_path_to_api,
                                                                         rel_path_to_sign,
@@ -1837,7 +2003,7 @@ def add_cli_arguments(subparser,
                                             help=f'{candidate}:...',
                                             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # Default tools list
-    default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker"]
+    default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker", "ctverif"]
     # Default algorithms pattern to test
     default_binary_patterns = ["keypair", "sign"]
 
