@@ -13,6 +13,10 @@ import sys
 import textwrap
 import argparse
 
+from subprocess import Popen
+from subprocess import PIPE
+import warnings
+
 import candidates_build as build_cand
 
 
@@ -331,37 +335,15 @@ def group_multiple_lines(file_content_list,
 
 
 # Get crypto_sign_keypair and crypto_sign functions declarations given the path to the header file (api.h/sign.h)
-def find_sign_and_keypair_definition_from_api_or_sign1(api_sign_header_file):
-    file = open(api_sign_header_file, 'r')
-    file_content = file.read()
-    file_content_line_by_line = file_content.split('\n')
-    exclude_pattern = "open _seed_"
-    ending_pattern = ");"
-    included_pattern_keypair = "sign_keypair("
-    starting_index = 0
-    ending_index = len(file_content_line_by_line)
-    keypair_def, start, end = group_multiple_lines(file_content_line_by_line,
-                                                   included_pattern_keypair,
-                                                   ending_pattern, exclude_pattern,
-                                                   starting_index, ending_index)
-    included_pattern_sign = "_sign("
-    starting_index = end + 1
-    sign_def, start, end = group_multiple_lines(file_content_line_by_line,
-                                                included_pattern_sign,
-                                                ending_pattern, exclude_pattern,
-                                                starting_index, ending_index)
-    file.close()
-    keypair_sign_def = [keypair_def, sign_def]
-    return keypair_sign_def
-
-
 def find_target_by_basename(target_basename: str, path_to_target_header_file: str) -> str:
     target = ''
+    target_is_found = 0
     try:
         with open(path_to_target_header_file, 'r') as file:
             file_content = file.read()
             find_target_object = re.search(rf"[\w\s]*\W{target_basename}\W[\s*\(]*[\w\s*,\[\+\]\(\)-]*;", file_content)
             if find_target_object is not None:
+                target_is_found = 1
                 matching_string = find_target_object.group()
                 matching_string_lines = matching_string.split('\n')
                 target_basename_nb_of_occurrence = matching_string.count(target_basename)
@@ -369,8 +351,9 @@ def find_target_by_basename(target_basename: str, path_to_target_header_file: st
                     for line in matching_string_lines:
                         if target_basename in line and (':' in line or '#' in line or 'define' in line):
                             matching_string_lines.remove(line)
-                index_empty_str = matching_string_lines.index('')
-                matching_string_lines = matching_string_lines[index_empty_str+1:]
+                if '' in matching_string_lines:
+                    index_empty_str = matching_string_lines.index('')
+                    matching_string_lines = matching_string_lines[index_empty_str+1:]
                 matching_string = "\n".join(matching_string_lines)
                 matching_string_split = matching_string.split()
                 matching_string_list_strip = [word.strip() for word in matching_string_split]
@@ -379,7 +362,7 @@ def find_target_by_basename(target_basename: str, path_to_target_header_file: st
                 error_message = f'''
                 Could not find {target_basename} into the file {path_to_target_header_file}
                 '''
-                print(print(textwrap.dedent(error_message)))
+                print(textwrap.dedent(error_message))
     except:
         print("Could not open file '{}' .".format(path_to_target_header_file))
 
@@ -387,25 +370,6 @@ def find_target_by_basename(target_basename: str, path_to_target_header_file: st
 
 
 def find_sign_and_keypair_definition_from_api_or_sign(api_sign_header_file):
-    # file = open(api_sign_header_file, 'r')
-    # file_content = file.read()
-    # file_content_line_by_line = file_content.split('\n')
-    # exclude_pattern = "open _seed_"
-    # ending_pattern = ");"
-    # included_pattern_keypair = "sign_keypair("
-    # starting_index = 0
-    # ending_index = len(file_content_line_by_line)
-    # keypair_def, start, end = group_multiple_lines(file_content_line_by_line,
-    #                                                included_pattern_keypair,
-    #                                                ending_pattern, exclude_pattern,
-    #                                                starting_index, ending_index)
-    # included_pattern_sign = "_sign("
-    # starting_index = end + 1
-    # sign_def, start, end = group_multiple_lines(file_content_line_by_line,
-    #                                             included_pattern_sign,
-    #                                             ending_pattern, exclude_pattern,
-    #                                             starting_index, ending_index)
-    # file.close()
     keypair = 'crypto_sign_keypair'
     sign = 'crypto_sign'
     keypair_def = find_target_by_basename(keypair, api_sign_header_file)
@@ -428,6 +392,8 @@ def sign_find_args_types_and_names(abs_path_to_api_or_sign):
 
 # sign_find_args_types_and_names: get 'crypto_sign' arguments types/names and its return type
 def keypair_find_args_types_and_names(abs_path_to_api_or_sign):
+    print("----INTO: keypair_find_args_types_and_names")
+    print(":::abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
     keypair_sign_def = find_sign_and_keypair_definition_from_api_or_sign(abs_path_to_api_or_sign)
     keypair_candidate = keypair_sign_def[0]
     cand_obj = Candidate(keypair_candidate)
@@ -443,7 +409,7 @@ def keypair_find_args_types_and_names(abs_path_to_api_or_sign):
 
 # BINSEC: Test harness for crypto_sign_keypair
 def test_harness_content_keypair(test_harness_file,
-                                 api, sign, add_includes,
+                                 api_or_sign, add_includes,
                                  function_return_type,
                                  function_name):
     test_harness_file_content_block1 = f'''
@@ -458,6 +424,7 @@ def test_harness_content_keypair(test_harness_file,
     uint8_t sk[CRYPTO_SECRETKEYBYTES] ;
     
     int main(){{
+    \t{function_name}(pk, sk);
     \t{function_return_type} result =  {function_name}(pk, sk);
     \texit(result);
     }} 
@@ -467,16 +434,12 @@ def test_harness_content_keypair(test_harness_file,
         if not add_includes == []:
             for include in add_includes:
                 t_harness_file.write(f'#include {include}\n')
-        if not sign == '""':
-            t_harness_file.write(f'#include {sign}\n')
-        if not api == '""':
-            t_harness_file.write(f'#include {api}\n')
+        t_harness_file.write(f'#include {api_or_sign}\n')
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block2))
 
 
 # BINSEC: Test harness for crypto_sign
-def sign_test_harness_content(test_harness_file, api,
-                              sign, add_includes,
+def sign_test_harness_content(test_harness_file, api_or_sign, add_includes,
                               function_return_type,
                               function_name, args_types,
                               args_names):
@@ -500,6 +463,7 @@ def sign_test_harness_content(test_harness_file, api,
     {args_types[4]} {args_names[4]}[CRYPTO_SECRETKEYBYTES] ;
     
     int main(){{
+    \t{function_name}({arguments});
     \t{function_return_type} result =  {function_name}({arguments});
     \texit(result);
     }}
@@ -509,16 +473,12 @@ def sign_test_harness_content(test_harness_file, api,
         if not add_includes == []:
             for include in add_includes:
                 t_harness_file.write(f'#include {include}\n')
-        if not sign == '""':
-            t_harness_file.write(f'#include {sign}\n')
-        if not api == '""':
-            t_harness_file.write(f'#include {api}\n')
+        t_harness_file.write(f'#include {api_or_sign}\n')
         t_harness_file.write(textwrap.dedent(test_harness_file_content_block2))
 
 
 # CTGRIND: taint for crypto_sign_keypair
-def ctgrind_keypair_taint_content(taint_file, api,
-                                  sign, add_includes,
+def ctgrind_keypair_taint_content(taint_file, api_or_sign, add_includes,
                                   function_return_type,
                                   function_name,
                                   args_types,
@@ -560,15 +520,12 @@ def ctgrind_keypair_taint_content(taint_file, api,
         if not add_includes == []:
             for include in add_includes:
                 t_file.write(f'#include {include}\n')
-        if not sign == '""':
-            t_file.write(f'#include {sign}\n')
-        if not api == '""':
-            t_file.write(f'#include {api}\n')
+        t_file.write(f'#include {api_or_sign}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
 # CTGRIND: taint for crypto_sign
-def ctgrind_sign_taint_content(taint_file, api, sign,
+def ctgrind_sign_taint_content(taint_file, api_or_sign,
                                rng, add_includes,
                                function_return_type,
                                function_name, args_types,
@@ -634,17 +591,13 @@ def ctgrind_sign_taint_content(taint_file, api, sign,
         if not add_includes == []:
             for include in add_includes:
                 t_file.write(f'#include {include}\n')
-        if not sign == '""':
-            t_file.write(f'#include {sign}\n')
-        if not api == '""':
-            t_file.write(f'#include {api}\n')
+        t_file.write(f'#include {api_or_sign}\n')
         t_file.write(f'#include {rng}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
 # DUDECT: for crypto_sign_keypair
-def dudect_keypair_dude_content(taint_file, api,
-                                sign, add_includes,
+def dudect_keypair_dude_content(taint_file, api_or_sign, add_includes,
                                 function_return_type,
                                 function_name,
                                 args_types,
@@ -707,123 +660,12 @@ def dudect_keypair_dude_content(taint_file, api,
         if not add_includes == []:
             for include in add_includes:
                 t_file.write(f'#include {include}\n')
-        if not sign == '""':
-            t_file.write(f'#include {sign}\n')
-        if not api == '""':
-            t_file.write(f'#include {api}\n')
+        t_file.write(f'#include {api_or_sign}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
 # DUDECT: for crypto_sign
-def dudect_sign_dude_content1(taint_file, api,
-                             sign, add_includes,
-                             function_return_type,
-                             function_name,
-                             args_types,
-                             args_names, number_of_measurements='1e4'):
-    taint_file_content_block_include = f'''
-    #include <stdio.h>
-    #include <sys/types.h>
-    #include <unistd.h>
-    #include <string.h>
-    #include <stdlib.h>
-    
-    #define DUDECT_IMPLEMENTATION
-    #include <dudect.h>
-    
-    #define MESSAGE_LENGTH 3300
-    
-    #define SECRET_KEY_BYTE_LENGTH CRYPTO_SECRETKEYBYTES
-    #define SIGNATURE_MESSAGE_BYTE_LENGTH (MESSAGE_LENGTH + CRYPTO_BYTES)
-    
-    '''
-    type_msg = args_types[2]
-    type_sk = args_types[4]
-
-    type_sk_with_no_const = type_sk.replace('const', '')
-    type_sk_with_no_const = type_sk_with_no_const.strip()
-
-    sig_msg = args_names[0]
-    sig_msg_len = args_names[1]
-    msg = args_names[2]
-    msg_len = args_names[3]
-    sk = args_names[4]
-    ret_type = function_return_type
-    taint_file_content_block_main = f'''
-    uint8_t do_one_computation(uint8_t *data) {{
-    
-    \t{args_types[1]} {sig_msg_len} = SIGNATURE_MESSAGE_BYTE_LENGTH; //the signature length could be initialized to 0.
-    \t{args_types[0]} {sig_msg}[SIGNATURE_MESSAGE_BYTE_LENGTH] = {{0}};
-    \t{args_types[3]} {msg_len} = MESSAGE_LENGTH; //  the message length could be also randomly generated.
-    \t{type_msg} *{msg} = ({type_msg}*)data + 0; 
-    \t{type_sk} *{sk} = ({type_sk}*)data + MESSAGE_LENGTH*sizeof({type_msg}) ; 
-    
-    \tuint8_t ret_val = 0;
-    \tconst {ret_type} result = {function_name}({sig_msg}, &{sig_msg_len}, {msg}, {msg_len}, {sk});
-    \tret_val ^= (uint8_t) result ^ {sig_msg}[0] ^ {sig_msg}[SIGNATURE_MESSAGE_BYTE_LENGTH - 1];
-    \treturn ret_val;
-    }}
-    
-    void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
-    \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
-    \t{type_sk_with_no_const} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
-    \t{type_sk_with_no_const} fixed_secret_key[CRYPTO_SECRETKEYBYTES] = {{0}};
-    \t(void)crypto_sign_keypair(public_key, fixed_secret_key);
-    \tfor (size_t i = 0; i < c->number_measurements; i++) {{
-    \t\tclasses[i] = randombit();
-    \t\t\tif (classes[i] == 0) {{
-     \t\t\t\t//Uncomment this line if you want to have a fixed message in this class.
-    \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
-    \t\t\t\tmemcpy(input_data + (size_t)i * c->chunk_size+MESSAGE_LENGTH*sizeof({type_msg}), 
-    \t\t\t\t        fixed_secret_key, SECRET_KEY_BYTE_LENGTH*sizeof({type_sk}));
-    \t\t\t}} else {{
-    \t\t\t\t//Uncomment this line if you want to have a fixed message in this class.
-    \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
-    \t\t\t\tconst size_t offset = (size_t)i * c->chunk_size;
-    \t\t\t\t{type_sk_with_no_const} pk[CRYPTO_PUBLICKEYBYTES] = {{0}};
-    \t\t\t\t{type_sk_with_no_const} *sk = ({type_sk_with_no_const} *)input_data + offset + MESSAGE_LENGTH*sizeof({type_msg});
-    \t\t\t\t(void)crypto_sign_keypair(pk, sk);
-    \t\t\t}}
-    \t\t}}
-    \t}}
-    
-    int main(int argc, char **argv)
-    {{
-    \t(void)argc;
-    \t(void)argv;
-    
-    \tconst size_t chunk_size = sizeof({type_msg})*MESSAGE_LENGTH + SECRET_KEY_BYTE_LENGTH*sizeof({type_sk}); 
-
-    \tdudect_config_t config = {{
-    \t\t.chunk_size = chunk_size,
-    \t\t.number_measurements = {number_of_measurements},
-    \t}};
-    \tdudect_ctx_t ctx;
-
-    \tdudect_init(&ctx, &config);
-
-    \tdudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
-    \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
-    \t\tstate = dudect_main(&ctx);
-    \t}}
-    \tdudect_free(&ctx);
-    \treturn (int)state;
-    }}
-    '''
-    with open(taint_file, "w") as t_file:
-        t_file.write(textwrap.dedent(taint_file_content_block_include))
-        if not add_includes == []:
-            for include in add_includes:
-                t_file.write(f'#include {include}\n')
-        if not sign == '""':
-            t_file.write(f'#include {sign}\n')
-        if not api == '""':
-            t_file.write(f'#include {api}\n')
-        t_file.write(textwrap.dedent(taint_file_content_block_main))
-
-
-def dudect_sign_dude_content(taint_file, api,
-                             sign, add_includes,
+def dudect_sign_dude_content(taint_file, api_or_sign, add_includes,
                              function_return_type,
                              function_name,
                              args_types,
@@ -944,14 +786,11 @@ def dudect_sign_dude_content(taint_file, api,
         if not add_includes == []:
             for include in add_includes:
                 t_file.write(f'#include {include}\n')
-        if not sign == '""':
-            t_file.write(f'#include {sign}\n')
-        if not api == '""':
-            t_file.write(f'#include {api}\n')
+        t_file.write(f'#include {api_or_sign}\n')
         t_file.write(textwrap.dedent(taint_file_content_block_main))
 
 
-def ctverif_keypair_wrapper(wrapper_file, api, sign,
+def ctverif_keypair_wrapper(wrapper_file, api_or_sign,
                             add_includes,
                             function_return_type,
                             function_name, args_types,
@@ -969,8 +808,9 @@ def ctverif_keypair_wrapper(wrapper_file, api, sign,
     #include <string.h>
     #include <stdlib.h>
     
+    #define COMPILE
     #include <smack.h>
-    #include "ctverif"
+    #include "ctverif.h"
     '''
 
     wrapper_classification_block = f'''
@@ -978,6 +818,10 @@ def ctverif_keypair_wrapper(wrapper_file, api, sign,
     
     \tpublic_in(__SMACK_value({pk}));
     \tpublic_in(__SMACK_value({sk}));
+    
+    \t__disjoint_regions({pk}, CRYPTO_PUBLICKEYBYTES,{sk}, CRYPTO_SECRETKEYBYTES);
+
+    \tpublic_in(__SMACK_values({pk},CRYPTO_PUBLICKEYBYTES));
     
     \t{function_return_type} result = {function_name}({args_names[0]},{args_names[1]});
     \treturn result;
@@ -988,10 +832,11 @@ def ctverif_keypair_wrapper(wrapper_file, api, sign,
         if not add_includes == []:
             for include in add_includes:
                 t_file.write(f'#include {include}\n')
+        # t_file.write(f'#include {api_or_sign}\n')
         t_file.write(textwrap.dedent(wrapper_classification_block))
 
 
-def ctverif_sign_wrapper(taint_file, api, sign,
+def ctverif_sign_wrapper(taint_file, api_or_sign,
                          add_includes,
                          function_return_type,
                          function_name, args_types,
@@ -1004,6 +849,13 @@ def ctverif_sign_wrapper(taint_file, api, sign,
     sk = args_names[4]
     ret_type = function_return_type
 
+    type_msg = args_types[2]
+    type_sk = args_types[4]
+    type_sk_with_no_const = type_sk.replace('const', '')
+    type_sk_with_no_const = type_sk_with_no_const.strip()
+    type_msg_with_no_const = type_msg.replace('const', '')
+    type_msg_with_no_const = type_msg_with_no_const.strip()
+
     wrapper_include_block = f'''
     #include <stdio.h>
     #include <sys/types.h>
@@ -1011,13 +863,16 @@ def ctverif_sign_wrapper(taint_file, api, sign,
     #include <string.h>
     #include <stdlib.h>
     
-
+    #define MESSAGE_LENGTH 3300
+    
+    #define COMPILE
     #include <smack.h>
-    #include "ctverif"
+    #include "ctverif.h"
     '''
+    sig_message_length = f'CRYPTO_BYTES + MESSAGE_LENGTH'
     sig_block = f'{args_types[0]} *{sig_msg}, {args_types[1]} *{sig_msg_len}'
-    msg_block = f'{args_types[2]} *{msg}, {args_types[3]} {msg_len}'
-    sk_block = f'{args_types[4]} *{sk}'
+    msg_block = f'{type_msg_with_no_const} *{msg}, {args_types[3]} {msg_len}'
+    sk_block = f'{type_sk_with_no_const} *{sk}'
     function_signature = f'{sig_block}, {msg_block}, {sk_block}'
     wrapper_classification_block = f'''
     {ret_type} {function_name}_wrapper({function_signature}){{
@@ -1028,6 +883,14 @@ def ctverif_sign_wrapper(taint_file, api, sign,
     \tpublic_in(__SMACK_value({msg_len}));
     \tpublic_in(__SMACK_value({sk}));
     
+    \t__disjoint_regions({sig_msg}, {sig_message_length}, {sk}, CRYPTO_SECRETKEYBYTES);
+    \t__disjoint_regions({msg}, MESSAGE_LENGTH, {sk}, CRYPTO_SECRETKEYBYTES);
+
+
+    \tpublic_in(__SMACK_values({sig_msg}, {sig_message_length}));
+    \tpublic_in(__SMACK_values({msg}, MESSAGE_LENGTH));
+    \tpublic_in(__SMACK_values({sig_msg_len}, 1));
+    
     \t{ret_type} result = {function_name}({sig_msg}, {sig_msg_len}, {msg}, {msg_len}, {sk});
     \treturn result;
     }}
@@ -1037,17 +900,23 @@ def ctverif_sign_wrapper(taint_file, api, sign,
         if not add_includes == []:
             for include in add_includes:
                 t_file.write(f'#include {include}\n')
+        # t_file.write(f'#include {api_or_sign}\n')
         t_file.write(textwrap.dedent(wrapper_classification_block))
 
 
-
 # FLOWTRACKER: xml file for crypto_sign_keypair
-def flowtracker_keypair_xml_content(xml_file, api,
-                                    sign, add_includes,
+def flowtracker_keypair_xml_content(xml_file, api_or_sign, add_includes,
                                     function_return_type,
                                     function_name,
                                     args_types,
-                                    args_names):
+                                    args_names, crypto_sign_function=None):
+
+    sign_function_name, sign_args_names = crypto_sign_function
+    sig_msg = sign_args_names[0]
+    sig_msg_len = sign_args_names[1]
+    msg = sign_args_names[2]
+    msg_len = sign_args_names[3]
+
     pk = args_names[0]
     sk = args_names[1]
     crypto_keypair = function_name
@@ -1064,6 +933,19 @@ def flowtracker_keypair_xml_content(xml_file, api,
                     <parameter>{sk}</parameter>       <!--Secret key-->
                 </secret>
             </function>
+            <function>
+                <name>crypto_sign</name>
+                <return>false</return>
+                <public>
+                    <parameter>{sig_msg}</parameter>
+                    <parameter>{sig_msg_len}</parameter>
+                    <parameter>{msg}</parameter>
+                    <parameter>{msg_len}</parameter>
+                    <parameter>{sk}</parameter> 
+                </public>
+                <secret>
+                </secret>
+            </function>
         </sources>
     </functions>
     '''
@@ -1072,8 +954,7 @@ def flowtracker_keypair_xml_content(xml_file, api,
 
 
 # FLOWTRACKER: xml file for crypto_sign
-def flowtracker_sign_xml_content(xml_file, api,
-                                 sign, add_includes,
+def flowtracker_sign_xml_content(xml_file, api_or_sign, add_includes,
                                  function_return_type,
                                  function_name,
                                  args_types,
@@ -1100,6 +981,16 @@ def flowtracker_sign_xml_content(xml_file, api,
                 </public>
                 <secret>
                     <parameter>{sk}</parameter>   <!--Secret key-->
+                </secret>
+            </function>
+            <function>
+                <name>{crypto_sign}</name>
+                <return>false</return>
+                <public>
+                    <parameter>{sk}</parameter>
+                    <parameter>pk</parameter>
+                </public>
+                <secret>
                 </secret>
             </function>
         </sources>
@@ -1137,6 +1028,12 @@ def sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_
         end
         return buffen
     end
+    
+    import <brk>, <__curbrk> from libc.so.6
+    replace <brk> (addr) by
+        @[<__curbrk>, 8] := addr
+        return 0
+    end
 
     '''
     exploration_goal = f'''
@@ -1169,6 +1066,11 @@ def cfg_content_keypair(cfg_file_keypair, with_core_dump="yes"):
             @[buf + i] := nondet as urandom
         end
         return buffen
+    end
+    import <brk>, <__curbrk> from libc.so.6
+    replace <brk> (addr) by
+        @[<__curbrk>, 8] := addr
+        return 0
     end
     '''
     exploration_goal = f'''
@@ -1249,7 +1151,7 @@ def compile_with_makefile_all(path_to_makefile):
 # ====================================================================
 
 # Run Binsec
-def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
+def run_binsec1(executable_file, cfg_file, stats_files, output_file, depth):
     command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth} -sse-self-written-enum 1
           '''
     command += f'{executable_file}'
@@ -1262,8 +1164,47 @@ def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
             file.write(line + '\n')
 
 
+def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
+    command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth} -sse-self-written-enum 1
+          '''
+    command += f'{executable_file}'
+    cmd_args_lst = command.split()
+    with open(output_file, "w") as file:
+        execution = Popen(cmd_args_lst, universal_newlines=True, stdout=file, stderr=file)
+        execution.communicate()
+
+    with open(output_file, "r") as file:
+        output_lines = file.readlines()
+        if output_lines:
+            program_status_filter = list(filter(lambda line: 'Program status is' in line, output_lines))
+            prog_status_search = re.search(r'Program status is : \w*', program_status_filter[0])
+            program_status = prog_status_search.group(0)
+
+
+            program_need_for_stubs_filter = list(filter(lambda line: 'Cut path ' in line, output_lines))
+            required_stubs = []
+            if program_need_for_stubs_filter:
+                for sse_error in program_need_for_stubs_filter:
+                    prog_stub_search = re.search(r'Cut path \w*', sse_error)
+                    if prog_stub_search:
+                        address = re.search(r'@\s \w*', sse_error)
+                        print("++++++address: ", address)
+                    program_stub = prog_stub_search.group()
+                    print("++++++sse_error: ", sse_error)
+                    print("++++++program_stub: ", program_stub)
+            program_exploration_filter = list(filter(lambda line: 'Exploration is incomplete' in line, output_lines))
+            if program_exploration_filter:
+                print("---Exploration is incomplete")
+            if program_status.strip() == 'insecure':
+                print("---The target program is insecure. Please refer to the README.md to check the insecure instructions")
+            if program_status.strip() == 'secure':
+                print("---The target program is secure.")
+            else:
+                print("---Binsec cannot prove that the target program is secure or insecure.")
+
+
 # Generate gdb script
-def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: str):
+def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: str, function_name='crypto_sign'):
     snapshot_file = path_to_snapshot_file
     gdb_script = path_to_gdb_script
     if not snapshot_file.endswith('.snapshot'):
@@ -1274,8 +1215,9 @@ def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: s
     set pagination off
     set env LD_BIND_NOW=1
     set env GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_Usable
-    b main
-    start
+    break {function_name}
+    run
+    finish
     generate-core-file {snapshot_file}
     kill
     quit
@@ -1351,8 +1293,223 @@ def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
     subprocess.call(command, stdin=sys.stdin)
 
 
-# binsec_generic_run - ctgrind_generic_run - dudecy_generic_run - flowtracker_generic_run
-# Those functions call respectively: binsec_run - ctgrind_run - dudect_run and flowtracker_run
+# Run CTVERIF
+def run_ctverif(target_wrapper, target_src_file, output_file=None, unroll=1, time_limit=None):
+    command = f"ctverif --entry-points {target_wrapper} "
+    if unroll:
+        command += f'--unroll {unroll} '
+    if time_limit:
+        command += f'--time-limit {time_limit} '
+    command += f'{target_src_file}'
+    cmd_args_lst = command.split()
+    if output_file:
+        execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
+        output, error = execution.communicate()
+        output_decode = output.decode('utf-8')
+        with open(output_file, "w") as file:
+            for line in output_decode.split('\n'):
+                file.write(line + '\n')
+    else:
+        subprocess.call(command, stdin=sys.stdin)
+
+
+def ctverif_sign_wrapper_block(path_to_sign_header_file, target_basename):
+    find_target_keypair = find_target_by_basename(target_basename, path_to_sign_header_file)
+    targ_obj = Candidate(find_target_keypair)
+    args_names = targ_obj.candidate_args_names
+    args_types = targ_obj.candidate_types
+    targ_return_type = targ_obj.candidate_return_type
+    sig_msg = args_names[0]
+    sig_msg_len = args_names[1]
+    msg = args_names[2]
+    msg_len = args_names[3]
+    sk = args_names[4]
+    ret_type = targ_return_type
+
+    type_msg = args_types[2]
+    type_sk = args_types[4]
+    type_sk_with_no_const = type_sk.replace('const', '')
+    type_sk_with_no_const = type_sk_with_no_const.strip()
+    type_msg_with_no_const = type_msg.replace('const', '')
+    type_msg_with_no_const = type_msg_with_no_const.strip()
+
+    sig_message_length = f'CRYPTO_BYTES + DEFAULT_MESSAGE_LENGTH'
+    sig_block = f'{args_types[0]} *{sig_msg}, {args_types[1]} *{sig_msg_len}'
+    msg_block = f'{type_msg_with_no_const} *{msg}, {args_types[3]} {msg_len}'
+    sk_block = f'{type_sk_with_no_const} *{sk}'
+    function_signature = f'{sig_block}, {msg_block}, {sk_block}'
+    target_call = ''
+    ret_type_custom = ret_type
+    if ret_type.strip() == 'void' or ret_type.strip() == 'extern':
+        target_call = f'\t{target_basename}({sig_msg}, {sig_msg_len}, {msg}, {msg_len}, {sk});'
+        ret_type_custom = 'void'
+    else:
+        target_call = f'''
+    \t{ret_type} result = {target_basename}({sig_msg}, {sig_msg_len}, {msg}, {msg_len}, {sk});
+    \treturn result;'''
+    wrapper_block = f'''
+    //{target_basename}_wrapper
+    {ret_type_custom} {target_basename}_wrapper({function_signature}){{
+    
+    \tpublic_in(__SMACK_value({sig_msg}));
+    \tpublic_in(__SMACK_value({sig_msg_len}));
+    \tpublic_in(__SMACK_value({msg}));
+    \tpublic_in(__SMACK_value({msg_len}));
+    \tpublic_in(__SMACK_value({sk}));
+    
+    \t__disjoint_regions({sig_msg}, {sig_message_length}, {sk}, CRYPTO_SECRETKEYBYTES);
+    \t__disjoint_regions({msg}, DEFAULT_MESSAGE_LENGTH, {sk}, CRYPTO_SECRETKEYBYTES);
+
+
+    \tpublic_in(__SMACK_values({sig_msg}, {sig_message_length}));
+    \tpublic_in(__SMACK_values({msg}, DEFAULT_MESSAGE_LENGTH));
+    \tpublic_in(__SMACK_values({sig_msg_len}, 1));
+    
+    {target_call}
+    }}
+    '''
+    return wrapper_block
+
+
+def ctverif_keypair_wrapper_block(path_to_keypair_c_file, target_basename):
+    find_target_keypair = find_target_by_basename(target_basename, path_to_keypair_c_file)
+    targ_obj = Candidate(find_target_keypair)
+    args_names = targ_obj.candidate_args_names
+    args_types = targ_obj.candidate_types
+    targ_return_type = targ_obj.candidate_return_type
+    pk = args_names[0]
+    sk = args_names[1]
+    ret_type = targ_return_type
+    type_pk = args_types[0]
+    type_sk = args_types[1]
+    type_pk_with_no_const = type_pk.replace('const', '')
+    type_pk_with_no_const = type_pk_with_no_const.strip()
+    type_sk_with_no_const = type_sk.replace('const', '')
+    type_sk_with_no_const = type_sk_with_no_const.strip()
+    pk_block = f'{type_pk_with_no_const} *{pk}'
+    sk_block = f'{type_sk_with_no_const} *{sk}'
+    function_signature = f'{pk_block}, {sk_block}'
+    target_call = ''
+    ret_type_custom = ret_type
+    if ret_type.strip() == 'void' or ret_type.strip() == 'extern':
+        target_call = f'\t{target_basename}({pk}, {sk});'
+        ret_type_custom = 'void'
+    else:
+        target_call = f'''
+    \t{ret_type} result = {target_basename}({pk}, {sk});
+    \treturn result;'''
+    wrapper_block = f'''
+    //{target_basename}_wrapper
+    {ret_type_custom} {target_basename}_wrapper({function_signature}){{
+    
+    \tpublic_in(__SMACK_value({pk}));
+    \tpublic_in(__SMACK_value({sk}));
+    
+    \t__disjoint_regions({pk}, CRYPTO_PUBLICKEYBYTES, {sk}, CRYPTO_SECRETKEYBYTES);
+
+    \tpublic_in(__SMACK_values({pk}, CRYPTO_PUBLICKEYBYTES));
+    
+    {target_call}
+    }}
+    '''
+    return wrapper_block
+
+
+def ctverif_create_test_sources_files(path_to_keypair_c_file, path_to_sign_c_file, add_includes):
+    ctverif_include = f'#include "ctverif.h"\n'
+    default_message_length = f'#define DEFAULT_MESSAGE_LENGTH 3300\n\n'
+    keypair_ctverif_name = ''
+    sign_ctverif_name = ''
+    if path_to_keypair_c_file == path_to_sign_c_file:
+        path_to_target_c_file_split = path_to_keypair_c_file.split('/')
+        target_c_file_basename = path_to_target_c_file_split[-1]
+        path_to_target_c_file_folder = "/".join(path_to_target_c_file_split[0:-1])
+        target_ctverif = f'{path_to_target_c_file_folder}/ctverif_common_{target_c_file_basename}'
+        if not os.path.isfile(target_ctverif):
+            with open(path_to_keypair_c_file, "r") as f:
+                contents = f.readlines()
+            with open(target_ctverif, "w") as f:
+                contents.insert(0, ctverif_include)
+                contents.insert(1, default_message_length)
+                if add_includes:
+                    i = 1
+                    for incs in add_includes:
+                        contents.insert(1+i, f'#include {incs}\n')
+                        i += 1
+                contents = "".join(contents)
+                f.write(contents)
+        keypair_ctverif_name = target_ctverif
+        sign_ctverif_name = keypair_ctverif_name
+    else:
+        path_to_keypair_c_file_split = path_to_keypair_c_file.split('/')
+        target_keypair_c_file_basename = path_to_keypair_c_file_split[-1]
+        path_to_keypair_c_file_folder = "/".join(path_to_keypair_c_file_split[0:-1])
+        keypair_ctverif = f'{path_to_keypair_c_file_folder}/ctverif_keypair_{target_keypair_c_file_basename}'
+        if not os.path.isfile(keypair_ctverif):
+            with open(path_to_keypair_c_file, "r") as f:
+                contents = f.readlines()
+
+            with open(keypair_ctverif, "w") as f:
+                contents.insert(0, ctverif_include)
+                contents.insert(1, default_message_length)
+                if add_includes:
+                    i = 1
+                    for incs in add_includes:
+                        contents.insert(1+i, f'#include {incs}\n')
+                        i += 1
+                contents = "".join(contents)
+                f.write(contents)
+        keypair_ctverif_name = keypair_ctverif
+
+        path_to_sign_c_file_split = path_to_sign_c_file.split('/')
+        target_sign_c_file_basename = path_to_sign_c_file_split[-1]
+        path_to_sign_c_file_folder = "/".join(path_to_sign_c_file_split[0:-1])
+        sign_ctverif = f'{path_to_sign_c_file_folder}/ctverif_sign_{target_sign_c_file_basename}'
+        if not os.path.isfile(sign_ctverif):
+            with open(path_to_sign_c_file, "r") as f:
+                contents = f.readlines()
+            with open(sign_ctverif, "w") as f:
+                contents.insert(0, ctverif_include)
+                contents.insert(1, default_message_length)
+                if add_includes:
+                    i = 1
+                    for incs in add_includes:
+                        contents.insert(1+i, f'#include {incs}\n')
+                        i += 1
+                contents = "".join(contents)
+                f.write(contents)
+        sign_ctverif_name = sign_ctverif
+    return keypair_ctverif_name, sign_ctverif_name
+
+
+def ctverif_create_target_wrappers(path_to_keypair_c_file, keypair_basename, path_to_keypair_header_file,
+                                   path_to_sign_c_file, sign_basename, path_to_sign_header_file, add_includes):
+
+    keypair_ctverif_name, sign_ctverif_name = ctverif_create_test_sources_files(path_to_keypair_c_file,
+                                                                                path_to_sign_c_file, add_includes)
+
+    keypair_wrapper_block = ctverif_keypair_wrapper_block(path_to_keypair_header_file, keypair_basename)
+    sign_wrapper_block = ctverif_sign_wrapper_block(path_to_sign_header_file, sign_basename)
+    if keypair_ctverif_name == sign_ctverif_name:
+        with open(keypair_ctverif_name, "a+") as f:
+            contents = f.readlines()
+            if f'//{keypair_basename}_wrapper' not in contents:
+                f.write(textwrap.dedent(keypair_wrapper_block))
+            if f'//{sign_basename}_wrapper' not in contents:
+                f.write(textwrap.dedent(sign_wrapper_block))
+    else:
+        with open(keypair_ctverif_name, "a+") as f:
+            contents = f.readlines()
+            if f'//{keypair_basename}_wrapper' not in contents:
+                f.write(textwrap.dedent(keypair_wrapper_block))
+        with open(sign_ctverif_name, "a+") as f:
+            contents = f.readlines()
+            if f'//{sign_basename}_wrapper' not in contents:
+                f.write(textwrap.dedent(sign_wrapper_block))
+
+
+# binsec_generic_run - ctgrind_generic_run - dudecy_generic_run - flowtracker_generic_run - ctverif_run
+# Those functions call respectively: binsec_run - ctgrind_run - dudect_run - flowtracker_run and ctverif
 # For each of them, the path to the executable/binary file is obtained from:
 # 1. binsec_folder:  binsec folder (same for ctggrind - dudect and flowtracker)
 # 2. signature_type: signature type
@@ -1380,6 +1537,9 @@ def binsec_generic_run(binsec_folder, signature_type, candidate,
         path_to_build_folder = f'{instance}/{build_folder}'
         path_to_binary_files = path_to_build_folder
         for bin_pattern in binary_patterns:
+            target_function = f'crypto_sign'
+            if bin_pattern == 'keypair':
+                target_function = f'{target_function}_keypair'
             binsec_folder_basename = f'{candidate}_{bin_pattern}'
             path_to_binary_pattern_subfolder = f'{path_to_binary_files}/{binsec_folder_basename}'
             path_to_pattern_subfolder = f'{instance}/{binsec_folder_basename}'
@@ -1390,7 +1550,7 @@ def binsec_generic_run(binsec_folder, signature_type, candidate,
                 path_to_snapshot_file = f'{binary}.snapshot'
                 path_to_gdb_script = f'{path_to_binary_pattern_subfolder}/{binary}.gdb'
                 if not os.path.isfile(path_to_gdb_script):
-                    binsec_generate_gdb_script(path_to_gdb_script, path_to_snapshot_file)
+                    binsec_generate_gdb_script(path_to_gdb_script, path_to_snapshot_file, target_function)
                 path_to_executable_file = f'{path_to_binary_pattern_subfolder}/{binary}'
                 binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script)
                 bin_basename = binary.split('test_harness_')[-1]
@@ -1506,6 +1666,137 @@ def flowtracker_generic_run(flowtracker_folder, signature_type,
             os.chdir(cwd)
 
 
+def ctverif_generic_run_external_wrapper(ctverif_folder, signature_type, candidate,
+                                         optimized_imp_folder, opt_src_folder_list_dir,
+                                         unroll, time_limit, binary_patterns):
+    optimized_imp_folder_full_path = f'{signature_type}/{candidate}/{optimized_imp_folder}'
+    ctgrind_folder_full_path = f'{optimized_imp_folder_full_path}/{ctverif_folder}'
+    list_of_instances = []
+    wrapper_pattern = '.c'
+    if not opt_src_folder_list_dir:
+        path_to_subfolder = ctgrind_folder_full_path
+        list_of_instances.append(path_to_subfolder)
+    else:
+        for subfold in opt_src_folder_list_dir:
+            path_to_subfolder = f'{ctgrind_folder_full_path}/{subfold}'
+            list_of_instances.append(path_to_subfolder)
+    for instance in list_of_instances:
+        for bin_pattern in binary_patterns:
+
+            ctverif_folder_basename = f'{candidate}_{bin_pattern}'
+            path_to_pattern_subfolder = f'{instance}/{ctverif_folder_basename}'
+            target_wrapper = find_ending_pattern(path_to_pattern_subfolder, wrapper_pattern)
+            target_wrapper_basename = os.path.basename(target_wrapper)
+            target_wrapper_basename = target_wrapper_basename.split('.c')[0]
+            output_file = f'{path_to_pattern_subfolder}/{target_wrapper_basename}_output.txt'
+            target = ctverif_folder_basename
+            print("::::Running:", target)
+            run_ctverif(target_wrapper_basename, target_wrapper, output_file, unroll, time_limit)
+
+
+def ctverif_generic_run1(ctverif_folder, signature_type, candidate,
+                        optimized_imp_folder, opt_src_folder_list_dir,
+                        unroll, time_limit, binary_patterns):
+    optimized_imp_folder_full_path = f'{signature_type}/{candidate}/{optimized_imp_folder}'
+    ctverif_folder_full_path = f'{optimized_imp_folder_full_path}/{ctverif_folder}'
+    list_of_instances = []
+    if not opt_src_folder_list_dir:
+        path_to_subfolder = ctverif_folder_full_path
+        list_of_instances.append(path_to_subfolder)
+    else:
+        for subfold in opt_src_folder_list_dir:
+            path_to_subfolder = f'{ctverif_folder_full_path}/{subfold}'
+            list_of_instances.append(path_to_subfolder)
+    for instance in list_of_instances:
+        #instance_basename = os.path.basename(instance)
+        instance_split = instance.split('ctverif')
+        instance_basename = instance_split[-1]
+        abs_path_to_instance = f'{optimized_imp_folder_full_path}/{instance_basename}'
+        print(":::::======instance: ", instance)
+        print(":::::======optimized_imp_folder_full_path: ", optimized_imp_folder_full_path)
+        print(":::::======instance_basename: ", instance_basename)
+        ctverif_common_src_file = ''
+        abs_path_to_instance_src = abs_path_to_instance
+        if os.path.isdir(f'{abs_path_to_instance}/src'):
+            abs_path_to_instance_src = f'{abs_path_to_instance}/src'
+        # find_ctverif_common_src_file = glob.glob(abs_path_to_instance + '/ctverif_common_*')
+        # cmd_str = f'cp candidates/ctverif.h {abs_path_to_instance}/ctverif.h'
+        find_ctverif_common_src_file = glob.glob(abs_path_to_instance_src + '/ctverif_common_*')
+        cmd_str = f'cp candidates/ctverif.h {abs_path_to_instance_src}/ctverif.h'
+        print(":::::======abs_path_to_instance_src: ", abs_path_to_instance_src)
+        cmd = cmd_str.split()
+        subprocess.call(cmd, stdin=sys.stdin)
+        if find_ctverif_common_src_file:
+            ctverif_common_src_file = find_ctverif_common_src_file[0]
+            ctverif_keypair_src_file = ctverif_common_src_file
+            ctverif_sign_src_file = ctverif_common_src_file
+        for bin_pattern in binary_patterns:
+            ctverif_folder_basename = f'{candidate}_{bin_pattern}'
+            path_to_pattern_subfolder = f'{instance}/{ctverif_folder_basename}'
+            if ctverif_common_src_file.strip():
+                target_wrapper = ctverif_common_src_file
+            else:
+                # find_ctverif_src_file = glob.glob(abs_path_to_instance + f'/ctverif_{bin_pattern}_*')
+                find_ctverif_src_file = glob.glob(abs_path_to_instance_src + f'/ctverif_{bin_pattern}_*')
+                print("::::======abs_path_to_instance_src: ", abs_path_to_instance_src)
+                target_wrapper = find_ctverif_src_file[0]
+            target_wrapper_basename = os.path.basename(target_wrapper)
+            target_wrapper_basename = target_wrapper_basename.split('.c')[0]
+            output_file = f'{path_to_pattern_subfolder}/{target_wrapper_basename}_output.txt'
+            target = ctverif_folder_basename
+            print("::::Running:", target)
+            run_ctverif(target_wrapper_basename, target_wrapper, output_file, unroll, time_limit)
+
+
+def ctverif_generic_run(ctverif_folder, signature_type, candidate,
+                        optimized_imp_folder, opt_src_folder_list_dir,
+                        unroll, time_limit, binary_patterns):
+    optimized_imp_folder_full_path = f'{signature_type}/{candidate}/{optimized_imp_folder}'
+    ctverif_folder_full_path = f'{optimized_imp_folder_full_path}/{ctverif_folder}'
+    list_of_instances = []
+    if not opt_src_folder_list_dir:
+        path_to_subfolder = ctverif_folder_full_path
+        list_of_instances.append(path_to_subfolder)
+    else:
+        for subfold in opt_src_folder_list_dir:
+            path_to_subfolder = f'{ctverif_folder_full_path}/{subfold}'
+            list_of_instances.append(path_to_subfolder)
+    for instance in list_of_instances:
+        #instance_basename = os.path.basename(instance)
+        instance_split = instance.split('ctverif/')
+        instance_basename = instance_split[-1]
+        abs_path_to_instance = f'{optimized_imp_folder_full_path}/{instance_basename}'
+        ctverif_common_src_file = ''
+        abs_path_to_instance_src = abs_path_to_instance
+        if os.path.isdir(f'{abs_path_to_instance}/src'):
+            abs_path_to_instance_src = f'{abs_path_to_instance}/src'
+        # find_ctverif_common_src_file = glob.glob(abs_path_to_instance + '/ctverif_common_*')
+        # cmd_str = f'cp candidates/ctverif.h {abs_path_to_instance}/ctverif.h'
+        find_ctverif_common_src_file = glob.glob(abs_path_to_instance_src + '/ctverif_common_*')
+        cmd_str = f'cp candidates/ctverif.h {abs_path_to_instance_src}/ctverif.h'
+        cmd = cmd_str.split()
+        subprocess.call(cmd, stdin=sys.stdin)
+        if find_ctverif_common_src_file:
+            ctverif_common_src_file = find_ctverif_common_src_file[0]
+            ctverif_keypair_src_file = ctverif_common_src_file
+            ctverif_sign_src_file = ctverif_common_src_file
+        for bin_pattern in binary_patterns:
+            ctverif_folder_basename = f'{candidate}_{bin_pattern}'
+            path_to_pattern_subfolder = f'{instance}/{ctverif_folder_basename}'
+            if ctverif_common_src_file.strip():
+                target_wrapper = ctverif_common_src_file
+            else:
+                # find_ctverif_src_file = glob.glob(abs_path_to_instance + f'/ctverif_{bin_pattern}_*')
+                find_ctverif_src_file = glob.glob(abs_path_to_instance_src + f'/ctverif_{bin_pattern}_*')
+                target_wrapper = find_ctverif_src_file[0]
+            target_wrapper_basename = os.path.basename(target_wrapper)
+            target_wrapper_basename = target_wrapper_basename.split('.c')[0]
+            output_file = f'{path_to_pattern_subfolder}/{target_wrapper_basename}_output.txt'
+            target = ctverif_folder_basename
+            print("::::Running:", target)
+            run_ctverif(target_wrapper_basename, target_wrapper, output_file, unroll, time_limit)
+
+
 # generic_run: this function, calls the previous ones, given the name of the name of
 # the tool: binsec - ctgrind - dudect - flowtracker
 def generic_run(tools_list, signature_type,
@@ -1541,44 +1832,69 @@ def generic_run(tools_list, signature_type,
                                     candidate, optimized_imp_folder,
                                     opt_src_folder_list_dir, build_folder,
                                     binary_patterns)
+    for tool_name in tools_list:
+        if 'ctverif' in tool_name.lower():
+            ctverif_folder = tool_name
+            ctverif_generic_run(ctverif_folder, signature_type, candidate,
+                                optimized_imp_folder, opt_src_folder_list_dir,
+                                None, None, binary_patterns)
 
 
 # ========================== INITIALIZATION ==============================
 # ========================================================================
 # Find api.h, sign.h and rng.h relative paths to the instance folder of a candidate.
-def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_api,
-                                                   rel_path_to_sign, rel_path_to_rng,
+def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_api_or_sign, rel_path_to_rng,
+                                                   sources, headers,
+                                                   rel_path_to_add_required_incs,
                                                    rng_outside_instance_folder="no"):
-    api_relative = rel_path_to_api
-    sign_relative = rel_path_to_sign
+    api_or_sign_relative = rel_path_to_api_or_sign
+    additional_required_includes = []
+    if rel_path_to_add_required_incs:
+        additional_required_includes = rel_path_to_add_required_incs.copy()
     rng_relative = rel_path_to_rng
+    additional_required_includes_relative_path = []
+    sources_relative_path = []
+    incs_relative_path = []
     if not instance_folder == "":
-        if not rel_path_to_api == "":
-            rel_path_to_api_split = rel_path_to_api.split('/')
-            for i in range(1, len(rel_path_to_api_split)):
-                if not rel_path_to_api_split[i] == '..':
-                    rel_path_to_api_split.insert(i, instance_folder)
+        rel_path_to_api_split = rel_path_to_api_or_sign.split('/')
+        for i in range(1, len(rel_path_to_api_split)):
+            if not rel_path_to_api_split[i] == '..':
+                rel_path_to_api_split.insert(i, instance_folder)
+                break
+        api_or_sign_relative = '/'.join(rel_path_to_api_split)
+        if additional_required_includes:
+            for add_inc in additional_required_includes:
+                add_inc_split = add_inc.split('/')
+                for i in range(1, len(add_inc_split)):
+                    if not add_inc_split[i] == '..':
+                        add_inc_split.insert(i, instance_folder)
+                        break
+                add_inc_relative = '/'.join(add_inc_split)
+                additional_required_includes_relative_path.append(add_inc_relative)
+
+        for src in sources:
+            src_split = src.split('/')
+            for i in range(1, len(src_split)):
+                if not src_split[i] == '..':
+                    src_split.insert(i, instance_folder)
                     break
-            api_relative = '/'.join(rel_path_to_api_split)
-        else:
-            api_relative = ""
-        if not rel_path_to_sign == "":
-            rel_path_to_sign_split = rel_path_to_sign.split('/')
-            for i in range(1, len(rel_path_to_sign_split)):
-                if not rel_path_to_sign_split[i] == '..':
-                    rel_path_to_sign_split.insert(i, instance_folder)
+            src_relative = '/'.join(src_split)
+            sources_relative_path.append(src_relative)
+
+        for incs in headers:
+            incs_split = incs.split('/')
+            for i in range(1, len(incs_split)):
+                if not incs_split[i] == '..':
+                    incs_split.insert(i, instance_folder)
                     break
-            sign_relative = '/'.join(rel_path_to_sign_split)
-        else:
-            sign_relative = ""
+            incs_relative = '/'.join(incs_split)
+            incs_relative_path.append(incs_relative)
+
         outside_depth_of_rng_folder = 1
         rel_path_to_api_sign_split = []
         # relative path to rng
         if rng_outside_instance_folder == "yes":
-            if not rel_path_to_sign == '""':
-                rel_path_to_api_sign_split = rel_path_to_sign.split('/')
-            elif not rel_path_to_api == '""':
-                rel_path_to_api_sign_split = rel_path_to_api.split('/')
+            rel_path_to_api_sign_split = rel_path_to_api_or_sign.split('/')
             instance_folder_split = instance_folder.split('/')
             if len(instance_folder_split) == 1:
                 rng_relative = rel_path_to_rng
@@ -1605,31 +1921,42 @@ def find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_
                         rel_path_to_rng_split.insert(i, instance_folder)
                         break
                 rng_relative = '/'.join(rel_path_to_rng_split)
-    return api_relative, sign_relative, rng_relative
+    return api_or_sign_relative, rng_relative, sources_relative_path, incs_relative_path, additional_required_includes_relative_path
 
 
 # Find api.h/sign.h path taking into account the optimized implementation folder and the
 # instance folder of a candidate. The file obtained is the path to api.h/sign.h, the header file
 # needed to get crypto_sign_keypair and crypto_sign arguments names/types.
-def find_api_sign_abs_path(path_to_opt_src_folder, api, sign, opt_implementation_name,
+def find_api_sign_abs_path(path_to_opt_src_folder, api_or_sign, sources, headers,
+                           opt_implementation_name,
                            ref_implementation_name="Reference_Implementation"):
     folder = path_to_opt_src_folder
     ref_implementation_name.strip()
     opt_implementation_name.strip()
-    abs_path_to_api_or_sign = ""
-    if not api == '""':
-        api_folder_split = api.split("../")
-        api_folder = api_folder_split[-1]
-        api_folder = api_folder.split('"')
-        api_folder = api_folder[0]
-        abs_path_to_api_or_sign = f'{folder}/{api_folder}'
-    if not sign == '""':
-        sign_folder_split = sign.split("../")
-        sign_folder = sign_folder_split[-1]
-        sign_folder = sign_folder.split('"')
-        sign_folder = sign_folder[0]
-        abs_path_to_api_or_sign = f'{folder}/{sign_folder}'
-    return abs_path_to_api_or_sign
+    api_folder_split = api_or_sign.split("../")
+    api_folder = api_folder_split[-1]
+    api_folder = api_folder.split('"')
+    api_folder = api_folder[0]
+    abs_path_to_api_or_sign = f'{folder}/{api_folder}'
+    src_abs_path = []
+    headers_abs_abs_path = []
+    if sources:
+        for src in sources:
+            src_folder_split = src.split("../")
+            src_folder = src_folder_split[-1]
+            src_folder = src_folder.split('"')
+            src_folder = src_folder[0]
+            abs_path_to_src = f'{folder}/{src_folder}'
+            src_abs_path.append(abs_path_to_src)
+    if headers:
+        for incs in headers:
+            incs_folder_split = incs.split("../")
+            incs_folder = incs_folder_split[-1]
+            incs_folder = incs_folder.split('"')
+            incs_folder = incs_folder[0]
+            abs_path_to_incs = f'{folder}/{incs_folder}'
+            headers_abs_abs_path.append(abs_path_to_incs)
+    return abs_path_to_api_or_sign, src_abs_path, headers_abs_abs_path
 
 
 # tool_initialize_candidate: given  tool, instances, keypair and sign folders and also api.h - sign.h - rng.h paths,
@@ -1641,8 +1968,8 @@ def find_api_sign_abs_path(path_to_opt_src_folder, api, sign, opt_implementation
 def tool_initialize_candidate(path_to_opt_src_folder,
                               path_to_tool_folder,
                               path_to_tool_keypair_folder,
-                              path_to_tool_sign_folder, api,
-                              sign, rng, add_includes,
+                              path_to_tool_sign_folder, api_or_sign, rng,
+                              sources, headers, target_functions, additional_required_include, add_includes,
                               with_core_dump="yes",
                               number_of_measurements='1e4'):
     list_of_path_to_folders = [path_to_tool_folder,
@@ -1651,9 +1978,11 @@ def tool_initialize_candidate(path_to_opt_src_folder,
     generic_create_tests_folders(list_of_path_to_folders)
     tool_name = os.path.basename(path_to_tool_folder)
     opt_implementation_name = os.path.basename(path_to_opt_src_folder)
-    abth_p = find_api_sign_abs_path(path_to_opt_src_folder, api,
-                                    sign, opt_implementation_name)
-    abs_path_to_api_or_sign = abth_p
+    ret = find_api_sign_abs_path(path_to_opt_src_folder, api_or_sign, sources, headers,
+                                 opt_implementation_name)
+    print("-----INTO: tool_initialize_candidate")
+    print(">>>rng: ", rng)
+    abs_path_to_api_or_sign, src_abs_path, headers_abs_abs_path = ret
     tool_type = Tools(tool_name)
     tes_keypair_basename, tes_sign_basename = tool_type.get_tool_test_file_name()
     if tool_name == 'flowtracker':
@@ -1671,10 +2000,10 @@ def tool_initialize_candidate(path_to_opt_src_folder,
     return_type_s, f_basename_s, args_types_s, args_names_s = ret_sign
 
     if tool_name == 'ctgrind':
-        ctgrind_keypair_taint_content(test_keypair, api, sign,
+        ctgrind_keypair_taint_content(test_keypair, api_or_sign,
                                       add_includes, return_type_kp,
                                       f_basename_kp, args_types_kp, args_names_kp)
-        ctgrind_sign_taint_content(test_sign, api, sign, rng,
+        ctgrind_sign_taint_content(test_sign, api_or_sign, rng,
                                    add_includes, return_type_s,
                                    f_basename_s, args_types_s, args_names_s)
     if tool_name == 'binsec':
@@ -1683,7 +2012,7 @@ def tool_initialize_candidate(path_to_opt_src_folder,
         if 'yes' in with_core_dump.lower():
             cfg_file_keypair = f'{path_to_tool_keypair_folder}/{cfg_file_kp}.ini'
         cfg_content_keypair(cfg_file_keypair, with_core_dump)
-        test_harness_content_keypair(test_keypair, api, sign, add_includes, return_type_kp,
+        test_harness_content_keypair(test_keypair, api_or_sign, add_includes, return_type_kp,
                                      f_basename_kp)
         crypto_sign_args_names = args_names_s
 
@@ -1692,31 +2021,31 @@ def tool_initialize_candidate(path_to_opt_src_folder,
         else:
             cfg_file_sign = f'{path_to_tool_sign_folder}/{cfg_file_sign}.cfg'
         sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_core_dump)
-        sign_test_harness_content(test_sign, api, sign, add_includes, return_type_s, f_basename_s,
+        sign_test_harness_content(test_sign, api_or_sign, add_includes, return_type_s, f_basename_s,
                                   args_types_s, args_names_s)
 
     if tool_name == 'dudect':
-        dudect_keypair_dude_content(test_keypair, api, sign,
+        dudect_keypair_dude_content(test_keypair, api_or_sign,
                                     add_includes, return_type_kp,
                                     f_basename_kp, args_types_kp, args_names_kp)
-        dudect_sign_dude_content(test_sign, api, sign,
+        dudect_sign_dude_content(test_sign, api_or_sign,
                                  add_includes, return_type_s,
                                  f_basename_s, args_types_s,
                                  args_names_s, number_of_measurements)
     if tool_name == 'flowtracker':
-        flowtracker_keypair_xml_content(test_keypair, api, sign,
+        sign_function = [f_basename_s, args_names_s]
+        flowtracker_keypair_xml_content(test_keypair, api_or_sign,
                                         add_includes, return_type_kp,
-                                        f_basename_kp, args_types_kp, args_names_kp)
-        flowtracker_sign_xml_content(test_sign, api, sign,
+                                        f_basename_kp, args_types_kp, args_names_kp, sign_function)
+        flowtracker_sign_xml_content(test_sign, api_or_sign,
                                      add_includes, return_type_s,
                                      f_basename_s, args_types_s, args_names_s)
     if tool_name == 'ctverif' or tool_name == 'ct-verif':
-        ctverif_keypair_wrapper(test_keypair, api, sign,
-                                add_includes, return_type_kp,
-                                f_basename_kp, args_types_kp, args_names_kp)
-        ctverif_sign_wrapper(test_sign, api, sign,
-                             add_includes, return_type_s,
-                             f_basename_s, args_types_s, args_names_s)
+        kp_c_file, sign_c_file = src_abs_path[0:2]
+        kp_header, sign_header = headers_abs_abs_path[0:2]
+        kp_bname, sign_bname = target_functions[0:2]
+        ctverif_create_target_wrappers(kp_c_file, kp_bname, kp_header, sign_c_file, sign_bname,
+                                       sign_header, add_includes)
 
 
 # initialization: given a candidate and its details (signature type, etc.), creates required arguments (folders)
@@ -1724,12 +2053,12 @@ def tool_initialize_candidate(path_to_opt_src_folder,
 # It takes into account a multiple of tools  and instances (folders) for a given candidate
 def initialization(tools_list, signature_type,
                    candidate, optimized_imp_folder,
-                   instance_folder, api, sign,
-                   rng, add_includes, with_core_dump="yes",
+                   instance_folder, api_or_sign, rng,
+                   sources, headers, target_functions,
+                   additional_required_include, add_includes, with_core_dump="yes",
                    number_of_measurements='1e4'):
     path_to_opt_src_folder = signature_type + '/' + candidate + '/' + optimized_imp_folder
     tools_list_lowercase = [tool_name.lower() for tool_name in tools_list]
-
     for tool_name in tools_list_lowercase:
         tool_folder = tool_name
         path_to_tool_folder = path_to_opt_src_folder + '/' + tool_folder
@@ -1743,47 +2072,18 @@ def initialization(tools_list, signature_type,
         tool_initialize_candidate(path_to_opt_src_folder,
                                   path_to_tool_folder,
                                   path_to_tool_keypair_folder,
-                                  path_to_tool_sign_folder, api,
-                                  sign, rng, add_includes,
+                                  path_to_tool_sign_folder, api_or_sign, rng,
+                                  sources, headers, target_functions,
+                                  additional_required_include, add_includes,
                                   with_core_dump, number_of_measurements)
 
 
 # generic_initialize_nist_candidate: generalisation of the function 'initialization', taking into account the fact
 # that some candidates have only 'one' instance
-def generic_initialize_nist_candidate1(tools_list, signature_type, candidate,
-                                      optimized_imp_folder, instance_folders_list,
-                                      rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
-                                      add_includes, rng_outside_instance_folder="no",
-                                      with_core_dump="yes", number_of_measurements='1e4'):
-    if not instance_folders_list:
-        instance_folder = ""
-        api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
-                                                                        rel_path_to_api,
-                                                                        rel_path_to_sign,
-                                                                        rel_path_to_rng,
-                                                                        rng_outside_instance_folder)
-        initialization(tools_list, signature_type,
-                       candidate, optimized_imp_folder,
-                       instance_folder, api, sign,
-                       rng, add_includes, with_core_dump,
-                       number_of_measurements)
-    else:
-        for instance_folder in instance_folders_list:
-            api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
-                                                                            rel_path_to_api,
-                                                                            rel_path_to_sign,
-                                                                            rel_path_to_rng,
-                                                                            rng_outside_instance_folder)
-            initialization(tools_list, signature_type,
-                           candidate, optimized_imp_folder,
-                           instance_folder, api, sign,
-                           rng, add_includes, with_core_dump,
-                           number_of_measurements)
-
-
 def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
                                       optimized_imp_folder, instance_folders_list,
-                                      rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                                      rel_path_to_api_or_sign, rel_path_to_rng, sources, headers, target_functions,
+                                      rel_path_to_additional_includes,
                                       add_includes, rng_outside_instance_folder="no",
                                       with_core_dump="yes", number_of_measurements='1e4'):
     list_of_instances = []
@@ -1794,115 +2094,66 @@ def generic_initialize_nist_candidate(tools_list, signature_type, candidate,
             list_of_instances.append(instance_folder)
     for instance_folder in list_of_instances:
 
-        api, sign, rng = find_candidate_instance_api_sign_relative_path(instance_folder,
-                                                                        rel_path_to_api,
-                                                                        rel_path_to_sign,
-                                                                        rel_path_to_rng,
-                                                                        rng_outside_instance_folder)
+        ret = find_candidate_instance_api_sign_relative_path(instance_folder, rel_path_to_api_or_sign, rel_path_to_rng,
+                                                             sources, headers, rel_path_to_additional_includes,
+                                                             rng_outside_instance_folder)
+        api_or_sign, rng, src, incs, add_req_incs = ret
         initialization(tools_list, signature_type,
                        candidate, optimized_imp_folder,
-                       instance_folder, api, sign,
-                       rng, add_includes, with_core_dump,
+                       instance_folder, api_or_sign, rng, src, incs, target_functions, add_req_incs,
+                       add_includes, with_core_dump,
                        number_of_measurements)
 
 
-def set_include_correct_format(api, sign, rng):
-    if not api.startswith('"'):
-        api = f'"{api}"'
-    if not sign.startswith('"'):
-        sign = f'"{sign}"'
+def set_include_correct_format(api_or_sign, additional_required_includes, rng):
+    additional_required_includes_corrected = []
+    if not api_or_sign.startswith('"'):
+        api_or_sign = f'"{api_or_sign}"'
     if not rng.startswith('"'):
         rng = f'"{rng}"'
-    return api, sign, rng
+    if additional_required_includes:
+        for add_inc in additional_required_includes:
+            if not add_inc.startswith('"'):
+                add_inc = f'"{add_inc}"'
+                additional_required_includes_corrected.append(add_inc)
+    return api_or_sign, additional_required_includes_corrected, rng
 
 
 # generic_init_compile: in addition to initializing a given candidate for desired tools and instances, generates
 # a Makefile/CMakeLists.txt and performs compilation/build.
 def generic_init_compile(tools_list, signature_type, candidate,
                          optimized_imp_folder, instance_folders_list,
-                         rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                         rel_path_to_api_or_sign, rel_path_to_rng, sources, headers, target_functions,
+                         rel_path_to_additional_includes,
                          add_includes, build_folder, with_cmake,
                          rng_outside_instance_folder="no", with_core_dump="yes",
                          additional_cmake_definitions=None, security_level=None,
                          number_of_measurements='1e4', implementation_type='opt'):
-    api, sign, rng = set_include_correct_format(rel_path_to_api, rel_path_to_sign, rel_path_to_rng)
-    rel_path_to_api = api
-    rel_path_to_sign = sign
+    api_or_sign, add_req_incs, rng = set_include_correct_format(rel_path_to_api_or_sign,
+                                                                rel_path_to_additional_includes, rel_path_to_rng)
+    rel_path_to_api_or_sign = api_or_sign
+    rel_path_to_additional_required_includes = add_req_incs
     rel_path_to_rng = rng
     cmd = []
     path_to_opt_impl_folder = f'{signature_type}/{candidate}/{optimized_imp_folder}'
     if not instance_folders_list:
         generic_initialize_nist_candidate(tools_list, signature_type,
                                           candidate, optimized_imp_folder,
-                                          instance_folders_list, rel_path_to_api,
-                                          rel_path_to_sign, rel_path_to_rng,
+                                          instance_folders_list, rel_path_to_api_or_sign, rel_path_to_rng,
+                                          sources, headers, target_functions,
+                                          rel_path_to_additional_required_includes,
                                           add_includes, rng_outside_instance_folder,
                                           with_core_dump, number_of_measurements)
         instance = '""'
         for tool_type in tools_list:
-            path_to_build_folder = ""
-            path_to_cmakelist_file = ""
-            path_to_makefile_folder = ""
-            if with_cmake == 'yes':
-                path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type
-                path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
-                path_to_makefile_folder = ""
-                path_function_pattern_file = path_to_cmakelist_file
-                arguments = f'path_function_pattern_file,instance,tool_type,candidate, implementation_type'
-                funct = f'build_cand.cmake_candidate({arguments})'
-                exec(f'{funct}')
-            elif "sh" in with_cmake:
-                cwd = os.getcwd()
-                path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}'
-                path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
-                arguments = f'path_to_sh_folder, instance, tool_type, candidate, implementation_type'
-                funct = f'build_cand.sh_candidate({arguments})'
-                exec(f'{funct}')
-                sh_script = find_ending_pattern(path_to_sh_folder, ".sh")
-                sh_script = os.path.basename(sh_script)
-                os.chdir(path_to_sh_folder)
-                cmd_str = f"sudo chmod u+x ./{sh_script}"
-                cmd = cmd_str.split()
-                subprocess.call(cmd, stdin=sys.stdin)
-                cmd_str = f"./{sh_script}"
-                cmd = cmd_str.split()
-                subprocess.call(cmd, stdin=sys.stdin, shell=True)
-                os.chdir(cwd)
+            if tool_type == 'ctverif' or tool_type == 'ct-verif':
+                print("wrappers are created into the implementation folder")
             else:
-                path_to_makefile_folder = path_to_opt_impl_folder + '/' + tool_type
-                path_to_build_folder = path_to_makefile_folder + '/' + build_folder
-                path_to_cmakelist_file = ""
-                path_function_pattern_file = path_to_makefile_folder
-                arguments = f'path_function_pattern_file,instance,tool_type,candidate,security_level, implementation_type'
-                funct = f'build_cand.makefile_candidate({arguments})'
-                exec(f'{funct}')
-            if not os.path.isdir(path_to_build_folder):
-                cmd = ["mkdir", "-p", path_to_build_folder]
-                subprocess.call(cmd, stdin=sys.stdin)
-            if "sh" not in with_cmake:
-                if not os.path.isdir(path_to_build_folder):
-                    cmd = ["mkdir", "-p", path_to_build_folder]
-                    subprocess.call(cmd, stdin=sys.stdin)
-                compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
-                                                                             path_to_makefile_folder,
-                                                                             path_to_build_folder,
-                                                                             "all",
-                                                                             additional_cmake_definitions)
-
-    else:
-        for instance in instance_folders_list:
-            generic_initialize_nist_candidate(tools_list, signature_type,
-                                              candidate, optimized_imp_folder,
-                                              instance_folders_list, rel_path_to_api,
-                                              rel_path_to_sign, rel_path_to_rng,
-                                              add_includes, rng_outside_instance_folder,
-                                              with_core_dump, number_of_measurements)
-            for tool_type in tools_list:
                 path_to_build_folder = ""
                 path_to_cmakelist_file = ""
                 path_to_makefile_folder = ""
                 if with_cmake == 'yes':
-                    path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type + '/' + instance
+                    path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type
                     path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
                     path_to_makefile_folder = ""
                     path_function_pattern_file = path_to_cmakelist_file
@@ -1911,7 +2162,7 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     exec(f'{funct}')
                 elif "sh" in with_cmake:
                     cwd = os.getcwd()
-                    path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
+                    path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}'
                     path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
                     arguments = f'path_to_sh_folder, instance, tool_type, candidate, implementation_type'
                     funct = f'build_cand.sh_candidate({arguments})'
@@ -1927,13 +2178,16 @@ def generic_init_compile(tools_list, signature_type, candidate,
                     subprocess.call(cmd, stdin=sys.stdin, shell=True)
                     os.chdir(cwd)
                 else:
-                    path_to_makefile_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
-                    path_to_build_folder = f'{path_to_makefile_folder}/{build_folder}'
+                    path_to_makefile_folder = path_to_opt_impl_folder + '/' + tool_type
+                    path_to_build_folder = path_to_makefile_folder + '/' + build_folder
                     path_to_cmakelist_file = ""
                     path_function_pattern_file = path_to_makefile_folder
                     arguments = f'path_function_pattern_file,instance,tool_type,candidate,security_level, implementation_type'
                     funct = f'build_cand.makefile_candidate({arguments})'
-                    exec(funct)
+                    exec(f'{funct}')
+                if not os.path.isdir(path_to_build_folder):
+                    cmd = ["mkdir", "-p", path_to_build_folder]
+                    subprocess.call(cmd, stdin=sys.stdin)
                 if "sh" not in with_cmake:
                     if not os.path.isdir(path_to_build_folder):
                         cmd = ["mkdir", "-p", path_to_build_folder]
@@ -1944,12 +2198,71 @@ def generic_init_compile(tools_list, signature_type, candidate,
                                                                                  "all",
                                                                                  additional_cmake_definitions)
 
+    else:
+        for instance in instance_folders_list:
+            generic_initialize_nist_candidate(tools_list, signature_type,
+                                              candidate, optimized_imp_folder,
+                                              instance_folders_list, rel_path_to_api_or_sign, rel_path_to_rng, sources,
+                                              headers, target_functions, rel_path_to_additional_required_includes,
+                                              add_includes, rng_outside_instance_folder,
+                                              with_core_dump, number_of_measurements)
+            for tool_type in tools_list:
+                if tool_type == 'ctverif' or tool_type == 'ct-verif':
+                    print("wrappers are created into the implementation folder")
+                else:
+                    path_to_build_folder = ""
+                    path_to_cmakelist_file = ""
+                    path_to_makefile_folder = ""
+                    if with_cmake == 'yes':
+                        path_to_cmakelist_file = path_to_opt_impl_folder + '/' + tool_type + '/' + instance
+                        path_to_build_folder = path_to_cmakelist_file + '/' + build_folder
+                        path_to_makefile_folder = ""
+                        path_function_pattern_file = path_to_cmakelist_file
+                        arguments = f'path_function_pattern_file,instance,tool_type,candidate, implementation_type'
+                        funct = f'build_cand.cmake_candidate({arguments})'
+                        exec(f'{funct}')
+                    elif "sh" in with_cmake:
+                        cwd = os.getcwd()
+                        path_to_sh_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
+                        path_to_build_folder = f'{path_to_sh_folder}/{build_folder}'
+                        arguments = f'path_to_sh_folder, instance, tool_type, candidate, implementation_type'
+                        funct = f'build_cand.sh_candidate({arguments})'
+                        exec(f'{funct}')
+                        sh_script = find_ending_pattern(path_to_sh_folder, ".sh")
+                        sh_script = os.path.basename(sh_script)
+                        os.chdir(path_to_sh_folder)
+                        cmd_str = f"sudo chmod u+x ./{sh_script}"
+                        cmd = cmd_str.split()
+                        subprocess.call(cmd, stdin=sys.stdin)
+                        cmd_str = f"./{sh_script}"
+                        cmd = cmd_str.split()
+                        subprocess.call(cmd, stdin=sys.stdin, shell=True)
+                        os.chdir(cwd)
+                    else:
+                        path_to_makefile_folder = f'{path_to_opt_impl_folder}/{tool_type}/{instance}'
+                        path_to_build_folder = f'{path_to_makefile_folder}/{build_folder}'
+                        path_to_cmakelist_file = ""
+                        path_function_pattern_file = path_to_makefile_folder
+                        arguments = f'path_function_pattern_file,instance,tool_type,candidate,security_level, implementation_type'
+                        funct = f'build_cand.makefile_candidate({arguments})'
+                        exec(funct)
+                    if "sh" not in with_cmake:
+                        if not os.path.isdir(path_to_build_folder):
+                            cmd = ["mkdir", "-p", path_to_build_folder]
+                            subprocess.call(cmd, stdin=sys.stdin)
+                        compile_nist_signature_candidate_with_cmakelists_or_makefile(path_to_cmakelist_file,
+                                                                                     path_to_makefile_folder,
+                                                                                     path_to_build_folder,
+                                                                                     "all",
+                                                                                     additional_cmake_definitions)
+
 
 # generic_compile_run_candidate: initializes, compiles and runs given tools for the given instances
 # of a given candidate.
 def generic_compile_run_candidate(tools_list, signature_type, candidate,
                                   optimized_imp_folder, instance_folders_list,
-                                  rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                                  rel_path_to_api_or_sign, rel_path_to_rng, sources, headers, target_functions,
+                                  rel_path_to_add_required_incs,
                                   with_cmake, add_includes, to_compile, to_run,
                                   depth, build_folder, binary_patterns,
                                   rng_outside_instance_folder="no",
@@ -1960,7 +2273,8 @@ def generic_compile_run_candidate(tools_list, signature_type, candidate,
     if 'y' in to_compile.lower() and 'y' in to_run.lower():
         generic_init_compile(tools_list, signature_type, candidate,
                              optimized_imp_folder, instance_folders_list,
-                             rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                             rel_path_to_api_or_sign, rel_path_to_rng, sources, headers, target_functions,
+                             rel_path_to_add_required_incs,
                              add_includes, build_folder, with_cmake,
                              rng_outside_instance_folder, with_core_dump,
                              additional_cmake_definitions, security_level,
@@ -1970,7 +2284,8 @@ def generic_compile_run_candidate(tools_list, signature_type, candidate,
     elif 'y' in to_compile.lower() and 'n' in to_run.lower():
         generic_init_compile(tools_list, signature_type, candidate,
                              optimized_imp_folder, instance_folders_list,
-                             rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                             rel_path_to_api_or_sign, rel_path_to_rng, sources, headers, target_functions,
+                             rel_path_to_add_required_incs,
                              add_includes, build_folder, with_cmake,
                              rng_outside_instance_folder, with_core_dump,
                              additional_cmake_definitions, security_level,
@@ -1980,16 +2295,18 @@ def generic_compile_run_candidate(tools_list, signature_type, candidate,
                     instance_folders_list, depth, build_folder, binary_patterns, with_core_dump, timeout)
 
 
-
 # add_cli_arguments: create a parser for a given candidate
 def add_cli_arguments(subparser,
                       signature_type,
                       candidate,
                       optimized_imp_folder,
-                      rel_path_to_api='""',
-                      rel_path_to_sign='""',
+                      rel_path_to_api_or_sign='""',
                       rel_path_to_rng='""',
                       is_rng_in_cwd="no",
+                      src=None,
+                      headers=None,
+                      target_functions=None,
+                      additional_required_includes=None,
                       candidate_default_list_of_folders=None,
                       with_core_dump="yes",
                       additional_cmake_definitions=None,
@@ -2023,10 +2340,7 @@ def add_cli_arguments(subparser,
     arguments = f"'--instance_folders_list', nargs='+', default={candidate_default_list_of_folders}"
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
-    arguments = f"'--rel_path_to_api', '-api',dest='api',type=str, default=f'{rel_path_to_api}',help = 'api'"
-    add_args_commdand = f"candidate_parser.add_argument({arguments})"
-    exec(add_args_commdand)
-    arguments = f"'--rel_path_to_sign', '-sign', dest='sign',type=str,default=f'{rel_path_to_sign}',help = 'sign'"
+    arguments = f"'--rel_path_to_api', '-api',dest='api',type=str, default=f'{rel_path_to_api_or_sign}',help = 'api'"
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
     arguments = f"'--rel_path_to_rng', '-rng', dest='rng',type=str,default=f'{rel_path_to_rng}'"
@@ -2048,6 +2362,19 @@ def add_cli_arguments(subparser,
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
     arguments = f"'--is_rng_outside_folder','-rng_outside',dest='rng_outside', default=f'{is_rng_in_cwd}',help = 'no'"
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--src', nargs='+', default={src},help = 'source files'"
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--headers', nargs='+', default={headers},help = 'source files headers'"
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--target_functions', nargs='+', default={target_functions},help = 'target functions'"
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = (f"'--additional_required_includes', '-add_includes', dest='required_incs', nargs='+',"
+                 f"default={additional_required_includes},help = 'additional required includes'")
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
     arguments = f"'--with_core_dump','-core_dump',dest='core_dump', default=f'{with_core_dump}',help = 'no'"

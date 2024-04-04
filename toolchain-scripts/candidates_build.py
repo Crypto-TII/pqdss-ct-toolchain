@@ -704,7 +704,7 @@ def makefile_sdith(path_to_makefile_folder, subfolder, tool_name, candidate, imp
         
         BASE_DIR = ../../../{subfolder}
         
-        SIGN = $(BASE_DIR)/api.c
+        SIGN = $(BASE_DIR)/sign.c
         INCS_DIR = $(BASE_DIR)
         
         BUILD			= build
@@ -923,6 +923,8 @@ def makefile_mira(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         
         TOOL_FLAGS = {tool_flags}
         TOOL_LIBS = {tool_libs}
+        
+        C_FLAGS +=  $(TOOL_FLAGS)
         
         folders:
         \t@echo -e "### Creating build/bin folders"
@@ -1755,55 +1757,7 @@ def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_name, candidate, i
     message = ''
     if implementation_type == 'ref':
         message = '# Same as Optimized implementation'
-    if tool_name == 'ctverif' or tool_name == 'ct-verif':
-        makefile_content = f'''
-        CC = clang
-        
-        BASE_DIR = ../../{subfolder}
-        
-        SIGN = $(BASE_DIR)/api.c
-        INCS_DIR = $(BASE_DIR)
-        
-        BUILD			= build
-        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
-        BUILD_SIGN		= $(BUILD)/{candidate}_sign
-        
-        WRAPPER_KEYPAIR  = {candidate}_keypair/{test_keypair}
-        WRAPPER_SIGN     = {candidate}_keypair/{test_sign}
-        EXECUTABLE_KEYPAIR_BPL	= {candidate}_keypair/{test_keypair}.bpl
-        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
-        EXECUTABLE_SIGN_BPL		= {candidate}_sign/{test_sign}.bpl
-        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
-        
-        all: $(EXECUTABLE_KEYPAIR_BPL) #$(EXECUTABLE_SIGN_BPL) 
-         
-        
-        
-        $(EXECUTABLE_KEYPAIR_BPL): $(SIGN)
-        \tmkdir -p $(BUILD)
-        \tmkdir -p $(BUILD_KEYPAIR)
-        \tsmack -t --verifier=boogie --entry-points {test_keypair} -bpl $(BUILD)/$(EXECUTABLE_KEYPAIR_BPL) $(WRAPPER_KEYPAIR).c
-        \t#$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
-        
-        
-        #$(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
-        #\truby -I$(BAMPATH)/lib $(BAMPATH)/bin/bam --shadowing $(SMACKOUT) -o $(BAMOUT)
-        
-        #$(EXECUTABLE_SIGN_BC): $(SIGN)
-        #\tmkdir -p $(BUILD)
-        #\tmkdir -p $(BUILD_SIGN)
-        #\t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
-        
-        #$(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
-        #\topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
-            
-        .PHONY: clean
-          
-        clean:
-        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
-        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
-        '''
-    elif tool_name == 'flowtracker':
+    if tool_name == 'flowtracker':
         makefile_content = f'''
         CC = clang
         
@@ -1874,6 +1828,8 @@ def makefile_fuleeca(path_to_makefile_folder, subfolder, tool_name, candidate, i
         
         TOOL_LIBS = {tool_libs}
         TOOL_FLAGS = {tool_flags}
+        
+        CFLAGS += $(TOOL_FLAGS)
           
         .PHONY: all shared
         all: $(EXECUTABLE_KEYPAIR) $(EXECUTABLE_SIGN)
@@ -2196,7 +2152,7 @@ def makefile_eaglesign(path_to_makefile_folder, subfolder, tool_name, candidate,
         
         BASE_DIR = ../../{subfolder}
         
-        SIGN = $(BASE_DIR)/api.c
+        SIGN = $(BASE_DIR)/sign.c
         INCS_DIR = $(BASE_DIR)
         
         BUILD			= build
@@ -2976,6 +2932,8 @@ def makefile_hawk(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         TOOL_LIBS = {tool_libs}
         TOOL_FLAGS = {tool_flags}
         
+        CFLAGS += $(TOOL_FLAGS) 
+        
         OBJCORE = $(BASE_DIR)/hawk_kgen.o $(BASE_DIR)/hawk_sign.o $(BASE_DIR)/hawk_vrfy.o $(BASE_DIR)/ng_fxp.o\
          $(BASE_DIR)/ng_hawk.o $(BASE_DIR)/ng_mp31.o $(BASE_DIR)/ng_ntru.o $(BASE_DIR)/ng_poly.o \
          $(BASE_DIR)/ng_zint31.o $(BASE_DIR)/sha3.o
@@ -3400,7 +3358,7 @@ def makefile_biscuit(path_to_makefile_folder, subfolder, tool_name, candidate, i
         makefile_content = f'''
         CC = clang
         
-        BASE_DIR = ../../../{subfolder}
+        BASE_DIR = ../../{subfolder}
         
         SIGN = $(BASE_DIR)/api.c
         INCS_DIR = $(BASE_DIR)
@@ -3582,7 +3540,7 @@ def makefile_dme_sign(path_to_makefile_folder, subfolder, tool_name, candidate, 
         
         BASE_DIR = ../../../{subfolder}
         
-        SIGN = $(BASE_DIR)/api.c
+        SIGN = $(BASE_DIR)/sign.c
         INCS_DIR = $(BASE_DIR)
         
         BUILD			= build
@@ -3748,7 +3706,7 @@ def makefile_hppc(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         
         BASE_DIR = ../../{subfolder}
         
-        SIGN = $(BASE_DIR)/api.c
+        SIGN = $(BASE_DIR)/sign.c
         INCS_DIR = $(BASE_DIR)
         
         BUILD			= build
@@ -3901,7 +3859,11 @@ def makefile_wise(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         
         BASE_DIR = ../../{subfolder}
         
-        SIGN = $(BASE_DIR)/api.c
+        LDFLAGS=-lflint -lgmp -lcrypto
+        
+        
+        
+        SIGN = $(BASE_DIR)/sign.c
         INCS_DIR = $(BASE_DIR)
         
         BUILD			= build
@@ -3920,7 +3882,7 @@ def makefile_wise(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_KEYPAIR)
-        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -I. $(LDFLAGS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
         
         $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
@@ -3928,7 +3890,7 @@ def makefile_wise(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         $(EXECUTABLE_SIGN_BC): $(SIGN)
         \tmkdir -p $(BUILD)
         \tmkdir -p $(BUILD_SIGN)
-        \t$(CC) -emit-llvm -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        \t$(CC) -emit-llvm -I $(INCS_DIR) -I. $(LDFLAGS) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
         
         $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
         \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
@@ -6044,7 +6006,7 @@ def makefile_emle(path_to_makefile_folder, subfolder, tool_name, candidate, impl
         
         BASE_DIR = ../../{subfolder}
         
-        SIGN = $(BASE_DIR)/api.c
+        SIGN = $(BASE_DIR)/nist.c
         INCS_DIR = $(BASE_DIR)
         
         BUILD			= build
@@ -6210,7 +6172,7 @@ def makefile_kaz_sign(path_to_makefile_folder, subfolder, tool_name, candidate, 
         
         BASE_DIR = ../../{subfolder}
         
-        SIGN = $(BASE_DIR)/api.c
+        SIGN = $(BASE_DIR)/sign.c
         INCS_DIR = $(BASE_DIR)
         
         BUILD			= build
@@ -6611,6 +6573,262 @@ def makefile_preon(path_to_makefile_folder, subfolder, tool_name, candidate, imp
 # ==========================  ISOGENY ========================================
 # ============================================================================
 # =========================== sqisign ========================================
+def cmake_sqisign(path_to_cmakelists_folder, subfolder, tool_name, candidate, implementation_type='opt'):
+    tool_type = gen_funct.Tools(tool_name)
+    test_keypair, test_sign = tool_type.get_tool_test_file_name()
+    tool_flags, tool_libs = tool_type.get_tool_flags_and_libs()
+    path_to_cmakelists = f'{path_to_cmakelists_folder}/CMakeLists.txt'
+    add_cflags = ""
+    asm_flags = ""
+    avx2_optimized_option = "OFF"
+    if implementation_type == 'opt':
+        add_cflags = f''
+        asm_flags = f''
+    if implementation_type == 'add':
+        avx2_optimized_option = "ON"
+
+    cmake_file_content = ''
+    target_link_opt_block = ''
+    link_flag = ''
+    if tool_flags:
+        if '-static ' in tool_flags or ' -static' in tool_flags:
+            link_flag = '-static'
+    libs_str = ""
+    # tool_libs = tool_libs.replace("-lm", "")
+    # tool_libs = tool_libs.strip()
+    libs_list = []
+    if tool_libs:
+        libs_str = tool_libs.replace("-l", "")
+        libs_list = libs_str.split()
+    if tool_name == 'flowtracker':
+        path_to_cmakelists = f'{path_to_cmakelists_folder}/Makefile'
+        cmake_file_content = f'''
+        CC = clang
+        
+        BASE_DIR = ../
+        
+        
+        INCS_DIR = $(BASE_DIR)/include
+        
+        
+        # CATEGORY RANGE 1 5 2
+        # PARAM_TARGETS SIG_SIZE BALANCED PK_SIZE
+        # if CATEGORY = 1   PARAM_TARGETS SIG_SIZE BALANCED PK_SIZE
+        # else PARAM_TARGETS SIG_SIZE PK_SIZE
+        
+        KECCAK_EXTERNAL_ENABLE = 
+        CATEGORY = 1
+        RSDP_VARIANT =  RSDP
+        PARAM_TARGETS =  SIG_SIZE
+        COMPILE_FLAGS = -DCATEGORY_${{CATEGORY}}=1 -D${{PARAM_TARGETS}}=1 ${{KECCAK_EXTERNAL_ENABLE}}
+        
+        
+        
+        SIGN = $(BASE_DIR)/lib/sign.c
+        
+        
+        BUILD			= build
+        BUILD_KEYPAIR	= $(BUILD)/{candidate}_keypair
+        BUILD_SIGN		= $(BUILD)/{candidate}_sign
+        
+        EXECUTABLE_KEYPAIR_BC	= {candidate}_keypair/{test_keypair}.bc
+        EXECUTABLE_KEYPAIR_RBC	= {candidate}_keypair/{test_keypair}.rbc
+        EXECUTABLE_SIGN_BC		= {candidate}_sign/{test_sign}.bc
+        EXECUTABLE_SIGN_RBC		= {candidate}_sign/{test_sign}.rbc
+        
+        all: $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+         
+        
+        
+        $(EXECUTABLE_KEYPAIR_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_KEYPAIR)
+        \t$(CC) -emit-llvm $(COMPILE_FLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_KEYPAIR_BC)
+        
+        $(EXECUTABLE_KEYPAIR_RBC): $(EXECUTABLE_KEYPAIR_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_KEYPAIR_BC) > $(BUILD)/$(EXECUTABLE_KEYPAIR_RBC)
+        
+        $(EXECUTABLE_SIGN_BC): $(SIGN)
+        \tmkdir -p $(BUILD)
+        \tmkdir -p $(BUILD_SIGN)
+        \t$(CC) -emit-llvm $(COMPILE_FLAGS) -I $(INCS_DIR) -c -g $(SIGN) -o $(BUILD)/$(EXECUTABLE_SIGN_BC)
+        
+        $(EXECUTABLE_SIGN_RBC): $(EXECUTABLE_SIGN_BC)
+        \topt -instnamer -mem2reg $(BUILD)/$(EXECUTABLE_SIGN_BC) > $(BUILD)/$(EXECUTABLE_SIGN_RBC)
+            
+        .PHONY: clean
+          
+        clean:
+        \trm -f $(BUILD)/*.out $(BUILD)/*.txt $(BUILD)/*.dot
+        \trm -f $(EXECUTABLE_KEYPAIR_BC) $(EXECUTABLE_KEYPAIR_RBC) $(EXECUTABLE_SIGN_BC) $(EXECUTABLE_SIGN_RBC)
+        '''
+    else:
+        cmake_file_content = f'''
+        cmake_minimum_required(VERSION 3.9.4)
+        project(LESS C)
+    
+        # build type can be case-sensitive!
+        string(TOUPPER "${{CMAKE_BUILD_TYPE}}" UPPER_CMAKE_BUILD_TYPE)
+        
+        set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -Wall -pedantic -Wuninitialized -Wsign-conversion -Wno-strict-prototypes")
+        
+        include(CheckCCompilerFlag)
+        unset(COMPILER_SUPPORTS_MARCH_NATIVE CACHE)
+        check_c_compiler_flag(-march=native COMPILER_SUPPORTS_MARCH_NATIVE)
+        
+        include(CheckIPOSupported)
+        check_ipo_supported(RESULT lto_supported OUTPUT error)
+        
+        if(UPPER_CMAKE_BUILD_TYPE MATCHES DEBUG)
+            message(STATUS "Building in Debug mode!")
+        else() # Release, RELEASE, MINSIZEREL, etc
+            set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -mtune=native -O3 -g")   
+            if(COMPILER_SUPPORTS_MARCH_NATIVE)
+                set(CMAKE_C_FLAGS "${{CMAKE_C_FLAGS}} -march=native")
+            endif()
+            if(lto_supported)
+                message(STATUS "IPO / LTO enabled")
+                set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+            endif()
+        endif()
+        
+        option(COMPRESS_CMT_COLUMNS "Enable COMPRESS_CMT_COLUMNS to compress commitment in SG and VY before hashing" OFF)
+        if(COMPRESS_CMT_COLUMNS)
+            message(STATUS "COMPRESS_CMT_COLUMNS is enabled")
+            add_definitions(-DCOMPRESS_CMT_COLUMNS)
+        else()
+            message(STATUS "COMPRESS_CMT_COLUMNS is disabled")
+        endif()
+        unset(COMPRESS_CMT_COLUMNS CACHE)
+        
+        set(SANITIZE "")
+        message(STATUS "Compilation flags:" ${{CMAKE_C_FLAGS}})
+        
+        set(CMAKE_C_STANDARD 11)'''
+        find_libs_block = ''
+        libs_variables = ''
+        for lib in libs_list:
+            lib_variable = lib.upper()
+            lib_variable = f'{lib_variable}_LIB'
+            l_var = f'{lib_variable}'
+            l_var = f'{{{l_var}}}'
+            libs_variables += f' ${l_var}'
+            find_libs_block += f'''
+        find_library({lib_variable} {lib})
+        if(NOT {lib_variable})
+        \tmessage("{lib} library not found")
+        endif()
+        '''
+        if libs_list:
+            cmake_file_content += f'{find_libs_block}'
+        cmake_file_content += f'''
+        
+        find_library(KECCAK_LIB keccak)
+        if(NOT KECCAK_LIB)
+            set(STANDALONE_KECCAK 1)
+        endif()
+        
+        # selection of specialized compilation units differing between ref and opt implementations.
+        option(AVX2_OPTIMIZED "Use the AVX2 Optimized Implementation. 
+        Else the Reference Implementation will be used." {avx2_optimized_option})
+        
+        message(".....Checking AVX2_OPTIMIZED:  " ${{AVX2_OPTIMIZED}})
+        
+        #set(BASE_DIR  ../Optimized_Implementation) 
+        set(BASE_DIR  ../)  
+        set(HEADERS
+                ${{BASE_DIR}}/include/api.h
+                ${{BASE_DIR}}/include/codes.h
+                ${{BASE_DIR}}/include/fips202.h
+                ${{BASE_DIR}}/include/fq_arith.h
+                ${{BASE_DIR}}/include/keccakf1600.h
+                ${{BASE_DIR}}/include/LESS.h
+                ${{BASE_DIR}}/include/monomial_mat.h
+                ${{BASE_DIR}}/include/parameters.h
+                ${{BASE_DIR}}/include/rng.h
+                ${{BASE_DIR}}/include/seedtree.h
+                ${{BASE_DIR}}/include/sha3.h
+                ${{BASE_DIR}}/include/utils.h
+                )
+        
+        if(STANDALONE_KECCAK)
+            message(STATUS "Employing standalone SHA-3")
+            set(KECCAK_EXTERNAL_LIB "")
+            set(KECCAK_EXTERNAL_ENABLE "")
+            list(APPEND COMMON_SOURCES ${{BASE_DIR}}/lib/keccakf1600.c)
+            list(APPEND COMMON_SOURCES ${{BASE_DIR}}/lib/fips202.c)
+        else()
+            message(STATUS "Employing libkeccak")
+            set(KECCAK_EXTERNAL_LIB keccak)
+            set(KECCAK_EXTERNAL_ENABLE "-DSHA_3_LIBKECCAK")
+        endif()
+        
+        set(SOURCES
+                ${{COMMON_SOURCES}}
+                ${{BASE_DIR}}/lib/codes.c
+                ${{BASE_DIR}}/lib/LESS.c
+                ${{BASE_DIR}}/lib/monomial.c
+                ${{BASE_DIR}}/lib/rng.c
+                ${{BASE_DIR}}/lib/seedtree.c
+                ${{BASE_DIR}}/lib/utils.c
+                ${{BASE_DIR}}/lib/sign.c
+                )
+        if(AVX2_OPTIMIZED)
+                set(SOURCES ${{SOURCES}} ${{BASE_DIR}}/lib/avx2_table.c)
+                set(HEADERS ${{HEADERS}} ${{BASE_DIR}}/include/avx2_macro.h)
+                message("------------AVX2 OPT is ON")
+        endif()
+        
+        set(BUILD build)
+        set(BUILD_KEYPAIR {candidate}_keypair)
+        set(BUILD_SIGN {candidate}_sign)
+        
+        foreach(category RANGE 1 5 2)
+            if(category EQUAL 1)
+                set(PARAM_TARGETS SIG_SIZE BALANCED PK_SIZE)
+            else()
+                set(PARAM_TARGETS SIG_SIZE PK_SIZE)
+            endif()
+            foreach(optimiz_target ${{PARAM_TARGETS}})
+            
+                set(TARGET_BINARY_NAME {test_keypair}_${{category}}_${{optimiz_target}})  
+                add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
+                        ./{candidate}_keypair/{test_keypair}.c)
+                target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
+                        ${{BASE_DIR}}/include
+                        ./include)'''
+        if link_flag:
+            cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE {link_flag})'
+        cmake_file_content += f'''
+                target_link_libraries(${{TARGET_BINARY_NAME}} {libs_variables} ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
+                
+                set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_KEYPAIR}})
+                set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
+                        COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}} ")
+                
+                
+                #Test harness for crypto_sign
+                set(TARGET_BINARY_NAME {test_sign}_${{category}}_${{optimiz_target}})
+                add_executable(${{TARGET_BINARY_NAME}} ${{HEADERS}} ${{SOURCES}}
+                        ./{candidate}_sign/{test_sign}.c)   
+                target_include_directories(${{TARGET_BINARY_NAME}} PRIVATE
+                        ${{BASE_DIR}}/include
+                        ./include)'''
+        if link_flag:
+            cmake_file_content += f'target_link_options(${{TARGET_BINARY_NAME}} PRIVATE {link_flag})'
+        cmake_file_content += f'''
+                target_link_libraries(${{TARGET_BINARY_NAME}} {libs_variables} ${{SANITIZE}} ${{KECCAK_EXTERNAL_LIB}})
+                
+                set_target_properties(${{TARGET_BINARY_NAME}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${{BUILD_SIGN}}) 
+                set_property(TARGET ${{TARGET_BINARY_NAME}} APPEND PROPERTY
+                        COMPILE_FLAGS "-DCATEGORY_${{category}}=1 -D${{optimiz_target}}=1 ${{KECCAK_EXTERNAL_ENABLE}}")
+                
+                #endforeach(t_harness)
+            endforeach(optimiz_target)
+        endforeach(category)
+        '''
+    with open(path_to_cmakelists, "w") as cmake_file:
+        cmake_file.write(textwrap.dedent(cmake_file_content))
 
 def makefile_candidate(path_to_makefile_folder, subfolder, tool_type, candidate,
                        security_level=None, implementation_type='opt'):

@@ -31,10 +31,9 @@ def compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_fold
                                        number_of_measurements, timeout, implementation_type)
 
 
-# compile_run_candidate: generic function to run a given candidate with given tools
 def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_folder,
-                          instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                          rel_path_to_rng, to_compile, to_run, depth, build_folder,
+                          instance_folders_list, rel_path_to_api_or_sign, sources, headers, target_functions,
+                          add_required_includes, rel_path_to_rng, to_compile, to_run, depth, build_folder,
                           binary_patterns, rng_outside_instance_folder="no", with_core_dump="yes",
                           additional_cmake_definitions=None, security_level=None,
                           number_of_measurements='1e4', timeout='86400', implementation_type='opt'):
@@ -61,17 +60,18 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
             subprocess.call(cmd, stdin=sys.stdin)
         if candidate == 'xifrat':
             print('-------')
-            # if optimized_imp_folder != 'Reference_Implementation':
-            #     path_to_impl_folder = f'candidates/other/xifrat/{optimized_imp_folder}'
-            #     cmd_str = f'cp candidates/other/xifrat/Reference_Implementation/api.h {path_to_impl_folder}/api.h'
-            #     cmd = cmd_str.split()
-            #     subprocess.call(cmd, stdin=sys.stdin)
-            #     cmd_str = f'cp candidates/other/xifrat/Reference_Implementation/rgn.h {path_to_impl_folder}/rng.h'
-            #     cmd = cmd_str.split()
-            #     subprocess.call(cmd, stdin=sys.stdin)
+        if candidate == 'ehtv3v4':
+            if tools_list[0].strip() == 'ctverif':
+                incs = f'"api.h"'
+                add_includes.append(incs)
+        if candidate == 'sdith':
+            if tools_list[0].strip() == 'ctverif':
+                incs = f'"api.h"'
+                add_includes.append(incs)
         generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
                                               optimized_imp_folder, instance_folders_list,
-                                              rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                                              rel_path_to_api_or_sign, rel_path_to_rng, sources, headers,
+                                              target_functions, add_required_includes,
                                               with_cmake, add_includes, to_compile, to_run,
                                               depth, build_folder, binary_patterns,
                                               rng_outside_instance_folder, with_core_dump,
@@ -86,7 +86,8 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
             rng_outside_instance_folder = 'yes'
         generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
                                               optimized_imp_folder, instance_folders_list,
-                                              rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                                              rel_path_to_api_or_sign, rel_path_to_rng, sources, headers,
+                                              target_functions, add_required_includes,
                                               with_cmake, add_includes, to_compile, to_run,
                                               depth, build_folder, binary_patterns,
                                               rng_outside_instance_folder, with_core_dump,
@@ -100,18 +101,19 @@ def compile_run_candidate(tools_list, signature_type, candidate, optimized_imp_f
             with_cmake = 'no'
         generic.generic_compile_run_candidate(tools_list, signature_type, candidate,
                                               optimized_imp_folder, instance_folders_list,
-                                              rel_path_to_api, rel_path_to_sign, rel_path_to_rng,
+                                              rel_path_to_api_or_sign, rel_path_to_rng, sources, headers,
+                                              target_functions, add_required_includes,
                                               with_cmake, add_includes, to_compile, to_run,
                                               depth, build_folder, binary_patterns,
                                               rng_outside_instance_folder, with_core_dump,
                                               additional_cmake_definitions, security_level,
                                               number_of_measurements, timeout, implementation_type)
-    if candidate == "qr_uov":
-        compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
-                           instance_folders_list, rel_path_to_api, rel_path_to_sign,
-                           rel_path_to_rng, to_compile, to_run, depth, build_folder,
-                           binary_patterns, rng_outside_instance_folder, with_core_dump,
-                           number_of_measurements, timeout, implementation_type)
+    # if candidate == "qr_uov":
+    #     compile_run_qr_uov(tools_list, signature_type, candidate, optimized_imp_folder,
+    #                        instance_folders_list, rel_path_to_api_or_sign, rel_path_to_sign,
+    #                        rel_path_to_rng, to_compile, to_run, depth, build_folder,
+    #                        binary_patterns, rng_outside_instance_folder, with_core_dump,
+    #                        number_of_measurements, timeout, implementation_type)
 
 
 # =============================== CLI: use argparse module ===========================
@@ -157,9 +159,12 @@ def run_cli_candidate(args_parse):
         target_candidate = args_parse.candidate
         optimization_folder = args_parse.ref_opt
         list_of_instance_folders = args_parse.instance_folders_list
-        relative_path_to_api = args_parse.api
-        relative_path_to_sign = args_parse.sign
+        relative_path_to_api_or_sign = args_parse.api
         relative_path_to_rng = args_parse.rng
+        sources_files = args_parse.src
+        headers = args_parse.headers
+        target_functions = args_parse.target_functions
+        relative_path_to_add_req_incs = args_parse.required_incs
         compile_candidate = args_parse.compile
         run_candidate = args_parse.run
         binsec_depth_flag = args_parse.depth
@@ -187,7 +192,8 @@ def run_cli_candidate(args_parse):
         list_of_instance_folders = candidate_list_of_instances
         arguments = f'''{list_of_tools}, f'{type_based_signature}', f'{target_candidate}',
                          f'{optimization_folder}', {list_of_instance_folders},
-                         {relative_path_to_api}, f'{relative_path_to_sign}', {relative_path_to_rng},
+                         f'{relative_path_to_api_or_sign}', {sources_files}, {headers}, {target_functions},
+                         {relative_path_to_add_req_incs}, f'{relative_path_to_rng}',
                          f'{compile_candidate}', f'{run_candidate}', {binsec_depth_flag},
                          f'{build_directory}', {executable_patterns},
                          f'{is_rng_in_different_folder}', f'{with_core_dump}',
@@ -214,11 +220,28 @@ def add_cli_arguments_for_all_candidates(sub_parser):
             exec(impl_folder, globals_vars, loc)
             candidate_chosen_implementation_folder = loc['candidate_chosen_impl_folder']
             optimization_folder = candidate_chosen_implementation_folder
-            api, sign, rng, is_rng_in_cwd = candidates_api_sign_rng_path[candidate]
+            # api, sign, rng, is_rng_in_cwd = candidates_api_sign_rng_path[candidate]
+            candidate_data = candidates_api_sign_rng_path[candidate][0]
+            api_or_sign = candidate_data['api']
+            rng = candidate_data['rng']
+            sources = candidate_data['src']
+            headers = candidate_data['headers']
+            is_rng_in_cwd = 'no'
+            if len(sources) == 1:
+                sources.extend(sources)
+                headers.extend(headers)
+            target_functions = candidate_data['targets']
+            add_required_incs = None
+            if 'add_incs' in candidate_data.keys():
+                add_required_incs = candidate_data['add_incs']
+            cand_default_list_of_instances = f'{candidate}_default_list_of_folders'
+            if 'rng_same_fold' in candidate_data.keys():
+                is_rng_in_cwd = candidate_data['rng_same_fold']
             cand_default_list_of_instances = f'{candidate}_default_list_of_folders'
             list_of_instances = default_list_of_instances[cand_default_list_of_instances]
             generic.add_cli_arguments(sub_parser, signature_type, candidate, optimization_folder,
-                                      api, sign, rng, is_rng_in_cwd, list_of_instances, 'yes',
+                                      api_or_sign, rng, is_rng_in_cwd, sources, headers,
+                                      target_functions, add_required_incs, list_of_instances, 'yes',
                                       None, '256', '1e4',
                                       '86400', 'opt')
 
@@ -232,8 +255,6 @@ def set_global_dictionaries(list_of_candidates):
         exec(glob_var_exec)
         default_list_exec = f"default_list_of_instances['{cand_default_list_of_fold}'] = {cand_default_list_of_fold}"
         exec(default_list_exec)
-
-
 
 
 # Define a new class action for the flag -a (--all).
@@ -267,14 +288,18 @@ generic.add_generic_cli_templates_arguments(subparser, 'generic_tests', 'templat
 
 # ============ Common default arguments ==============================================
 # List of integrated candidates so far
-list_of_integrated_candidates = ["mira", "mqom", "perk", "ryde", "pqsigrm", "wave", "prov",
-                                 "snova", "tuov", "uov", "vox", "aimer", "ascon_sign", "faest",
-                                 "sphincs_alpha", "preon", "meds", "haetae", "fuleeca",
-                                 "hufu", "meds", "cross", "less", "mayo", "raccoon", 'squirrels', "qr_uov", "mirith",
-                                 "eaglesign", "ehtv3v4", "sdith", "biscuit", "dme_sign", "hppc", "wise",
-                                 "alteq", "emle", "kaz_sign", "xifrat"]
+# list_of_integrated_candidates = ["mira", "mqom", "perk", "ryde", "pqsigrm", "wave", "prov",
+#                                  "snova", "tuov", "uov", "vox", "aimer", "ascon_sign", "faest",
+#                                  "sphincs_alpha", "preon", "meds", "haetae", "fuleeca",
+#                                  "hufu", "meds", "cross", "less", "mayo", "raccoon", 'squirrels', "qr_uov", "mirith",
+#                                  "eaglesign", "ehtv3v4", "sdith", "biscuit", "dme_sign", "hppc", "wise",
+#                                  "alteq", "emle", "kaz_sign", "xifrat"]
 
-
+list_of_integrated_candidates = ["fuleeca", "less", "meds", "wave", "haetae", "hufu", "raccoon", "eaglesign",
+                                 "ehtv3v4", "mira", "mirith", "mqom", "perk", "ryde", "sdith", "hppc", "wise",
+                                 "snova", "aimer", "ascon_sign", "faest", "sphincs_alpha", "preon", "alteq",
+                                 "emle", "kaz_sign", "pqsigrm", "squirrels", "hawk", "cross", "biscuit", "dme_sign",
+                                 "mayo", "prov", "tuov", "uov", "vox"]
 
 
 # Default tools list
@@ -294,58 +319,153 @@ default_list_of_instances = {}
 default_help_message = 'compile and run test'
 
 # Dictionary whose keys are the signature categories and the values are the list of candidates based on that category
-signature_type_based_candidates_dict = {'code': ['fuleeca', 'less', 'meds', 'pqsigrm', 'wave'],
-                                        'lattice': ['haetae', 'hufu', 'raccoon', 'squirrels', 'eaglesign', 'ehtv3v4'],
-                                        'mpc-in-the-head': ['cross', 'mira', 'mirith', 'mqom', 'perk', 'ryde', 'sdith'],
-                                        'multivariate': ['mayo', 'prov', 'qr_uov', 'snova', 'tuov', 'uov',
-                                                         'vox', 'biscuit', "dme_sign", "hppc", "wise"],
+# signature_type_based_candidates_dict = {'code': ['fuleeca', 'less', 'meds', 'pqsigrm', 'wave'],
+#                                         'lattice': ['haetae', 'hufu', 'raccoon', 'squirrels', 'eaglesign', 'ehtv3v4'],
+#                                         'mpc-in-the-head': ['cross', 'mira', 'mirith', 'mqom', 'perk', 'ryde', 'sdith'],
+#                                         'multivariate': ['mayo', 'prov', 'qr_uov', 'snova', 'tuov', 'uov',
+#                                                          'vox', 'biscuit', "dme_sign", "hppc", "wise"],
+#                                         'symmetric': ['aimer', 'ascon_sign', 'faest', 'sphincs_alpha'],
+#                                         'other': ['preon', 'alteq', 'emle', 'kaz_sign', 'xifrat']}
+
+signature_type_based_candidates_dict = {'code': ['fuleeca', 'less', 'meds', 'wave', 'pqsigrm'],
+                                        'lattice': ['haetae', 'hufu', 'raccoon', 'eaglesign', 'ehtv3v4', 'squirrels',
+                                                    'hawk'],
+                                        'mpc-in-the-head': ['mira', 'mirith', 'mqom', 'perk', 'ryde', 'sdith', 'cross'],
+                                        'multivariate': ['hppc', 'wise', 'snova', 'biscuit', 'dme_sign',  'mayo',
+                                                         'prov', 'tuov', 'uov', 'vox'],
                                         'symmetric': ['aimer', 'ascon_sign', 'faest', 'sphincs_alpha'],
-                                        'other': ['preon', 'alteq', 'emle', 'kaz_sign', 'xifrat']}
+                                        'other': ['preon', 'alteq', 'emle', 'kaz_sign']}
+
 
 # candidates_api_sign_rng_path: dictionary whose keys and values are such that:
 #   key:  candidate;
 #   values: list consisting of the api, sign, rng relative path (as explained in the README.md), respond to the
 #   'is the rng in the same folder as a given instance of the candidate'
-
-candidates_api_sign_rng_path = {'fuleeca': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'less': ['"../../include/api.h"', '""', '"../../include/rng.h"', 'no'],
-                                'meds': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'pqsigrm': ['"../../pqsigrm613/src/api.h"', '""', '"../../pqsigrm613/src/rng.h"', 'no'],
-                                'wave': ['"../../../api.h"', '""', '"../../../NIST-kat/rng.h"', 'no'],
-                                'haetae': ['""', '"../../include/sign.h"', '"../../include/randombytes.h"', 'no'],
-                                'hufu': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'hawk': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'raccoon': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'eaglesign': ['"../../../api.h"', '"../../../sign.h"', '"../../../rng.h"', 'no'],
-                                'ehtv3v4': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'squirrels': ['"../../../api.h"', '""', '"../../../../KAT/generator/katrng.h"', 'yes'],
-                                'cross': ['"../../include/api.h"', '""', '""', 'no'],
-                                'mira': ['"../../../src/api.h"', '""', '"../../../lib/randombytes/randombytes.h"','no'],
-                                'mirith': ['"../../../api.h"', '"../../../sign.h"', '"../../../nist/rng.h"', 'no'],
-                                'mqom': ['"../../../api.h"', '""', '"../../../generator/rng.h"', 'no'],
-                                'perk': ['"../../../src/api.h"', '""', '"../../../lib/randombytes/rng.h"', 'no'],
-                                'ryde': ['"../../../src/api.h"', '""', '"../../../lib/randombytes/randombytes.h"', 'no'],
-                                'sdith': ['"../../../../api.h"', '""', '"../../../../generator/rng.h"', 'no'],
-                                'biscuit': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'dme_sign': ['"../../../../api.h"', '""', '"../../../../rng.h"', 'no'],
-                                'hppc': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'wise': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'mayo': ['"../../../../api.h"', '""', '"../../../../../include/rng.h"', 'yes'],
-                                'prov': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'qr_uov': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'snova': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'tuov': ['"../../../api.h"', '""', '"../../../nistkat/rng.h"', 'yes'],
-                                'uov': ['"../../../../api.h"', '""', '"../../../../nistkat/rng.h"', 'yes'],
-                                'vox': ['"../../../api.h"', '""', '"../../../rng/rng.h"', 'no'],
-                                'aimer': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'ascon_sign': ['"../../../../api.h"', '""', '"../../../../rng.h"', 'no'],
-                                'faest': ['"../../../api.h"', '""', '"../../../NIST-KATs/rng.h"', 'no'],
-                                'sphincs_alpha': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'preon': ['"../../../../api.h"', '""', '"../../../../rng.h"', 'no'],
-                                'alteq': ['"../../api.h"', '""', '""', 'no'],
-                                'emle': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'kaz_sign': ['"../../../api.h"', '""', '"../../../rng.h"', 'no'],
-                                'xifrat': ['"../../Reference_Implementation/api.h"', '""', '"../../Reference_Implementation/rng.h"', 'no']}
+depth_2 = '../../'
+candidates_api_sign_rng_path = {'fuleeca': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h', 'rng_same_fold': 'no',
+                                             'src': [f'{depth_2}../sign.c'], 'headers': [f'{depth_2}../sign.h'],
+                                             'targets': ['crypto_sign_keypair', 'crypto_sign'], 'add_incs': None}],
+                                'less': [{'api': f'{depth_2}include/api.h', 'rng': f'{depth_2}include/rng.h',
+                                          'rng_same_fold': 'no', 'src': [f'{depth_2}lib/LESS.c'],
+                                          'headers': [f'{depth_2}include/LESS.h'],
+                                          'targets': ['LESS_keygen', 'LESS_sign']}],
+                                'meds': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                          'src': [f'{depth_2}../meds.c'], 'headers': [f'{depth_2}../api.h'],
+                                          'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'pqsigrm': [{'api': f'{depth_2}pqsigrm613/src/api.h', 'rng': f'{depth_2}pqsigrm613/src/rng.h',
+                                             'src': [f'{depth_2}../keypair.c', f'{depth_2}../sign.c'],
+                                             'headers': [f'{depth_2}../api.h', f'{depth_2}../api.h'],
+                                             'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'wave': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../NIST-kat/rng.h',
+                                          'src': [f'{depth_2}../keygen.c', f'{depth_2}../api.c'],
+                                          'headers': [f'{depth_2}../keygen.h', f'{depth_2}../api.h'],
+                                          'targets': ['keygen', 'crypto_sign']}],
+                                'haetae': [{'api': f'{depth_2}include/sign.h', 'rng': f'{depth_2}include/randombytes.h',
+                                            'src': [f'{depth_2}src/sign.c'], 'headers': [f'{depth_2}include/sign.h'],
+                                            'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'hufu': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                          'src': [f'{depth_2}../sign.c'], 'headers': [f'{depth_2}../api.h'],
+                                          'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'hawk': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                          'src': [f'{depth_2}../api.c'], 'headers': [f'{depth_2}../api.h'],
+                                          'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'raccoon': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                             'src': [f'{depth_2}../racc_core.c'], 'headers': [f'{depth_2}../racc_core.h'],
+                                             'targets': ['racc_core_keygen', 'racc_core_sign']}],
+                                'eaglesign': [{'api': f'{depth_2}../sign.h', 'rng': f'{depth_2}../rng.h',
+                                               'src': [f'{depth_2}../sign.c'], 'headers': [f'{depth_2}../sign.h'],
+                                               'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'ehtv3v4': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                             'src': [f'{depth_2}../eht_keygen.c', f'{depth_2}../eht_siggen.c'],
+                                             'headers': [f'{depth_2}../eht_keygen.h', f'{depth_2}../eht_siggen.h'],
+                                             'targets': ['key_gen', 'sig_gen']}],
+                                'squirrels': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../../KAT/generator/katrng.h', 'rng_same_fold': 'yes',
+                                               'src': [f'{depth_2}../nist.c'], 'headers': [f'{depth_2}../api.h'],
+                                               'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'cross': [{'api': f'{depth_2}include/api.h', 'rng': '', 'src': [f'{depth_2}lib/CROSS.c'],
+                                           'headers': [f'{depth_2}include/CROSS.h'],
+                                           'targets': ['CROSS_keygen', 'CROSS_sign']}],
+                                'mira': [{'api': f'{depth_2}../src/api.h', 'rng': f'{depth_2}../lib/randombytes/randombytes.h',
+                                          'src': [f'{depth_2}../src/keygen.c', f'{depth_2}../src/sign.c'],
+                                          'headers': [f'{depth_2}../src/keygen.h', f'{depth_2}../src/sign.h'],
+                                          'targets': ['sign_mira_128_keygen', 'sign_mira_128_sign']}],
+                                'mirith': [{'api': f'{depth_2}../sign.h', 'rng': f'{depth_2}../nist/rng.h',
+                                            'src': [f'{depth_2}../sign.c'], 'headers': [f'{depth_2}../sign.h'],
+                                            'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'mqom': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../generator/rng.h',
+                                          'src': [f'{depth_2}../keygen.c', f'{depth_2}../sign.c'],
+                                          'headers': [f'{depth_2}../api.h', f'{depth_2}../api.h'],
+                                          'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'perk': [{'api': f'{depth_2}../src/api.h', 'rng': f'{depth_2}../lib/randombytes/rng.h',
+                                          'src': [f'{depth_2}../src/sign.c'], 'headers': [f'{depth_2}../src/api.h'],
+                                          'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'ryde': [{'api': f'{depth_2}../src/api.h', 'rng': f'{depth_2}../lib/randombytes/randombytes.h',
+                                          'src': [f'{depth_2}../src/keypair.c', f'{depth_2}../src/sign.c'],
+                                          'headers': [f'{depth_2}../src/keypair.h', f'{depth_2}../src/api.h'],
+                                          'targets': ['ryde_128f_keygen', 'crypto_sign']}],
+                                'sdith': [{'api': f'{depth_2}../../api.h', 'rng': f'{depth_2}../../generator/rng.h',
+                                           'src': [f'{depth_2}../../sdith.c', f'{depth_2}../../sign.c'],
+                                           'headers': [f'{depth_2}../../sdith.h', f'{depth_2}../../api.h'],
+                                           'targets': ['keygen', 'crypto_sign']}],
+                                'biscuit': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                             'src': [f'{depth_2}../api.c'], 'headers': [f'{depth_2}../api.h'],
+                                             'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'dme_sign': [{'api': f'{depth_2}../../api.h', 'rng': f'{depth_2}../../rng.h',
+                                              'src': [f'{depth_2}../sign.c'], 'headers': [f'{depth_2}../api.h'],
+                                              'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'hppc': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                          'src': [f'{depth_2}../sign.c'], 'headers': [f'{depth_2}../api.h'],
+                                          'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'wise': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                          'src': [f'{depth_2}../sign.c'], 'headers': [f'{depth_2}../api.h'],
+                                          'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'mayo': [{'api': f'{depth_2}../../api.h', 'rng': f'{depth_2}../../../include/rng.h', 'rng_same_fold': 'yes',
+                                          'src': [f'{depth_2}../../mayo.c'], 'headers': [f'{depth_2}../../../include/mayo.h'],
+                                          'targets': ['mayo_keypair', 'mayo_sign']}],
+                                'prov': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                          'src': [f'{depth_2}../prov.c'], 'headers': [f'{depth_2}../prov.h'],
+                                          'targets': ['prov_keygen', 'prov_sign']}],
+                                'qr_uov': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h'}],
+                                'snova': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                           'src': [f'{depth_2}../sign.c'], 'headers': [f'{depth_2}../api.h'],
+                                           'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'tuov': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../nistkat/rng.h', 'rng_same_fold': 'yes',
+                                          'src': [f'{depth_2}../tuov_keypair.c', f'{depth_2}../tuov.c'],
+                                          'headers': [f'{depth_2}../tuov.h', f'{depth_2}../tuov.h'],
+                                          'targets': ['generate_keypair', 'tuov_sign']}],
+                                'uov': [{'api': f'{depth_2}../../api.h', 'rng': f'{depth_2}../../nistkat/rng.h', 'rng_same_fold': 'yes',
+                                         'src': [f'{depth_2}../../ov_keypair.c', f'{depth_2}../../ov.c'],
+                                         'headers': [f'{depth_2}../../ov.h', f'{depth_2}../../ov.h'],
+                                         'targets': ['generate_keypair_pkc_skc', 'ov_expand_and_sign']}],
+                                'vox': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng/rng.h',
+                                         'src': [f'{depth_2}../api.c', f'{depth_2}../vox_sign_core.c'],
+                                         'headers': [f'{depth_2}../api.h', f'{depth_2}../vox_sign_core.h'],
+                                         'targets': ['crypto_sign_keypair', 'VOX_sign_core']}],
+                                'aimer': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                           'src': [f'{depth_2}../api.c'], 'headers': [f'{depth_2}../api.h'],
+                                           'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'ascon_sign': [{'api': f'{depth_2}../../api.h', 'rng': f'{depth_2}../../rng.h',
+                                                'src': [f'{depth_2}../sign.c'], 'headers': [f'{depth_2}../api.h'],
+                                                'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'faest': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../NIST-KATs/rng.h',
+                                           'src': [f'{depth_2}../crypto_sign.c'], 'headers': [f'{depth_2}../api.h'],
+                                           'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'sphincs_alpha': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                                   'src': [f'{depth_2}../sign.c'], 'headers': [f'{depth_2}../api.h'],
+                                                   'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'preon': [{'api': f'{depth_2}../../api.h', 'rng': f'{depth_2}../../rng.h',
+                                           'src': [f'{depth_2}../api.c'], 'headers': [f'{depth_2}../api.h'],
+                                           'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'alteq': [{'api': f'{depth_2}api.h', 'rng': f'{depth_2}aes/aes256.h',
+                                           'src': [f'{depth_2}sign.c'], 'headers': [f'{depth_2}/api/api.h.1.fe'],
+                                           'targets': ['crypto_sign_keypair', 'crypto_sign']}],
+                                'emle': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                          'src': [f'{depth_2}../impl.c'], 'headers': [f'{depth_2}../impl.h'],
+                                          'targets': ['keygen', 'sign']}],
+                                'kaz_sign': [{'api': f'{depth_2}../api.h', 'rng': f'{depth_2}../rng.h',
+                                              'src': [f'{depth_2}../kaz_api.c'], 'headers': [f'{depth_2}../kaz_api.h'],
+                                              'targets': ['KAZ_DS_KeyGen', 'KAZ_DS_SIGNATURE']}],
+                                'xifrat': [{'api': f'{depth_2}Reference_Implementation/api.h', 'rng': f'{depth_2}Reference_Implementation/rng.h'}]}
 
 
 # =============================================================================================
@@ -486,7 +606,7 @@ haetae_implementations_folders = {'ref': 'Reference_Implementation',
 haetae_default_list_of_folders = []
 # ========================================== HAWK ==============================================
 hawk_implementations_folders = {'ref': 'Reference_Implementation',
-                                'opt': 'Optimized_Implementation',
+                                'opt': 'Optimized_Implementation/avx2',
                                 'add': ''}
 hawk_opt_folder = "candidates/lattice/hawk/Optimized_Implementation/avx2"
 hawk_default_list_of_folders = os.listdir(hawk_opt_folder)
