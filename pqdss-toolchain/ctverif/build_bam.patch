@@ -1,0 +1,11 @@
+--- lib/bpl/passes/security/shadowing.rb	2021-08-11 15:49:23.182394650 +0200
++++ lib/bpl/passes/security/shadowing_patched.rb	2021-08-11 15:51:12.437622343 +0200
+@@ -365,7 +365,7 @@
+         next unless ret.is_a?(ReturnStatement)
+         annotations[:public_out].each do |annot|
+           loads(annot).each do |e,f|
+-            add_assertion(ret, :before, "#{e} == #{f}", :public_out_assertion)
++            add_assertion!(ret, :before, "#{e} == #{f}", :public_out_assertion)
+             equalities.add(e)
+           end
+         end
