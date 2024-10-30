@@ -29,16 +29,23 @@ def from_json_to_python_dict(path_to_json_file: str):
 # ======================== COMPILATION ====================================
 # =========================================================================
 
-def compile_with_cmake(build_folder_full_path, optional_flags=None, tool_flags: Optional[str] = None):
+def compile_with_cmake_28(build_folder_full_path, optional_flags=None, tool_flags: Optional[Union[str, list]] = None):
     if optional_flags is None:
         optional_flags = []
     cwd = os.getcwd()
+    print("------build_folder_full_path: ", build_folder_full_path)
+    # sed -i -E 's/(TOOL_NAME .+)/TOOL_NAME "ctgrind")/g' CMakeLists.txt
     gen.create_directory(build_folder_full_path)
     # Set the tool's flags in the CMakeLists.txt
+    tool_name = tool_flags[0]
+    tool_cflags = tool_flags[1]
     if tool_flags is not None:
         cmakelist = '../CMakeLists.txt'
-        set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := {tool_flags}/g' {cmakelist}"]
+        # set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := {tool_flags}/g' {cmakelist}"]
+        set_tool_flags = [f"sed -i -E 's/(TOOLS_FLAGS .+)/TOOLS_FLAGS "f'{tool_cflags}'")/g'" + f" {cmakelist}"]
         subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+        set_tool_name = [f"sed -i -E 's/(TOOL_NAME .+)/TOOL_NAME "f'{tool_name}'")/g'" + f" {cmakelist}"]
+        subprocess.call(set_tool_name, stdin=sys.stdin, shell=True)
     os.chdir(build_folder_full_path)
     cmd = ["cmake"]
     if not optional_flags == []:
@@ -51,18 +58,48 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, tool_flags: 
     os.chdir(cwd)
 
 
-def compile_with_makefile(path_to_makefile, default=None, tool_flags: Optional[str] = None):
+def compile_with_cmake(build_folder_full_path, optional_flags=None, tool_flags: Optional[Union[str, list]] = None):
+    if optional_flags is None:
+        optional_flags = []
+    cwd = os.getcwd()
+    gen.create_directory(build_folder_full_path)
+    # Set the tool's flags in the CMakeLists.txt
+    tool_name = tool_flags[0]
+    tool_cflags = tool_flags[1]
+    if tool_flags is not None:
+        cmakelist = '../CMakeLists.txt'
+        set_tool_flags = [f"sed -i -E 's/(TOOLS_FLAGS .+)/TOOLS_FLAGS "f'{tool_cflags}'")/g'" + f" {cmakelist}"]
+        subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+        set_tool_name = [f"sed -i -E 's/(TOOL_NAME .+)/TOOL_NAME "f'{tool_name}'")/g'" + f" {cmakelist}"]
+        subprocess.call(set_tool_name, stdin=sys.stdin, shell=True)
+    os.chdir(build_folder_full_path)
+    cmd = ["cmake"]
+    if not optional_flags == []:
+        cmd.extend(optional_flags)
+    cmd_ext = ["../"]
+    cmd.extend(cmd_ext)
+    subprocess.call(cmd, stdin=sys.stdin)
+    cmd = ["make", "-j"]
+    subprocess.call(cmd, stdin=sys.stdin)
+    os.chdir(cwd)
+
+
+def compile_with_makefile(path_to_makefile, default=None, tool_flags: Optional[Union[str, list]] = None):
+    print("-----tool_flags: ", tool_flags)
     cwd = os.getcwd()
     os.chdir(path_to_makefile)
     # Set the tool's flags in the Makefile
     if tool_flags is not None:
+        tool_cflags = tool_flags[-1]
         makefile = 'Makefile'
-        set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := {tool_flags}/g' {makefile}"]
+        print("-----tool_cflags: ", tool_cflags)
+        set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := {tool_cflags}/g' {makefile}"]
         subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
     # Run make clean first in case objects files have already been obtained with the flags of a different tool.
     cmd_clean = ["make", "clean"]
     subprocess.call(cmd_clean, stdin=sys.stdin)
-    cmd = ["make"]
+    # cmd = ["make"]
+    cmd = ["make", "all"]
     if default:
         cmd.append(default)
     subprocess.call(cmd, stdin=sys.stdin)
@@ -102,10 +139,12 @@ def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
         path_to_target_wrapper = f'{path_to_target_wrapper}.c'
     cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
     cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
+    print("-------cmd: ")
+    print(cmd)
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
 
-def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
+def generic_target_compilation_28(path_candidate: str, path_to_test_library_directory: str,
                                libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
                                tool_name: str, default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
                                binary_patterns: Optional[Union[str, list]] = None):
@@ -123,7 +162,6 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
         elif isinstance(instances, list):
             instances_list = instances.copy()
     for instance in instances_list:
-
         path_to_include_directories_split = path_to_include_directories.split(default_instance)
         path_to_include_directories_split.insert(1, instance)
         path_to_include_directories = "".join(path_to_include_directories_split)
@@ -151,15 +189,68 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
                                 libraries_names, path_to_include_directories, tool_name, compiler)
 
 
+def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
+                               libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
+                               tool_name: str, default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
+                               binary_patterns: Optional[Union[str, list]] = None):
+    tool_type = tools.Tools(tool_name)
+    test_keypair_basename, test_sign_basename = tool_type.get_tool_test_file_name()
+    keypair_sign = []
+    path_to_tool_folder = f'{path_candidate}/{tool_name}'
+    path_to_instances = [path_to_tool_folder]
+    candidate = path_candidate.split('/')[-1]
+    instances_list = []
+    if instances:
+        instances_list = []
+        if isinstance(instances, str):
+            instances_list = instances.split()
+        elif isinstance(instances, list):
+            instances_list = instances.copy()
+    else:
+        instances_list = ["."]
+    for instance in instances_list:
+        if instance == ".":
+            path_to_instance = f'{path_to_tool_folder}'
+        else:
+            path_to_instance = f'{path_to_tool_folder}/{instance}'
+            path_to_include_directories_split = path_to_include_directories.split(default_instance)
+            path_to_include_directories_split.insert(1, instance)
+            path_to_include_directories = "".join(path_to_include_directories_split)
+            if default_instance in path_to_test_library_directory:
+                path_to_test_library_directory_split = path_to_test_library_directory.split(default_instance)
+                path_to_test_library_directory_split.insert(1, instance)
+                path_to_test_library_directory = "".join(path_to_test_library_directory_split)
+
+        if binary_patterns is not None:
+            if isinstance(binary_patterns, str):
+                keypair_sign.append(binary_patterns.split())
+            else:
+                keypair_sign = binary_patterns.copy()
+        else:
+            binary_patterns = ['keypair', 'sign']
+        for bin_pattern in binary_patterns:
+            target_folder_basename = f'{candidate}_{bin_pattern}'
+            path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_sign_basename}'
+            if bin_pattern.strip() == 'keypair':
+                path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_keypair_basename}'
+            path_to_target_binary = path_to_target_wrapper.split('.c')[0]
+            generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_test_library_directory,
+                                libraries_names, path_to_include_directories, tool_name, compiler)
+
+
 def compile_target_candidate(path_to_candidate_makefile_cmake: str,
                              build_with_make: bool = True, additional_options=None, tool_name: Optional[str] = None):
     tool_cflags = ''
     tool_libs = ''
+    tool_flags = []
+    print("======compile_target_candidate=====")
+    print("----path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
     if tool_name is not None:
         tool_type = tools.Tools(tool_name)
         tool_cflags, tool_libs = tool_type.get_tool_flags_and_libs()
+        tool_flags.extend([tool_name, tool_cflags])
     if build_with_make:
-        compile_with_makefile(path_to_candidate_makefile_cmake, additional_options, tool_cflags)
+        compile_with_makefile(path_to_candidate_makefile_cmake, additional_options, tool_flags)
     if not build_with_make:
         path_to_build_folder = f'{path_to_candidate_makefile_cmake}/build'
         compile_with_cmake(path_to_build_folder, additional_options, tool_cflags)
@@ -396,14 +487,18 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
         path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
         for tool in tools:
             if not direct_link_or_compile_target:
-                for instance in instances:
-                    path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
-                    path_to_candidate_makefile_cmake_split.insert(1, instance)
-                    path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
+                if not instances:
                     compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
                                              additional_cmake_definitions, tool)
+                else:
+                    for instance in instances:
+                        path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
+                        path_to_candidate_makefile_cmake_split.insert(1, instance)
+                        path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
+                        compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                 additional_cmake_definitions, tool)
             generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
-                                       path_to_include_directories, tool, default_instance,instances,
+                                       path_to_include_directories, tool, default_instance, instances,
                                        compiler, binary_patterns)
 
 
@@ -567,6 +662,7 @@ def generic_compile_run_candidate(tools, candidate, abs_path_to_api_or_sign, abs
         path_to_candidate += candidate
     else:
         path_to_candidate += f'/{candidate}'
+    print("----build_with_make: ", build_with_make)
     if 'yes' in compile.lower() and 'yes' in run.lower():
         generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
                              default_instance, instances, additional_includes, path_to_candidate_makefile_cmake,

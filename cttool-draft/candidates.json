@@ -24,6 +24,42 @@
       "build_with_makefile": true,
       "compiler": "gcc"
     },
+    "mqom": {
+      "path_to_api": "candidates/mpc-in-the-head/mqom/Optimized_Implementation/mqom_cat1_gf31_fast/api.h",
+      "path_to_rng": "candidates/mpc-in-the-head/mqom/Optimized_Implementation/mqom_cat1_gf31_fast/rnd.h",
+      "path_to_makefile_folder": "candidates/mpc-in-the-head/mqom/Optimized_Implementation/mqom_cat1_gf31_fast",
+      "path_to_include_directory": ".",
+      "default_instance": "mqom_cat1_gf31_fast",
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": ["-lcttest", "-lcrypto"],
+      "build_with_makefile": true,
+      "compiler": "gcc"
+    },
+    "ryde": {
+      "path_to_api": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde128f/src/api.h",
+      "path_to_rng": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde128f/lib/randombytes/randombytes.h",
+      "path_to_makefile_folder": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde128f",
+      "path_to_include_directory": ".",
+      "default_instance": "ryde128f",
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": ["-lcttest", "-lcrypto"],
+      "build_with_makefile": true,
+      "compiler": "gcc"
+    },
+    "sdith": {
+      "path_to_api": "candidates/mpc-in-the-head/sdith/Optimized_Implementation/Hypercube_Variant/sdith_hypercube_cat1_gf256/api.h",
+      "path_to_rng": "candidates/mpc-in-the-head/sdith/Optimized_Implementation/Hypercube_Variant/sdith_hypercube_cat1_gf256/rng.h",
+      "path_to_makefile_folder": "candidates/mpc-in-the-head/sdith/Optimized_Implementation/Hypercube_Variant/sdith_hypercube_cat1_gf256",
+      "path_to_include_directory": ".",
+      "default_instance": "Hypercube_Variant/sdith_hypercube_cat1_gf256",
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": ["-lcttest", "-lcrypto"],
+      "build_with_makefile": true,
+      "compiler": "gcc"
+    },
     "hufu": {
       "path_to_api": "candidates/lattice/hufu/HuFu/Optimized_Implementation/crypto_sign/HuFu_NIST1/api.h",
       "path_to_rng": "candidates/lattice/hufu/HuFu/Optimized_Implementation/crypto_sign/HuFu_NIST1/random/random.h",
@@ -32,6 +68,42 @@
       "default_instance": "HuFu_NIST1",
       "optimized_implementation": "Optimized_Implementation/crypto_sign",
       "additional_implementation": "Additional_Implementation/avx2/crypto_sign",
+      "link_libraries": ["-lcttest", "-lcrypto"],
+      "build_with_makefile": true,
+      "compiler": "gcc"
+    },
+    "less": {
+      "path_to_api": "candidates/code/less/Reference_Implementation/include/api.h",
+      "path_to_rng": "candidates/code/less/Reference_Implementation/include/rng.h",
+      "path_to_makefile_folder": "candidates/code/less/ct_tests",
+      "path_to_include_directory": ".",
+      "default_instance": null,
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": ["-lcttest", "-lcrypto"],
+      "build_with_makefile": false,
+      "compiler": "gcc"
+    },
+    "cross": {
+      "path_to_api": "candidates/code/cross/Reference_Implementation/include/api.h",
+      "path_to_rng": "candidates/code/cross/Reference_Implementation/include/csprng_hash.h",
+      "path_to_makefile_folder": "candidates/code/cross/ct_tests",
+      "path_to_include_directory": ".",
+      "default_instance": null,
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": ["-lcttest", "-lcrypto"],
+      "build_with_makefile": false,
+      "compiler": "gcc"
+    },
+    "snova": {
+      "path_to_api": "candidates/multivariate/snova/api.h",
+      "path_to_rng": "candidates/multivariate/snova/rng.hh",
+      "path_to_makefile_folder": "candidates/multivariate/snova",
+      "path_to_include_directory": ".",
+      "default_instance": null,
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
       "link_libraries": ["-lcttest", "-lcrypto"],
       "build_with_makefile": true,
       "compiler": "gcc"

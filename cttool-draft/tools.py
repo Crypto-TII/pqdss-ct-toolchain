@@ -351,8 +351,8 @@ def timecop_sign_taint_content1(taint_file, api_or_sign, rng, add_includes,
     
     void generate_test_vectors() {{
     \t//Fill randombytes
-    \trandombytes({args_names[2]}, {args_names[3]});
-    \t//randombytes({args_names[4]}, CRYPTO_SECRETKEYBYTES);
+    \tct_randombytes({args_names[2]}, {args_names[3]});
+    \t//ct_randombytes({args_names[4]}, CRYPTO_SECRETKEYBYTES);
     \t{type_sk_with_no_const} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
     \t(void)crypto_sign_keypair(public_key, {secret_key});
     }} 
