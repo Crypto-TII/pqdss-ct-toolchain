@@ -26,6 +26,8 @@
 #pragma once
 #include <stdint.h>
 
+/* Seed tree max size is computed according to Parameter Generation Script in Utilities folder */
+
 /********************************* Category 1 *********************************/
 #if defined(CATEGORY_1)
 #define SEED_LENGTH_BYTES (16)
@@ -35,32 +37,32 @@
 #define POSITION_T uint8_t
 #define SEED_TREE_LABEL_T uint8_t
 
-#if defined(PK_SIZE)
+#if defined(BALANCED)
 #define   N (252)
 #define   K (126)
 #define   Q (127)
 #define NUM_KEYPAIRS (  2)
 #define   T (247)
 #define   W ( 30)
-#define SEED_TREE_MAX_PUBLISHED_BYTES (2112)
+#define SEED_TREE_MAX_PUBLISHED_BYTES (1472)
 
-#elif defined(BALANCED)
+#elif defined(INTERMEDIATE)
 #define   N (252)
 #define   K (126)
 #define   Q (127)
 #define NUM_KEYPAIRS (  4)
 #define   T (244)
 #define   W ( 20)
-#define SEED_TREE_MAX_PUBLISHED_BYTES (1472)
+#define SEED_TREE_MAX_PUBLISHED_BYTES (1152)
 
-#elif defined(SIG_SIZE)
+#elif defined(SHORT_SIG)
 #define   N (252)
 #define   K (126)
 #define   Q (127)
 #define NUM_KEYPAIRS (  8)
 #define   T (198)
 #define   W ( 17)
-#define SEED_TREE_MAX_PUBLISHED_BYTES (1328)
+#define SEED_TREE_MAX_PUBLISHED_BYTES (1056)
 
 #else
 #error define optimization corner in parameters.h
@@ -70,27 +72,27 @@
 #elif defined(CATEGORY_3)
 #define SEED_LENGTH_BYTES (24)
 
-#if defined(PK_SIZE)
+#if defined(BALANCED)
 #define   N (400)
 #define   K (200)
 #define   Q (127)
 #define NUM_KEYPAIRS (  2)
 #define   T (759)
 #define   W ( 33)
-#define SEED_TREE_MAX_PUBLISHED_BYTES (4704)
+#define SEED_TREE_MAX_PUBLISHED_BYTES (3912)
 #define FQ_ELEM uint8_t
 #define FQ_DOUBLEPREC uint16_t
 #define FQ_TRIPLEPREC uint16_t
 #define POSITION_T uint16_t
 
-#elif defined(SIG_SIZE)
+#elif defined(SHORT_SIG)
 #define   N (400)
 #define   K (200)
 #define   Q (127)
 #define NUM_KEYPAIRS (  3)
 #define   T (895)
 #define   W ( 26)
-#define SEED_TREE_MAX_PUBLISHED_BYTES (3888)
+#define SEED_TREE_MAX_PUBLISHED_BYTES (3264)
 #define FQ_ELEM uint8_t
 #define FQ_DOUBLEPREC uint16_t
 #define FQ_TRIPLEPREC uint32_t
@@ -103,27 +105,27 @@
 #elif defined(CATEGORY_5)
 #define SEED_LENGTH_BYTES (32)
 
-#if defined(PK_SIZE)
+#if defined(BALANCED)
 #define   N (548)
 #define   K (274)
 #define   Q (127)
 #define NUM_KEYPAIRS (  2)
 #define   T (1352)
 #define   W ( 40)
-#define SEED_TREE_MAX_PUBLISHED_BYTES (8448)
+#define SEED_TREE_MAX_PUBLISHED_BYTES (7168)
 #define FQ_ELEM uint8_t
 #define FQ_DOUBLEPREC uint16_t
 #define FQ_TRIPLEPREC uint32_t
 #define POSITION_T uint16_t
 
-#elif defined(SIG_SIZE)
+#elif defined(SHORT_SIG)
 #define   N (548)
 #define   K (274)
 #define   Q (127)
 #define NUM_KEYPAIRS (  3)
 #define   T (907)
 #define   W ( 37)
-#define SEED_TREE_MAX_PUBLISHED_BYTES (6784)
+#define SEED_TREE_MAX_PUBLISHED_BYTES (5600)
 #define FQ_ELEM uint8_t
 #define FQ_DOUBLEPREC uint16_t
 #define FQ_TRIPLEPREC uint32_t
@@ -136,10 +138,17 @@
 #error define category for parameters
 #endif
 
+
+/***************** Derived parameters *****************************************/
+
+#define MAX_PUBLISHED_SEEDS (SEED_TREE_MAX_PUBLISHED_BYTES/SEED_LENGTH_BYTES)
+
 /*length of the output of the cryptographic hash, in bytes */
 #define HASH_DIGEST_LENGTH (2*SEED_LENGTH_BYTES)
 
-/***************** Derived parameters *****************************************/
+/* length of the private key seed doubled to avoid multikey attacks */
+#define PRIVATE_KEY_SEED_LENGTH_BYTES (2*SEED_LENGTH_BYTES)
+
 #define MASK_Q ((1 << BITS_TO_REPRESENT(Q)) - 1)
 #define MASK_N ((1 << BITS_TO_REPRESENT(N)) - 1)
 
@@ -171,7 +180,6 @@
 #define NUM_LEAVES_OF_SEED_TREE (1UL << BITS_TO_REPRESENT(T) )
 #define NUM_NODES_OF_SEED_TREE (2*NUM_LEAVES_OF_SEED_TREE-1 )
 
-
 #define RREF_MAT_PACKEDBYTES ((BITS_TO_REPRESENT(Q)*(N-K)*K + 7)/8 + (N + 7)/8)
 #define RREF_IS_COLUMNS_PACKEDBYTES ((BITS_TO_REPRESENT(Q)*(N-K)*K + 7)/8)
 
@@ -179,4 +187,7 @@
 
 #define LESS_CRYPTO_PUBLICKEYBYTES (NUM_KEYPAIRS*RREF_MAT_PACKEDBYTES)
 #define LESS_CRYPTO_SECRETKEYBYTES ((NUM_KEYPAIRS-1)*SEED_LENGTH_BYTES + RREF_MAT_PACKEDBYTES)
-#define LESS_CRYPTO_BYTES (SEED_LENGTH_BYTES + MONO_ACTION_PACKEDBYTES*W + SEED_TREE_MAX_PUBLISHED_BYTES)
+
+// returns the maximum bytes the signature can occupy
+#define LESS_CRYPTO_MAX_BYTES (HASH_DIGEST_LENGTH*2 + MONO_ACTION_PACKEDBYTES*W + SEED_TREE_MAX_PUBLISHED_BYTES + 1)
+#define LESS_CRYPTO_BYTES(NR_LEAVES) (HASH_DIGEST_LENGTH*2 + MONO_ACTION_PACKEDBYTES*W + NR_LEAVES*SEED_LENGTH_BYTES + 1)

@@ -85,9 +85,17 @@ void monomial_mat_inv(monomial_t *res,
 /* samples a random monomial matrix from the systemwide csprng*/
 void monomial_mat_rnd(monomial_t *res);
 
-/* expands a monomial matrix, given a PRNG seed */
-void monomial_mat_seed_expand(monomial_t *res,
-                              const unsigned char seed[SEED_LENGTH_BYTES]);
+/* expands a monomial matrix, given a PRNG seed and a salt (used for ephemeral
+ * monomial matrices */
+void monomial_mat_seed_expand_salt_rnd(monomial_t *res,
+                                       const unsigned char seed[SEED_LENGTH_BYTES],
+                                       const unsigned char salt[HASH_DIGEST_LENGTH],
+                                       const uint16_t round_index);
+
+/* expands a monomial matrix, given a double length PRNG seed (used to prevent
+ * multikey attacks) */
+void monomial_mat_seed_expand_prikey(monomial_t *res,
+                                     const unsigned char seed[PRIVATE_KEY_SEED_LENGTH_BYTES]);
 
 /* yields the identity matrix */
 void monomial_mat_id(monomial_t *res);
@@ -105,6 +113,10 @@ void compress_monom_action(uint8_t *compressed,
 /* Decompress byte array to MonomialAction object */
 void expand_to_monom_action(monomial_action_IS_t *mono,
                             const uint8_t *compressed);
+
+
+/* Validate MonomialAction object */
+int is_monom_action_valid(const monomial_action_IS_t * const mono);
 
 /* pretty_print for monomial matrices */
 void monomial_mat_pretty_print_name(char *name, const monomial_t *to_print);
