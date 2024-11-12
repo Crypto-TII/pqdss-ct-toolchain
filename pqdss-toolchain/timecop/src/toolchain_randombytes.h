@@ -6,14 +6,14 @@
 #include <fcntl.h>
 
 
-#ifndef NIST_PQC_SIGNATURES_TOOLCHAIN_RANDOMBYTES_H
-#define NIST_PQC_SIGNATURES_TOOLCHAIN_RANDOMBYTES_H
+#ifndef TOOLCHAIN_CT_RANDOMBYTES_H
+#define TOOLCHAIN_CT_RANDOMBYTES_H
 
 
 // This a copy of the function randombytes() from dudect.h
 
 /* this comes from ebacs */
-void randombytes(uint8_t *x, size_t how_much) {
+void ct_randombytes(uint8_t *x, size_t how_much) {
     ssize_t i;
     static int fd = -1;
 
@@ -45,4 +45,4 @@ void randombytes(uint8_t *x, size_t how_much) {
     }
 }
 
-#endif //NIST_PQC_SIGNATURES_TOOLCHAIN_RANDOMBYTES_H
+#endif //TOOLCHAIN_CT_RANDOMBYTES_H
