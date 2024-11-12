@@ -3,7 +3,7 @@ CC?=gcc
 TOOLS_FLAGS := -Wall -g -Wextra
 
 ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow -DPARAM_HYPERCUBE_7R -DPARAM_GF31 -DPARAM_L1 -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4 -DPRGX4 -DNDEBUG -mavx $(TOOLS_FLAGS)
-ALL_FLAGS+=$(EXTRA_ALL_FLAGS)
+ALL_FLAGS+=$(EXTRA_ALL_FLAGS) -DBENCHMARK_CYCLES
 
 SYM_OBJ= rnd.o hash.o xof.o
 ARITH_OBJ= gf31-matrix.o gf31.o
@@ -19,6 +19,8 @@ APP_READ_BENCH_OBJ=benchmark/bench-read.o
 APP_KAT_MAIN_OBJ=generator/PQCgenKAT_sign.o generator/rng.o
 APP_KAT_CHECK_OBJ=generator/PQCgenKAT_check.o generator/rng.o
 
+RNG_OBJ=generator/rng.o
+
 TAINT_OBJ=taint_crypto_sign.o generator/rng.o
 
 HASH_INCLUDE=-Isha3 -I. -Isha3/avx2
@@ -32,7 +34,7 @@ BUILD_CTLIB = build
 	$(CC) -c $(ALL_FLAGS) $(HASH_INCLUDE) $(APP_INCLUDE) -I. $< -o $@
 
 
-all: kat_gen bench $(CTTEST_LIB)
+all: kat_gen bench $(CTTEST_LIB) #taint
 
 
 libhash:
@@ -41,9 +43,9 @@ libhash:
 
 # $(HASH_INCLUDE)
 # $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
-$(CTTEST_LIB): $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
+$(CTTEST_LIB): $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) libhash
 	mkdir -p $(BUILD_CTLIB)
-	$(CC) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(ALL_FLAGS) $(HASH_INCLUDE) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L$(HASH_PATH) -lhash -lcrypto
+	$(CC) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) $(ALL_FLAGS) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L$(HASH_PATH) -lhash -lcrypto
 
 
 # Generation of the KAT
@@ -81,3 +83,4 @@ clean:
 	rm -rf $(BUILD_CTLIB)
 	rm kat_gen
 	rm taint_crypto_sign.o
+	rm taint

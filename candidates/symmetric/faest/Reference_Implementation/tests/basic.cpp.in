@@ -1,0 +1,103 @@
+/*
+ *  SPDX-License-Identifier: MIT
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include "faest_@PARAM_L@.h"
+#include "randomness.h"
+#include "test_faest_tvs.hpp"
+#include "utils.h"
+
+#include <array>
+#include <vector>
+#include <boost/test/unit_test.hpp>
+
+namespace {
+  // clang-format off
+  constexpr std::size_t public_key_size = FAEST_@PARAM@_PUBLIC_KEY_SIZE;
+  constexpr std::size_t private_key_size = FAEST_@PARAM@_PRIVATE_KEY_SIZE;
+  constexpr std::size_t signature_size = FAEST_@PARAM@_SIGNATURE_SIZE;
+  // clang-format on
+
+  typedef std::array<uint8_t, public_key_size> pk_t;
+  typedef std::array<uint8_t, private_key_size> sk_t;
+}
+
+BOOST_AUTO_TEST_SUITE(faest_@PARAM_L@)
+
+BOOST_AUTO_TEST_CASE(test_keygen) {
+  pk_t pk;
+  sk_t sk;
+  // clang-format off
+  BOOST_TEST(faest_@PARAM_L@_keygen(pk.data(), sk.data()) == 0);
+  BOOST_TEST(faest_@PARAM_L@_validate_keypair(pk.data(), sk.data()) == 0);
+  // clang-format on
+}
+
+BOOST_AUTO_TEST_CASE(test_sign) {
+  pk_t pk;
+  sk_t sk;
+  // clang-format off
+  BOOST_TEST(faest_@PARAM_L@_keygen(pk.data(), sk.data()) == 0);
+  // clang-format on
+
+  std::vector<uint8_t> sig;
+  size_t sig_size = signature_size;
+  sig.resize(signature_size);
+
+  std::vector<uint8_t> msg;
+  msg.resize(1024);
+  rand_bytes(msg.data(), msg.size());
+
+  // clang-format off
+  BOOST_TEST(faest_@PARAM_L@_sign(sk.data(), msg.data(), msg.size(), sig.data(), &sig_size) == 0);
+  BOOST_TEST(sig_size == signature_size);
+  BOOST_TEST(faest_@PARAM_L@_verify(pk.data(), msg.data(), msg.size(), sig.data(), sig.size()) == 0);
+  // clang-format on
+}
+
+BOOST_AUTO_TEST_CASE(test_rand_verify_fails) {
+  pk_t pk;
+  sk_t sk;
+  // clang-format off
+  BOOST_TEST(faest_@PARAM_L@_keygen(pk.data(), sk.data()) == 0);
+  // clang-format on
+
+  std::vector<uint8_t> sig;
+  sig.resize(signature_size);
+  rand_bytes(sig.data(), sig.size());
+
+  std::vector<uint8_t> msg;
+  msg.resize(32);
+  rand_bytes(msg.data(), msg.size());
+
+  // clang-format off
+  BOOST_TEST(faest_@PARAM_L@_verify(pk.data(), msg.data(), msg.size(), sig.data(), sig.size()) == -1);
+  // clang-format on
+}
+
+BOOST_AUTO_TEST_CASE(test_sign_tv) {
+  namespace tv = faest_tvs::faest_@PARAM_L@_tvs;
+  using faest_tvs::message;
+
+  BOOST_TEST(tv::packed_sk.size() == private_key_size);
+  BOOST_TEST(tv::packed_pk.size() == public_key_size);
+  BOOST_TEST(tv::signature.size() == signature_size);
+  std::array<uint8_t, signature_size> sig;
+
+  size_t sig_size = signature_size;
+  // clang-format off
+  BOOST_TEST(faest_@PARAM_L@_validate_keypair(tv::packed_pk.data(), tv::packed_sk.data()) == 0);
+  BOOST_TEST(faest_@PARAM_L@_sign_with_randomness(tv::packed_sk.data(),
+             reinterpret_cast<const uint8_t*>(message.data()), message.size(),
+             tv::randomness.data(), tv::randomness.size(), sig.data(), &sig_size) == 0);
+  BOOST_TEST(sig == tv::signature);
+  BOOST_TEST(faest_@PARAM_L@_verify(tv::packed_pk.data(),
+             reinterpret_cast<const uint8_t*>(message.data()), message.size(), tv::signature.data(), tv::signature.size()) == 0);
+  // clang-format on
+}
+
+BOOST_AUTO_TEST_SUITE_END()
