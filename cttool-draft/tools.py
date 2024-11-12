@@ -419,7 +419,7 @@ def timecop_sign_taint_content(taint_file, api_or_sign, rng, add_includes,
     \t\t{args_names[2]} = ({args_types[2]} *)calloc({args_names[3]}, sizeof({args_types[2]}));
     \t\t{args_names[0]} = ({args_types[0]} *)calloc({args_names[3]}+CRYPTO_BYTES, sizeof({args_types[0]}));
     
-    \t\trandombytes({args_names[2]}, {args_names[3]});
+    \t\tct_randombytes({args_names[2]}, {args_names[3]});
     \t\t{type_sk_with_no_const} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
     \t\t(void)crypto_sign_keypair(public_key, {secret_key});
     

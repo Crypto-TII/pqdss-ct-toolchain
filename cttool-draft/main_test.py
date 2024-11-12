@@ -30,12 +30,19 @@ def run_cli_candidate(args_parse):
     algorithms = args_parse.algorithms
     implementation_type = args_parse.ref_opt_add_implementation
     additional_cmake_definitions = args_parse.cmake_definition
-    print()
+    add_options = args_parse.add_options
+    print("--------add_options------:", add_options)
     all_candidates_dict = candidates_dict
     if 'yes' in direct_link_or_compile_target:
         direct_link_to_library = True
     # add_options = args_parse.add_options
-    # additional_options = dict([n for n in pair.split('=')] for pair in add_options)
+    add_args = list(filter(lambda element: '=' not in element, add_options))
+    add_kwargs_list = list(filter(lambda element: '=' in element, add_options))
+    print("+++++++++add_args++++++++: ", add_args)
+    print("+++++++++add_kwargs_list++++++++: ", add_kwargs_list)
+    additional_options = {}
+    if add_kwargs_list:
+        additional_options = dict([n for n in pair.split('=')] for pair in add_kwargs_list)
     security_level = args_parse.security_level
     if test_mode == 'ct-tests':
         print(":::::::Running constant time tests")
@@ -45,10 +52,11 @@ def run_cli_candidate(args_parse):
         timeout = args_parse.timeout
         signature.run_tests(user_entry_point, tools, candidate, instances, all_candidates_dict, direct_link_to_library,
                             number_measurements, compilation, run, algorithms, depth, timeout, implementation_type,
-                            security_level, additional_cmake_definitions)
+                            security_level, additional_cmake_definitions, *add_args, **additional_options)
     elif test_mode == 'benchmark':
         print(":::::::Running Benchmarks")
         benchmark_template = args_parse.bench_template
+        benchmarks_keywords = args_parse.bench_keywords
 
 
 # Create a parser

@@ -80,6 +80,8 @@ class Target(object):
         self.candidate_args = self.candidate_split[1]
         self.get_candidate_has_arguments_status()
 
+
+
     def get_candidate_has_arguments_status(self):
         if self.candidate_args == '' or self.candidate_args == ' ':
             self.candidate_has_arguments_status = False
@@ -193,8 +195,9 @@ def tokenize_target(target: str) -> tuple:
     target_args = target_declaration_split[-1]
     target_return_type_and_basename = target_declaration_split[0]
     target_return_type_and_basename_split = target_return_type_and_basename.split()
-    target_return_type = target_return_type_and_basename_split[0].strip()
     target_basename = target_return_type_and_basename_split[-1].strip()
+    target_return_type_and_basename_split.remove(target_basename)
+    target_return_type = " ".join(target_return_type_and_basename_split)
     target_args = re.sub('\)\s*;', '', target_args)
     target_args_names = []
     target_args_types = []
@@ -275,6 +278,50 @@ def find_target_by_basename(target_basename: str, path_to_target_header_file: st
                 if '' in matching_string_lines:
                     index_empty_str = matching_string_lines.index('')
                     matching_string_lines = matching_string_lines[index_empty_str+1:]
+                find_target_index = 0
+                for line in matching_string_lines:
+                    if target_basename in line:
+                        find_target_index = matching_string_lines.index(line)
+                # if 'ndef' in matching_string_lines:
+                #     index_empty_str = matching_string_lines.index('')
+                #     matching_string_lines = matching_string_lines[index_empty_str+1:]
+                matching_string = "\n".join(matching_string_lines)
+                matching_string_split = matching_string.split()
+                matching_string_list_strip = [word.strip() for word in matching_string_split]
+                target = " ".join(matching_string_list_strip)
+            else:
+                error_message = f'''
+                Could not find {target_basename} into the file {path_to_target_header_file}
+                '''
+                print(textwrap.dedent(error_message))
+    except:
+        print("Could not open file '{}' .".format(path_to_target_header_file))
+
+    return target
+
+
+def find_target_by_basename1(target_basename: str, path_to_target_header_file: str) -> str:
+    target = ''
+    target_is_found = 0
+    try:
+        with open(path_to_target_header_file, 'r') as file:
+            file_content = file.read()
+            find_target_object = re.search(rf"[\w\s]*\W{target_basename}\W[\s*\(]*[\w\s*,\[\+\]\(\)-]*;", file_content)
+            if find_target_object is not None:
+                target_is_found = 1
+                matching_string = find_target_object.group()
+                matching_string_lines = matching_string.split('\n')
+                target_basename_nb_of_occurrence = matching_string.count(target_basename)
+                if target_basename_nb_of_occurrence >= 2:
+                    for line in matching_string_lines:
+                        if target_basename in line and (':' in line or '#' in line or 'define' in line):
+                            matching_string_lines.remove(line)
+                matching_string_lines = [line for line in matching_string_lines if line.strip()!= '']
+                find_target_index = 0
+                for line in matching_string_lines:
+                    if target_basename in line:
+                        find_target_index = matching_string_lines.index(line)
+                matching_string_lines = matching_string_lines[find_target_index-1:]
                 matching_string = "\n".join(matching_string_lines)
                 matching_string_split = matching_string.split()
                 matching_string_list_strip = [word.strip() for word in matching_string_split]
@@ -362,6 +409,156 @@ def generic_create_tests_folders(list_of_path_to_folders):
             cmd = ["mkdir", "-p", t_folder]
             subprocess.call(cmd, stdin=sys.stdin)
 
+
+def compile_with_makefile(path_to_makefile, default=None, *args, **kwargs):
+    cwd = os.getcwd()
+    os.chdir(path_to_makefile)
+    # Set the tool's flags in the Makefile
+    makefile = 'Makefile'
+    set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := /g' {makefile}"]
+    subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+    # Run make clean first in case objects files have already been obtained with the flags of a different tool.
+    cmd_clean = ["make", "clean"]
+    subprocess.call(cmd_clean, stdin=sys.stdin)
+    additional_options = list(args)
+    for key, val in kwargs.items():
+        additional_options.append(f'{key}={val}')
+    cmd = ["make"]
+    if not additional_options:
+        cmd.append('all')
+    cmd.extend(additional_options)
+    if default:
+        cmd.append(default)
+    print("++++++++++++cmd++++++++++++: ", cmd)
+    subprocess.call(cmd, stdin=sys.stdin)
+    os.chdir(cwd)
+
+
+def compile_with_cmake(build_folder_full_path, optional_flags=None, *args, **kwargs):
+    if optional_flags is None:
+        optional_flags = []
+    cwd = os.getcwd()
+    create_directory(build_folder_full_path)
+    # Set the tool's flags in the CMakeLists.txt
+    cmakelist = '../CMakeLists.txt'
+    set_tool_flags = [f"sed -i -E 's/(TOOLS_FLAGS .+)/TOOLS_FLAGS "")/g'" + f" {cmakelist}"]
+    subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+    set_tool_name = [f"sed -i -E 's/(TOOL_NAME .+)/TOOL_NAME "")/g'" + f" {cmakelist}"]
+    subprocess.call(set_tool_name, stdin=sys.stdin, shell=True)
+    os.chdir(build_folder_full_path)
+
+    additional_options = list(args)
+    for key, val in kwargs.items():
+        additional_options.append(f'-D{key}={val}')
+    cmd = ["cmake"]
+    cmd.extend(additional_options)
+    if not optional_flags == []:
+        cmd.extend(optional_flags)
+    cmd_ext = ["../"]
+    cmd.extend(cmd_ext)
+    print("+++++++++cmd++++++++: ", cmd)
+    subprocess.call(cmd, stdin=sys.stdin)
+    cmd = ["make", "-j"]
+    subprocess.call(cmd, stdin=sys.stdin)
+    os.chdir(cwd)
+
+
+def compile_target_candidate(path_to_candidate_makefile_cmake: str,
+                             build_with_make: bool = True, additional_options=None, *args, **kwargs):
+    if build_with_make:
+        compile_with_makefile(path_to_candidate_makefile_cmake, additional_options, *args, **kwargs)
+    if not build_with_make:
+        path_to_build_folder = f'{path_to_candidate_makefile_cmake}/build'
+        compile_with_cmake(path_to_build_folder, additional_options, *args, **kwargs)
+
+
+def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
+                        path_to_test_library_directory: str, libraries_names: [Union[str, list]],
+                        path_to_include_directories: Union[str, list], cflags: list, compiler: str = 'gcc'):
+    target_include_dir = path_to_include_directories
+    target_link_libraries = []
+    if isinstance(libraries_names, str):
+        target_link_libraries.extend(libraries_names.split())
+    elif isinstance(libraries_names, list):
+        target_link_libraries.extend(libraries_names.copy())
+    target_link_libraries = list(set(target_link_libraries))
+    target_link_libraries = list(map(lambda incs: f'{incs}' if '-l' in incs else f'-l{incs}', target_link_libraries))
+    target_link_libraries_str = " ".join(target_link_libraries)
+    all_flags_str = " ".join(cflags)
+    cmd = f'{compiler} {all_flags_str} '
+    if target_include_dir:
+        if isinstance(target_include_dir, list):
+            include_directories = target_include_dir.copy()
+            include_directories = list(map(lambda incs: f'-I{incs}', include_directories))
+            cmd += f' {" ".join(target_include_dir)}'
+        else:
+            include_directories = list(map(lambda incs: f'-I {incs}', target_include_dir.split()))
+            cmd += f' {" ".join(include_directories)}'
+    if not path_to_target_wrapper.endswith('.c'):
+        path_to_target_wrapper = f'{path_to_target_wrapper}.c'
+    cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
+    cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
+    subprocess.call(cmd, stdin=sys.stdin, shell=True)
+
+
+
+def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
+                               libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
+                               cflags: list, default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
+                               binary_patterns: Optional[Union[str, list]] = None):
+
+    test_keypair_basename, test_sign_basename = '', '' # tool_type.get_tool_test_file_name() to be fixed
+    keypair_sign = []
+    path_to_tool_folder = f'{path_candidate}' # to be fixed
+    path_to_instances = [path_to_tool_folder]
+    candidate = path_candidate.split('/')[-1]
+    instances_list = []
+    if instances:
+        instances_list = []
+        if isinstance(instances, str):
+            instances_list = instances.split()
+        elif isinstance(instances, list):
+            instances_list = instances.copy()
+    else:
+        instances_list = ["."]
+    for instance in instances_list:
+        if instance == ".":
+            path_to_instance = f'{path_to_tool_folder}'
+        else:
+            path_to_instance = f'{path_to_tool_folder}/{instance}'
+            path_to_include_directories_split = path_to_include_directories.split(default_instance)
+            path_to_include_directories_split.insert(1, instance)
+            path_to_include_directories = "".join(path_to_include_directories_split)
+            if default_instance in path_to_test_library_directory:
+                path_to_test_library_directory_split = path_to_test_library_directory.split(default_instance)
+                path_to_test_library_directory_split.insert(1, instance)
+                path_to_test_library_directory = "".join(path_to_test_library_directory_split)
+
+        if binary_patterns is not None:
+            if isinstance(binary_patterns, str):
+                keypair_sign.append(binary_patterns.split())
+            else:
+                keypair_sign = binary_patterns.copy()
+        else:
+            binary_patterns = ['keypair', 'sign']
+        for bin_pattern in binary_patterns:
+            target_folder_basename = f'{candidate}_{bin_pattern}'
+            path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_sign_basename}'
+            if bin_pattern.strip() == 'keypair':
+                path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_keypair_basename}'
+            path_to_target_binary = path_to_target_wrapper.split('.c')[0]
+            generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_test_library_directory,
+                                libraries_names, path_to_include_directories, cflags, compiler)
+
+
+def parse_candidates_json_file(candidates_dict: dict, candidate: str):
+    candidates = candidates_dict.keys()
+    if candidate not in candidates:
+        # We should raise an error
+        print("There is no candidate named {}".format(candidate))
+        return None
+    else:
+        return candidates_dict[candidate]
 
 # ====================== ADD CLI OPTIONS ==================================
 # =======================================================================

@@ -34,7 +34,8 @@
       "additional_implementation": null,
       "link_libraries": ["-lcttest", "-lcrypto"],
       "build_with_makefile": true,
-      "compiler": "gcc"
+      "compiler": "gcc",
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"}
     },
     "ryde": {
       "path_to_api": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde128f/src/api.h",
@@ -98,10 +99,58 @@
     },
     "snova": {
       "path_to_api": "candidates/multivariate/snova/api.h",
-      "path_to_rng": "candidates/multivariate/snova/rng.hh",
+      "path_to_rng": "candidates/multivariate/snova/rng.h",
       "path_to_makefile_folder": "candidates/multivariate/snova",
       "path_to_include_directory": ".",
       "default_instance": null,
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": ["-lcttest", "-lcrypto"],
+      "build_with_makefile": true,
+      "compiler": "gcc"
+    },
+    "pqov": {
+      "path_to_api": "candidates/multivariate/pqov/src/api.h",
+      "path_to_rng": "candidates/multivariate/pqov/utils/nistkat/rng.h",
+      "path_to_makefile_folder": "candidates/multivariate/pqov",
+      "path_to_include_directory": ".",
+      "default_instance": null,
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": ["-lcttest", "-lcrypto"],
+      "build_with_makefile": true,
+      "compiler": "gcc"
+    },
+    "qruov": {
+      "path_to_api": "candidates/multivariate/pqov/src/api.h",
+      "path_to_rng": "candidates/multivariate/pqov/utils/nistkat/rng.h",
+      "path_to_makefile_folder": "candidates/multivariate/qruov/src",
+      "path_to_include_directory": ".",
+      "default_instance": null,
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": ["-lcttest", "-lcrypto"],
+      "build_with_makefile": true,
+      "compiler": "gcc"
+    },
+    "mayo": {
+      "path_to_api": "candidates/multivariate/mayo/src/mayo_1/api.h",
+      "path_to_rng": "candidates/multivariate/mayo/include/rng.h",
+      "path_to_makefile_folder": "candidates/multivariate/mayo",
+      "path_to_include_directory": ".",
+      "default_instance": "src/mayo_1",
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": ["-lcttest", "-lcrypto"],
+      "build_with_makefile": false,
+      "compiler": "gcc"
+    },
+    "hawk": {
+      "path_to_api": "candidates/lattice/hawk/NIST/Optimized_Implementation/avx2/hawk256/api.h",
+      "path_to_rng": "candidates/lattice/hawk/NIST/Optimized_Implementation/avx2/hawk256/rng.h",
+      "path_to_makefile_folder": "candidates/lattice/hawk/NIST/Optimized_Implementation/avx2/hawk256",
+      "path_to_include_directory": ".",
+      "default_instance": "hawk256",
       "optimized_implementation": "Optimized_Implementation",
       "additional_implementation": null,
       "link_libraries": ["-lcttest", "-lcrypto"],

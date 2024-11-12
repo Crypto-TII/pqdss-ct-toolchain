@@ -177,6 +177,11 @@ def add_cli_arguments(subparser,
      default=f'{implementation_type}', help = 'Opt., Add. or Ref. implementation'")
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
+    arguments = (f"'--additional_options', '-add_options', dest='add_options', nargs='*', default='',"
+                 f" help = 'Additional options'")
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+
     if test_mode == 'ct-tests':
         # Default tools list
         default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker", "ctverif"]
@@ -200,5 +205,10 @@ def add_cli_arguments(subparser,
         default_algorithms.append('verify')
         arguments = (f"'--benchmark_template', '-bench_template', dest='bench_template', nargs='+',"
                      f"default=f'{benchmark}', help = 'Choose benchmark templates'")
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+
+        arguments = (f"'--benchmark_keyword', '-bench_keywords', dest='bench_keywords', nargs='+',"
+                    f"default='', help = 'Benchmarks average, mean, quartile'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
