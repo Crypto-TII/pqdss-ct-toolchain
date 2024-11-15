@@ -9,6 +9,7 @@ import sys
 import json
 import subprocess
 import shutil
+from subprocess import Popen
 
 from typing import Optional, Union, List
 
@@ -22,6 +23,24 @@ def set_benchmark_template(template: str, algorithm: Union[str, list], number_of
 
 def generate_template(number_of_executions: Union[str, int] = '1e3'):
     pass
+
+
+def bench_candidate(path_to_benchmark_binary: str, cpu_core_isolated: Union[str, list] = '1',
+                    path_to_output_file: Optional[str] = None):
+    if isinstance(cpu_core_isolated, list):
+        cpu_core_list = cpu_core_isolated.copy()
+    else:
+        cpu_core_list = cpu_core_isolated.split('')
+
+    chosen_cpu_core = cpu_core_list[0]
+    cmd_str = f'taskset --cpu-list {chosen_cpu_core} ./{path_to_benchmark_binary}'
+    cmd_args_lst = cmd_str.split()
+    if path_to_output_file.strip() == '' or path_to_output_file is None:
+        subprocess.call(cmd_args_lst, stdin=sys.stdin)
+    else:
+        with open(path_to_output_file, "w") as file:
+            execution = Popen(cmd_args_lst, universal_newlines=True, stdout=file, stderr=file)
+            execution.communicate()
 
 
 def generate_template_candidate(abs_path_to_api_or_sign, abs_path_to_rng, path_to_benchmark_folder,

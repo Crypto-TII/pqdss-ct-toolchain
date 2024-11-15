@@ -8,6 +8,7 @@ import argparse
 
 import cli as cli
 import pqc_signature as signature
+import benchmarks as bench
 
 
 # path to user entry-point
@@ -55,8 +56,12 @@ def run_cli_candidate(args_parse):
                             security_level, additional_cmake_definitions, *add_args, **additional_options)
     elif test_mode == 'benchmark':
         print(":::::::Running Benchmarks")
-        benchmark_template = args_parse.bench_template
+        benchmark_templates = args_parse.bench_template
         benchmarks_keywords = args_parse.bench_keywords
+        number_of_executions = args_parse.repetitions
+        bench.run_benchmarks(user_entry_point, candidate, instances, candidates_dict, direct_link_or_compile_target,
+                             number_of_executions, algorithms, implementation_type, security_level, benchmark_templates,
+                             benchmarks_keywords, *add_args, **additional_options)
 
 
 # Create a parser

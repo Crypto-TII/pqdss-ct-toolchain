@@ -212,3 +212,6 @@ def add_cli_arguments(subparser,
                     f"default='', help = 'Benchmarks average, mean, quartile'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
+        arguments = f"'--repetitions', '-repetitions', dest='repetitions', default='1e3', help = 'number of executions'"
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
