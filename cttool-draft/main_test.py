@@ -31,16 +31,14 @@ def run_cli_candidate(args_parse):
     algorithms = args_parse.algorithms
     implementation_type = args_parse.ref_opt_add_implementation
     additional_cmake_definitions = args_parse.cmake_definition
+    cpu_cores_isolated = args_parse.cpu_cores
     add_options = args_parse.add_options
-    print("--------add_options------:", add_options)
     all_candidates_dict = candidates_dict
     if 'yes' in direct_link_or_compile_target:
         direct_link_to_library = True
     # add_options = args_parse.add_options
     add_args = list(filter(lambda element: '=' not in element, add_options))
     add_kwargs_list = list(filter(lambda element: '=' in element, add_options))
-    print("+++++++++add_args++++++++: ", add_args)
-    print("+++++++++add_kwargs_list++++++++: ", add_kwargs_list)
     additional_options = {}
     if add_kwargs_list:
         additional_options = dict([n for n in pair.split('=')] for pair in add_kwargs_list)
@@ -58,10 +56,13 @@ def run_cli_candidate(args_parse):
         print(":::::::Running Benchmarks")
         benchmark_templates = args_parse.bench_template
         benchmarks_keywords = args_parse.bench_keywords
-        number_of_executions = args_parse.repetitions
+        number_of_iterations = args_parse.iterations
+        min_msg_length = args_parse.min_msg_len
+        max_msg_length = args_parse.max_msg_len
         bench.run_benchmarks(user_entry_point, candidate, instances, candidates_dict, direct_link_or_compile_target,
-                             number_of_executions, algorithms, implementation_type, security_level, benchmark_templates,
-                             benchmarks_keywords, *add_args, **additional_options)
+                             algorithms, implementation_type, security_level, benchmark_templates, benchmarks_keywords,
+                             number_of_iterations, min_msg_length, max_msg_length, cpu_cores_isolated, compilation, run,
+                             *add_args, **additional_options)
 
 
 # Create a parser

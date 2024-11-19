@@ -117,7 +117,8 @@ def add_cli_arguments(subparser,
 
     default_libraries_names = ['cttest_binsec', 'cttest_ctgrind', 'cttest_dudect']
     security_level = None
-    benchmark = False
+    # benchmark = False
+    benchmark = None
     arguments = f"'--entry_point', '-entry-point',dest='entry_point',type=str,default=f'{path_to_user_entry_point}', \
         help='user provided entry file'"
     add_args_commdand = f"candidate_parser.add_argument(f{arguments})"
@@ -182,6 +183,11 @@ def add_cli_arguments(subparser,
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
 
+    arguments = (f"'--cpu_cores_isolated', '-cpu_cores', dest='cpu_cores', nargs='+',"
+                 f"default='1', help = 'cpu cores isolated'")
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+
     if test_mode == 'ct-tests':
         # Default tools list
         default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker", "ctverif"]
@@ -203,15 +209,24 @@ def add_cli_arguments(subparser,
     if test_mode == 'benchmark':
         # Default algorithms pattern to test
         default_algorithms.append('verify')
+        # arguments = (f"'--benchmark_template', '-bench_template', dest='bench_template', nargs='+',"
+        #              f"default='', help = 'Choose benchmark templates'")
         arguments = (f"'--benchmark_template', '-bench_template', dest='bench_template', nargs='+',"
-                     f"default=f'{benchmark}', help = 'Choose benchmark templates'")
+                     f"help = 'Choose benchmark templates'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
 
         arguments = (f"'--benchmark_keyword', '-bench_keywords', dest='bench_keywords', nargs='+',"
-                    f"default='', help = 'Benchmarks average, mean, quartile'")
+                     f"default='', help = 'Benchmarks average, mean, quartile'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
-        arguments = f"'--repetitions', '-repetitions', dest='repetitions', default='1e3', help = 'number of executions'"
+        arguments = f"'--iterations', '-iterations', dest='iterations', default='1e3', help = 'number of iterations'"
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = f"'--min_msg_size', '-min_msg_len', dest='min_msg_len', default='1', help = 'minimum message size'"
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = (f"'--max_msg_size', '-max_msg_len', dest='max_msg_len', default='3300',"
+                     f"help = 'maximum message size'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)

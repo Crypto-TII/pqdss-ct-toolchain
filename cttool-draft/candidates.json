@@ -8,9 +8,11 @@
       "default_instance": "perk-128-fast-3",
       "optimized_implementation": "Optimized_Implementation",
       "additional_implementation": null,
-      "link_libraries": ["-lcttest", "-lcrypto"],
+      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm"},
       "build_with_makefile": true,
-      "compiler": "gcc"
+      "compiler": "gcc",
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "path_to_bench_binary":"candidates/mpc-in-the-head/mqom/Optimized_Implementation/mqom_cat1_gf31_fast/bench"
     },
     "mirith": {
       "path_to_api": "candidates/mpc-in-the-head/mirith/Optimized_Implementation/mirith_avx2_Ia_fast/sign.h",
@@ -122,11 +124,11 @@
       "compiler": "gcc"
     },
     "qruov": {
-      "path_to_api": "candidates/multivariate/pqov/src/api.h",
-      "path_to_rng": "candidates/multivariate/pqov/utils/nistkat/rng.h",
+      "path_to_api": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/api.h",
+      "path_to_rng": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/rng.h",
       "path_to_makefile_folder": "candidates/multivariate/qruov/src",
       "path_to_include_directory": ".",
-      "default_instance": null,
+      "default_instance": "qruov1q7L10v740m100",
       "optimized_implementation": "Optimized_Implementation",
       "additional_implementation": null,
       "link_libraries": ["-lcttest", "-lcrypto"],

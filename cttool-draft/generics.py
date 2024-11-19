@@ -375,6 +375,12 @@ def find_sign_and_keypair_definition_from_api_or_sign(api_sign_header_file):
     return keypair_sign_def
 
 
+def find_verification_definition_from_api_or_sign(api_sign_header_file):
+    verification = 'crypto_sign_open'
+    verify_def = find_target_by_basename(verification, api_sign_header_file)
+    return verify_def
+
+
 # sign_find_args_types_and_names: gets 'crypto_sign_keypair' arguments types/names and its return type
 def sign_find_args_types_and_names(abs_path_to_api_or_sign):
     keypair_sign_def = find_sign_and_keypair_definition_from_api_or_sign(abs_path_to_api_or_sign)
@@ -392,6 +398,17 @@ def keypair_find_args_types_and_names(abs_path_to_api_or_sign):
     keypair_sign_def = find_sign_and_keypair_definition_from_api_or_sign(abs_path_to_api_or_sign)
     keypair_candidate = keypair_sign_def[0]
     cand_obj = Target(keypair_candidate)
+    args_names = cand_obj.candidate_args_names
+    args_types = cand_obj.candidate_types
+    cand_basename = cand_obj.get_candidate_basename()
+    cand_return_type = cand_obj.candidate_return_type
+    return cand_return_type, cand_basename, args_types, args_names
+
+
+def verify_find_args_types_and_names(abs_path_to_api_or_sign):
+    verify_sign_def = find_verification_definition_from_api_or_sign(abs_path_to_api_or_sign)
+    verify_candidate = verify_sign_def[1]
+    cand_obj = Target(verify_candidate)
     args_names = cand_obj.candidate_args_names
     args_types = cand_obj.candidate_types
     cand_basename = cand_obj.get_candidate_basename()
@@ -498,11 +515,13 @@ def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
         path_to_target_wrapper = f'{path_to_target_wrapper}.c'
     cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
     cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
+    print("----------cmd: ")
+    print(cmd)
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
 
 
-def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
+def generic_target_compilation_1(path_candidate: str, path_to_test_library_directory: str,
                                libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
                                cflags: list, default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
                                binary_patterns: Optional[Union[str, list]] = None):

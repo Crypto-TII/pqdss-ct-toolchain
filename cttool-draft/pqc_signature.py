@@ -113,6 +113,8 @@ def compile_with_makefile_09_sept(path_to_makefile, default=None, tool_flags: Op
 
 def compile_with_makefile(path_to_makefile, default=None,
                           tool_flags: Optional[Union[str, list]] = None, *args, **kwargs):
+    print("=======compile_with_makefile========")
+    print("-----path_to_makefile: ", path_to_makefile)
     cwd = os.getcwd()
     os.chdir(path_to_makefile)
     # Set the tool's flags in the Makefile
@@ -171,6 +173,8 @@ def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
         path_to_target_wrapper = f'{path_to_target_wrapper}.c'
     cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
     cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
+    print("!!!!!!!!!cmd============: ")
+    print(cmd)
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
 
@@ -242,6 +246,8 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
         if instance == ".":
             path_to_instance = f'{path_to_tool_folder}'
         else:
+            print(".........generic_target_compilation:.......")
+            print("----STEP: 0")
             path_to_instance = f'{path_to_tool_folder}/{instance}'
             path_to_include_directories_split = path_to_include_directories.split(default_instance)
             path_to_include_directories_split.insert(1, instance)
@@ -250,7 +256,7 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
                 path_to_test_library_directory_split = path_to_test_library_directory.split(default_instance)
                 path_to_test_library_directory_split.insert(1, instance)
                 path_to_test_library_directory = "".join(path_to_test_library_directory_split)
-
+        print("----STEP: 1")
         if binary_patterns is not None:
             if isinstance(binary_patterns, str):
                 keypair_sign.append(binary_patterns.split())
@@ -258,12 +264,14 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
                 keypair_sign = binary_patterns.copy()
         else:
             binary_patterns = ['keypair', 'sign']
+        print("----STEP: 2")
         for bin_pattern in binary_patterns:
             target_folder_basename = f'{candidate}_{bin_pattern}'
             path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_sign_basename}'
             if bin_pattern.strip() == 'keypair':
                 path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_keypair_basename}'
             path_to_target_binary = path_to_target_wrapper.split('.c')[0]
+            print("----STEP: 3")
             generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_test_library_directory,
                                 libraries_names, path_to_include_directories, tool_name, compiler)
 
@@ -423,9 +431,27 @@ def initialization(tools_list, abs_path_to_api_or_sign,
 
 # generic_initialize_nist_candidate: generalisation of the function 'initialization', taking into account the fact
 # that some candidates have only 'one' instance
+def generic_initialize_nist_candidate_16_nov(tools_list, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
+                                      optimized_imp_folder, instances_list, add_includes,
+                                      with_core_dump="yes", number_of_measurements='1e4'):
+    list_of_instances = []
+    if not instances_list:
+        list_of_instances = [""]
+    else:
+        for instance_folder in instances_list:
+            list_of_instances.append(instance_folder)
+    for instance in list_of_instances:
+        initialization(tools_list, abs_path_to_api_or_sign, abs_path_to_rng,
+                       candidate, optimized_imp_folder, instance, add_includes,
+                       with_core_dump, number_of_measurements)
+
+
+
 def generic_initialize_nist_candidate(tools_list, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                       optimized_imp_folder, instances_list, add_includes,
                                       with_core_dump="yes", number_of_measurements='1e4'):
+    if candidate == 'qruov':
+        print("------PROCESSING: qruov")
     list_of_instances = []
     if not instances_list:
         list_of_instances = [""]
@@ -535,10 +561,36 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                          additional_cmake_definitions=None, number_of_measurements='1e4', compiler: str = 'gcc',
                          compile_test_harness: str = 'yes', binary_patterns: Optional[Union[str, list]] = None,
                          *args, **kwargs):
+    if candidate == 'qruov':
+        cwd = os.getcwd()
+        os.chdir(path_to_candidate_makefile_cmake)
+        platform = 'portable64'
+        if args:
+            platform = args[0]
+        makefile = 'Makefile'
+        chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
+        subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
+        instances_str = ''
+        if isinstance(instances, str):
+            instances_str = instances.split()
+        elif isinstance(instances, list):
+            instances_str = " ".join(instances)
+        cmd_str = f'make {instances_str}'
+        subprocess.call(cmd_str.split(), stdin=sys.stdin)
+        os.chdir(cwd)
 
-    generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
-                                      optimized_imp_folder, instances, additional_includes, 'yes',
-                                      number_of_measurements)
+        for instance in instances:
+            abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
+            abs_path_to_api_or_sign_split.insert(1, instance)
+            abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
+            abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
+            generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
+                                              optimized_imp_folder, instances, additional_includes, 'yes',
+                                              number_of_measurements)
+    else:
+        generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
+                                          optimized_imp_folder, instances, additional_includes, 'yes',
+                                          number_of_measurements)
     path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
     if path_candidate.endswith('/'):
         path_candidate += candidate
@@ -552,10 +604,20 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                     compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
                                              additional_cmake_definitions, tool, *args, **kwargs)
                 else:
-                    for instance in instances:
-                        path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
-                        path_to_candidate_makefile_cmake_split.insert(1, instance)
-                        path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
+                    if candidate == 'qruov':
+                        for instance in instances:
+                            platform = 'portable64'
+                            if args:
+                                platform = args[0]
+                            instance_updated = f'{instance}/{platform}'
+                            path_to_include_directories_split = path_to_include_directories.split(default_instance)
+                            path_to_include_directories_split.insert(1, instance_updated)
+                            path_to_include_directories = "".join(path_to_include_directories_split[:-1])
+                    else:
+                        for instance in instances:
+                            path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
+                            path_to_candidate_makefile_cmake_split.insert(1, instance)
+                            path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
                         compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
                                                  additional_cmake_definitions, tool, *args, **kwargs)
             generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
@@ -765,7 +827,8 @@ def run_tests(user_entry_point: str, tools: Union[str, list], candidate: str, in
     additional_imp_folder = candidates_dict['additional_implementation']
     additional_includes = ''
     path_to_candidate_makefile_cmake = candidates_dict['path_to_makefile_folder']
-    libraries_names = candidates_dict['link_libraries']
+    libraries_names_all = candidates_dict['link_libraries']
+    libraries_names = libraries_names_all["ct_tests"]
     path_to_include_directories = "/".join(abs_path_to_api_or_sign.split('/')[:-1])
     build_with_make = candidates_dict['build_with_makefile']
     compiler = candidates_dict['compiler']
