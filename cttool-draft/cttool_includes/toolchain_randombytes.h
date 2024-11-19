@@ -15,7 +15,7 @@
 
 
 /* this comes from ebacs */
-void randombytes(uint8_t *x, size_t how_much) {
+void ct_randombytes(uint8_t *x, size_t how_much) {
     ssize_t i;
     static int fd = -1;
 
