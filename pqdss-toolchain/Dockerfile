@@ -67,12 +67,6 @@ RUN chmod u+x /tmp/valgrind/install.sh && \
     /tmp/valgrind/install.sh           && \
     rm -r /tmp/valgrind
 
-# Install ctgrind.
-#COPY ctgrind /tmp/ctgrind
-#RUN chmod u+x /tmp/ctgrind/install.sh && \
-#    /tmp/ctgrind/install.sh           && \
-#    rm -r /tmp/ctgrind
-
 
 # Install timecop.
 COPY timecop /tmp/timecop
@@ -86,6 +80,12 @@ RUN chmod u+x /tmp/dudect/install.sh && \
     /tmp/dudect/install.sh           && \
     rm -r /tmp/dudect
 
+
+# Copy cycle.h into /usr/include.
+COPY benchmarks /tmp/benchmarks
+RUN chmod u+x /tmp/benchmarks/install.sh && \
+    /tmp/benchmarks/install.sh           && \
+    rm -r /tmp/benchmarks
 
 ENV PATH="/usr/share/valgrind/bin:$PATH"
 
