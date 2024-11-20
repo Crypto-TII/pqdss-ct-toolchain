@@ -1,6 +1,6 @@
 CC = gcc
 
-TOOLS_FLAGS := -Wall -g -Wextra
+TOOLS_FLAGS := 
 
 CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-all-loops -march=native -Wimplicit-function-declaration -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes -Wundef -Wshadow -Wno-newline-eof \
                   -mavx2 -mpclmul -msse4.2 -maes -fPIC $(TOOLS_FLAGS)
