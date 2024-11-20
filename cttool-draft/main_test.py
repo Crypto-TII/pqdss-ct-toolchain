@@ -59,10 +59,12 @@ def run_cli_candidate(args_parse):
         number_of_iterations = args_parse.iterations
         min_msg_length = args_parse.min_msg_len
         max_msg_length = args_parse.max_msg_len
+        custom_benchmark = args_parse.custom_benchmark
+        candidate_benchmark = args_parse.candidate_benchmark
         bench.run_benchmarks(user_entry_point, candidate, instances, candidates_dict, direct_link_or_compile_target,
                              algorithms, implementation_type, security_level, benchmark_templates, benchmarks_keywords,
                              number_of_iterations, min_msg_length, max_msg_length, cpu_cores_isolated, compilation, run,
-                             *add_args, **additional_options)
+                             custom_benchmark, candidate_benchmark, *add_args, **additional_options)
 
 
 # Create a parser

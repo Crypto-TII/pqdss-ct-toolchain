@@ -230,3 +230,10 @@ def add_cli_arguments(subparser,
                      f"help = 'maximum message size'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
+        arguments = f"'--custom_benchmark', '-custom_benchmark', dest='custom_benchmark', help= 'Custom benchmark'"
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = (f"'--candidate_benchmark', '-candidate_benchmark', dest='candidate_benchmark', default='yes',"
+                     f"help = 'Candidates benchmark'")
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)

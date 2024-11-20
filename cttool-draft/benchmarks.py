@@ -17,6 +17,7 @@ from typing import Optional, Union, List
 
 import tools
 import generics as gen
+import errors as error
 
 
 def benchmark_template(path_to_benchmark_file: str, api_or_sign: str, rng: str, add_includes: str,
@@ -86,10 +87,6 @@ def benchmark_template(path_to_benchmark_file: str, api_or_sign: str, rng: str, 
     
     //#include "{rng_h}"
     #include "toolchain_randombytes.h"
-    
-    //#define MINIMUM_MSG_LENGTH {min_msg_len}
-    //#define MAXIMUM_MSG_LENGTH {max_msg_len}
-    //#define TOTAL_ITERATIONS {number_of_iterations}
     '''
     bench_content_block = f'''
     
@@ -133,11 +130,7 @@ def benchmark_template(path_to_benchmark_file: str, api_or_sign: str, rng: str, 
     \t//Gather statistics
     \tfor (i = 0; i < iterations; i++)
     \t{{
-    \t\tprintf("// Benchmarking Keygen: %d experiments:", (int)((100 * i) / iterations));
-    \t\tfflush(stdout);
-    \t\tprintf("\\r\\x1b[K");
-    \t\t// ----------------------------------
-
+   
     \t\tcc0 = getticks();
     \t\tpass = crypto_sign_keypair(&pk[i*CRYPTO_PUBLICKEYBYTES], &sk[i*CRYPTO_SECRETKEYBYTES]);
     \t\tcc1 = getticks();
@@ -159,13 +152,13 @@ def benchmark_template(path_to_benchmark_file: str, api_or_sign: str, rng: str, 
     \t}}
     \tcc_stdev = sqrt(cc_stdev / iterations);
 
-    \tprintf("Average running time (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_mean) / 1000000.0);
-    \tprintf("Standard deviation (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_stdev) / 1000000.0);
-    \tprintf("Minimun running time (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[0]) / 1000000.0);
-    \tprintf("First quartile (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-    \tprintf("Median (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-    \tprintf("Third quartile (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-    \tprintf("Maximum running time (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
+    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
+    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
+    \tprintf("Minimum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
+    \tprintf("First quartile (million cycles): \\t \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
+    \tprintf("Median (million cycles):    \\t \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
+    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
+    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
     \tprintf("\\n");
 
     \t// ================== SIGNING ===================
@@ -173,10 +166,6 @@ def benchmark_template(path_to_benchmark_file: str, api_or_sign: str, rng: str, 
     \t// Gather statistics
     \tfor (i = 0; i < iterations; i++)
     \t{{
-    \t\tprintf("// Benchmarking Signing: %d experiments:", (int)((100 * i) / iterations));
-    \t\tfflush(stdout);
-    \t\tprintf("\\r\\x1b[K");
-    \t\t// ----------------------------------
     \t\tmlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
     \t\tsmlen = mlen + CRYPTO_BYTES;
     \t\tcc0 = getticks();
@@ -202,13 +191,13 @@ def benchmark_template(path_to_benchmark_file: str, api_or_sign: str, rng: str, 
     }}
     \tcc_stdev = sqrt(cc_stdev / iterations);
 
-    \tprintf("Average running time (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_mean) / 1000000.0);
-    \tprintf("Standard deviation (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_stdev) / 1000000.0);
-    \tprintf("Minimun running time (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[0]) / 1000000.0);
-    \tprintf("First quartile (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-    \tprintf("Median (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-    \tprintf("Third quartile (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-    \tprintf("Maximum running time (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
+    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
+    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
+    \tprintf("Minimun running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
+    \tprintf("First quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
+    \tprintf("Median (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
+    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
+    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
     \tprintf("\\n");
 
     \t// ================== VERIFICATION ===================
@@ -216,11 +205,6 @@ def benchmark_template(path_to_benchmark_file: str, api_or_sign: str, rng: str, 
     \t// Gather statistics
     \tfor (i = 0; i < iterations; i++)
     \t{{
-    \t\tprintf("// Benchmarking Verification: %d experiments:", (int)((100 * i) / iterations));
-    \t\tfflush(stdout);
-    \t\tprintf("\\r\\x1b[K");
-    \t\t// ----------------------------------
-
     \t\tmlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
     \t\tsmlen = mlen + CRYPTO_BYTES;
     \t\tcc0 = getticks();
@@ -245,13 +229,13 @@ def benchmark_template(path_to_benchmark_file: str, api_or_sign: str, rng: str, 
     }}
     \tcc_stdev = sqrt(cc_stdev / iterations);
 
-    \tprintf("Average running time (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_mean) / 1000000.0);
-    \tprintf("Standard deviation (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_stdev) / 1000000.0);
-    \tprintf("Minimun running time (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[0]) / 1000000.0);
-    \tprintf("First quartile (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-    \tprintf("Median (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-    \tprintf("Third quartile (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-    \tprintf("Maximum running time (million cycles): \\t \\033[1;32m%7.03lf\\033[0m\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
+    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
+    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
+    \tprintf("Minimun running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
+    \tprintf("First quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
+    \tprintf("Median (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
+    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
+    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
     \tprintf("\\n");
 
     \t// -----------------------------------------------------
@@ -277,14 +261,6 @@ def benchmark_template(path_to_benchmark_file: str, api_or_sign: str, rng: str, 
     '''
     with open(path_to_benchmark_file, "w") as bench_file:
         bench_file.write(textwrap.dedent(benchmark_content))
-
-
-def set_benchmark_template(template: str, algorithm: Union[str, list], number_of_executions: Union[str, int] = '1e3'):
-    pass
-
-
-def generate_template(number_of_executions: Union[str, int] = '1e3'):
-    pass
 
 
 def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
@@ -342,7 +318,7 @@ def run_bench_candidate(path_to_benchmark_binary: str, cpu_core_isolated: Union[
             execution.communicate()
 
 
-def generic_run_bench_candidate(path_to_candidate, instances, cpu_core_isolated: Union[str, list] = '1'):
+def generic_run_bench_candidate_2(path_to_candidate, instances, cpu_core_isolated: Union[str, list] = '1'):
     path_to_benchmark_folder = f'{path_to_candidate}/benchmarks'
     list_of_instances = []
     if not instances:
@@ -362,49 +338,193 @@ def generic_run_bench_candidate(path_to_candidate, instances, cpu_core_isolated:
             run_bench_candidate(path_to_benchmark_binary, cpu_core_isolated, path_to_output_file)
 
 
-def generic_run_bench_candidate_2(path_to_candidate, instances, cpu_core_isolated: Union[str, list] = '1',
-                                path_to_candidate_bench: Optional[str] = None):
+def generic_run_bench_candidate_20(path_to_candidate, instances, default_instance: str,
+                                cpu_core_isolated: Union[str, list] = '1',
+                                path_to_candidate_bench: Optional[str] = None, custom_benchmark: bool = True,
+                                candidate_benchmark: bool = True):
     list_of_instances = []
-    if path_to_candidate_bench is not None:
-        pass
+    path_to_benchmark_binary = path_to_candidate_bench
+    bench_basename = os.path.basename(path_to_candidate_bench)
+    list_path_to_bench_binaries = []
+    # if path_to_candidate_bench is not None:
+    if candidate_benchmark and path_to_candidate_bench is None:
+        print()
+    if candidate_benchmark:
+        print("------------CANDIDATE BENCH")
+        path_to_benchmark_folder = path_to_candidate_bench.split(bench_basename)[0]
+        if not instances:
+            print("++++ NO INSTANCE")
+            benchmark_folder_folder_content = os.listdir(path_to_benchmark_folder)
+            list_path_to_bench_binaries = [file for file in benchmark_folder_folder_content if '.' not in file]
+            list_path_to_bench_binaries = [file for file in list_path_to_bench_binaries
+                                           if os.path.isfile(f'{path_to_benchmark_folder}/{file}')]
+            list_path_to_bench_binaries = [f'{path_to_benchmark_folder}/{file}' for file in list_path_to_bench_binaries
+                                           if 'KAT' not in file]
+        else:
+            print("++++INSTANCE+++++")
+            for instance in instances:
+                print("...instance: ", instance)
+                path_to_instance = f'{path_to_benchmark_folder}/{instance}'
+                list_of_instances.append(path_to_instance)
 
-
-
-
-    path_to_benchmark_folder = f'{path_to_candidate}/benchmarks'
-
-    if not instances:
-        path_to_instance = path_to_benchmark_folder
-        list_of_instances.append(path_to_instance)
-    else:
-        for instance in instances:
-            path_to_instance = f'{path_to_benchmark_folder}/{instance}'
+                path_to_benchmark_binary_split = path_to_benchmark_binary.split(default_instance)
+                path_to_benchmark_binary_split.insert(1, instance)
+                path_to_benchmark_binary = "".join(path_to_benchmark_binary_split)
+                list_path_to_bench_binaries.append(path_to_benchmark_binary)
+    if custom_benchmark:
+        print("------------CUSTOM BENCH")
+        path_to_benchmark_folder = f'{path_to_candidate}/benchmarks'
+        if not instances:
+            path_to_instance = path_to_benchmark_folder
             list_of_instances.append(path_to_instance)
-    for p_instance in list_of_instances:
-        bin_files = os.listdir(p_instance)
-        bin_files = [exe for exe in bin_files if '.' not in exe]
-        for executable in bin_files:
-            binary = os.path.basename(executable)
-            path_to_benchmark_binary = f'{p_instance}/{binary}'
-            path_to_output_file = f'{p_instance}/{binary}_output.txt'
-            run_bench_candidate(path_to_benchmark_binary, cpu_core_isolated, path_to_output_file)
+            bin_files = os.listdir(path_to_instance)
+            bin_files = [f'{path_to_instance}/{exe}' for exe in bin_files if '.' not in exe]
+            list_path_to_bench_binaries.extend(bin_files)
+        else:
+            for instance in instances:
+                path_to_instance = f'{path_to_benchmark_folder}/{instance}'
+                bin_files = os.listdir(path_to_instance)
+                bin_files = [f'{path_to_instance}/{exe}' for exe in bin_files if '.' not in exe]
+                list_path_to_bench_binaries.extend(bin_files)
+    print("================list_path_to_bench_binaries")
+    print(list_path_to_bench_binaries)
+    for executable in list_path_to_bench_binaries:
+        path_to_output_file = f'{executable}_output.txt'
+        print("......executable: ", executable)
+        run_bench_candidate(executable, cpu_core_isolated, path_to_output_file)
 
 
-def generate_template_candidate_1(abs_path_to_api_or_sign, abs_path_to_rng, path_to_benchmark_folder,
-                                  add_includes, number_of_executions='1e3'):
-    list_of_path_to_folders = [path_to_benchmark_folder]
-    gen.generic_create_tests_folders(list_of_path_to_folders)
-    api_or_sign = os.path.basename(abs_path_to_api_or_sign)
-    api_or_sign = f'"{api_or_sign}"'
-    rng = os.path.basename(abs_path_to_rng)
-    rng = f'"{rng}"'
+def generic_run_bench_candidate_20_1(path_to_candidate, instances, default_instance: str,
+                                cpu_core_isolated: Union[str, list] = '1',
+                                path_to_candidate_bench: Optional[str] = None, custom_benchmark: bool = True,
+                                candidate_benchmark: bool = True):
+    list_of_instances = []
+    path_to_benchmark_binary = path_to_candidate_bench
+    list_path_to_bench_binaries = []
+    candidate = os.path.basename(path_to_candidate)
+    print("-------custom_benchmark: ", custom_benchmark)
+    print("-------candidate_benchmark: ", candidate_benchmark)
 
-    test_keypair = f'{path_to_benchmark_folder}/bench.c'
-    ret_kp = gen.keypair_find_args_types_and_names(abs_path_to_api_or_sign)
-    return_type_kp, f_basename_kp, args_types_kp, args_names_kp = ret_kp
-    ret_sign = gen.sign_find_args_types_and_names(abs_path_to_api_or_sign)
-    return_type_s, f_basename_s, args_types_s, args_names_s = ret_sign
-    # ret_verif = gen.verif_find_args_types_and_names(abs_path_to_api_or_sign)
+    if path_to_candidate_bench is None:
+        candidate_benchmark = False
+
+    if custom_benchmark is None:
+        custom_benchmark = False
+    elif custom_benchmark == 'yes':
+        custom_benchmark = True
+    elif candidate_benchmark == 'yes':
+        candidate_benchmark = True
+    elif candidate_benchmark == 'no':
+        candidate_benchmark = True
+
+    if candidate_benchmark and path_to_candidate_bench is None:
+        raise error.CTToolchainError("Candidate {} doesn't have a benchmark".format(candidate))
+    if candidate_benchmark and path_to_candidate_bench:
+        bench_basename = os.path.basename(path_to_candidate_bench)
+        path_to_benchmark_folder = path_to_candidate_bench.split(bench_basename)[0]
+        if not instances:
+            benchmark_folder_folder_content = os.listdir(path_to_benchmark_folder)
+            list_path_to_bench_binaries = [file for file in benchmark_folder_folder_content if '.' not in file]
+            list_path_to_bench_binaries = [file for file in list_path_to_bench_binaries
+                                           if os.path.isfile(f'{path_to_benchmark_folder}/{file}')]
+            list_path_to_bench_binaries = [f'{path_to_benchmark_folder}/{file}' for file in list_path_to_bench_binaries
+                                           if 'KAT' not in file]
+        else:
+            for instance in instances:
+                path_to_instance = f'{path_to_benchmark_folder}/{instance}'
+                list_of_instances.append(path_to_instance)
+
+                path_to_benchmark_binary_split = path_to_benchmark_binary.split(default_instance)
+                path_to_benchmark_binary_split.insert(1, instance)
+                path_to_benchmark_binary = "".join(path_to_benchmark_binary_split)
+                list_path_to_bench_binaries.append(path_to_benchmark_binary)
+    if custom_benchmark:
+        path_to_benchmark_folder = f'{path_to_candidate}/benchmarks'
+        if not instances:
+            path_to_instance = path_to_benchmark_folder
+            list_of_instances.append(path_to_instance)
+            bin_files = os.listdir(path_to_instance)
+            bin_files = [f'{path_to_instance}/{exe}' for exe in bin_files if '.' not in exe]
+            list_path_to_bench_binaries.extend(bin_files)
+        else:
+            for instance in instances:
+                path_to_instance = f'{path_to_benchmark_folder}/{instance}'
+                bin_files = os.listdir(path_to_instance)
+                bin_files = [f'{path_to_instance}/{exe}' for exe in bin_files if '.' not in exe]
+                list_path_to_bench_binaries.extend(bin_files)
+    print("================list_path_to_bench_binaries")
+    print(list_path_to_bench_binaries)
+    for executable in list_path_to_bench_binaries:
+        path_to_output_file = f'{executable}_output.txt'
+        run_bench_candidate(executable, cpu_core_isolated, path_to_output_file)
+
+
+def generic_run_bench_candidate(path_to_candidate, instances, default_instance: str,
+                                cpu_core_isolated: Union[str, list] = '1',
+                                path_to_candidate_bench: Optional[str] = None, custom_benchmark: bool = True,
+                                candidate_benchmark: bool = True):
+    list_of_instances = []
+    path_to_benchmark_binary = path_to_candidate_bench
+    list_path_to_bench_binaries = []
+    candidate = os.path.basename(path_to_candidate)
+    if custom_benchmark is None or custom_benchmark == 'no':
+        custom_benchmark = False
+    elif custom_benchmark == 'yes':
+        custom_benchmark = True
+    if candidate_benchmark == 'yes':
+        candidate_benchmark = True
+    elif candidate_benchmark == 'no':
+        candidate_benchmark = False
+
+    if candidate_benchmark and path_to_candidate_bench is None:
+        raise error.CTToolchainError("Candidate {} doesn't have a benchmark".format(candidate))
+    if candidate_benchmark and custom_benchmark:
+        print("------------ Benchmark: Processing both candidate and custom benchmark")
+    if candidate_benchmark and not custom_benchmark:
+        print("------------ Benchmark: Processing only candidate benchmark")
+    if custom_benchmark and not candidate_benchmark:
+        print("------------ Benchmark: Processing only custom benchmark")
+    if candidate_benchmark and path_to_candidate_bench:
+        bench_basename = os.path.basename(path_to_candidate_bench)
+        path_to_benchmark_folder = path_to_candidate_bench.split(bench_basename)[0]
+        if not instances:
+            benchmark_folder_folder_content = os.listdir(path_to_benchmark_folder)
+            list_path_to_bench_binaries = [file for file in benchmark_folder_folder_content if '.' not in file]
+            list_path_to_bench_binaries = [file for file in list_path_to_bench_binaries
+                                           if os.path.isfile(f'{path_to_benchmark_folder}/{file}')]
+            list_path_to_bench_binaries = [f'{path_to_benchmark_folder}/{file}' for file in list_path_to_bench_binaries
+                                           if 'KAT' not in file]
+        else:
+            for instance in instances:
+                path_to_instance = f'{path_to_benchmark_folder}/{instance}'
+                list_of_instances.append(path_to_instance)
+                path_to_benchmark_binary_split = path_to_benchmark_binary.split(default_instance)
+                path_to_benchmark_binary_split.insert(1, instance)
+                path_to_benchmark_binary = "".join(path_to_benchmark_binary_split)
+                list_path_to_bench_binaries.append(path_to_benchmark_binary)
+    if custom_benchmark:
+        print("-----------YEAH MAN--------")
+        print("-----path_to_candidate: ", path_to_candidate)
+        path_to_benchmark_folder = f'{path_to_candidate}/benchmarks'
+        if not instances:
+            path_to_instance = path_to_benchmark_folder
+            print("-----path_to_instance: ", path_to_instance)
+            list_of_instances.append(path_to_instance)
+            bin_files = os.listdir(path_to_instance)
+            bin_files = [f'{path_to_instance}/{exe}' for exe in bin_files if '.' not in exe]
+            list_path_to_bench_binaries.extend(bin_files)
+        else:
+            for instance in instances:
+                path_to_instance = f'{path_to_benchmark_folder}/{instance}'
+                print("-----path_to_instance: ", path_to_instance)
+                bin_files = os.listdir(path_to_instance)
+                bin_files = [f'{path_to_instance}/{exe}' for exe in bin_files if '.' not in exe]
+                list_path_to_bench_binaries.extend(bin_files)
+    print("================list_path_to_bench_binaries")
+    print(list_path_to_bench_binaries)
+    for executable in list_path_to_bench_binaries:
+        path_to_output_file = f'{executable}_output.txt'
+        run_bench_candidate(executable, cpu_core_isolated, path_to_output_file)
 
 
 def generate_template_candidate(abs_path_to_api_or_sign, abs_path_to_rng, path_to_benchmark_folder,
@@ -533,6 +653,49 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
 
 def generic_compile_run_bench_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
                                         default_instance: str, instances, additional_includes,
+                                        path_to_candidate_makefile_cmake, path_to_candidate_bench: Optional[str] = None,
+                                        direct_link_or_compile_target: bool = True,
+                                        libraries_names: Union[str, list] = 'lbench',
+                                        path_to_include_directories: Union[str, list] = '',
+                                        build_with_make: bool = True,
+                                        additional_cmake_definitions=None, compiler: str = 'gcc',
+                                        binary_patterns: Optional[Union[str, list]] = None,
+                                        benchmark_templates: Optional[Union[str, list]] = None,
+                                        number_of_iterations='1e3',
+                                        min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
+                                        cpu_core_isolated: Union[str, list] = '1', compilation: str = 'yes',
+                                        execution: str = 'yes', custom_benchmark: bool = True,
+                                        candidate_benchmark: bool = True, *args, **kwargs):
+
+    path_to_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+    if path_to_candidate.endswith('/'):
+        path_to_candidate += candidate
+    else:
+        path_to_candidate += f'/{candidate}'
+    if 'yes' in compilation.lower() and 'yes' in execution.lower():
+        generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+                                        default_instance, instances, additional_includes, path_to_candidate_makefile_cmake,
+                                        direct_link_or_compile_target, libraries_names, path_to_include_directories,
+                                        build_with_make, additional_cmake_definitions, compiler, binary_patterns,
+                                        benchmark_templates, number_of_iterations, min_msg_len, max_msg_len,
+                                        *args, **kwargs)
+        generic_run_bench_candidate(path_to_candidate, instances, default_instance,
+                                    cpu_core_isolated, path_to_candidate_bench, custom_benchmark, candidate_benchmark)
+    elif 'yes' in compilation.lower() and 'no' in execution.lower():
+        generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+                                        default_instance, instances, additional_includes, path_to_candidate_makefile_cmake,
+                                        direct_link_or_compile_target, libraries_names, path_to_include_directories,
+                                        build_with_make, additional_cmake_definitions, compiler, binary_patterns,
+                                        benchmark_templates, number_of_iterations, min_msg_len, max_msg_len,
+                                        *args, **kwargs)
+    if 'no' in compilation.lower() and 'yes' in execution.lower():
+        generic_run_bench_candidate(path_to_candidate, instances, default_instance,
+                                    cpu_core_isolated, path_to_candidate_bench, custom_benchmark, candidate_benchmark)
+
+
+
+def generic_compile_run_bench_candidate_2(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+                                        default_instance: str, instances, additional_includes,
                                         path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
                                         libraries_names: Union[str, list] = 'lbench',
                                         path_to_include_directories: Union[str, list] = '',
@@ -570,60 +733,7 @@ def generic_compile_run_bench_candidate(candidate, abs_path_to_api_or_sign, abs_
         generic_run_bench_candidate(path_to_candidate, instances, cpu_core_isolated)
 
 
-def run_benchmarks_1(user_entry_point: str, candidate: str, instances, candidates_dict,
-                   direct_link_or_compile_target: bool = False,
-                   binary_patterns: Optional[Union[str, list]] = None, implementation_type='opt',
-                   security_level=None, benchmark_templates: Optional[Union[list, str]] = None,
-                   benchmarks_keywords: Optional[list] = None, number_of_iterations='1e3',
-                   min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300', *args, **kwargs):
-    candidates_dict = gen.parse_candidates_json_file(candidates_dict, candidate)
-    abs_path_to_api_or_sign = candidates_dict['path_to_api']
-    abs_path_to_rng = candidates_dict['path_to_rng']
-    optimized_imp_folder = candidates_dict['optimized_implementation']
-    additional_imp_folder = candidates_dict['additional_implementation']
-    additional_includes = ''
-    path_to_candidate_makefile_cmake = candidates_dict['path_to_makefile_folder']
-    libraries_names_all = candidates_dict['link_libraries']
-    print("=======libraries_names_all=========", libraries_names_all)
-    libraries_names = libraries_names_all["ct_tests"]
-    bench_additional_library = libraries_names_all["bench"]
-    if isinstance(bench_additional_library, str):
-        libraries_names.extend(bench_additional_library.split())
-    elif isinstance(bench_additional_library, list):
-        libraries_names.extend(bench_additional_library)
-    print("=======libraries_names=========", libraries_names)
-    path_to_include_directories = "/".join(abs_path_to_api_or_sign.split('/')[:-1])
-    build_with_make = candidates_dict['build_with_makefile']
-    compiler = candidates_dict['compiler']
-    default_instance = candidates_dict['default_instance']
-    benchmark_keywords = candidates_dict['benchmark_keywords']
-    additional_cmake_definitions = ''  # to be fixed
-
-    if implementation_type == 'add':
-        abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(optimized_imp_folder)
-        abs_path_to_api_or_sign_split.insert(1, additional_imp_folder)
-        abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
-        abs_path_to_rng_split = abs_path_to_rng.split(optimized_imp_folder)
-        abs_path_to_rng_split.insert(1, additional_imp_folder)
-        abs_path_to_rng = "".join(abs_path_to_rng_split)
-        path_to_include_directories_split = path_to_include_directories.split(optimized_imp_folder)
-        path_to_include_directories_split.insert(1, additional_imp_folder)
-        path_to_include_directories = "".join(path_to_include_directories_split)
-
-        path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(optimized_imp_folder)
-        path_to_candidate_makefile_cmake_split.insert(1, additional_imp_folder)
-        path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
-        optimized_imp_folder = additional_imp_folder
-
-    generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                    default_instance, instances, additional_includes, path_to_candidate_makefile_cmake,
-                                    direct_link_or_compile_target, libraries_names, path_to_include_directories,
-                                    build_with_make, additional_cmake_definitions, compiler, binary_patterns,
-                                    benchmark_templates, number_of_iterations, min_msg_len, max_msg_len,
-                                    *args, **kwargs)
-
-
-def run_benchmarks(user_entry_point: str, candidate: str, instances, candidates_dict,
+def run_benchmarks_2(user_entry_point: str, candidate: str, instances, candidates_dict,
                    direct_link_or_compile_target: bool = False,
                    binary_patterns: Optional[Union[str, list]] = None, implementation_type='opt',
                    security_level=None, benchmark_templates: Optional[Union[list, str]] = None,
@@ -675,3 +785,66 @@ def run_benchmarks(user_entry_point: str, candidate: str, instances, candidates_
                                         additional_cmake_definitions, compiler, binary_patterns, benchmark_templates,
                                         number_of_iterations, min_msg_len, max_msg_len, cpu_core_isolated, compilation,
                                         execution, *args, **kwargs)
+
+
+def run_benchmarks(user_entry_point: str, candidate: str, instances, candidates_dict,
+                   direct_link_or_compile_target: bool = False,
+                   binary_patterns: Optional[Union[str, list]] = None, implementation_type='opt',
+                   security_level=None, benchmark_templates: Optional[Union[list, str]] = None,
+                   benchmarks_keywords: Optional[list] = None, number_of_iterations='1e3',
+                   min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
+                   cpu_core_isolated: Union[str, list] = '1', compilation: str = 'yes',
+                   execution: str = 'yes', custom_benchmark: bool = True,
+                   candidate_benchmark: bool = True, *args, **kwargs):
+    candidates_dict = gen.parse_candidates_json_file(candidates_dict, candidate)
+    abs_path_to_api_or_sign = candidates_dict['path_to_api']
+    abs_path_to_rng = candidates_dict['path_to_rng']
+    optimized_imp_folder = candidates_dict['optimized_implementation']
+    additional_imp_folder = candidates_dict['additional_implementation']
+    additional_includes = ''
+    path_to_candidate_makefile_cmake = candidates_dict['path_to_makefile_folder']
+    libraries_names_all = candidates_dict['link_libraries']
+    libraries_names = libraries_names_all["ct_tests"]
+    bench_additional_library = libraries_names_all["bench"]
+
+    print("--custom_benchmark: ", custom_benchmark)
+    print("--candidate_benchmark: ", candidate_benchmark)
+    if isinstance(bench_additional_library, str):
+        libraries_names.extend(bench_additional_library.split())
+    elif isinstance(bench_additional_library, list):
+        libraries_names.extend(bench_additional_library)
+    path_to_include_directories = "/".join(abs_path_to_api_or_sign.split('/')[:-1])
+    build_with_make = candidates_dict['build_with_makefile']
+    compiler = candidates_dict['compiler']
+    default_instance = candidates_dict['default_instance']
+    benchmark_keywords = candidates_dict['benchmark_keywords']
+    path_to_bench_binary = candidates_dict['path_to_bench_binary']
+    additional_cmake_definitions = ''  # to be fixed
+
+    print("--------path_to_bench_binary: ", path_to_bench_binary)
+
+    print("--------benchmark_templates: ", benchmark_templates)
+
+    if implementation_type == 'add':
+        abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(optimized_imp_folder)
+        abs_path_to_api_or_sign_split.insert(1, additional_imp_folder)
+        abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
+        abs_path_to_rng_split = abs_path_to_rng.split(optimized_imp_folder)
+        abs_path_to_rng_split.insert(1, additional_imp_folder)
+        abs_path_to_rng = "".join(abs_path_to_rng_split)
+        path_to_include_directories_split = path_to_include_directories.split(optimized_imp_folder)
+        path_to_include_directories_split.insert(1, additional_imp_folder)
+        path_to_include_directories = "".join(path_to_include_directories_split)
+
+        path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(optimized_imp_folder)
+        path_to_candidate_makefile_cmake_split.insert(1, additional_imp_folder)
+        path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
+        optimized_imp_folder = additional_imp_folder
+    generic_compile_run_bench_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+                                        default_instance, instances, additional_includes,
+                                        path_to_candidate_makefile_cmake, path_to_bench_binary,
+                                        direct_link_or_compile_target, libraries_names, path_to_include_directories,
+                                        build_with_make, additional_cmake_definitions, compiler, binary_patterns,
+                                        benchmark_templates, number_of_iterations, min_msg_len, max_msg_len,
+                                        cpu_core_isolated, compilation, execution, custom_benchmark,
+                                        candidate_benchmark,*args, **kwargs)
