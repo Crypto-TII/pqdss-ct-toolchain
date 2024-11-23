@@ -36,7 +36,6 @@ def run_cli_candidate(args_parse):
     all_candidates_dict = candidates_dict
     if 'yes' in direct_link_or_compile_target:
         direct_link_to_library = True
-    # add_options = args_parse.add_options
     add_args = list(filter(lambda element: '=' not in element, add_options))
     add_kwargs_list = list(filter(lambda element: '=' in element, add_options))
     additional_options = {}
@@ -62,9 +61,9 @@ def run_cli_candidate(args_parse):
         custom_benchmark = args_parse.custom_benchmark
         candidate_benchmark = args_parse.candidate_benchmark
         bench.run_benchmarks(user_entry_point, candidate, instances, candidates_dict, direct_link_or_compile_target,
-                             algorithms, implementation_type, security_level, benchmark_templates, benchmarks_keywords,
-                             number_of_iterations, min_msg_length, max_msg_length, cpu_cores_isolated, compilation, run,
-                             custom_benchmark, candidate_benchmark, *add_args, **additional_options)
+                             implementation_type, security_level, benchmarks_keywords, number_of_iterations,
+                             min_msg_length, max_msg_length, cpu_cores_isolated, compilation, run, custom_benchmark,
+                             candidate_benchmark, *add_args, **additional_options)
 
 
 # Create a parser

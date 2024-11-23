@@ -12,6 +12,7 @@
       "build_with_makefile": true,
       "compiler": "gcc",
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "security_level": {"128":  ["-128-"], "192":  ["-192-"], "256":  ["-256-"]},
       "path_to_bench_binary": null
     },
     "mirith": {
@@ -23,6 +24,8 @@
       "optimized_implementation": "Optimized_Implementation",
       "additional_implementation": "Additional_Implementation/avx2",
       "link_libraries": ["-lcttest", "-lcrypto"],
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "security_level": {"128":  ["_Ia_", "_Ib_"], "192":  ["_IIIa_", "_IIIb_"], "256":  ["_Va_", "_Vb_"]},
       "build_with_makefile": true,
       "compiler": "gcc"
     },
