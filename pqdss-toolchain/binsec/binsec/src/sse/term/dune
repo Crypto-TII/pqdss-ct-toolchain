@@ -1,0 +1,7 @@
+(library
+ (public_name binsec.sse.term)
+ (name libterm)
+ (modules :standard)
+ (flags
+  (:standard -open Binsec -open Smt -open Libsse))
+ (libraries binsec smt domains libsse))

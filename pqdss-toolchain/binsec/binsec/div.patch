@@ -1,0 +1,82 @@
+diff --git a/src/sse/plugin/checkct.ml b/src/sse/plugin/checkct.ml
+index c37e7dc1d..33268f83e 100644
+--- a/src/sse/plugin/checkct.ml
++++ b/src/sse/plugin/checkct.ml
+@@ -71,11 +71,13 @@ module StatsFile = Builder.String_option (struct
+ end)
+ 
+ module Kind = struct
+-  type t = Control_flow | Memory_access
++  type t = Control_flow | Memory_access | Division of bool
+ 
+   let to_string = function
+     | Control_flow -> "control flow"
+     | Memory_access -> "memory access"
++    | Division true -> "numerator division"
++    | Division false -> "divisor division"
+ 
+   let pp ppf t = Format.pp_print_string ppf (to_string t)
+ end
+@@ -373,6 +375,9 @@ module Make
+   and ct_mem_secure = ref 0
+   and ct_mem_insecure = ref 0
+   and ct_mem_unknown = ref 0
++  and ct_div_secure = ref 0
++  and ct_div_insecure = ref 0
++  and ct_div_unknown = ref 0
+ 
+   let ct_status (kind : Kind.t) (status : Status.t) =
+     match (kind, status) with
+@@ -382,6 +387,9 @@ module Make
+     | Memory_access, Secure -> ct_mem_secure
+     | Memory_access, Insecure _ -> ct_mem_insecure
+     | Memory_access, Unknown -> ct_mem_unknown
++    | Division _, Secure -> ct_div_secure
++    | Division _, Insecure _ -> ct_div_insecure
++    | Division _, Unknown -> ct_div_unknown
+ 
+   let ct_addr_status : Status.t Virtual_address.Htbl.t =
+     Virtual_address.Htbl.create 128
+@@ -524,10 +532,31 @@ module Make
+   let process_handler : type a. (module Ir.GRAPH with type t = a) -> a -> unit =
+    fun graph ->
+     let module G = (val graph) in
++    let rec visit_expr graph vertex (e : Dba.Expr.t) =
++      match e with
++      | Cst _ | Var _ | Load _ -> ()
++      | Unary (_, x) -> visit_expr graph vertex x
++      | Binary ((DivU | DivS | ModU | ModS), numerator, divisor) ->
++          ignore
++            (G.insert_before graph vertex
++               (Builtin (Check (numerator, Division true))));
++          ignore
++            (G.insert_before graph vertex
++               (Builtin (Check (divisor, Division false))))
++      | Binary (_, x, y) ->
++          visit_expr graph vertex x;
++          visit_expr graph vertex y
++      | Ite (c, x, y) ->
++          visit_expr graph vertex c;
++          visit_expr graph vertex x;
++          visit_expr graph vertex y
++    in
+     fun graph ->
+       G.iter_new_vertex
+         (fun vertex ->
+           match G.node graph vertex with
++          | Fallthrough { kind = Assign { rval; _ }; _ } ->
++              visit_expr graph vertex rval
+           | Fallthrough { kind = Load { addr; _ } | Store { addr; _ }; _ } ->
+               ignore
+                 (G.insert_before graph vertex
+@@ -811,7 +840,9 @@ module Make
+           Logger.info "%d / %d control flow checks pass" !ct_cf_secure
+             (!ct_cf_secure + !ct_cf_insecure + !ct_cf_unknown);
+           Logger.info "%d / %d memory access checks pass" !ct_mem_secure
+-            (!ct_mem_secure + !ct_mem_insecure + !ct_mem_unknown));
++            (!ct_mem_secure + !ct_mem_insecure + !ct_mem_unknown);
++          Logger.info "%d / %d division operand checks pass" !ct_div_secure
++            (!ct_div_secure + !ct_div_insecure + !ct_div_unknown));
+         if is_unknown_report () then
+           Logger.warning "@[<v>Exploration is incomplete:%a@]"
+             (fun ppf () ->

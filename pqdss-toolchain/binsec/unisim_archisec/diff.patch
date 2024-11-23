@@ -1,0 +1,15 @@
+diff --git a/unisim/component/cxx/processor/intel/isa/simd.hh b/unisim/component/cxx/processor/intel/isa/simd.hh
+index 122d143..ce424d7 100644
+--- a/unisim/component/cxx/processor/intel/isa/simd.hh
++++ b/unisim/component/cxx/processor/intel/isa/simd.hh
+@@ -3731,7 +3731,9 @@ template <class ARCH> struct DC<ARCH,EXTRACT> { Operation<ARCH>* get( InputCode<
+ 
+   if (auto _ = match( ic, vex( "\x66\x0f\xc5" ) & RM_reg() & Imm<8>() ))
+ 
+-    return newExtr<GOw>( ic, _.opbase(), _.i( uint8_t() ), _.rmop(), _.greg() );
++    return newExtr<GOw>( ic, _.opbase(), _.i( uint8_t() ),
++			 RMOp<ARCH>((MOp<ARCH> const*)(uintptr_t)_.greg()),
++			 _.ereg() );
+ 
+   if (auto _ = match( ic, vex( "\x66\x0f\x3a\x15" ) & RM() & Imm<8>() ))
+ 
