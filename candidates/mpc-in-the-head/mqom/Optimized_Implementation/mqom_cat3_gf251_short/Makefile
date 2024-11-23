@@ -1,6 +1,7 @@
 CC?=gcc
-ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow -DPARAM_HYPERCUBE_7R -DPARAM_GF251 -DPARAM_L3 -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4 -DPRGX4 -DNDEBUG -mavx
-ALL_FLAGS+=$(EXTRA_ALL_FLAGS)
+TOOLS_FLAGS := -Wall -g -Wextra
+ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow -DPARAM_HYPERCUBE_7R -DPARAM_GF251 -DPARAM_L3 -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4 -DPRGX4 -DNDEBUG -mavx $(TOOLS_FLAGS)
+ALL_FLAGS+=$(EXTRA_ALL_FLAGS) -DBENCHMARK_CYCLES
 
 SYM_OBJ= rnd.o hash.o xof.o
 ARITH_OBJ= gf251-matrix.o gf251.o
@@ -16,20 +17,34 @@ APP_READ_BENCH_OBJ=benchmark/bench-read.o
 APP_KAT_MAIN_OBJ=generator/PQCgenKAT_sign.o generator/rng.o
 APP_KAT_CHECK_OBJ=generator/PQCgenKAT_check.o generator/rng.o
 
+RNG_OBJ=generator/rng.o
+
+TAINT_OBJ=taint_crypto_sign.o generator/rng.o
+
 HASH_INCLUDE=-Isha3 -I. -Isha3/avx2
 APP_INCLUDE=-Ibenchmark
+
+CTTEST_LIB = libcttest.so
+BUILD_CTLIB = build
 
 %.o : %.c
 	$(CC) -c $(ALL_FLAGS) $(HASH_INCLUDE) $(APP_INCLUDE) -I. $< -o $@
 
-all: kat_gen bench
+all: kat_gen bench $(CTTEST_LIB)
 
 libhash:
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH)
 
+$(CTTEST_LIB): $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) libhash
+	mkdir -p $(BUILD_CTLIB)
+	$(CC) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) $(ALL_FLAGS) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L$(HASH_PATH) -lhash -lcrypto
+
 # Generation of the KAT
 sign: kat_gen
 	cp kat_gen sign
+
+taint: $(TAINT_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
+	$(CC) $(TAINT_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto -o $@
 
 kat_gen: $(APP_KAT_MAIN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
 	$(CC) $(APP_KAT_MAIN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto -o $@
@@ -56,3 +71,7 @@ clean:
 	rm -rf unit-*
 	rm -f bench bench-*
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH) clean
+	rm -rf $(BUILD_CTLIB)
+	rm kat_gen
+	rm taint_crypto_sign.o
+	rm taint
