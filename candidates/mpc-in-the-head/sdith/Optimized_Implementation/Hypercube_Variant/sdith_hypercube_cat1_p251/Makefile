@@ -9,6 +9,8 @@ VARIANT = avx2
 FIELD = P251
 SEC_LEVEL = CAT_1
 
+TOOLS_FLAGS := -Wall -g -Wextra
+
 HASH_PATH=sha3
 HASH_INCLUDE=-Isha3/avx2
 
@@ -20,7 +22,7 @@ else
 	HASH_MAKE_OPTIONS = PLATFORM=opt64
 endif
 CC = gcc
-CFLAGS = -W -Wall -O3 -fPIC -DNDEBUG -D${SEC_LEVEL}
+CFLAGS = -W -Wall -O3 -fPIC -DNDEBUG -D${SEC_LEVEL} $(TOOLS_FLAGS)
 
 ifeq ($(VARIANT), avx2)
 	GF256_SRC = gf256.c gf2p32.c gf256-avx2-polytable-ct.c gf256-avx2.c gf256-avx2-gfni.c gf256-avx-pclmul.c
@@ -41,10 +43,17 @@ SDITH_SRC = sdith.c precomputed.c sign.c
 KAT_MAIN_SRC = generator/PQCgenKAT_sign.c generator/rng.c
 BENCH_MAIN_SRC = benchmark/bench.c benchmark/timing.c
 
-all: sign bench
+CTTEST_LIB = libcttest.so
+BUILD_CTLIB = build
+
+all: sign bench $(CTTEST_LIB)
 
 libhash:
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH)
+
+$(CTTEST_LIB): ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} libhash
+	mkdir -p $(BUILD_CTLIB)
+	-${CC} ${CFLAGS} -I. ${HASH_INCLUDE} ${AVXFLAGS} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L${HASH_PATH} -lcrypto -lhash
 
 sign: ${SRC} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${KAT_MAIN_SRC} libhash
 	-${CC} ${CFLAGS} ${AVXFLAGS} -o $@ ${SRC} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${KAT_MAIN_SRC} -I. ${HASH_INCLUDE} -L${HASH_PATH} -lcrypto -lhash
@@ -55,3 +64,4 @@ bench: ${SRC} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${BENCH_MAIN_SRC} libhash
 clean:
 	-rm -f *.o *.a sign bench
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH) clean
+	-rm -rf $(BUILD_CTLIB)

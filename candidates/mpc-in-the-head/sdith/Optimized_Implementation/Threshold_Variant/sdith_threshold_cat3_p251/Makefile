@@ -1,5 +1,6 @@
 CC?=gcc
-ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow -DPARAM_THRESHOLD_NFPR -DPARAM_GF251 -DPARAM_L3 -DHASHX4 -DXOFX4 -DNDEBUG -mavx
+TOOLS_FLAGS := -Wall -g -Wextra
+ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow -DPARAM_THRESHOLD_NFPR -DPARAM_GF251 -DPARAM_L3 -DHASHX4 -DXOFX4 -DNDEBUG -mavx $(TOOLS_FLAGS)
 ALL_FLAGS+=$(EXTRA_ALL_FLAGS)
 
 SYM_OBJ= rnd.o hash.o xof.o
@@ -19,13 +20,20 @@ APP_KAT_CHECK_OBJ=generator/PQCgenKAT_check.o generator/rng.o
 HASH_INCLUDE=-Isha3 -I. -Isha3/avx2
 APP_INCLUDE=-Ibenchmark
 
+CTTEST_LIB = libcttest.so
+BUILD_CTLIB = build
+
 %.o : %.c
 	$(CC) -c $(ALL_FLAGS) $(HASH_INCLUDE) $(APP_INCLUDE) -I. $< -o $@
 
-all: kat_gen bench
+all: kat_gen bench $(CTTEST_LIB)
 
 libhash:
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH)
+
+$(CTTEST_LIB): ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} libhash
+	mkdir -p $(BUILD_CTLIB)
+	-${CC} ${CFLAGS} -I. ${HASH_INCLUDE} ${AVXFLAGS} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L${HASH_PATH} -lcrypto -lhash
 
 # Generation of the KAT
 sign: kat_gen
@@ -56,3 +64,4 @@ clean:
 	rm -rf unit-*
 	rm -f bench bench-*
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH) clean
+	-rm -rf $(BUILD_CTLIB)
