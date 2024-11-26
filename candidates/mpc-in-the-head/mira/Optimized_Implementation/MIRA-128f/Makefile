@@ -2,9 +2,11 @@
 SCRIPT_VERSION=v1.0
 SCRIPT_AUTHOR=MIRA team
 
+TOOLS_FLAGS :=
+
 CC=gcc
-C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4
-C_FLAGS_VERBOSE:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -DVERBOSE
+C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -fPIC $(TOOLS_FLAGS)
+C_FLAGS_VERBOSE:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -DVERBOSE -fPIC $(TOOLS_FLAGS)
 
 RANDOMBYTES_SRC:=lib/randombytes/randombytes.c
 RANDOMBYTES_INCLUDE:=-I lib/randombytes -lcrypto
@@ -34,7 +36,8 @@ LIB_OBJS:=SimpleFIPS202.o randombytes.o
 BUILD:=bin/build
 BIN:=bin
 
-
+CTTEST_LIB = libcttest.so
+BUILD_CTLIB = build
 
 folders:
 	@echo -e "\n### Creating build folders\n"
@@ -68,8 +71,12 @@ finite_fields.o: $(FFI_SRC)/finite_fields.c | folders
 
 
 
-all: mira128f-main mira128f-kat mira128f-verbose ##@Build Build all the project
+all: mira128f-main mira128f-kat mira128f-verbose $(CTTEST_LIB)##@Build Build all the project
 
+
+$(CTTEST_LIB): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders
+	mkdir -p $(BUILD_CTLIB)
+	$(CC) $(addprefix $(BUILD)/, $^) $(C_FLAGS) $(INCLUDE) $(XKCP_LINKER) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB)
 
 .PHONY: mira128f-main
 mira128f-main: $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build a single example
@@ -94,6 +101,7 @@ clean:
 	rm -f PQCkemKAT_*
 	rm -f vgcore.*
 	rm -rf ./bin
+	rm -rf $(BUILD_CTLIB)
 
 
 
