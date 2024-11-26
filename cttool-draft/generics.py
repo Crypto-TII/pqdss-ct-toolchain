@@ -428,6 +428,8 @@ def generic_create_tests_folders(list_of_path_to_folders):
 
 
 def compile_with_makefile(path_to_makefile, default=None, *args, **kwargs):
+    print(":::::::compile_with_makefile:::::::")
+    print(".....path_to_makefile: ", path_to_makefile)
     cwd = os.getcwd()
     os.chdir(path_to_makefile)
     # Set the tool's flags in the Makefile
@@ -482,6 +484,8 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, *args, **kwa
 
 def compile_target_candidate(path_to_candidate_makefile_cmake: str,
                              build_with_make: bool = True, additional_options=None, *args, **kwargs):
+    print(":::::::compile_target_candidate::::::::")
+    print("..........path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
     if build_with_make:
         compile_with_makefile(path_to_candidate_makefile_cmake, additional_options, *args, **kwargs)
     if not build_with_make:

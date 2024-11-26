@@ -116,6 +116,7 @@ def add_cli_arguments(subparser,
 
 
     default_libraries_names = ['cttest_binsec', 'cttest_ctgrind', 'cttest_dudect']
+    cpu_cores_isolated = ["1", "2", "3"]
     security_level = None
     # benchmark = False
     benchmark = None
@@ -184,7 +185,7 @@ def add_cli_arguments(subparser,
     exec(add_args_commdand)
 
     arguments = (f"'--cpu_cores_isolated', '-cpu_cores', dest='cpu_cores', nargs='+',"
-                 f"default='1', help = 'cpu cores isolated'")
+                 f"default={cpu_cores_isolated}, help = 'cpu cores isolated'")
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
 
@@ -205,17 +206,8 @@ def add_cli_arguments(subparser,
         arguments = f"'--depth', '-depth', dest='depth',default='1000000',help = 'depth'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
-
     if test_mode == 'benchmark':
-        # Default algorithms pattern to test
         default_algorithms.append('verify')
-        # arguments = (f"'--benchmark_template', '-bench_template', dest='bench_template', nargs='+',"
-        #              f"default='', help = 'Choose benchmark templates'")
-        arguments = (f"'--benchmark_template', '-bench_template', dest='bench_template', nargs='+',"
-                     f"help = 'Choose benchmark templates'")
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-
         arguments = (f"'--benchmark_keyword', '-bench_keywords', dest='bench_keywords', nargs='+',"
                      f"default='', help = 'Benchmarks average, mean, quartile'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
@@ -230,10 +222,16 @@ def add_cli_arguments(subparser,
                      f"help = 'maximum message size'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
-        arguments = f"'--custom_benchmark', '-custom_benchmark', dest='custom_benchmark', help= 'Custom benchmark'"
+        arguments = (f"'--custom_benchmark', '-custom_benchmark', dest='custom_benchmark',  default='yes', "
+                     f"help= 'Custom benchmark'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
-        arguments = (f"'--candidate_benchmark', '-candidate_benchmark', dest='candidate_benchmark', default='yes',"
+        arguments = (f"'--candidate_benchmark', '-candidate_benchmark', dest='candidate_benchmark', "
                      f"help = 'Candidates benchmark'")
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+    if test_mode == 'generic-tests':
+        arguments = (f"'--test_options', '-test_options', dest='test_options', "
+                     f"help = 'Test options'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)

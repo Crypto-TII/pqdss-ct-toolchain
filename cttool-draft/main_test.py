@@ -34,6 +34,10 @@ def run_cli_candidate(args_parse):
     cpu_cores_isolated = args_parse.cpu_cores
     add_options = args_parse.add_options
     all_candidates_dict = candidates_dict
+
+    print("+++++++++++instances: ", instances)
+    print("+++++++++++type of instances: ", type(instances))
+
     if 'yes' in direct_link_or_compile_target:
         direct_link_to_library = True
     add_args = list(filter(lambda element: '=' not in element, add_options))
@@ -53,17 +57,33 @@ def run_cli_candidate(args_parse):
                             security_level, additional_cmake_definitions, *add_args, **additional_options)
     elif test_mode == 'benchmark':
         print(":::::::Running Benchmarks")
-        benchmark_templates = args_parse.bench_template
-        benchmarks_keywords = args_parse.bench_keywords
         number_of_iterations = args_parse.iterations
         min_msg_length = args_parse.min_msg_len
         max_msg_length = args_parse.max_msg_len
         custom_benchmark = args_parse.custom_benchmark
         candidate_benchmark = args_parse.candidate_benchmark
-        bench.run_benchmarks(user_entry_point, candidate, instances, candidates_dict, direct_link_or_compile_target,
-                             implementation_type, security_level, benchmarks_keywords, number_of_iterations,
+        if custom_benchmark.strip() == 'yes':
+            custom_benchmark = True
+        if candidate_benchmark is None or candidate_benchmark.strip() == 'no':
+            candidate_benchmark = False
+        elif candidate_benchmark.strip() == 'yes':
+            candidate_benchmark = True
+        bench.run_benchmarks(candidate, instances, candidates_dict, direct_link_or_compile_target,
+                             implementation_type, security_level, number_of_iterations,
                              min_msg_length, max_msg_length, cpu_cores_isolated, compilation, run, custom_benchmark,
                              candidate_benchmark, *add_args, **additional_options)
+
+
+# Define a new class action for the flag -a (--all).
+class RunAllCandidates(argparse.Action):
+    def __init__(self, option_strings,  dest, **kwargs):
+        return super().__init__(option_strings , dest, nargs='+', default=argparse.SUPPRESS, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string, **kwargs):
+        tools_list = [val for val in values if '=' not in val]
+        list_of_options = [opt for opt in values if opt not in tools_list]
+        bench.benchmarks_single_run_nist_candidates(candidates_dict, tools_list)
+        parser.exit()
 
 
 # Create a parser
@@ -74,14 +94,15 @@ parser = argparse.ArgumentParser(prog="tii-constant-time-toolchain",
 
 subparser = parser.add_subparsers(help="", dest='tii_ct_toolchain')
 
-
-# cli.cli_generate_template(subparser, '', list(cttool.supported_tools.keys()), [],
-#                           None, None, 'ct-tests')
-#
-
-
 cli.add_cli_arguments(subparser, 'ct-tests', path_to_user_entry_point, '')
 cli.add_cli_arguments(subparser, 'benchmark', path_to_user_entry_point, '')
+cli.add_cli_arguments(subparser, 'generic-tests', path_to_user_entry_point, '')
+
+
+parser.add_argument('-a', '--all',
+                    action=RunAllCandidates,
+                    help='Run a given tool on all instances of all candidates',
+                    )
 
 # set all the command-line arguments into the object args
 args = parser.parse_args()
