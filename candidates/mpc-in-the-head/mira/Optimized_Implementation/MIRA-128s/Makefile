@@ -1,7 +1,7 @@
 
 SCRIPT_VERSION=v1.0
 SCRIPT_AUTHOR=MIRA team
-TOOLS_FLAGS := -Wall -g -Wextra
+TOOLS_FLAGS := 
 CC=gcc
 C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -fPIC $(TOOLS_FLAGS)
 C_FLAGS_VERBOSE:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -DVERBOSE -fPIC $(TOOLS_FLAGS)
@@ -73,7 +73,7 @@ all: mira128s-main mira128s-kat mira128s-verbose $(CTTEST_LIB) ##@Build Build al
 
 $(CTTEST_LIB): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders
 	mkdir -p $(BUILD_CTLIB)
-	-$(CC) $(C_FLAGS) -I. $(INCLUDE) $(XKCP_LINKER) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB)
+	$(CC) $(addprefix $(BUILD)/, $^) $(C_FLAGS) $(INCLUDE) $(XKCP_LINKER) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB)
 
 .PHONY: mira128s-main
 mira128s-main: $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders ##@Build a single example
