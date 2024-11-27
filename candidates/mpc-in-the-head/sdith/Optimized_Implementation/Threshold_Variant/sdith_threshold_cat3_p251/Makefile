@@ -1,5 +1,5 @@
 CC?=gcc
-TOOLS_FLAGS := -Wall -g -Wextra
+TOOLS_FLAGS := 
 ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow -DPARAM_THRESHOLD_NFPR -DPARAM_GF251 -DPARAM_L3 -DHASHX4 -DXOFX4 -DNDEBUG -mavx $(TOOLS_FLAGS)
 ALL_FLAGS+=$(EXTRA_ALL_FLAGS)
 

@@ -1,7 +1,7 @@
 
 SCRIPT_VERSION=v1.0
 SCRIPT_AUTHOR=RYDE team
-TOOLS_FLAGS := -Wall -g -Wextra
+TOOLS_FLAGS := 
 CC=gcc
 C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4-fPIC $(TOOLS_FLAGS)
 C_FLAGS_VERBOSE:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -DVERBOSE-fPIC $(TOOLS_FLAGS)

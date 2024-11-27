@@ -9,7 +9,7 @@ VARIANT = avx2
 FIELD = P251
 SEC_LEVEL = CAT_1
 
-TOOLS_FLAGS := -Wall -g -Wextra
+TOOLS_FLAGS := 
 
 HASH_PATH=sha3
 HASH_INCLUDE=-Isha3/avx2

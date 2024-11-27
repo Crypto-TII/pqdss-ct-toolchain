@@ -41,7 +41,7 @@
         "mirith_avx2_Va_short", "mirith_avx2_Vb_fast", "mirith_hypercube_avx2_IIIa_fast", "mirith_hypercube_avx2_Ib_shorter",
         "mirith_hypercube_avx2_Ia_shortest", "mirith_hypercube_avx2_Ib_short", "mirith_hypercube_avx2_IIIb_short",
         "mirith_avx2_Ia_short", "mirith_avx2_Ib_fast", "mirith_avx2_IIIa_fast", "mirith_hypercube_avx2_Vb_shorter",
-        "mirith_hypercube_avx2_IIIb_shortest", "ctgrind", "mirith_hypercube_avx2_Ia_shorter",
+        "mirith_hypercube_avx2_IIIb_shortest", "mirith_hypercube_avx2_Ia_shorter",
         "mirith_hypercube_avx2_IIIa_short", "mirith_hypercube_avx2_Ia_short", "mirith_hypercube_avx2_Va_fast",
         "mirith_hypercube_avx2_Va_shortest", "mirith_hypercube_avx2_Ia_fast", "mirith_avx2_Ib_short",
         "mirith_hypercube_avx2_Va_shorter"]
@@ -107,10 +107,10 @@
       "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm"},
       "build_with_makefile": true,
       "compiler": "gcc",
-      "instances": ["sdith_hypercube_cat1_p251", "sdith_hypercube_cat3_p251", "sdith_hypercube_cat3_gf256",
-        "sdith_hypercube_cat1_gf256", "sdith_hypercube_cat5_p251", "sdith_hypercube_cat5_gf256",
-        "sdith_threshold_cat5_p251", "sdith_threshold_cat3_p251", "sdith_threshold_cat5_gf256",
-        "sdith_threshold_cat1_gf256", "sdith_threshold_cat1_p251", "sdith_threshold_cat3_gf256"],
+      "instances": ["Hypercube_Variant/sdith_hypercube_cat1_p251", "Hypercube_Variant/sdith_hypercube_cat3_p251", "Hypercube_Variant/sdith_hypercube_cat3_gf256",
+        "Hypercube_Variant/sdith_hypercube_cat1_gf256", "Hypercube_Variant/sdith_hypercube_cat5_p251", "Hypercube_Variant/sdith_hypercube_cat5_gf256",
+        "Threshold_Variant/sdith_threshold_cat5_p251", "Threshold_Variant/sdith_threshold_cat3_p251", "Threshold_Variant/sdith_threshold_cat5_gf256",
+        "Threshold_Variant/sdith_threshold_cat1_gf256", "Threshold_Variant/sdith_threshold_cat1_p251", "Threshold_Variant/sdith_threshold_cat3_gf256"],
       "path_to_bench_binary": null,
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "security_level": {"128":  ["_cat1_"], "192":  ["_cat3_"], "256":  ["_cat5_"]}
