@@ -16,8 +16,6 @@
       "path_to_bench_binary": null,
       "instances": ["perk-192-short-5", "perk-192-fast-5", "perk-192-fast-3", "perk-192-short-3", "perk-128-fast-5",
         "perk-256-fast-3", "perk-128-fast-3", "perk-256-fast-5", "perk-128-short-3", "perk-128-short-5", "perk-256-short-3", "perk-256-short-5"]
-
-
     },
     "mirith": {
       "path_to_api": "candidates/mpc-in-the-head/mirith/Optimized_Implementation/mirith_avx2_Ia_fast/sign.h",
@@ -75,7 +73,7 @@
       "compiler": "gcc",
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "security_level": {"128":  ["_cat1_"], "192":  ["_cat3_"], "256":  ["_cat5_"]},
-      "path_to_bench_binary":"candidates/mpc-in-the-head/mqom/Optimized_Implementation/mqom_cat1_gf31_fast/bench",
+      "path_to_bench_binary":null,
       "instances": ["mqom_cat5_gf251_short", "mqom_cat5_gf31_short", "mqom_cat3_gf31_fast", "mqom_cat3_gf251_short",
         "mqom_cat5_gf31_fast", "mqom_cat5_gf251_fast", "mqom_cat1_gf251_short", "mqom_cat1_gf31_short",
         "mqom_cat3_gf251_fast", "mqom_cat1_gf31_fast", "mqom_cat3_gf31_short", "mqom_cat1_gf251_fast"]
@@ -224,9 +222,25 @@
       "security_level": {"128":  ["256"], "192":  ["512"], "256":  ["1024"]},
       "path_to_bench_binary": null,
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"}
+    },
+    "sqisign": {
+      "path_to_api": "candidates/isogeny/sqisign/src/nistapi/lvl1/api.h",
+      "path_to_rng": "candidates/isogeny/sqisign/include/rng.h",
+      "path_to_makefile_folder": "candidates/isogeny/sqisign",
+      "path_to_include_directory": ".",
+      "default_instance": null,
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm"},
+      "build_with_makefile": false,
+      "compiler": "gcc",
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "security_level": {"128":  ["-128-"], "192":  ["-192-"], "256":  ["-256-"]},
+      "path_to_bench_binary": null,
+      "instances": null
     }
   },
-  "tools": ["binsec", "dudect", "ctgrind", "ctverif", "flowtracker"],
+  "tools": ["binsec", "dudect", "timecop"],
   "libraries": ["cttest_binsec","cttest_ctgrind", "cttest_dudect"],
   "benchmark_libraries": "benchmark"
 

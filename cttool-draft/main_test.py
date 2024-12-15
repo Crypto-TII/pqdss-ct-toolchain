@@ -34,10 +34,6 @@ def run_cli_candidate(args_parse):
     cpu_cores_isolated = args_parse.cpu_cores
     add_options = args_parse.add_options
     all_candidates_dict = candidates_dict
-
-    print("+++++++++++instances: ", instances)
-    print("+++++++++++type of instances: ", type(instances))
-
     if 'yes' in direct_link_or_compile_target:
         direct_link_to_library = True
     add_args = list(filter(lambda element: '=' not in element, add_options))
@@ -52,6 +48,8 @@ def run_cli_candidate(args_parse):
         number_measurements = args_parse.number_measurements
         depth = args_parse.depth
         timeout = args_parse.timeout
+        additional_options['RUN_CT_TESTS'] = "ON"
+        additional_options['RUN_BENCHMARKS'] = "OFF"
         signature.run_tests(user_entry_point, tools, candidate, instances, all_candidates_dict, direct_link_to_library,
                             number_measurements, compilation, run, algorithms, depth, timeout, implementation_type,
                             security_level, additional_cmake_definitions, *add_args, **additional_options)
@@ -68,6 +66,8 @@ def run_cli_candidate(args_parse):
             candidate_benchmark = False
         elif candidate_benchmark.strip() == 'yes':
             candidate_benchmark = True
+        additional_options['RUN_BENCHMARKS'] = "ON"
+        additional_options['RUN_CT_TESTS'] = "OFF"
         bench.run_benchmarks(candidate, instances, candidates_dict, direct_link_or_compile_target,
                              implementation_type, security_level, number_of_iterations,
                              min_msg_length, max_msg_length, cpu_cores_isolated, compilation, run, custom_benchmark,

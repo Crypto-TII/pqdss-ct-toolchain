@@ -80,8 +80,6 @@ class Target(object):
         self.candidate_args = self.candidate_split[1]
         self.get_candidate_has_arguments_status()
 
-
-
     def get_candidate_has_arguments_status(self):
         if self.candidate_args == '' or self.candidate_args == ' ':
             self.candidate_has_arguments_status = False
@@ -259,7 +257,7 @@ def tokenize_target(target: str) -> tuple:
 
 
 # Get crypto_sign_keypair and crypto_sign functions declarations given the path to the header file (api.h/sign.h)
-def find_target_by_basename(target_basename: str, path_to_target_header_file: str) -> str:
+def find_target_by_basename2(target_basename: str, path_to_target_header_file: str) -> str:
     target = ''
     target_is_found = 0
     try:
@@ -300,7 +298,7 @@ def find_target_by_basename(target_basename: str, path_to_target_header_file: st
     return target
 
 
-def find_target_by_basename1(target_basename: str, path_to_target_header_file: str) -> str:
+def find_target_by_basename(target_basename: str, path_to_target_header_file: str) -> str:
     target = ''
     target_is_found = 0
     try:
@@ -316,12 +314,17 @@ def find_target_by_basename1(target_basename: str, path_to_target_header_file: s
                     for line in matching_string_lines:
                         if target_basename in line and (':' in line or '#' in line or 'define' in line):
                             matching_string_lines.remove(line)
-                matching_string_lines = [line for line in matching_string_lines if line.strip()!= '']
+                matching_string_lines = [line for line in matching_string_lines if line.strip() != '']
                 find_target_index = 0
+                find_return_type_index = 0
                 for line in matching_string_lines:
                     if target_basename in line:
                         find_target_index = matching_string_lines.index(line)
-                matching_string_lines = matching_string_lines[find_target_index-1:]
+                        find_return_type_index = find_target_index
+                        if line.strip().startswith(target_basename):
+                            find_return_type_index = find_target_index - 1
+                # matching_string_lines = matching_string_lines[find_target_index:]
+                matching_string_lines = matching_string_lines[find_return_type_index:]
                 matching_string = "\n".join(matching_string_lines)
                 matching_string_split = matching_string.split()
                 matching_string_list_strip = [word.strip() for word in matching_string_split]
@@ -453,7 +456,7 @@ def compile_with_makefile(path_to_makefile, default=None, *args, **kwargs):
     os.chdir(cwd)
 
 
-def compile_with_cmake(build_folder_full_path, optional_flags=None, *args, **kwargs):
+def compile_with_cmake_14(build_folder_full_path, optional_flags=None, *args, **kwargs):
     if optional_flags is None:
         optional_flags = []
     cwd = os.getcwd()
@@ -481,6 +484,33 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, *args, **kwa
     subprocess.call(cmd, stdin=sys.stdin)
     os.chdir(cwd)
 
+
+def compile_with_cmake(build_folder_full_path, optional_flags=None, *args, **kwargs):
+    if optional_flags is None:
+        optional_flags = []
+    cwd = os.getcwd()
+    create_directory(build_folder_full_path)
+    os.chdir(build_folder_full_path)
+    # Set the tool's flags in the CMakeLists.txt
+    cmakelist = '../CMakeLists.txt'
+    set_tool_flags = [f"sed -i -E 's/(TOOLS_FLAGS .+)/TOOLS_FLAGS "")/g'" + f" {cmakelist}"]
+    subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+    set_tool_name = [f"sed -i -E 's/(TOOL_NAME .+)/TOOL_NAME "")/g'" + f" {cmakelist}"]
+    subprocess.call(set_tool_name, stdin=sys.stdin, shell=True)
+    additional_options = list(args)
+    for key, val in kwargs.items():
+        additional_options.append(f'-D{key}={val}')
+    cmd = ["cmake"]
+    cmd.extend(additional_options)
+    if not optional_flags == []:
+        cmd.extend(optional_flags)
+    cmd_ext = ["../"]
+    cmd.extend(cmd_ext)
+    print("+++++++++cmd++++++++: ", cmd)
+    subprocess.call(cmd, stdin=sys.stdin)
+    cmd = ["make", "-j"]
+    subprocess.call(cmd, stdin=sys.stdin)
+    os.chdir(cwd)
 
 def compile_target_candidate(path_to_candidate_makefile_cmake: str,
                              build_with_make: bool = True, additional_options=None, *args, **kwargs):
