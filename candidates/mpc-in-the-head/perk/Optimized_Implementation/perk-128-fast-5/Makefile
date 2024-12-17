@@ -42,7 +42,7 @@ LIB_OBJS:=$(LIB_COBJS) $(LIB_SOBJS) $(SORT_COBJS)
 LIB_INCLUDE:=-I $(LIB_DIR)/cryptocode -I $(LIB_DIR)/XKCP -I $(LIB_DIR)/randombytes -I $(LIB_DIR)/djbsort
 PERK_INCLUDE:=-I $(SRC_DIR) $(LIB_INCLUDE)
 
-CTTEST_LIB = libcttest.a
+CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
 
 .PHONY: all

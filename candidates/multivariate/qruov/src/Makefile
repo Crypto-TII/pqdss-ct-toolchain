@@ -1,5 +1,5 @@
 # ref portable64 avx2 avx512
-platform := portable64
+platform :=  portable64
 # subdirs := qruov1q127L3v156m54 
 subdirs :=\
   qruov1q7L10v740m100  qruov1q31L3v165m60  qruov1q31L10v600m70   qruov1q127L3v156m54  \

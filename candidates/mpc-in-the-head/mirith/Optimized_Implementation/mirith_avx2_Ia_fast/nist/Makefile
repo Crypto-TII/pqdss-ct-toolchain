@@ -1,10 +1,10 @@
 CC=gcc
 
-TOOLS_FLAGS :=
+#TOOLS_FLAGS :=
 
 CFLAGS=-std=c11 -Wall -Wextra -pedantic -mavx2 -fPIC -Wall -g -Wextra $(TOOLS_FLAGS)
 DEPS=$(wildcard ../*.h)
-LIBS=-lcrypto
+LIBS=-lcrypto $(TOOL_LINK_LIBS)
 OBJ=rng.o $(subst ../random.o, ,$(patsubst ../%.c,../%.o,$(wildcard ../*.c)))
 OBJ+=$(patsubst ../%.s,../%.o,$(wildcard ../*.s))
 

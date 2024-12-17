@@ -1,6 +1,8 @@
 PLATFORM=portable64
 CC=gcc
-CFLAGS=-march=native -mtune=native -O3 -fomit-frame-pointer -fwrapv -fPIC -fPIE -fopenmp -Wno-deprecated-declarations -Wno-unused-result # -DQRUOV_HASH_LEGACY # -ggdb3 
+TOOLS_FLAGS := -Wall -g -Wextra
+
+CFLAGS=-march=native -mtune=native -O3 -fomit-frame-pointer -fwrapv -fPIC -fPIE -fopenmp -Wno-deprecated-declarations -Wno-unused-result -fPIC $(TOOLS_FLAGS) # -DQRUOV_HASH_LEGACY # -ggdb3
 LDFLAGS=-lcrypto -Wl,-Bstatic -lcrypto -Wl,-Bdynamic -lm
 # CFLAGS=-march=native -mtune=native -O3 -fwrapv -fPIC -fPIE -fopenmp -Wno-deprecated-declarations -Wno-unused-result -pg -g # -ggdb3
 # LDFLAGS=-lcrypto -Wl,-Bstatic -lcrypto -Wl,-Bdynamic -lm -pg -g
@@ -9,10 +11,18 @@ OBJS=Fql.o mgf.o PQCgenKAT_sign.o qruov.o rng.o sign.o matrix.o
 .SUFFIXES:
 .SUFFIXES: .rsp .req .diff .c .o .h
 
+CTTEST_LIB = libcttest.so
+BUILD_CTLIB = ../../build
+
 .PHONY: all clean
 
-all: qruov_config.h api.h PQCgenKAT_sign
-	./PQCgenKAT_sign
+all: qruov_config.h api.h PQCgenKAT_sign $(CTTEST_LIB)
+	#./PQCgenKAT_sign
+
+
+$(CTTEST_LIB): Makefile ${OBJS}
+	mkdir -p $(BUILD_CTLIB)
+	$(CC) ${OBJS} ${CFLAGS} -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) ${LDFLAGS}
 
 PQCgenKAT_sign: Makefile ${OBJS}
 	${CC} ${OBJS} ${CFLAGS} ${LDFLAGS} -o $@

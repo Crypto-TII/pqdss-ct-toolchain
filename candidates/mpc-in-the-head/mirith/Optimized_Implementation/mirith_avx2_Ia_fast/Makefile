@@ -1,3 +1,6 @@
+TOOLS_FLAGS :=
+TOOL_LINK_LIBS "")
+
 
 all:
 	cd nist; make
