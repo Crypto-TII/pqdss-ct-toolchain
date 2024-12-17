@@ -2,7 +2,7 @@
 SCRIPT_VERSION=v1.0
 SCRIPT_AUTHOR=RYDE team
 
-TOOLS_FLAGS := -Wall -g -Wextra
+TOOLS_FLAGS := 
 
 CC=gcc
 C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -fPIC $(TOOLS_FLAGS)
@@ -74,10 +74,10 @@ rbc_%.o: $(RBC_SRC)/rbc_%.c | folders
 
 
 
-all: ryde128f-main ryde128f-kat ryde128f-verbose $(TEST_LIB) ##@Build Build all the project
+all: ryde128f-main ryde128f-kat ryde128f-verbose $(CTTEST_LIB) ##@Build Build all the project
 
 
-$(TEST_LIB): $(RYDE_OBJS) $(LIB_OBJS) | xkcp
+$(CTTEST_LIB): $(RYDE_OBJS) $(LIB_OBJS) | xkcp
 	mkdir -p $(BUILD_CTLIB)
 	$(CC) $(C_FLAGS) $(addprefix $(BUILD)/, $^) $(INCLUDE) $(XKCP_LINKER) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB)
 

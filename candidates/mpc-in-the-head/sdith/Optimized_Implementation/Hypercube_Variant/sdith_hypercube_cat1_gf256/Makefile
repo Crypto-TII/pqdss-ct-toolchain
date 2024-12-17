@@ -9,7 +9,7 @@ VARIANT = avx2
 FIELD = GF256
 SEC_LEVEL = CAT_1
 
-TOOLS_FLAGS := -Wall -g -Wextra
+TOOLS_FLAGS := -std=c11
 
 
 HASH_PATH=sha3

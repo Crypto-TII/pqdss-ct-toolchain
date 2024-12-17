@@ -1,5 +1,6 @@
 CC?=gcc
-ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow -DPARAM_HYPERCUBE_7R -DPARAM_GF31 -DPARAM_L1 -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4 -DPRGX4 -DNDEBUG -mavx
+TOOLS_FLAGS :=
+ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow -DPARAM_HYPERCUBE_7R -DPARAM_GF31 -DPARAM_L1 -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4 -DPRGX4 -DNDEBUG -mavx $(TOOLS_FLAGS)
 ALL_FLAGS+=$(EXTRA_ALL_FLAGS)
 
 SYM_OBJ= rnd.o hash.o xof.o
@@ -19,13 +20,22 @@ APP_KAT_CHECK_OBJ=generator/PQCgenKAT_check.o generator/rng.o
 HASH_INCLUDE=-Isha3 -I. -Isha3/avx2
 APP_INCLUDE=-Ibenchmark
 
+CTTEST_LIB = libcttest.so
+BUILD_CTLIB = build
+
 %.o : %.c
 	$(CC) -c $(ALL_FLAGS) $(HASH_INCLUDE) $(APP_INCLUDE) -I. $< -o $@
 
-all: kat_gen bench
+all: kat_gen bench $(CTTEST_LIB)
 
 libhash:
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH)
+
+
+$(CTTEST_LIB): $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) libhash
+	mkdir -p $(BUILD_CTLIB)
+	$(CC) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) $(ALL_FLAGS) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L$(HASH_PATH) -lhash -lcrypto
+
 
 # Generation of the KAT
 sign: kat_gen

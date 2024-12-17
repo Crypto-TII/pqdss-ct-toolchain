@@ -1,6 +1,6 @@
 CC?=gcc
 
-TOOLS_FLAGS := -Wall -g -Wextra
+TOOLS_FLAGS := 
 
 ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow -DPARAM_HYPERCUBE_7R -DPARAM_GF31 -DPARAM_L1 -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4 -DPRGX4 -DNDEBUG -mavx $(TOOLS_FLAGS)
 ALL_FLAGS+=$(EXTRA_ALL_FLAGS) -DBENCHMARK_CYCLES
@@ -34,7 +34,7 @@ BUILD_CTLIB = build
 	$(CC) -c $(ALL_FLAGS) $(HASH_INCLUDE) $(APP_INCLUDE) -I. $< -o $@
 
 
-all: kat_gen bench $(CTTEST_LIB) #taint
+all: kat_gen  $(CTTEST_LIB) #taint
 
 
 libhash:
@@ -82,5 +82,3 @@ clean:
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH) clean
 	rm -rf $(BUILD_CTLIB)
 	rm kat_gen
-	rm taint_crypto_sign.o
-	rm taint
