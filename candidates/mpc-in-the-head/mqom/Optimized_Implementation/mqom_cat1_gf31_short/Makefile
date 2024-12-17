@@ -20,6 +20,8 @@ APP_KAT_CHECK_OBJ=generator/PQCgenKAT_check.o generator/rng.o
 HASH_INCLUDE=-Isha3 -I. -Isha3/avx2
 APP_INCLUDE=-Ibenchmark
 
+RNG_OBJ=generator/rng.o
+
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
 
@@ -30,7 +32,6 @@ all: kat_gen bench $(CTTEST_LIB)
 
 libhash:
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH)
-
 
 $(CTTEST_LIB): $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) libhash
 	mkdir -p $(BUILD_CTLIB)
@@ -66,3 +67,5 @@ clean:
 	rm -rf unit-*
 	rm -f bench bench-*
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH) clean
+	rm -rf $(BUILD_CTLIB)
+	rm kat_gen

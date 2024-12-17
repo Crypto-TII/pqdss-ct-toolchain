@@ -19,8 +19,6 @@ APP_KAT_CHECK_OBJ=generator/PQCgenKAT_check.o generator/rng.o
 
 RNG_OBJ=generator/rng.o
 
-TAINT_OBJ=taint_crypto_sign.o generator/rng.o
-
 HASH_INCLUDE=-Isha3 -I. -Isha3/avx2
 APP_INCLUDE=-Ibenchmark
 
