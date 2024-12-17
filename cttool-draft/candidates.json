@@ -169,9 +169,13 @@
       "default_instance": null,
       "optimized_implementation": "Optimized_Implementation",
       "additional_implementation": null,
-      "link_libraries": ["-lcttest", "-lcrypto"],
+      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm"},
       "build_with_makefile": true,
-      "compiler": "gcc"
+      "compiler": "gcc",
+      "instances": null,
+      "security_level": null,
+      "path_to_bench_binary": null,
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"}
     },
     "qruov": {
       "path_to_api": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/api.h",

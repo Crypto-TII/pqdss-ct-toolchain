@@ -20,6 +20,8 @@ APP_KAT_CHECK_OBJ=generator/PQCgenKAT_check.o generator/rng.o
 HASH_INCLUDE=-Isha3 -I. -Isha3/avx2
 APP_INCLUDE=-Ibenchmark
 
+RNG_OBJ=generator/rng.o
+
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
 
@@ -31,9 +33,9 @@ all: kat_gen bench $(CTTEST_LIB)
 libhash:
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH)
 
-$(CTTEST_LIB): ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} libhash
+$(CTTEST_LIB): $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) libhash
 	mkdir -p $(BUILD_CTLIB)
-	-${CC} ${CFLAGS} -I. ${HASH_INCLUDE} ${AVXFLAGS} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L${HASH_PATH} -lcrypto -lhash
+	-$(CC) $(ALL_FLAGS) -I. $(HASH_INCLUDE) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L${HASH_PATH} -lhash -lcrypto
 
 
 # Generation of the KAT

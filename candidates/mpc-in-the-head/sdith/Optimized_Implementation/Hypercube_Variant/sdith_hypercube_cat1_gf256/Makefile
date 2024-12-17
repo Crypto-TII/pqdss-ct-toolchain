@@ -9,7 +9,7 @@ VARIANT = avx2
 FIELD = GF256
 SEC_LEVEL = CAT_1
 
-TOOLS_FLAGS := -std=c11
+TOOLS_FLAGS := 
 
 
 HASH_PATH=sha3
@@ -44,6 +44,7 @@ SDITH_SRC = sdith.c precomputed.c sign.c
 KAT_MAIN_SRC = generator/PQCgenKAT_sign.c generator/rng.c
 BENCH_MAIN_SRC = benchmark/bench.c benchmark/timing.c
 
+RNG_OBJ=generator/rng.o
 
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
@@ -54,9 +55,9 @@ all: sign bench $(CTTEST_LIB)
 libhash:
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH)
 
-$(CTTEST_LIB): ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} libhash
+$(CTTEST_LIB): ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} $(RNG_OBJ) libhash
 	mkdir -p $(BUILD_CTLIB)
-	-${CC} ${CFLAGS} -I. ${HASH_INCLUDE} ${AVXFLAGS} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L${HASH_PATH} -lcrypto -lhash
+	-${CC} ${CFLAGS} -I. ${HASH_INCLUDE} ${AVXFLAGS} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} $(RNG_OBJ) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L${HASH_PATH} -lcrypto -lhash
 
 
 sign: ${SRC} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${KAT_MAIN_SRC} libhash
