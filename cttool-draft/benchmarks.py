@@ -97,8 +97,8 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
     \t{args_types[3]} iterations = TOTAL_ITERATIONS;
     \t{args_types[3]} min_msg_len = MINIMUM_MSG_LENGTH;
     \t{args_types[3]} max_msg_len = MAXIMUM_MSG_LENGTH;
-    \t{args_types[3]} mlen;
-    \t{args_types[1]} smlen;
+    \t{args_types[3]} mlen = 0;
+    \t{args_types[1]} smlen = 0;
     \t//bool pass;
     \t{function_return_type} pass;
 
@@ -115,6 +115,8 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
     \t{args_types[2]} *m = ({args_types[2]} *)malloc(max_msg_len * iterations * sizeof({args_types[2]}));
     \t//mlen = getrandom(m, max_msg_len * iterations, 0);
     \tct_randombytes(m, max_msg_len * iterations);
+    \t//mlen = sizeof(m);
+    \tmlen =  max_msg_len * iterations;
     \t//if((int)mlen < max_msg_len * iterations){{
     \tif(mlen < max_msg_len * iterations){{
     \t\tprintf("Error in generating random messages\\n");
@@ -738,7 +740,9 @@ def run_benchmarks(candidate: str, instances, candidates_dict,
     default_instance = candidate_dict['default_instance']
     path_to_bench_binary = candidate_dict['path_to_bench_binary']
     additional_cmake_definitions = ''  # to be fixed
-    if build_with_make:
+    print("-----build_with_make: ", build_with_make)
+    if not build_with_make:
+        print("--------Building with make")
         additional_cmake_definitions = kwargs
         # additional_cmake_definitions['RUN_BENCHMARKS'] = "ON"
         print(".........additional_cmake_definitions: ", additional_cmake_definitions)
