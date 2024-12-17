@@ -439,6 +439,9 @@ def compile_with_makefile(path_to_makefile, default=None, *args, **kwargs):
     makefile = 'Makefile'
     set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := /g' {makefile}"]
     subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+    # For now for benchmark. But this should be generic
+    set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS := .*$/TOOL_LINK_LIBS := /g' {makefile}"]
+    subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
     # Run make clean first in case objects files have already been obtained with the flags of a different tool.
     cmd_clean = ["make", "clean"]
     subprocess.call(cmd_clean, stdin=sys.stdin)
@@ -497,6 +500,9 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, *args, **kwa
     subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
     set_tool_name = [f"sed -i -E 's/(TOOL_NAME .+)/TOOL_NAME "")/g'" + f" {cmakelist}"]
     subprocess.call(set_tool_name, stdin=sys.stdin, shell=True)
+    # For now for benchmark. But this should be generic
+    set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS := .*$/TOOL_LINK_LIBS := /g' {cmakelist}"]
+    subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
     additional_options = list(args)
     for key, val in kwargs.items():
         additional_options.append(f'-D{key}={val}')
