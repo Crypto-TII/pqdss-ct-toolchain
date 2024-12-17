@@ -1,10 +1,12 @@
 
 all:
-	cd test; make
+	#cd test; make
+	cd nist; make
 
 run:
 	cd test; make run
 
 clean:
-	cd test; make clean
+	#cd test; make clean
+	cd nist; make clean
 

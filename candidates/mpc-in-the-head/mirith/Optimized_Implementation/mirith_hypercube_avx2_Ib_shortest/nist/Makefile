@@ -1,5 +1,6 @@
 CC=gcc
-CFLAGS=-std=c11 -Wall -Wextra -pedantic -mavx2
+TOOLS_FLAGS :=
+CFLAGS=-std=c11 -Wall -Wextra -pedantic -mavx2 -fPIC $(TOOLS_FLAGS)
 DEPS=$(wildcard ../*.h)
 LIBS=-lcrypto
 OBJ=rng.o $(subst ../random.o, ,$(patsubst ../%.c,../%.o,$(wildcard ../*.c)))
@@ -15,7 +16,14 @@ ifeq ($(UNAME_S),Darwin)
     ASMFLAGS := ${CFLAGS} -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1
 endif
 
-all: PQCgenKAT_sign
+CTTEST_LIB = libcttest.so
+BUILD_CTLIB = ../build
+
+all: PQCgenKAT_sign $(CTTEST_LIB)
+
+$(CTTEST_LIB): $(OBJ)
+	mkdir -p $(BUILD_CTLIB)
+	$(CC) -shared $(OBJ) $(LIBS) $(CFLAGS) -o $(BUILD_CTLIB)/$(CTTEST_LIB)
 
 %.o: %.s
 	$(CC) -c $(ASMFLAGS) -o $@ $< 

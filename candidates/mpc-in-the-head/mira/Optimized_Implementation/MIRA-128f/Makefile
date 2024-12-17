@@ -3,7 +3,6 @@ SCRIPT_VERSION=v1.0
 SCRIPT_AUTHOR=MIRA team
 
 TOOLS_FLAGS :=
-
 CC=gcc
 C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -fPIC $(TOOLS_FLAGS)
 C_FLAGS_VERBOSE:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -DVERBOSE -fPIC $(TOOLS_FLAGS)
@@ -71,8 +70,8 @@ finite_fields.o: $(FFI_SRC)/finite_fields.c | folders
 
 
 
-all: mira128f-main mira128f-kat mira128f-verbose $(CTTEST_LIB)##@Build Build all the project
 
+all: mira128f-main mira128f-kat mira128f-verbose $(CTTEST_LIB) ##@Build Build all the project
 
 $(CTTEST_LIB): $(MIRA_OBJS) $(LIB_OBJS) | xkcp folders
 	mkdir -p $(BUILD_CTLIB)

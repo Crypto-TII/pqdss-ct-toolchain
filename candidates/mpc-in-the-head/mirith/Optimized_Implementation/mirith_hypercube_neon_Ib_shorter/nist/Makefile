@@ -1,11 +1,19 @@
 CC=gcc
-CFLAGS=-std=c11 -Wall -Wextra -pedantic -flax-vector-conversions -I/opt/homebrew/Cellar/openssl@3/3.1.0/include/ -L/opt/homebrew/Cellar/openssl@3/3.1.0/lib -Wl,-stack_size,0x20000000
+TOOLS_FLAGS :=
+CFLAGS=-std=c11 -Wall -Wextra -pedantic -flax-vector-conversions -I/opt/homebrew/Cellar/openssl@3/3.1.0/include/ -L/opt/homebrew/Cellar/openssl@3/3.1.0/lib -Wl,-stack_size,0x20000000 -fPIC $(TOOLS_FLAGS)
 DEPS=$(wildcard ../*.h)
 LIBS=-lcrypto
 OBJ=rng.o $(subst ../random.o, ,$(patsubst ../%.c,../%.o,$(wildcard ../*.c)))
 OBJ+=$(patsubst ../%.s,../%.o,$(wildcard ../*.s))
 
-all: PQCgenKAT_sign
+CTTEST_LIB = libcttest.so
+BUILD_CTLIB = ../build
+
+all: PQCgenKAT_sign $(CTTEST_LIB)
+
+$(CTTEST_LIB): $(OBJ)
+	mkdir -p $(BUILD_CTLIB)
+	$(CC) -shared $(OBJ) $(LIBS) $(CFLAGS) -o $(BUILD_CTLIB)/$(CTTEST_LIB)
 
 %.o: %.s
 	$(CC) -c $(CFLAGS) -o $@ $< 
