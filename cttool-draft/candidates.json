@@ -15,7 +15,8 @@
       "security_level": {"128":  ["-128-"], "192":  ["-192-"], "256":  ["-256-"]},
       "path_to_bench_binary": null,
       "instances": ["perk-192-short-5", "perk-192-fast-5", "perk-192-fast-3", "perk-192-short-3", "perk-128-fast-5",
-        "perk-256-fast-3", "perk-128-fast-3", "perk-256-fast-5", "perk-128-short-3", "perk-128-short-5", "perk-256-short-3", "perk-256-short-5"]
+        "perk-256-fast-3", "perk-128-fast-3", "perk-256-fast-5", "perk-128-short-3", "perk-128-short-5", "perk-256-short-3", "perk-256-short-5"],
+      "instance_format": null
     },
     "mirith": {
       "path_to_api": "candidates/mpc-in-the-head/mirith/Optimized_Implementation/mirith_avx2_Ia_fast/sign.h",
@@ -42,7 +43,8 @@
         "mirith_hypercube_avx2_IIIb_shortest", "mirith_hypercube_avx2_Ia_shorter",
         "mirith_hypercube_avx2_IIIa_short", "mirith_hypercube_avx2_Ia_short", "mirith_hypercube_avx2_Va_fast",
         "mirith_hypercube_avx2_Va_shortest", "mirith_hypercube_avx2_Ia_fast", "mirith_avx2_Ib_short",
-        "mirith_hypercube_avx2_Va_shorter"]
+        "mirith_hypercube_avx2_Va_shorter"],
+      "instance_format": null
     },
     "mira": {
       "path_to_api": "candidates/mpc-in-the-head/mira/Optimized_Implementation/MIRA-128f/src/api.h",
@@ -58,7 +60,8 @@
       "build_with_makefile": true,
       "compiler": "gcc",
       "path_to_bench_binary": null,
-      "instances": ["MIRA-128f", "MIRA-128s", "MIRA-192f", "MIRA-192s", "MIRA-256f", "MIRA-256s"]
+      "instances": ["MIRA-128f", "MIRA-128s", "MIRA-192f", "MIRA-192s", "MIRA-256f", "MIRA-256s"],
+      "instance_format": null
     },
     "mqom": {
       "path_to_api": "candidates/mpc-in-the-head/mqom/Optimized_Implementation/mqom_cat1_gf31_fast/api.h",
@@ -76,7 +79,8 @@
       "path_to_bench_binary":null,
       "instances": ["mqom_cat5_gf251_short", "mqom_cat5_gf31_short", "mqom_cat3_gf31_fast", "mqom_cat3_gf251_short",
         "mqom_cat5_gf31_fast", "mqom_cat5_gf251_fast", "mqom_cat1_gf251_short", "mqom_cat1_gf31_short",
-        "mqom_cat3_gf251_fast", "mqom_cat1_gf31_fast", "mqom_cat3_gf31_short", "mqom_cat1_gf251_fast"]
+        "mqom_cat3_gf251_fast", "mqom_cat1_gf31_fast", "mqom_cat3_gf31_short", "mqom_cat1_gf251_fast"],
+      "instance_format": null
     },
     "ryde": {
       "path_to_api": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde128f/src/api.h",
@@ -92,7 +96,8 @@
       "build_with_makefile": true,
       "compiler": "gcc",
       "path_to_bench_binary": null,
-      "instances": ["ryde192s", "ryde256s", "ryde192f", "ryde256f", "ryde128f", "ryde128s"]
+      "instances": ["ryde192s", "ryde256s", "ryde192f", "ryde256f", "ryde128f", "ryde128s"],
+      "instance_format": null
     },
     "sdith": {
       "path_to_api": "candidates/mpc-in-the-head/sdith/Optimized_Implementation/Hypercube_Variant/sdith_hypercube_cat1_gf256/api.h",
@@ -111,7 +116,8 @@
         "Threshold_Variant/sdith_threshold_cat1_gf256", "Threshold_Variant/sdith_threshold_cat1_p251", "Threshold_Variant/sdith_threshold_cat3_gf256"],
       "path_to_bench_binary": null,
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"128":  ["_cat1_"], "192":  ["_cat3_"], "256":  ["_cat5_"]}
+      "security_level": {"128":  ["_cat1_"], "192":  ["_cat3_"], "256":  ["_cat5_"]},
+      "instance_format": null
     },
     "less": {
       "path_to_api": "candidates/code/less/Reference_Implementation/include/api.h",
@@ -126,8 +132,9 @@
       "build_with_makefile": false,
       "compiler": "gcc",
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": null,
-      "instances": null
+      "security_level": {"128":  ["1_"], "192":  ["3_"], "256":  ["5_"]},
+      "instances": null,
+      "instance_format": null
     },
     "cross": {
       "path_to_api": "candidates/code/cross/Reference_Implementation/include/api.h",
@@ -141,9 +148,10 @@
       "build_with_makefile": false,
       "compiler": "gcc",
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": null,
+      "security_level": {"128":  ["1_"], "192":  ["3_"], "256":  ["5_"]},
       "instances": null,
-      "path_to_bench_binary": null
+      "path_to_bench_binary": null,
+      "instance_format": null
     },
     "snova": {
       "path_to_api": "candidates/multivariate/snova/api.h",
@@ -157,11 +165,12 @@
       "build_with_makefile": true,
       "compiler": "gcc",
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": null,
+      "security_level": {"128":  ["_37_17_2", "_25_8_3", "_24_5_4"], "192":  ["_56_25_2", "_49_11_3", "_37_8_4"], "256":  ["_75_33_2", "_66_15_3", "_60_10_4"]},
       "instances": null,
-      "path_to_bench_binary": null
+      "path_to_bench_binary": null,
+      "instance_format": {"CRYPTO_ALGNAME":  "SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)"}
     },
-    "pqov": {
+    "pqov1": {
       "path_to_api": "candidates/multivariate/pqov/src/api.h",
       "path_to_rng": "candidates/multivariate/pqov/utils/nistkat/rng.h",
       "path_to_makefile_folder": "candidates/multivariate/pqov",
@@ -175,7 +184,25 @@
       "instances": null,
       "security_level": null,
       "path_to_bench_binary": null,
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"}
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "instance_format": {"BINARY_FORMAT":  "PROJ_$(PROJ)_VARIANT_$(VARIANT)_PARAM_$(PARAM)"}
+    },
+    "pqov": {
+      "path_to_api": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2/III/api.h",
+      "path_to_rng": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2/nistkat/rng.h",
+      "path_to_makefile_folder": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2",
+      "path_to_include_directory": ".",
+      "default_instance": "avx2/III",
+      "optimized_implementation": "pqov_nist_submission/Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm"},
+      "build_with_makefile": true,
+      "compiler": "gcc",
+      "instances": null,
+      "security_level": {"128":  ["Is_", "Ip_"], "192":  ["III"], "256":  ["V_"]},
+      "path_to_bench_binary": null,
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "instance_format": {"BINARY_FORMAT":  "$(PROJ)"}
     },
     "qruov": {
       "path_to_api": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/api.h",
@@ -193,7 +220,8 @@
         "qruov5q7L10v1490m190", "qruov5q31L3v324m114", "qruov5q31L10v1120m120", "qruov5q127L3v306m105"],
       "path_to_bench_binary": null,
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"128":  ["v1"], "192":  ["v3"], "256":  ["v5"]}
+      "security_level": {"128":  ["v1"], "192":  ["v3"], "256":  ["v5"]},
+      "instance_format": null
     },
     "mayo": {
       "path_to_api": "candidates/multivariate/mayo/src/mayo_1/api.h",
@@ -209,7 +237,8 @@
       "path_to_bench_binary": null,
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "security_level": {"128":  ["_1", "_2"], "192":  ["_3"], "256":  ["_5"]},
-      "instances": ["src/mayo_1", "src/mayo_2", "src/mayo_3", "src/mayo_5"]
+      "instances": ["src/mayo_1", "src/mayo_2", "src/mayo_3", "src/mayo_5"],
+      "instance_format": null
     },
     "hawk": {
       "path_to_api": "candidates/lattice/hawk/NIST/Optimized_Implementation/avx2/hawk256/api.h",
@@ -225,7 +254,8 @@
       "instances": ["hawk1024", "hawk256", "hawk512"],
       "security_level": {"128":  ["256"], "192":  ["512"], "256":  ["1024"]},
       "path_to_bench_binary": null,
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"}
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "instance_format": null
     },
     "sqisign": {
       "path_to_api": "candidates/isogeny/sqisign/src/nistapi/lvl1/api.h",
@@ -241,7 +271,8 @@
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "security_level": {"128":  ["-128-"], "192":  ["-192-"], "256":  ["-256-"]},
       "path_to_bench_binary": null,
-      "instances": null
+      "instances": null,
+      "instance_format": null
     }
   },
   "tools": ["binsec", "dudect", "timecop"],
