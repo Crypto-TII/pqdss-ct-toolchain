@@ -199,7 +199,7 @@
       "build_with_makefile": true,
       "compiler": "gcc",
       "instances": null,
-      "security_level": {"128":  ["Is_", "Ip_"], "192":  ["III"], "256":  ["V_"]},
+      "security_level": {"128":  ["Is", "Ip"], "192":  ["III"], "256":  ["V"]},
       "path_to_bench_binary": null,
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "instance_format": {"BINARY_FORMAT":  "$(PROJ)"}
