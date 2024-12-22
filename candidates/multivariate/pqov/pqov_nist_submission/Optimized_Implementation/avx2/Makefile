@@ -10,7 +10,9 @@ endif
 
 SRC_DIR  := $(PROJ)
 
-CFLAGS   := -O3 $(CFLAGS) -std=c99 -Wall -Wextra -Wpedantic -Werror -fno-omit-frame-pointer
+TOOLS_FLAGS :=
+
+CFLAGS   := -O3 $(CFLAGS) -std=c99 -Wall -Wextra -Wpedantic -Werror -fno-omit-frame-pointer -fPIC $(TOOLS_FLAGS)
 INCPATH  := -I/usr/local/include -I/opt/local/include -I/usr/include -I$(SRC_DIR)
 LDFLAGS  := $(LDFLAGS)
 LIBPATH  = -L/usr/local/lib -L/opt/local/lib -L/usr/lib
@@ -35,10 +37,17 @@ ifdef KAT
 endif
 
 
+CTTEST_LIB = libcttest.so
+BUILD_CTLIB = build
+
 .INTERMEDIATE:  $(OBJ)
 .PHONY: all clean
 
-all: $(EXE)
+all: $(CTTEST_LIB) #$(EXE)
+
+$(CTTEST_LIB): $(OBJ)
+	mkdir -p $(BUILD_CTLIB)
+	$(LD) $(LDFLAGS) $(LIBPATH) $(OBJ) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LIBS)
 
 sign_api-test: $(OBJ) sign_api-test.c
 	$(CC) $(CFLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $(LIBS) $^ -o $@
@@ -64,3 +73,4 @@ $(foreach dir, $(SRC_EXT_DIRS), $(eval $(call GEN_O,$(dir))))
 
 clean:
 	-rm -f *.o *.req *.rsp PQCgenKAT_sign $(EXE);
+	-rm -rf $(BUILD_CTLIB)
