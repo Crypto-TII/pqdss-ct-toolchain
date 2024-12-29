@@ -120,6 +120,8 @@ def add_cli_arguments(subparser,
     security_level = None
     # benchmark = False
     benchmark = None
+    # Default tools list
+    default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker", "ctverif"]
     arguments = f"'--entry_point', '-entry-point',dest='entry_point',type=str,default=f'{path_to_user_entry_point}', \
         help='user provided entry file'"
     add_args_commdand = f"candidate_parser.add_argument(f{arguments})"
@@ -190,8 +192,6 @@ def add_cli_arguments(subparser,
     exec(add_args_commdand)
 
     if test_mode == 'ct-tests':
-        # Default tools list
-        default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker", "ctverif"]
         arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = 'tools'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
@@ -231,7 +231,26 @@ def add_cli_arguments(subparser,
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
     if test_mode == 'generic-tests':
-        arguments = (f"'--test_options', '-test_options', dest='test_options', "
-                     f"help = 'Test options'")
+        arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = 'tools'"
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = f"'--target_basename', '-target',dest='target',type=str, help ='target basename'"
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = (f"'--test_harness', '-test_harness',dest='test_harness', type=str, \
+        help = 'path to the test harness file'")
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = f"'--runtime_output_directory', '-runtime_output_directory', dest='runtime', \
+        default='build'"
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = f"'--template_only','-template_only',dest='template_only',help = 'no', default='yes'"
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = f"'--compile_run','-compile_run',dest='compile_run', help='no', default='no'"
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = f"'--redirect_output','-redirect_output',dest='redirect_output', default='yes', help='no'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)

@@ -66,6 +66,14 @@ def from_json_to_python_dict(path_to_json_file: str):
         benchmark_libraries = data['benchmark_libraries']
         return candidates_list, chosen_tools, libraries, benchmark_libraries
 
+def parse_json_to_dict_generic_tests(path_to_json_file: str):
+    with open(path_to_json_file) as json_file:
+        data = json.load(json_file)
+        targets = data['targets']
+        tools = data['tools']
+        return targets, tools
+
+
 
 def tokenize_input_declaration(input_declaration: str):
     type_of_input = None

@@ -9,12 +9,22 @@ import argparse
 import cli as cli
 import pqc_signature as signature
 import benchmarks as bench
+import generics_tests as gen_tests
 
 
 # path to user entry-point
 path_to_user_entry_point = 'cttool-draft/candidates.json'
 ret = signature.from_json_to_python_dict(path_to_user_entry_point)
 candidates_dict, chosen_tools, libraries, benchmark_libraries = ret
+
+
+# GENERICS TESTS: path to user entry-point
+path_to_user_entry_point_generic_tests = 'cttool-draft/generics_tests.json'
+ret_gen_tests = gen_tests.parse_json_to_dict_generic_tests(path_to_user_entry_point_generic_tests)
+targets, generic_tests_chosen_tools = ret_gen_tests
+
+# print("---targets: ", targets)
+# print("---generic_tests_chosen_tools: ", generic_tests_chosen_tools)
 
 
 # run_cli_candidate: Run candidate with CLI
@@ -72,6 +82,14 @@ def run_cli_candidate(args_parse):
                              implementation_type, security_level, number_of_iterations,
                              min_msg_length, max_msg_length, cpu_cores_isolated, compilation, run, custom_benchmark,
                              candidate_benchmark, *add_args, **additional_options)
+
+    elif test_mode == 'generic-tests':
+        targets_basename = args_parse.target
+        tools = args_parse.tools
+        print("_______user_entry_point: ", user_entry_point)
+        print("targets_basename: ", targets_basename)
+        print("tools: ", tools)
+        gen_tests.generic_tests_templates(user_entry_point, targets_basename, tools)
 
 
 # Define a new class action for the flag -a (--all).

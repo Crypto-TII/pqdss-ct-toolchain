@@ -74,25 +74,6 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, tool_flags: 
     os.chdir(cwd)
 
 
-def compile_with_makefile_09_sept(path_to_makefile, default=None, tool_flags: Optional[Union[str, list]] = None):
-    cwd = os.getcwd()
-    os.chdir(path_to_makefile)
-    # Set the tool's flags in the Makefile
-    if tool_flags is not None:
-        tool_cflags = tool_flags[-1]
-        makefile = 'Makefile'
-        set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := {tool_cflags}/g' {makefile}"]
-        subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-    # Run make clean first in case objects files have already been obtained with the flags of a different tool.
-    cmd_clean = ["make", "clean"]
-    subprocess.call(cmd_clean, stdin=sys.stdin)
-    # cmd = ["make"]
-    cmd = ["make", "all"]
-    if default:
-        cmd.append(default)
-    subprocess.call(cmd, stdin=sys.stdin)
-    os.chdir(cwd)
-
 
 def compile_with_makefile(path_to_makefile, default=None,
                           tool_flags: Optional[Union[str, list]] = None, *args, **kwargs):
@@ -106,7 +87,8 @@ def compile_with_makefile(path_to_makefile, default=None,
         makefile = 'Makefile'
         set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := {tool_cflags}/g' {makefile}"]
         subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-        set_tool_flags = [f"sed -i -E 's/(TOOL_LINK_LIBS .+)/TOOL_LINK_LIBS "f'"{tool_link_libs}"'")/g'" + f" {makefile}"]
+        # set_tool_flags = [f"sed -i -E 's/(TOOL_LINK_LIBS .+)/TOOL_LINK_LIBS "f'"{tool_link_libs}"'")/g'" + f" {makefile}"]
+        set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS := .*$/TOOL_LINK_LIBS := {tool_cflags}/g' {makefile}"]
         subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
     # Run make clean first in case objects files have already been obtained with the flags of a different tool.
     cmd_clean = ["make", "clean"]
@@ -114,7 +96,8 @@ def compile_with_makefile(path_to_makefile, default=None,
     additional_options = list(args)
     for key, val in kwargs.items():
         additional_options.append(f'{key}={val}')
-    cmd = ["make"]
+    # cmd = ["make"]
+    cmd = ["make", "all"]
     if not additional_options:
         cmd.append('all')
     cmd.extend(additional_options)
