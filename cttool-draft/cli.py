@@ -121,7 +121,7 @@ def add_cli_arguments(subparser,
     # benchmark = False
     benchmark = None
     # Default tools list
-    default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker", "ctverif"]
+    default_tools_list = ["binsec", "timecop", "dudect", "flowtracker", "ctverif"]
     arguments = f"'--entry_point', '-entry-point',dest='entry_point',type=str,default=f'{path_to_user_entry_point}', \
         help='user provided entry file'"
     add_args_commdand = f"candidate_parser.add_argument(f{arguments})"
@@ -234,7 +234,7 @@ def add_cli_arguments(subparser,
         arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = 'tools'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
-        arguments = f"'--target_basename', '-target',dest='target',type=str, help ='target basename'"
+        arguments = f"'--target_basename', '-target',dest='target', nargs='+', help ='target basename'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
         arguments = (f"'--test_harness', '-test_harness',dest='test_harness', type=str, \
@@ -252,5 +252,16 @@ def add_cli_arguments(subparser,
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
         arguments = f"'--redirect_output','-redirect_output',dest='redirect_output', default='yes', help='no'"
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = (f"'--number_measurements','-number_measurements', dest='number_measurements',\
+         default={number_of_measurements}, help = 'Number of measurements (Dudect)'")
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = (f"'--timeout','-timeout', dest='timeout',\
+         default={timeout}, help = 'timeout (Dudect)'")
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = f"'--depth', '-depth', dest='depth',default='1000000',help = 'depth'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)

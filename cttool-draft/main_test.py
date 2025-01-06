@@ -23,8 +23,6 @@ path_to_user_entry_point_generic_tests = 'cttool-draft/generics_tests.json'
 ret_gen_tests = gen_tests.parse_json_to_dict_generic_tests(path_to_user_entry_point_generic_tests)
 targets, generic_tests_chosen_tools = ret_gen_tests
 
-# print("---targets: ", targets)
-# print("---generic_tests_chosen_tools: ", generic_tests_chosen_tools)
 
 
 # run_cli_candidate: Run candidate with CLI
@@ -86,10 +84,10 @@ def run_cli_candidate(args_parse):
     elif test_mode == 'generic-tests':
         targets_basename = args_parse.target
         tools = args_parse.tools
-        print("_______user_entry_point: ", user_entry_point)
-        print("targets_basename: ", targets_basename)
-        print("tools: ", tools)
-        gen_tests.generic_tests_templates(user_entry_point, targets_basename, tools)
+        number_measurements = args_parse.number_measurements
+        depth = args_parse.depth
+        timeout = args_parse.timeout
+        gen_tests.generic_tests_templates(user_entry_point, targets_basename, tools, number_measurements)
 
 
 # Define a new class action for the flag -a (--all).
@@ -106,7 +104,7 @@ class RunAllCandidates(argparse.Action):
 
 # Create a parser
 parser = argparse.ArgumentParser(prog="tii-constant-time-toolchain",
-                                 description="Constant time check with Binsec, Ctgrind (TIMECOP), Dudect",
+                                 description="Constant time check with Binsec, Timecop, Dudect",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 

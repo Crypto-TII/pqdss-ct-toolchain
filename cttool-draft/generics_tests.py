@@ -265,51 +265,6 @@ def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
     subprocess.call(command, stdin=sys.stdin)
 
 
-def binsec_test_harness_template_29(target_basename: str, target_header_file: str,
-                                 secret_arguments: list, path_to_test_harness: str, includes: list) -> None:
-    """binsec_template_test_harness:  Generate a test harness template (default) for binsec"""
-
-    test_harness_directory_split = path_to_test_harness.split('/')
-    test_harness_directory = "/".join(test_harness_directory_split[:-1])
-    if not os.path.isdir(test_harness_directory):
-        print("Remark: {} is not a directory".format(test_harness_directory))
-        print("--- creating {} directory".format(test_harness_directory))
-        cmd = ["mkdir", "-p", test_harness_directory]
-        subprocess.call(cmd, stdin=sys.stdin)
-    target_obj = Target('', target_basename, target_header_file)
-    arguments_declaration = target_obj.target_args_declaration
-    args_names = target_obj.target_args_names
-    targ_return_type = target_obj.target_return_type
-    args_names_string = ", ".join(args_names)
-    headers_block = f'''
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <string.h>
-    #include <stdint.h>
-    #include <ctype.h>
-    
-    '''
-    main_function_block = f'''
-    
-    int main(){{
-    \t{targ_return_type} result =  {target_basename}({args_names_string});
-    \texit(result);
-    }}
-    '''
-    with open(path_to_test_harness, "w+") as t_harness_file:
-        t_harness_file.write(textwrap.dedent(headers_block))
-        if not includes == []:
-            for incs in includes:
-                t_harness_file.write(f'#include {incs}\n')
-        for decl in arguments_declaration:
-            decl_args = f'{decl}\n'
-            t_harness_file.write(textwrap.dedent(decl_args))
-        t_harness_file.write(textwrap.dedent(main_function_block))
-    path_to_config_file = f'{test_harness_directory}/checkct.cfg'
-    target_public_inputs = [arg for arg in args_names if arg not in secret_arguments]
-    # binsec_configuration_file(path_to_config_file, secret_arguments, target_public_inputs)
-
-
 def configuration_file(cfg_file_sign, secret_arguments: Union[str, list], public_arguments: Optional[Union[str, list]],
                        assumption: Optional[str] = None):
 
@@ -423,14 +378,315 @@ def binsec_test_harness_template(target_basename: str, target_call: str,  target
     configuration_file(path_to_config_file, secret_arguments, target_public_inputs)
 
 
-def parse_target_json_file1(targets_dict: dict, target: str):
-    targets = targets_dict.keys()
-    if target not in targets:
-        # We should raise an error
-        print("There is no target named {}".format(target))
-        return None
+# random_data = {'VAR_NAME': ["VAR_TYPE", "VAR_LENGTH"]}
+def timecop_allocate_data(random_data: dict):
+    random_data_block = f''''''
+    if random_data:
+        for key, value in random_data.items():
+            random_data_block += f'''
+            {key} = ({value[0]} *)calloc({value[1]}, sizeof({value[0]}));'''
+    return random_data_block
+
+
+# random_data = {'VAR_NAME': ["VAR_TYPE", "VAR_LENGTH"]}
+def dudect_allocate_data(random_data: dict):
+    random_data_block = f''''''
+    total_size = '0'
+    if random_data:
+        for key, value in random_data.items():
+            random_data_block += f'''
+            {key} = ({value[0]} *)data + {total_size};'''
+            total_size += f' + {value[1]} * sizeof({value[0]})'
+    return random_data_block, total_size
+
+
+# msg = data;
+# key = msg + sizeof(msg)
+
+# secret_parameters = {'VAR_NAME': ["VAR_TYPE", "VAR_LENGTH"]}
+def poison_secret_input_blocks(secret_parameters: dict):
+    poison_block = f''''''
+    unpoison_block = f''''''
+    if secret_parameters:
+        for key, value in secret_parameters.items():
+            poison_block += f'''
+            poison({key}, {value[1]} * sizeof({value[0]}));'''
+            unpoison_block += f'''
+            unpoison({key}, {value[1]} * sizeof({value[0]}));'''
     else:
-        return targets_dict[target]
+        print("Attention: No secret parameters is given")
+    return poison_block, unpoison_block
+
+
+# random_data = {'VAR_NAME': ["VAR_TYPE", "VAR_LENGTH"]}
+def get_secret_input_lengths(secret_inputs: Union[str, list], random_data: dict,
+                             target_input_declaration: Union[str, list]):
+    secret_inputs_with_length = {}
+    random_data_list = []
+    if random_data:
+        random_data_list = random_data.keys()
+    for sec_param in secret_inputs:
+        if sec_param in random_data_list:
+            secret_inputs_with_length[sec_param] = random_data[sec_param]
+        else:
+            for decl in target_input_declaration:
+                if f'{sec_param}[' in decl or f'{sec_param} [' in decl:
+                    length = decl[decl.find("[")+1:decl.find("]")]
+                    type_of_sec_param = decl.split(sec_param)[0]
+                    secret_inputs_with_length[sec_param] = [type_of_sec_param, length]
+                    break
+    return secret_inputs_with_length
+
+
+def timecop_get_type_of_inputs(target_function_call: str, target_input_declaration: Union[str, list]):
+    target_call_custom = target_function_call.replace('&', '')
+    target_call_custom = target_call_custom.replace(',', '')
+    target_all_inputs = target_call_custom[target_call_custom.find("(")+1:target_call_custom.find(")")]
+    target_all_inputs = target_all_inputs.split()
+    target_inputs_type = []
+    for i in range(len(target_input_declaration)):
+        decl = target_input_declaration[i].strip()
+        input_type = ''
+        if '[' not in decl and ']' not in decl:
+            if '*' in decl:
+                input_type = decl.split('*')[0]
+                target_inputs_type.append([target_all_inputs[i], input_type.strip()])
+    return target_inputs_type
+
+
+def timecop_test_harness_template(target_basename: str, target_call: str,  target_return_type: str,
+                                  target_includes: Union[str, list], target_input_declaration: Union[str, list],
+                                  secret_arguments: Union[str, list], random_data: Optional[Union[list, dict]],
+                                  path_to_test_harness: Optional[str] = None,
+                                  target_macro: Optional[Union[str, list, dict]] = None) -> None:
+    """timecop_test_harness_template:  Generate a test harness template (default) for timecop"""
+    test_harness_directory = f'timecop/{target_basename}'
+    target_test_harness = path_to_test_harness
+    if path_to_test_harness:
+        test_harness_directory = os.path.dirname(path_to_test_harness)
+    else:
+        target_test_harness = f'{test_harness_directory}/{target_basename}.c'
+    util.create_directory(test_harness_directory)
+    macros = ''
+    macro = ''
+    if target_macro:
+        if isinstance(target_macro, list):
+            for macro in target_macro:
+                macro = macro.strip()
+                if not macro.startswith('#define'):
+                    macro = f'#define {macro}'
+                macros += f'{macro}'
+        elif isinstance(target_macro, str):
+            if not target_macro.startswith('#define'):
+                macro = f'#define {target_macro}'
+            macros += f'{macro}'
+        elif isinstance(target_macro, dict):
+            for macro_name, macro_value in target_macro.items():
+                if not macro_name.startswith('#define'):
+                    macro = f'#define {macro_name} {macro_value}'
+                macros += f'{macro}'
+    # target_inputs_declaration = f'''
+    # '''
+    # random_data_block = f''''''
+    type_of_random_data = timecop_get_type_of_inputs(target_call, target_input_declaration)
+    random_data_updated = {}
+    parameter_index = 0
+    if random_data:
+        for parameter, parameter_length in random_data.items():
+            random_data_updated[parameter] = [type_of_random_data[parameter_index][1], parameter_length]
+        parameter_index += 1
+    random_data_block = timecop_allocate_data(random_data_updated)
+    secret_parameters_with_sizes = get_secret_input_lengths(secret_arguments,
+                                                            random_data_updated, target_input_declaration)
+    poison_block, unpoison_block = poison_secret_input_blocks(secret_parameters_with_sizes)
+    target_inputs_declaration = f''''''
+    for decl in target_input_declaration:
+        if not decl.endswith(';'):
+            decl += ';'
+        target_inputs_declaration += f'''
+        {decl}'''
+    target_call = target_call.strip()
+    if not target_call.endswith(';'):
+        target_call += ';'
+    target_result = ''
+    target_exit_point = ''
+    if target_return_type.strip() == 'void':
+        target_exit_point = 'return 0;'
+    else:
+        target_result = f'{target_return_type} ct_result = '
+        target_exit_point = 'return ct_result;'
+    ct_test_target_call = f'{target_result}{target_call}'
+    target_includes_headers = ''
+    if isinstance(target_includes, list):
+        for incs in target_includes:
+            target_includes_headers += f'#include "{incs}"'
+    elif isinstance(target_includes, str):
+        for incs in target_includes.split():
+            target_includes_headers += f'{incs}'
+    headers_block = f'''
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <stdint.h>
+    #include <ctype.h>
+    '''
+    main_function_block = f'''
+    int main(){{
+    \t{target_inputs_declaration}
+    \t{random_data_block}
+    \t{poison_block}
+    \t{ct_test_target_call}
+    \t{unpoison_block}
+    \t{target_exit_point}
+    }}
+    '''
+    target_test_harness_content = f'''
+    {headers_block}
+    {target_includes_headers}
+    {macros}
+    {main_function_block}
+    '''
+
+    with open(target_test_harness, "w+") as t_harness_file:
+        t_harness_file.write(textwrap.dedent(target_test_harness_content))
+
+
+def dudect_test_harness_template(target_basename: str, target_call: str,  target_return_type: str,
+                                 target_includes: Union[str, list], target_input_declaration: Union[str, list],
+                                 secret_arguments: Union[str, list], random_data: Optional[Union[list, dict]],
+                                 path_to_test_harness: Optional[str] = None,
+                                 number_of_measurement: Optional[Union[str, int]] = '1e5',
+                                 target_macro: Optional[Union[str, list, dict]] = None) -> None:
+    """dudect_test_harness_template:  Generate a test harness template (default) for dudect"""
+    test_harness_directory = f'dudect/{target_basename}'
+    target_test_harness = path_to_test_harness
+    if path_to_test_harness:
+        test_harness_directory = os.path.dirname(path_to_test_harness)
+    else:
+        target_test_harness = f'{test_harness_directory}/{target_basename}.c'
+    util.create_directory(test_harness_directory)
+    macros = ''
+    macro = ''
+    if target_macro:
+        if isinstance(target_macro, list):
+            for macro in target_macro:
+                macro = macro.strip()
+                if not macro.startswith('#define'):
+                    macro = f'#define {macro}'
+                macros += f'{macro}'
+        elif isinstance(target_macro, str):
+            if not target_macro.startswith('#define'):
+                macro = f'#define {target_macro}'
+            macros += f'{macro}'
+        elif isinstance(target_macro, dict):
+            for macro_name, macro_value in target_macro.items():
+                if not macro_name.startswith('#define'):
+                    macro = f'#define {macro_name} {macro_value}'
+                macros += f'{macro}'
+    type_of_random_data = timecop_get_type_of_inputs(target_call, target_input_declaration)
+    random_data_updated = {}
+    parameter_index = 0
+    if random_data:
+        for parameter, parameter_length in random_data.items():
+            random_data_updated[parameter] = [type_of_random_data[parameter_index][1], parameter_length]
+        parameter_index += 1
+    secret_parameters_with_sizes = get_secret_input_lengths(secret_arguments,
+                                                            random_data_updated, target_input_declaration)
+    if secret_parameters_with_sizes:
+        parameter_index = 0
+        for secret_input, secret_input_size in secret_parameters_with_sizes.items():
+            random_data_updated[secret_input] = secret_input_size
+            parameter_index += 1
+    random_data_block, total_data_size = dudect_allocate_data(random_data_updated)
+    target_inputs_declaration = f''''''
+    for decl in target_input_declaration:
+        if not decl.endswith(';'):
+            decl += ';'
+        target_inputs_declaration += f'''
+        {decl}'''
+    target_call = target_call.strip()
+    if not target_call.endswith(';'):
+        target_call += ';'
+    target_result = ''
+    target_exit_point = ''
+    if target_return_type.strip() == 'void':
+        target_exit_point = 'return 0;'
+    else:
+        target_result = f'{target_return_type} ct_result = '
+        target_exit_point = 'return ct_result;'
+    ct_test_target_call = f'{target_result}{target_call}'
+    target_includes_headers = ''
+    if isinstance(target_includes, list):
+        for incs in target_includes:
+            target_includes_headers += f'#include "{incs}"'
+    elif isinstance(target_includes, str):
+        for incs in target_includes.split():
+            target_includes_headers += f'{incs}'
+    headers_block = f'''
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #include <stdint.h>
+    #include <ctype.h>
+    '''
+
+    do_one_computation_block = f'''
+    uint8_t do_one_computation(uint8_t *data) {{
+    \t{target_inputs_declaration}
+    \t{random_data_block}
+    \t{ct_test_target_call}
+    \t{target_exit_point}
+    }}
+    '''
+    prepare_inputs_block = f'''
+    void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
+    \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
+    \tfor (size_t i = 0; i < c->number_measurements; i++) {{
+    \t\tclasses[i] = randombit();
+    \t\t\tif (classes[i] == 0) {{
+    \t\t\t\tmemset(input_data + (size_t)i * c->chunk_size, 0x00, c->chunk_size);
+    \t\t\t}} else {{
+        // leave random
+    \t\t\t}}
+    \t\t}}
+    \t}}
+    '''
+    main_function_block = f'''
+    int main(int argc, char **argv)
+    {{
+    \t(void)argc;
+    \t(void)argv;
+
+    \tdudect_config_t config = {{
+    \t\t.chunk_size = {total_data_size},
+    \t\t.number_measurements = NUMBER_OF_MEASUREMENTS,
+    \t}};
+    \tdudect_ctx_t ctx;
+
+    \tdudect_init(&ctx, &config);
+
+    \tdudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
+    \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
+    \t\tstate = dudect_main(&ctx);
+    \t}}
+    \tdudect_free(&ctx);
+    \treturn (int)state;
+    }}
+    '''
+    dudect_test_harness_block = f'''
+    {headers_block}
+    {target_includes_headers}
+    #define DUDECT_IMPLEMENTATION
+    #include <dudect.h>
+    {macros}
+    #define NUMBER_OF_MEASUREMENTS {number_of_measurement}
+    {do_one_computation_block}
+    {prepare_inputs_block}
+    {main_function_block}
+    '''
+
+    with open(target_test_harness, "w+") as t_harness_file:
+        t_harness_file.write(textwrap.dedent(dudect_test_harness_block))
 
 
 def parse_target_json_file(targets_dict: Optional[Union[list, dict]], target: str):
@@ -455,29 +711,8 @@ def parse_target_json_file(targets_dict: Optional[Union[list, dict]], target: st
             return None
 
 
-def generic_template1(target_basename: str, tool: str, targets_dict: dict):
-    print("----generic_template-------")
-    print("......targets_dict: ", targets_dict)
-    target_dict = parse_target_json_file(targets_dict, target_basename)
-    print("<<<<<<<<<<...target_dict: ", target_dict)
-    target_dict = target_dict[target_basename]
-    target_call = target_dict['target_call']
-    target_return_type = target_dict['target_return_type']
-    target_input_declaration = target_dict['target_input_declaration']
-    target_includes = target_dict['target_include_header']
-    target_secret_inputs = target_dict['secret_inputs']
-    target_macro = target_dict['macro']
-    if tool.strip() == 'binsec':
-        binsec_test_harness_template(target_basename, target_call, target_return_type, target_includes,
-                                     target_input_declaration, target_secret_inputs,
-                                     None, target_macro)
-    if tool.strip() == 'timecop':
-        print("-------IN PROGRESS: timecop")
-    if tool.strip() == 'dudect':
-        print("-------IN PROGRESS: dudect")
-
-
-def generic_template(target_basename: str, tools: Union[str, list], targets_dict: dict):
+def generic_template(target_basename: str, tools: Union[str, list], targets_dict: dict,
+                     number_of_measurement: Optional[Union[str, int]] = '1e5'):
     target_dict = parse_target_json_file(targets_dict, target_basename)
     target_dict = target_dict[target_basename]
     target_call = target_dict['target_call']
@@ -486,19 +721,25 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
     target_includes = target_dict['target_include_header']
     target_secret_inputs = target_dict['secret_inputs']
     target_macro = target_dict['macro']
+    random_data = target_dict['random_data']
     for tool in tools:
         if tool.strip() == 'binsec':
             binsec_test_harness_template(target_basename, target_call, target_return_type, target_includes,
                                          target_input_declaration, target_secret_inputs,
                                          None, target_macro)
         if tool.strip() == 'timecop':
-            print("-------IN PROGRESS: timecop")
+            timecop_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
+                                          target_input_declaration, target_secret_inputs, random_data,
+                                          None, target_macro)
         if tool.strip() == 'dudect':
-            print("-------IN PROGRESS: dudect")
+            dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
+                                         target_input_declaration, target_secret_inputs, random_data,
+                                         None, number_of_measurement, target_macro)
 
 
 def generic_tests_templates(user_entry_point: str, targets: Optional[Union[str, list]] = None,
-                            tools: Optional[Union[str, list]] = None):
+                            tools: Optional[Union[str, list]] = None,
+                            number_of_measurement: Optional[Union[str, int]] = '1e5'):
     ret_gen_tests = parse_json_to_dict_generic_tests(user_entry_point)
     all_targets, generic_tests_chosen_tools = ret_gen_tests
     chosen_tools = generic_tests_chosen_tools
@@ -512,7 +753,7 @@ def generic_tests_templates(user_entry_point: str, targets: Optional[Union[str, 
         elif isinstance(targets, str):
             targets_under_tests.extend(targets.split())
     for target in targets_under_tests:
-        generic_template(target, chosen_tools, all_targets)
+        generic_template(target, chosen_tools, all_targets, number_of_measurement)
 
 
 
@@ -604,7 +845,7 @@ def ctgrind_test_harness_template(target_basename: str, target_header_file: str,
         t_harness_file.write(textwrap.dedent(main_content_block))
 
 
-def dudect_test_harness_template(target_basename: str, target_header_file: str,
+def dudect_test_harness_template1(target_basename: str, target_header_file: str,
                                  secret_arguments: list, path_to_test_harness: str, includes: list) -> None:
     """dudect_template_test_harness:  Generate a test harness template (default) for dudect"""
 
