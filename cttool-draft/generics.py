@@ -448,7 +448,7 @@ def compile_with_makefile(path_to_makefile, default=None, *args, **kwargs):
     additional_options = list(args)
     for key, val in kwargs.items():
         additional_options.append(f'{key}={val}')
-    cmd = ["make"]
+    cmd = ["make", "all"]
     if not additional_options:
         cmd.append('all')
     cmd.extend(additional_options)
