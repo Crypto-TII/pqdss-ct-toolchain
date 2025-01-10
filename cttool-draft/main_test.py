@@ -24,7 +24,6 @@ ret_gen_tests = gen_tests.parse_json_to_dict_generic_tests(path_to_user_entry_po
 targets, generic_tests_chosen_tools = ret_gen_tests
 
 
-
 # run_cli_candidate: Run candidate with CLI
 def run_cli_candidate(args_parse):
     """ Function: run_cli_candidate"""
@@ -82,12 +81,31 @@ def run_cli_candidate(args_parse):
                              candidate_benchmark, *add_args, **additional_options)
 
     elif test_mode == 'generic-tests':
+        print(":::::::Running generic constant-time tests")
         targets_basename = args_parse.target
         tools = args_parse.tools
         number_measurements = args_parse.number_measurements
         depth = args_parse.depth
         timeout = args_parse.timeout
-        gen_tests.generic_tests_templates(user_entry_point, targets_basename, tools, number_measurements)
+
+        template_only = args_parse.template_only
+        compile_test_harness_and_run = args_parse.compile_run
+        run_test_only = args_parse.run_test_only
+        if 'y' in template_only.lower():
+            template_only = True
+        else:
+            template_only = False
+        if 'y' in compile_test_harness_and_run.lower():
+            compile_test_harness_and_run = True
+        else:
+            compile_test_harness_and_run = False
+        if 'y' in run_test_only.lower():
+            run_test_only = True
+        else:
+            run_test_only = False
+        # gen_tests.generic_tests_templates(user_entry_point, targets_basename, tools, number_measurements)
+        gen_tests.generic_tests_templates(user_entry_point, targets_basename, tools, number_measurements,
+                                          template_only, compile_test_harness_and_run, run_test_only)
 
 
 # Define a new class action for the flag -a (--all).

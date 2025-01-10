@@ -1212,7 +1212,9 @@ def run_benchmarks_all_candidates(candidates_dict: dict, implementation_type='op
                                   cpu_core_isolated: Union[str, list] = '1', *args, **kwargs):
     list_of_candidates = list(candidates_dict.keys())
     print("------:::::::::::list_of_candidates: ", list_of_candidates)
-    list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "qruov", "snova", "hawk", "cross", "less", "sqisign"]
+    # list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "qruov", "snova", "hawk", "cross", "less", "sqisign"]
+    # candidates that required specific options to be benched: pqov, snova, sqisign, qruov
+    list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "hawk", "cross", "less", "qruov"]
     print("------:::::::::::list_of_candidates::::::::: ", list_of_candidates)
     for candidate in list_of_candidates:
         instances = None
