@@ -245,10 +245,10 @@ def add_cli_arguments(subparser,
         default='build'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
-        arguments = f"'--template_only','-template_only',dest='template_only',help = 'No', default='No'"
+        arguments = f"'--template_only','-template_only',dest='template_only',help = 'no', default='no'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
-        arguments = f"'--compile_run','-compile_run',dest='compile_run', help='yes', default='yes'"
+        arguments = f"'--compile_run','-compile_run',dest='compile_run', help='no', default='no'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
         arguments = f"'--redirect_output','-redirect_output',dest='redirect_output', default='yes', help='no'"

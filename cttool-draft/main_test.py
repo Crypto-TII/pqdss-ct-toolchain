@@ -82,6 +82,7 @@ def run_cli_candidate(args_parse):
 
     elif test_mode == 'generic-tests':
         print(":::::::Running generic constant-time tests")
+        print("!!!!!!!!!!: user_entry_point: ", user_entry_point)
         targets_basename = args_parse.target
         tools = args_parse.tools
         number_measurements = args_parse.number_measurements
@@ -91,6 +92,24 @@ def run_cli_candidate(args_parse):
         template_only = args_parse.template_only
         compile_test_harness_and_run = args_parse.compile_run
         run_test_only = args_parse.run_test_only
+        print("---------A: template_only: ", template_only)
+        print("---------A: compile_test_harness_and_run: ", compile_test_harness_and_run)
+        print("---------A: run_test_only: ", run_test_only)
+        # if 'y' in template_only.lower():
+        #     template_only = True
+        #     compile_test_harness_and_run = 'no'
+        # else:
+        #     template_only = False
+        #     compile_test_harness_and_run = 'yes'
+        # if 'y' in compile_test_harness_and_run.lower():
+        #     compile_test_harness_and_run = True
+        # else:
+        #     compile_test_harness_and_run = False
+        # if 'y' in run_test_only.lower():
+        #     run_test_only = True
+        #     compile_test_harness_and_run = False
+        # else:
+        #     run_test_only = False
         if 'y' in template_only.lower():
             template_only = True
         else:
@@ -103,6 +122,11 @@ def run_cli_candidate(args_parse):
             run_test_only = True
         else:
             run_test_only = False
+
+        print("---------template_only: ", template_only)
+        print("---------compile_test_harness_and_run: ", compile_test_harness_and_run)
+        print("---------run_test_only: ", run_test_only)
+        # print("---------template_only: ", template_only)
         # gen_tests.generic_tests_templates(user_entry_point, targets_basename, tools, number_measurements)
         gen_tests.generic_tests_templates(user_entry_point, targets_basename, tools, number_measurements,
                                           template_only, compile_test_harness_and_run, run_test_only)
@@ -130,7 +154,7 @@ subparser = parser.add_subparsers(help="", dest='tii_ct_toolchain')
 
 cli.add_cli_arguments(subparser, 'ct-tests', path_to_user_entry_point, '')
 cli.add_cli_arguments(subparser, 'benchmark', path_to_user_entry_point, '')
-cli.add_cli_arguments(subparser, 'generic-tests', path_to_user_entry_point, '')
+cli.add_cli_arguments(subparser, 'generic-tests', path_to_user_entry_point_generic_tests, '')
 
 
 parser.add_argument('-a', '--all',
