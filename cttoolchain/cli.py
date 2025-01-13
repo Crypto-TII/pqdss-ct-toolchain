@@ -11,85 +11,6 @@ import sys
 from typing import Optional, Union, List
 
 
-def cli_generate_template(subparser, path_to_entry_point_file: str, default_tools_list: List[str],
-                          default_targets_list: List[str], tools_list: Optional[Union[list, str]] = None,
-                          list_of_targets: Optional[Union[list, str]] = None, test_mode: Optional[str] = None):
-
-    if test_mode:
-        generic_parser = subparser.add_parser(f'{test_mode}',
-                                              help=f'{test_mode}:...',
-                                              formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    else:
-        # TO BE EDITED ===================
-        generic_parser = subparser.add_parser('tests',
-                                              help='tests: ...',
-                                              formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-    arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = '{tools_list}'"
-    add_args_commdand = f"generic_parser.add_argument({arguments})"
-    exec(add_args_commdand)
-    arguments = f"'--entry_point', '-entry-point',dest='entry_point',type=str,default=f'{path_to_entry_point_file}', \
-    help='user provided entry file'"
-    add_args_commdand = f"generic_parser.add_argument(f{arguments})"
-    exec(add_args_commdand)
-    arguments = (f"'--target_basename', '-targets', dest='targets', nargs='+', default={default_targets_list},"
-                 f" help = '{list_of_targets}'")
-    add_args_commdand = f"generic_parser.add_argument({arguments})"
-    exec(add_args_commdand)
-
-    arguments = f"'--compilation', '-compilation', dest='compilation', type=str,default='Yes', \
-    help='Compile target'"
-    add_args_commdand = f"generic_parser.add_argument(f{arguments})"
-    exec(add_args_commdand)
-    arguments = f"'--run', '-run',dest='run',type=str, default='Yes', \
-    help='run test on given target with given tool'"
-    add_args_commdand = f"generic_parser.add_argument(f{arguments})"
-    exec(add_args_commdand)
-    arguments = (f"'--additional_tool_options', '-add_options', dest='add_options', nargs='*', default='',"
-                 f" help = 'Additional options'")
-    add_args_commdand = f"generic_parser.add_argument({arguments})"
-    exec(add_args_commdand)
-
-    arguments = f"'--timeout', '-timeout', dest='timeout', type=str,default='', \
-    help='Timeout. Refer to the tool options'"
-    add_args_commdand = f"generic_parser.add_argument(f{arguments})"
-    exec(add_args_commdand)
-
-
-def cli_generate_template1(subparser, path_to_entry_point_file: str, default_tools_list: List[str],
-                           default_targets_list: List[str], tools_list: Optional[Union[list, str]] = None,
-                           list_of_targets: Optional[Union[list, str]] = None, test_mode: Optional[str] = None):
-    generic_parser = subparser.add_parser(f'{test_mode}',
-                                          help=f'{test_mode}:...',
-                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = '{tools_list}'"
-    add_args_commdand = f"generic_parser.add_argument({arguments})"
-    exec(add_args_commdand)
-    arguments = f"'--entry_point', '-entry-point',dest='entry_point',type=str,default=f'{path_to_entry_point_file}', \
-        help='user provided entry file'"
-    add_args_commdand = f"generic_parser.add_argument(f{arguments})"
-    exec(add_args_commdand)
-    arguments = (f"'--target_basename', '-targets', dest='targets', nargs='+', default={default_targets_list},"
-                 f" help = '{list_of_targets}'")
-    add_args_commdand = f"generic_parser.add_argument({arguments})"
-    exec(add_args_commdand)
-    if test_mode == 'compile':
-        arguments = f"'--compilation', '-compilation', dest='compilation', type=str,default='Yes', \
-        help='Compile target'"
-        add_args_commdand = f"generic_parser.add_argument(f{arguments})"
-        exec(add_args_commdand)
-    elif test_mode == 'run':
-        arguments = f"'--run', '-run',dest='run',type=str, default='Yes', \
-        help='run test on given target with given tool'"
-        add_args_commdand = f"generic_parser.add_argument(f{arguments})"
-        exec(add_args_commdand)
-
-        arguments = (f"'--additional_tool_options', '-add_options', dest='add_options', nargs='+', default='',"
-                     f" help = 'Additional options'")
-        add_args_commdand = f"generic_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-
-
 # add_cli_arguments: create a parser for a given candidate
 def add_cli_arguments(subparser,
                       test_mode,
@@ -110,18 +31,11 @@ def add_cli_arguments(subparser,
     candidate_parser = subparser.add_parser(f'{test_mode}',
                                             help=f'{test_mode}:...',
                                             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    # candidate_parser = subparser.add_parser(f'{candidate}',
-    #                                         help=f'{candidate}:...',
-    #                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-
-    default_libraries_names = ['cttest_binsec', 'cttest_ctgrind', 'cttest_dudect']
     cpu_cores_isolated = ["1", "2", "3"]
     security_level = None
-    # benchmark = False
     benchmark = None
     # Default tools list
-    default_tools_list = ["binsec", "timecop", "dudect", "flowtracker", "ctverif"]
+    default_tools_list = ["binsec", "timecop", "dudect"]
     arguments = f"'--entry_point', '-entry-point',dest='entry_point',type=str,default=f'{path_to_user_entry_point}', \
         help='user provided entry file'"
     add_args_commdand = f"candidate_parser.add_argument(f{arguments})"
@@ -191,7 +105,7 @@ def add_cli_arguments(subparser,
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
 
-    if test_mode == 'ct-tests':
+    if test_mode == 'pqdss-ct-tests':
         arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = 'tools'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
@@ -206,7 +120,7 @@ def add_cli_arguments(subparser,
         arguments = f"'--depth', '-depth', dest='depth',default='1000000',help = 'depth'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
-    if test_mode == 'benchmark':
+    if test_mode == 'pqdss-benchmarks':
         default_algorithms.append('verify')
         arguments = (f"'--benchmark_keyword', '-bench_keywords', dest='bench_keywords', nargs='+',"
                      f"default='', help = 'Benchmarks average, mean, quartile'")
@@ -230,7 +144,7 @@ def add_cli_arguments(subparser,
                      f"help = 'Candidates benchmark'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
-    if test_mode == 'generic-tests':
+    if test_mode == 'generic-ct-tests':
         arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = 'tools'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)

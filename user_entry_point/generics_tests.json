@@ -6,26 +6,26 @@
         "target_return_type": "int",
         "target_input_declaration": ["uint8_t * array", "uint8_t *array2", "int length"],
         "target_include_header": ["tests.h"],
-        "link_binary": null,
-        "path_to_include_directory": null,
+        "link_binary": "examples/cttest.so",
+        "path_to_include_directory": "examples",
         "secret_inputs": ["array", "array2"],
         "compiler": "gcc",
-        "macro": ["KEY_LENGTH 120"],
-        "random_data": {"array":"120", "array2":"120"}
+        "macro": ["ARRAY_SIZE 120"],
+        "random_data": {"array":"ARRAY_SIZE", "array2":"ARRAY_SIZE"}
       }
     },
     {
       "ct_compare_byte_arrays": {
         "target_call": "ct_compare_byte_arrays(array1, array2, length)",
         "target_return_type": "void",
-        "target_input_declaration": ["uint8_t array1[120]", "uint8_t * array2", "int length"],
+        "target_input_declaration": ["uint8_t array1[120]", "uint8_t *array2", "int length = 120"],
         "target_include_header": ["tests.h"],
-        "link_binary": null,
-        "path_to_include_directory": null,
+        "link_binary": "examples/cttest.so",
+        "path_to_include_directory": "examples",
         "secret_inputs": ["array1"],
         "compiler": "gcc",
-        "macro": {"KEY_LENGTH": 120},
-        "random_data": {"array2":"120"}
+        "macro": {"ARRAY_SIZE": 120},
+        "random_data": {"array2": "120"}
       }
     }
 

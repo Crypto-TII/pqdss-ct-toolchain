@@ -7,19 +7,19 @@
 import argparse
 
 import cli as cli
-import pqc_signature as signature
-import benchmarks as bench
-import generics_tests as gen_tests
+import pqdss_ct_tests as signature
+import pqdss_benchmarks as bench
+import generics_ct_tests as gen_tests
 
 
 # path to user entry-point
-path_to_user_entry_point = 'cttool-draft/candidates.json'
+path_to_user_entry_point = 'user_entry_point/candidates.json'
 ret = signature.from_json_to_python_dict(path_to_user_entry_point)
 candidates_dict, chosen_tools, libraries, benchmark_libraries = ret
 
 
 # GENERICS TESTS: path to user entry-point
-path_to_user_entry_point_generic_tests = 'cttool-draft/generics_tests.json'
+path_to_user_entry_point_generic_tests = 'user_entry_point/generics_tests.json'
 ret_gen_tests = gen_tests.parse_json_to_dict_generic_tests(path_to_user_entry_point_generic_tests)
 targets, generic_tests_chosen_tools = ret_gen_tests
 
@@ -49,7 +49,7 @@ def run_cli_candidate(args_parse):
     if add_kwargs_list:
         additional_options = dict([n for n in pair.split('=')] for pair in add_kwargs_list)
     security_level = args_parse.security_level
-    if test_mode == 'ct-tests':
+    if test_mode == 'pqdss-ct-tests':
         print(":::::::Running constant time tests")
         tools = args_parse.tools
         number_measurements = args_parse.number_measurements
@@ -60,7 +60,7 @@ def run_cli_candidate(args_parse):
         signature.run_tests(user_entry_point, tools, candidate, instances, all_candidates_dict, direct_link_to_library,
                             number_measurements, compilation, run, algorithms, depth, timeout, implementation_type,
                             security_level, additional_cmake_definitions, *add_args, **additional_options)
-    elif test_mode == 'benchmark':
+    elif test_mode == 'pqdss-benchmarks':
         print(":::::::Running Benchmarks")
         number_of_iterations = args_parse.iterations
         min_msg_length = args_parse.min_msg_len
@@ -80,7 +80,8 @@ def run_cli_candidate(args_parse):
                              min_msg_length, max_msg_length, cpu_cores_isolated, compilation, run, custom_benchmark,
                              candidate_benchmark, *add_args, **additional_options)
 
-    elif test_mode == 'generic-tests':
+    elif test_mode == 'generic-ct-tests':
+        print("------Running: generic-ct-tests")
         targets_basename = args_parse.target
         tools = args_parse.tools
         number_measurements = args_parse.number_measurements
@@ -126,9 +127,9 @@ parser = argparse.ArgumentParser(prog="tii-constant-time-toolchain",
 
 subparser = parser.add_subparsers(help="", dest='tii_ct_toolchain')
 
-cli.add_cli_arguments(subparser, 'ct-tests', path_to_user_entry_point, '')
-cli.add_cli_arguments(subparser, 'benchmark', path_to_user_entry_point, '')
-cli.add_cli_arguments(subparser, 'generic-tests', path_to_user_entry_point_generic_tests, '')
+cli.add_cli_arguments(subparser, 'pqdss-ct-tests', path_to_user_entry_point, '')
+cli.add_cli_arguments(subparser, 'pqdss-benchmarks', path_to_user_entry_point, '')
+cli.add_cli_arguments(subparser, 'generic-ct-tests', path_to_user_entry_point_generic_tests, '')
 
 
 parser.add_argument('-a', '--all',

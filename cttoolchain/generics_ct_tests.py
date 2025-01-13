@@ -96,6 +96,8 @@ def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
         path_to_target_wrapper = f'{path_to_target_wrapper}.c'
     cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
     cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
+    print("cmd: ")
+    print(cmd)
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
 
@@ -951,6 +953,9 @@ def generic_tests_templates(user_entry_point: str, targets: Optional[Union[str, 
             targets_under_tests = targets
         elif isinstance(targets, str):
             targets_under_tests.extend(targets.split())
+    else:
+        for target in all_targets:
+            targets_under_tests.append(list(target.keys())[0])
     for target in targets_under_tests:
         generic_template(target, chosen_tools, all_targets, number_of_measurement,
                          template_only, compile_test_harness_and_run, run_test_only)
