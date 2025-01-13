@@ -1,53 +1,40 @@
-# Toolchain consisting of binsec - timecop - dudect - flowtracker
+# Toolchain consisting of binsec - timecop - dudect
 
 
 ## What is in this repository ? 
 This repository contains the following folders:
 
-* `candidates`: contains the Post-Quantum Digital Signatures Schemes (PQDSS) implementations, submitted in the context of NIST Call
+* `candidates`: contains the Post-Quantum Digital Signatures Schemes (PQDSS) implementations, selected for the 2nd round at the NIST Call
   for proposals for PQC-based signature schemes. The candidates are classified according to the type-based signature scheme. Here
-  are the different folders: `code`, `lattice`, `mpc-in-the-head`, `symmetric`, `isogeny`, `mutlivariate`. The folder `candidates` contains
-  the file `toolchain_randombytes.h` in which is defined the function `randombytes()` (copy of the function `randombytes()` of `dudect`).
-* `pqdss-toolchain`: contains required files (*Dockerfile*, *.sh* files) and additional libraries, namely gmp-6.1.2 and valgrind, 
-to build a Docker image consisting of the required packages and requirements to compile and run candidates with the following constant-time check tools: binsec, timecop, dudect
-*  `toolchain-scripts`: consist of the following files
-
-
-
-
-
-This repository contains the following folders: 
-* `binsec-from-sources`: contains the folder gmp-6.1.2, a README.md and a Dockerfile that allow to build binsec from sources.
-* `candidates`: contains the Post-Quantum Digital Signatures Schemes (PQDSS) implementations, submitted in the context of NIST Call 
-for proposals for PQC-based signature schemes. The candidates are classified according to the type-based signature scheme. Here 
-are the different folders: `code`, `lattice`, `mpc-in-the-head`, `symmetric`, `isogeny`, `mutlivariate` and `other`. The folder `candidates` contains
-  the file `toolchain_randombytes.h` in which is defined the function `randombytes()` (copy of the function `randombytes()` of `dudect`). That function 
- is used to generate a random message as an input of `crypto_sign()` for the candidate `CROSS` (when the given tool is `ctgrind`). Indeed, we have some issues 
- to use the function `KAT_NIST_rng.h`  proposed by `CROSS` submitters.
-
-* `toolchain`: contains required files (*Dockerfile*, *.sh* files) to build a Docker image consisting of the required packages
-and requirements to compile and run candidates with the following constant-time check tools: binsec, ctgrind, dudect and flowtracker
-
-* `toolchain-scripts`: consist of the following files 
-  * `candidates_build.py`:  contains the functions that generate the *CMakeLists.txt/Makefile* of the candidates. For almost each candidate, the 
-  content of the *CMakeLists.txt/Makefile* is a copy, except the targets for tests and kat files generation, of the one proposed in the candidate implementation.
-  * `generic_functions.py`: contains generic functions for tools templates and other required files generation, functions to compile and run tools on the targets candidates 
-  * `toolchain_script.py`: contains the functions `compile_run_candidate` 
-  that allows to compile targets and run tests with a given tool. The scripts that create main parser and subparsers 
-  for candidates are also part of this file.
-* `tests_results`: Excel file consisting in a table of the results of the tests with the tools.
-
+  are the different folders: `code`, `lattice`, `mpc-in-the-head`, `symmetric`, `isogeny`, `mutlivariate`.
+*  `cttoolchain`: consist of the following files:
+    * `pqdss_benchmarks.py`: script to run benchmarks on pqdss implementations;
+    * `cli.py`: Command-Line-Interface to run the tests (ct tests and benchmarks on pqdss implementations - generic tests);
+    * `generics_ct_tests.py`: script to run generic constant-time tests given a binary (shared library of the target) to be linked to;
+    * `ct_toolchain.py`: main script to use the toolchain;
+    * `pqdss_ct_tests.py`: script to run constant-time tests on pqdss implementations;
+    * `tools.py`: contains functions for custom templates and execution for the constant-time tests on pqdss implementations;
+    * `utils.py`: contains common used functions
+    * `tests_results`: Excel file consisting in a table of the results of the tests with the tools.
+* `examples`: contains examples for generics constant-time tests
+* `pqdss-toolchain`: contains required files (*Dockerfile*, *.sh* files) and additional libraries source files, namely gmp-6.1.2 and valgrind,
+    to build a Docker image consisting of the required packages and requirements to compile and run constant-time tests on the implementations
+    with the following constant-time check tools: binsec, timecop, dudect.
+* `user_entry_point`: contains files on the user entry point for the different tests.
+  * `candidates.json`: pqdss candidates information
+  * `generics_tests.json`: contains information on targets to be tested (generic constant-time tests);
+    
 
 ## Benefits of using our toolchain
 
 - Tools libraries/packages: each of the tools above-mentioned has its requirements and necessary packages/libraries for 
 compilation and execution of a given target. Our Dockerfile allows to not worry about 
  all those requirements as "everything" is already taken into account.
-- Tool's required files to test a candidate: each of the tools need a specific file, related to the candidate
-  to test. Our scripts allow to generate automatically all needed files (.c, .xml, .ini, etc.).
-- Tools commands to run a candidate: each tool has its own commands (including necessary flags for compilation and commands for execution). 
+- Tool's required files to test a candidate: each of the tools need a specific file, related to the target
+  to test. Our scripts allow to generate automatically all needed files (.c, .ini, .gdb, etc.).
+- Tools commands to run tests on a target: each tool has its own commands (including necessary flags for compilation and commands for execution). 
 Those requirements are also taken into account by our scripts.
-- Test many instances of a (many) candidate(s):  generating required files, compiling and running a given candidate for all tools
+- Test many instances of a (many) candidate(s):  generating required files, compiling and running tests for a given candidate and for all tools
  could take a non-negligible amount of time, especially when the tests must be performed on 
 many instances of many candidates. Our scripts allow to gain a significant amount of time to achieve that goal.
 - With our scripts, one can generate templates, improve them manually, compile and run tests. 
@@ -62,61 +49,72 @@ For Docker Desktop installation, please visit:  https://docs.docker.com/install/
 ### Build locally Docker image
 
 ```shell
-cd toochain
+cd pqdss-toochain
 docker build -t DOCKER_IMAGE_NAME:VERSION .
 ```
 
-### Create a docker container mounted on the local repository
+#### Example
+
+```shell
+cd pqdss-toolchain
+docker build -t my_image:0.1.0 .
+```
+
+### Create a docker container mounted on the local directory
 
 ```shell
 docker run -it -v $PWD:/home/CONTAINER_NAME DOCKER_IMAGE_NAME:VERSION /bin/bash
 ```
 
-## Build Binsec from sources
+#### Example
 
-If, for any reason, one encounters issues on running binsec on some platforms, please build 
-binsec from source by referring to: https://github.com/binsec/binsec/blob/master/INSTALL.md
-
-
-
-## List of candidates already integrated
-
-To see the list of all integrated candidates, type:
-
-```
-python3 toolchain-scripts/toolchain_script.py -h
+```shell
+docker run -it -v $PWD:/home/pqdss_ct_tests my_image:0.1.0 /bin/bash
 ```
 
-## List of options to test a candidate
+## Features supported 
 
-To see the list of all options for test of a given target (candidate), type:
+Our toolchain supports the following features:
+
+- `pqdss-ct-tests`: constant-time tests on pqdss implementations
+- `pqdss-benchmarks`: benchmarks on pqdss implementations
+- `generic-ct-tests`: generic constant-time tests
+
+
+To see the list of features supported by our toolchain, type:
+
+```shell
+python3 cttoolchain/ct_toolchain.py --help 
+```
+Or 
+
+```shell
+python3 cttoolchain/ct_toolchain.py -h 
+```
+
+
+## List of options for each feature
+
+To see the list of all options for a supported feature, type:
 
 ```
-python3 toolchain-scripts/toolchain_script.py CANDIDATE -h
+python3 cttoolchain/ct_toolchain.py FEATURE -h
 ```
 
-## Example
+### Example
 ```
-python3 toolchain_script.py mirith -h
+python3 cttoolchain/ct_toolchain.py pqdss-ct-tests -h
 ```
-## Command-Line-Interface (CLI) Flags
 
-- `tools`: list of tools that a given candidate will be tested with. Ex: binsec, ctgrind, dudect etc.. The tools are white space-separated
-
-- `signature_type`: type-based signature. Ex: code, isogeny, lattice etc.
-- `candidate`: NIST candidate. Ex: mirith, sqisign, perk, mira etc.
+Here are some options
+### Command-Line-Interface (CLI) Flags
+- `entry_point`: path to the user entry point, i.e. .json file containing the information on the targets under tests.
+- `tools`: list of tools that a given candidate will be tested with, i.e. binsec, timecop and dudect. The tools are white space-separated
+- `candidate`: NIST candidate. Ex: mirith, sqisign, perk, mirath etc.
 - `optimization_folder`: the Optimized Implementation folder. For most of the candidates, this 
     folder is named ***Optimized_Implementation***
-- `instance_folders_list`: the list of the different parameters set based folders. 
+- `instances`: the list of the different parameters set based folders. 
     Ex: mirith_avx2_Ia_fast  mirith_hypercube_avx2_IIIb_shortest etc.. The instance folders are white space-separated.
-- `rel_path_to_api`: the relative path to api.h from 
-   *TOOL_NAME/INSTANCE_FOLDER/CANDIDATE_keypair(or sign)*. 
-   Ex: From the folder *mpc-in-the-head/mirith/Optimized_Implementation/ctgrind/mirith_avx2_Ia_fast/mirith_keypair*, the real
-   relative path to *api.h* would be: *rel_path_to_api ="../../../mirith_avx2_Ia_fast/api.h"*. But the script would add automatically the 
-   name of the instance. Thus, *rel_path_to_api ="../../../api.h"*.
-   If the file *api.h* doesn't contain the declaration of the crypto_sign_keypair and crypto_sign functions, then
-   *rel_path_to_api = ""*.
-- `rel_path_to_sign`: Similar to *rel_path_to_api*.
 - `compile`: by default, its value is ***yes***. If the targeted executable has already been generated in a previous execution, and if 
    we just want to run the test, then set this option to ***no***.
 - `run`: by default, its value is ***yes***. If we just want to compile, then set this option to ***no***.
@@ -124,32 +122,159 @@ python3 toolchain_script.py mirith -h
     set by the authors of binsec tool is ***1000***.
 - `build`: the default name of build folder is *build*.
 - `algorithms_patterns`: the patterns of the algorithm to be tested. default value: ***keypair***, ***sign***
-- `is_rng_outside_folder`: for some of the candidates, the folder containing the header file, (rng.h, randombytes, etc.), in which is defined
-the function that generates random data.
 - `cmake_addtional_definitions`: additional CMakeLists.txt definitions to compile the target candidate
+- `additional_options`: additional build/compilation options with CMakeList.txt/Makefile
 - `security_level`: candidate instance security level. This flag is specially for vox. The default value is ***256***
 - `number_measurements`: number of measurements for Dudect. The default value is ***1e4***.
 - `timeout`: timeout for dudect execution. The default value is ***86400***. To run dudect without *timeout*, set the value of this
   option to ***no***
 - `ref_opt_add_implementation`: The target implementation to test. The possible values are: ***opt***, ***ref*** and ***add*** for 
  Reference, Optimized and Additional Implementations respectively.
+- `cpu_cores_isolated`: list of cpu cores isolated, especially for benchmarks and tests with dudect.
 
+The list of the options are not exhaustive and depends on the feature (pqdss ct tests/benchmarks and generic ct tests).
 
-## Compile and/or Run a candidate
+pqdss_cttoolchain:v0.2
 
-To test a candidate by a targeted tool, run:
+### Feature: pqdss-ct-tests
 
-### Given one instance of the candidate
+#### List of instances
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --candidate CANDIDATE --instances INSTANCES --tools TOOL
+```
+##### Example
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --candidate perk --instances perk-128-fast-3 --tools binsec
+```
+
+#### All instances
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --candidate CANDIDATE --tools TOOL
+```
+##### Example
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --candidate perk --tools binsec
+```
+
+### Feature: pqdss-benchmarks
+
+#### List of instances
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-benchmarks --candidate CANDIDATE --instances INSTANCES --cpu_cores_isolated CHOSEN_ISOLATED_CPU_CORE
+```
+
+##### Example
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-benchmarks --candidate mirith --instances mirith_avx2_Ia_fast --cpu_cores_isolated 8
+```
+
+#### All instances
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-benchmarks --candidate CANDIDATE --cpu_cores_isolated CHOSEN_ISOLATED_CPU_CORE
+```
+
+##### Example
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-benchmarks --candidate mirith --cpu_cores_isolated 8
+```
+
+### Feature: generic-ct-tests
+
+#### User entry point
+
+For generic constant-time tests, it is required from the user to fill a `.json` file (user entry point) with following information for a target:
 
 ```
-python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS --instance_folders_list INSTANCE --ref_opt_add_implementation TARGET_IMPLEMENTATION 
+{
+  "targets": [
+      {
+          "TARGET_BASENAME": {
+            "target_call": ,
+            "target_return_type": ,
+            "target_input_declaration": ,
+            "target_include_header":,
+            "link_binary": ,
+            "path_to_include_directory": ,
+            "secret_inputs": ,
+            "compiler": ,
+            "macro": ,
+            "random_data": 
+          }
+      }
+    
+  ]
+}
 ```
 
-### All instances of the candidate
+#### Example
 
 ```
-python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS --ref_opt_add_implementation TARGET_IMPLEMENTATION
+{
+    "targets": [
+        {
+          "ct_compare_byte_arrays": {
+            "target_call": "ct_compare_byte_arrays(array1, array2, length)",
+            "target_return_type": "void",
+            "target_input_declaration": ["uint8_t array1[120]", "uint8_t *array2", "int length = 120"],
+            "target_include_header": ["tests.h"],
+            "link_binary": "examples/cttest.so",
+            "path_to_include_directory": "examples",
+            "secret_inputs": ["array1"],
+            "compiler": "gcc",
+            "macro": {"ARRAY_SIZE": 120},
+            "random_data": {"array2": "120"}
+          }
+        }
+    ]
+}
 ```
+
+
+```shell
+python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point PATH_TO_USER_ENTRY_POINT --target_basename TARGET_NAME --tools TOOL(S)
+```
+
+##### Example 
+
+```shell
+```shell
+python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point user_entry_point/generics_tests.json --target_basename TARGET_NAME --tools TOOL(S)
+```
+
+
+#### Generate templates only
+
+```shell
+python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point PATH_TO_USER_ENTRY_POINT  --target_basename TARGET_NAME --tools TOOL(S) --template_only yes
+```
+
+#### Compile and run
+
+When a template for a given tool is already generated, one can manually edit and improve it, then compile and run the tests.
+
+```shell
+python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point PATH_TO_USER_ENTRY_POINT --target_basename TARGET_NAME --tools TOOL(S) --compile_run yes
+```
+
+#### Run only
+
+When a template for a given tool is already generated and the test harness already compiled, 
+one can directly run the tests with different options of the given tool.
+
+```shell
+python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point PATH_TO_THE_USER_ENTRY_POINT --target_basename TARGET_NAME --tools TOOL(S) --run_only yes
+```
+
+
+
 
 ### All instances of all candidates
 
@@ -200,54 +325,58 @@ Run dudect on the `Optimized implementation` of `crypto_sign()` algorithm for al
 python3 toolchain-scripts/toolchain_script.py -a  dudect ref_opt_add_implementation=opt number_measurements=1e5  timeout=600 algorithms_patterns=sign
 ```
 
-## How to add/enable tests for a new candidate in the CLI
-
-To be able to test a <new> candidate, in this project, proceed as follows:
-
-1. `candidates_build.py`:
-   - write a function that generates the `Makefile` or `CMakeLists` for the candidate.
-     - cmake_CANDIDATE(path_to_cmake_lists,tool_type,candidate)
-     - makefile_CANDIDATE(path_to_makefile_folder, subfolder, tool_name, candidate)
-     - Call the function just written in the body of the function `makefile_candidate` or `cmake_candidate`
-2. `toolchain_script.py`: 
-   - Add the name of the candidate in one of the lists `candidates_to_build_with_makefile` 
-      or `candidate_to_build_with_cmake` , local variables of the function `compile_run_candidate`
-   - Add the candidate name to the list `list_of_integrated_candidates`. 
-   - Add the candidate name to the dictionary `signature_type_based_candidates_dict` depending on its category. 
-   - Add the candidate required data to the dictionary `candidates_api_sign_rng_path`
-   - Define the candidate implementation folders, just like `mirith_implementations_folders`. Refer to the part `CANDIDATES IMPLEMENTATION FOLDERS`.
-
 
 ## Structure of the folders created with the scripts
 
-```
-type-based signature
-└── candidate
-    ├── Optimization folder
-        ├── Tool name
-            ├── Instance
-                ├── candidate_keypair
-                │   ├── required files for tests (.c file, .xml, .ini)
-                │   ├── output file of the test (.txt)
-                ├── candidate_sign
-                │   ├── required files for tests (.c file, .xml, .ini)
-                │   ├── output file of the test (.txt)
-                ├── build
-                │   ├── candidate_keypair
-                │   │   ├── binary_file for crypto_sign_keypair
-                │   │   ├── (if tool = binsec: gdb script, .snapshot file)
-                │   ├── candidate_sign
-                │   │   ├── binary_file for crypto_sign
-                │   │   ├── (if tool = binsec: gdb script, .snapshot file)
+Here's the structure of the generated files:
 
 ```
+OPTIMISATION FOLDER
+└── TOOL
+    └── INSTANCE
+        ├── CANDIDATE_keypair
+        │   ├── required files for tests (.c file, .ini, .gdb, .snapshot)
+        │   ├── TEST_HARNESS_crypto_sign_keypair
+        │   └── output file of the test (.txt)
+        └── CANDIDATE_sign
+            ├── required files for tests (.c file, .ini, .gdb, .snapshot)
+            ├── TEST_HARNESS_crypto_sign
+            └── output file of the test (.txt)
+```
+
+`Remark`: According to the chosen tool, `TEST_HARNESS` is equal to the following patterns:
+- `binsec`: test_harness
+- `dudect`: dude
+- `timecop`: taint
 
 ### Example
 - `tool`: binsec
-- `type-based signature`: mpc-in-the-head
 - `candidate`: mirith
 - `Optimizated Implementation folder`: Optimized_Implementation
 - `Instance`: mirith_avx2_Ia_fast
+
+```
+mpc-in-the-head
+└── mirith
+        ├── Optimized_Implementation
+            ├── binsec
+                └── mirith_avx2_Ia_fast
+                    ├── mirith_keypair
+                    │      ├── cfg_keypair.ini
+                    │      ├── crypto_sign_keypair_output.txt
+                    │      ├── test_harness_crypto_sign_keypair
+                    │      ├── test_harness_crypto_sign_keypair.c
+                    │      ├── test_harness_crypto_sign_keypair.gdb
+                    │      └── test_harness_crypto_sign_keypair.snapshot
+                    └── mirith_sign
+                           ├── cfg_sign.ini
+                           ├── crypto_sign_output.txt
+                           ├── test_harness_crypto_sign
+                           ├── test_harness_crypto_sign.c
+                           ├── test_harness_crypto_sign.gdb
+                           └── test_harness_crypto_sign.snapshot
+
+```
 
 Note: For each candidate, the Optimized implementation folder has a 
 default value: the one proposed by bidders.
@@ -258,32 +387,6 @@ As already mentioned above, to create required files for the tests and run the t
 python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast
 ```
 
-Here's the structure of the generated files:
-
-
-```
-mpc-in-the-head
-└── mirith
-        ├── Optimized_Implementation
-            ├── binsec
-                ├── mirith_avx2_Ia_fast
-                    ├── mirith_keypair
-                    │    ├── cfg_keypair.ini, test_harness_crypto_sign_keypair.c
-                    │    ├── (if binsec is run: crypto_sign_keypair_output.txt)
-                    ├── candidate_sign
-                    │    ├── cfg_sign.ini, test_harness_crypto_sign.c
-                    │    ├── (if binsec is run: crypto_sign_output.txt)
-                    ├── build
-                    │    ├── mirith_keypair
-                    │    │    ├── test_harness_crypto_sign_keypair (executable)
-                    │    │    ├── test_harness_crypto_sign_keypair.gdb
-                    │    │    ├── test_harness_crypto_sign_keypair.snapshot
-                    │    ├── candidate_sign
-                    │    │    ├── test_harness_crypto_sign (executable)
-                    │    │    ├── test_harness_crypto_sign.gdb
-                    │    │    ├── test_harness_crypto_sign.snapshot
-
-```
 
 ## Special cases
 
