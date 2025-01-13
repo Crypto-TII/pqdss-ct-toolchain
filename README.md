@@ -1,7 +1,21 @@
-# Toolchain consisting of binsec - ctgrind - dudect - flowtracker
+# Toolchain consisting of binsec - timecop - dudect - flowtracker
 
 
 ## What is in this repository ? 
+This repository contains the following folders:
+
+* `candidates`: contains the Post-Quantum Digital Signatures Schemes (PQDSS) implementations, submitted in the context of NIST Call
+  for proposals for PQC-based signature schemes. The candidates are classified according to the type-based signature scheme. Here
+  are the different folders: `code`, `lattice`, `mpc-in-the-head`, `symmetric`, `isogeny`, `mutlivariate`. The folder `candidates` contains
+  the file `toolchain_randombytes.h` in which is defined the function `randombytes()` (copy of the function `randombytes()` of `dudect`).
+* `pqdss-toolchain`: contains required files (*Dockerfile*, *.sh* files) and additional libraries, namely gmp-6.1.2 and valgrind, 
+to build a Docker image consisting of the required packages and requirements to compile and run candidates with the following constant-time check tools: binsec, timecop, dudect
+*  `toolchain-scripts`: consist of the following files
+
+
+
+
+
 This repository contains the following folders: 
 * `binsec-from-sources`: contains the folder gmp-6.1.2, a README.md and a Dockerfile that allow to build binsec from sources.
 * `candidates`: contains the Post-Quantum Digital Signatures Schemes (PQDSS) implementations, submitted in the context of NIST Call 
@@ -277,19 +291,11 @@ For the following candidates, run the commands:
 
 ### Candidates with no instance
 
-Candidates: `cross`, `less`, `pqsigrm`
+Candidates: `cross`, `less`
 ```
 python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS 
 ```
 
-#### Vox
-
-Actually, Vox has no instance. The optimized implementation folder is: `Reference_Implementation/vox_sign`.
-We consider the instance of vox as: `vox_sign`
-The default vox instance security level is 256. Use the option `--security_level` to run the tests the desired ones. 
-```
-python3 toolchain-scripts/toolchain_script.py vox --tools TOOLS  --security_level 128
-```
 
 ### Mayo
 
@@ -313,3 +319,19 @@ python3 toolchain-scripts/toolchain_script.py mayo --tools TOOLS --instance_fold
 We have focused our work on the unbroken candidates (candidates with no security issues).
 We didn't succeed to run our scripts on some of them. However, we are working on it.
 We are also trying to improve the scripts, by enhancing the templates of each tool,  
+
+
+
+
+
+
+### sqisign
+
+```shell
+python3 cttool-draft/main_test.py ct-tests --candidate sqisign --tools timecop  --additional_options SQISIGN_BUILD_TYPE=broadwell
+```
+
+### pqov
+```shell
+python3 cttool-draft/main_test.py benchmark --candidate pqov --additional_options PARAM=1
+```

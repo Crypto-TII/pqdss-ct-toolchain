@@ -96,8 +96,6 @@ def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
         path_to_target_wrapper = f'{path_to_target_wrapper}.c'
     cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
     cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
-    print("----------cmd: ")
-    print(cmd)
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
 
@@ -140,23 +138,6 @@ def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: s
 
 
 # Given an executable, generate a core file (.snapshot) with a given gdb script
-def binsec_generate_core_dump_1(path_to_executable_file: str, path_to_gdb_script: str):
-    cwd = os.getcwd()
-    path_to_executable_file_split = path_to_executable_file.split('/')
-    executable_basename = os.path.basename(path_to_executable_file)
-    gdb_script_basename = os.path.basename(path_to_gdb_script)
-    if len(path_to_executable_file_split) == 1:
-        executable_folder = "."
-    else:
-        executable_folder = '/'.join(path_to_executable_file_split[0:-1])
-
-    os.chdir(executable_folder)
-    cmd = f'gdb -x {gdb_script_basename} ./{executable_basename}'
-    cmd_list = cmd.split()
-    subprocess.call(cmd_list, stdin=sys.stdin)
-    os.chdir(cwd)
-
-
 def binsec_generate_core_dump(path_to_executable_file: str, path_to_gdb_script: str):
     path_to_executable_file_split = path_to_executable_file.split('/')
     executable_basename = path_to_executable_file
@@ -168,91 +149,6 @@ def binsec_generate_core_dump(path_to_executable_file: str, path_to_gdb_script: 
     cmd = f'gdb -x {gdb_script_basename} ./{executable_basename}'
     cmd_list = cmd.split()
     subprocess.call(cmd_list, stdin=sys.stdin)
-
-
-def binsec_update_declaration_12_jan(target_call: str, target_input_declaration: Union[list, str], random_data: dict):
-    parameters_info = get_target_type_of_inputs(target_call, target_input_declaration)
-    parameter_index = 0
-    if random_data:
-        for parameter, parameter_length in random_data.items():
-            parameters_info[parameter][-1] = parameter_length
-        parameter_index += 1
-    random_data_block = f''''''
-    deallocate_block = f''''''
-    updated_declaration = f''''''
-    print("------::::parameters_info: ", parameters_info)
-    for key_param, value_param in parameters_info.items():
-        if random_data:
-            if key_param in random_data.keys():
-                key = key_param
-                value = parameters_info[key]
-                if value[0] == 'pointer' or value[0] == 'array':
-                    updated_declaration += f'''
-                    {value[1]} {key}[{value[2]}] = {{0}};'''
-                    deallocate_block += f'''
-                    free({key_param});
-                    '''
-                if value[0] == 'pointer':
-                    updated_declaration += f'''
-                    {value[1]} *{key} = ({value[1]} *)calloc({value[2]}, sizeof({value[1]}));'''
-                    deallocate_block += f'''
-                    free({key_param});
-                    '''
-                elif value[0] == 'default':
-                    updated_declaration += f'''
-                    {value[1]} {key} = {value[2]}'''
-        if key_param not in random_data.keys():
-            if value_param[0] == 'pointer':
-                updated_declaration += f'''
-                {value_param[1]} {key_param}[{value_param[2]}] = {{0}};
-                '''
-                deallocate_block += f'''
-                free({key_param});
-                '''
-            if value_param[0] == 'array':
-                updated_declaration += f'''
-                {value_param[1]} {key_param}[{value_param[2]}] = {{0}};
-                '''
-            if value_param[0] == 'default':
-                updated_declaration += f'''
-                {value_param[1]} {key_param} = {value_param[2]} ;
-                '''
-    return updated_declaration, random_data_block, deallocate_block
-
-
-def binsec_update_declaration_12_jan_2(target_call: str, target_input_declaration: Union[list, str], random_data: dict):
-    parameters_info = get_target_type_of_inputs(target_call, target_input_declaration)
-    parameter_index = 0
-    if random_data:
-        for parameter, parameter_length in random_data.items():
-            parameters_info[parameter][-1] = parameter_length
-        parameter_index += 1
-    random_data_block = f''''''
-    deallocate_block = f''''''
-    updated_declaration = f''''''
-    print("------::::parameters_info: ", parameters_info)
-    print("------::::parameters_info.items(): ", parameters_info.items())
-    for key_param, value_param in parameters_info.items():
-        if random_data:
-            if key_param in random_data.keys():
-                key = key_param
-                value = parameters_info[key]
-                if value[0] == 'pointer' or value[0] == 'array':
-                    updated_declaration += f'''
-                    {value[1]} {key}[{value[2]}] = {{0}};'''
-                elif value[0] == 'default':
-                    updated_declaration += f'''
-                    {value[1]} {key} = {value[2]}'''
-        if key_param not in random_data.keys():
-            if value_param[0] == 'pointer' or value_param[0] == 'array':
-                updated_declaration += f'''
-                {value_param[1]} {key_param}[{value_param[2]}] = {{0}};
-                '''
-            if value_param[0] == 'default':
-                updated_declaration += f'''
-                {value_param[1]} {key_param} = {value_param[2]} ;
-                '''
-    return updated_declaration, random_data_block, deallocate_block
 
 
 def binsec_update_declaration(target_call: str, target_input_declaration: Union[list, str], random_data: dict):
@@ -288,16 +184,8 @@ def binsec_update_declaration(target_call: str, target_input_declaration: Union[
     return updated_declaration, random_data_block, deallocate_block
 
 
-
-# Run CTGRIND
-def run_ctgrind(binary_file, output_file):
-    command = f'''valgrind -s --track-origins=yes --leak-check=full 
-                --show-leak-kinds=all --verbose --log-file={output_file} ./{binary_file}'''
-    cmd_args_lst = command.split()
-    subprocess.call(cmd_args_lst, stdin=sys.stdin)
-
-
-def timecop_ctgrind(binary_file, output_file):
+# Run timecop
+def run_timecop(binary_file, output_file):
     command = f'''valgrind -s --track-origins=yes --leak-check=full 
                 --show-leak-kinds=all --verbose --log-file={output_file} ./{binary_file}'''
     cmd_args_lst = command.split()
@@ -375,86 +263,6 @@ def configuration_file(cfg_file_sign, secret_arguments: Union[str, list], public
     '''
     with open(script_file, "w") as cfg_file:
         cfg_file.write(textwrap.dedent(cfg_file_content))
-
-
-def binsec_test_harness_template_10(target_basename: str, target_call: str,  target_return_type: str,
-                                 target_includes: Union[str, list], target_input_declaration: Union[str, list],
-                                 secret_arguments: Union[str, list], path_to_test_harness: Optional[str] = None,
-                                 target_macro: Optional[Union[str, list]] = None) -> None:
-    """binsec_template_test_harness:  Generate a test harness template (default) for binsec"""
-    test_harness_directory = f'binsec/{target_basename}'
-    target_test_harness = path_to_test_harness
-    if path_to_test_harness:
-        test_harness_directory = os.path.dirname(path_to_test_harness)
-    else:
-        target_test_harness = f'{test_harness_directory}/{target_basename}.c'
-    util.create_directory(test_harness_directory)
-    path_to_config_file = f'{test_harness_directory}/cfg.ini'
-    macros = ''
-    macro = ''
-    if target_macro:
-        if isinstance(target_macro, list):
-            for macro in target_macro:
-                macro = macro.strip()
-                if not macro.startswith('#define'):
-                    macro = f'#define {macro}'
-                macros += f'{macro}'
-        elif isinstance(target_macro, str):
-            if not target_macro.startswith('#define'):
-                macro = f'#define {target_macro}'
-            macros += f'{macro}'
-    target_inputs_declaration = f''''''
-    for decl in target_input_declaration:
-        if not decl.endswith(';'):
-            decl += ';'
-        target_inputs_declaration += f'''
-        {decl}'''
-    target_call = target_call.strip()
-    if not target_call.endswith(';'):
-        target_call += ';'
-    target_result = ''
-    target_exit_point = ''
-    if target_return_type.strip() == 'void':
-        target_exit_point = 'exit(0);'
-    else:
-        target_result = f'{target_return_type} ct_result ='
-        target_exit_point = 'exit(ct_result);'
-    ct_test_target_call = f'{target_result}{target_call}'
-    target_includes_headers = ''
-    if isinstance(target_includes, list):
-        for incs in target_includes:
-            target_includes_headers += f'#include "{incs}"'
-    elif isinstance(target_includes, str):
-        for incs in target_includes.split():
-            target_includes_headers += f'{incs}'
-    headers_block = f'''
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <string.h>
-    #include <stdint.h>
-    #include <ctype.h>
-    '''
-    main_function_block = f'''
-    \t{target_inputs_declaration}
-    
-    int main(){{
-    \t{ct_test_target_call}
-    \t{target_exit_point}
-    }}
-    '''
-    target_test_harness_content = f'''
-    {headers_block}
-    {target_includes_headers}
-    {macros}
-    {main_function_block}
-    '''
-
-    with open(target_test_harness, "w+") as t_harness_file:
-        t_harness_file.write(textwrap.dedent(target_test_harness_content))
-    target_call_custom = target_call.replace('&', '')
-    target_all_inputs = target_call_custom[target_call_custom.find("(")+1:target_call_custom.find(")")]
-    target_public_inputs = [arg.strip() for arg in target_all_inputs.split(',') if arg not in secret_arguments]
-    configuration_file(path_to_config_file, secret_arguments, target_public_inputs)
 
 
 def binsec_test_harness_template(target_basename: str, target_call: str,  target_return_type: str,
@@ -681,21 +489,6 @@ def dudect_update_declaration(target_call: str, target_input_declaration: Union[
     return random_data_block, total_size
 
 
-# secret_parameters = {'VAR_NAME': ["CATEGORY_TYPE", "VAR_TYPE", "VAR_LENGTH"]}
-def poison_secret_input_blocks(secret_parameters: dict):
-    poison_block = f''''''
-    unpoison_block = f''''''
-    if secret_parameters:
-        for key, value in secret_parameters.items():
-            poison_block += f'''
-            poison({key}, {value[2]} * sizeof({value[1]}));'''
-            unpoison_block += f'''
-            unpoison({key}, {value[2]} * sizeof({value[1]}));'''
-    else:
-        print("Attention: No secret parameters is given")
-    return poison_block, unpoison_block
-
-
 # random_data = {'VAR_NAME': ["VAR_TYPE", "VAR_LENGTH"]}
 def get_secret_input_lengths(secret_inputs: Union[str, list], random_data: dict,
                              target_input_declaration: Union[str, list]):
@@ -716,6 +509,7 @@ def get_secret_input_lengths(secret_inputs: Union[str, list], random_data: dict,
     return secret_inputs_with_length
 
 
+# secret_parameters = {'VAR_NAME': ["CATEGORY_TYPE", "VAR_TYPE", "VAR_LENGTH"]}
 def timecop_poison_secret_data(secret_inputs: Union[str, list], random_data: dict,
                                target_input_declaration: Union[str, list], target_call: str):
     poison_block = f''''''
@@ -1043,108 +837,6 @@ def parse_target_json_file(targets_dict: Optional[Union[list, dict]], target: st
             return None
 
 
-def generic_template_12_jan(target_basename: str, tools: Union[str, list], targets_dict: dict,
-                     number_of_measurement: Optional[Union[str, int]] = '1e5', template_only: Optional[bool] = False,
-                     compile_test_harness_and_run: Optional[bool] = True, run_test_only: Optional[bool] = False):
-    target_dict = parse_target_json_file(targets_dict, target_basename)
-    target_dict = target_dict[target_basename]
-    target_call = target_dict['target_call']
-    target_return_type = target_dict['target_return_type']
-    target_input_declaration = target_dict['target_input_declaration']
-    target_includes = target_dict['target_include_header']
-    target_secret_inputs = target_dict['secret_inputs']
-    target_macro = target_dict['macro']
-    random_data = target_dict['random_data']
-    path_to_link_library = target_dict['link_binary']
-    path_to_include_directory = target_dict['path_to_include_directory']
-    compiler = target_dict['compiler']
-    # To be set as input parameters
-    sse_timeout = '120'
-    timeout = '300'
-    depth = '1000000'
-    extended_library = ''
-    # To be set as input parameters
-    for tool in tools:
-        path_to_target_wrapper = f'{tool}/{target_basename}/{target_basename}.c'
-        path_to_target_binary = f'{tool}/{target_basename}/{target_basename}'
-        cflags = []  # This has to be fixed
-        if compile_test_harness_and_run and not template_only:
-            print("-------==============---------CASE: compile_test_harness_and_run and not template_only")
-            print(":::::::compile_test_harness_and_run: ", compile_test_harness_and_run)
-            print(":::::::template_only: ", template_only)
-            if tool.strip() == 'binsec':
-                print("_______binsec_test_harness_template")
-                binsec_test_harness_template(target_basename, target_call, target_return_type, target_includes,
-                                             target_input_declaration, target_secret_inputs,
-                                             None, target_macro, random_data)
-            if tool.strip() == 'timecop':
-                print("_______timecop_test_harness_template")
-                timecop_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
-                                              target_input_declaration, target_secret_inputs, random_data,
-                                              None, target_macro)
-            if tool.strip() == 'dudect':
-                print("_______dudect_test_harness_template")
-                dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
-                                             target_input_declaration, target_secret_inputs, random_data,
-                                             None, number_of_measurement, target_macro)
-                extended_library = "m"
-            libraries_names = Path(path_to_link_library).stem
-            libraries_names += f' {extended_library}'
-            path_to_directory_link_library = os.path.dirname(path_to_link_library)
-            print("_______++++++++++generic_compilation")
-            generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
-                                libraries_names, path_to_include_directory, cflags, compiler)
-            print("_______++++++++++=========generic_run")
-            generic_run(tool, target_basename, depth, sse_timeout, timeout)
-
-        else:
-            print("+++++++==============---------CASE: NOT compile_test_harness_and_run and not template_only")
-            if template_only:
-                run_test_only = False
-                compile_test_harness_and_run = False
-            if compile_test_harness_and_run:
-                run_test_only = False
-            if run_test_only:
-                template_only = False
-                compile_test_harness_and_run = False
-            if template_only:
-                print("-----======-----CASE: template_only")
-                print("-----======-----CASE: template_only: ", template_only)
-                if tool.strip() == 'binsec':
-                    print("_______binsec_test_harness_template")
-                    binsec_test_harness_template(target_basename, target_call, target_return_type, target_includes,
-                                                 target_input_declaration, target_secret_inputs,
-                                                 None, target_macro, random_data)
-                if tool.strip() == 'timecop':
-                    print("_______timecop_test_harness_template")
-                    timecop_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
-                                                  target_input_declaration, target_secret_inputs, random_data,
-                                                  None, target_macro)
-                if tool.strip() == 'dudect':
-                    print("_______dudect_test_harness_template")
-                    dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
-                                                 target_input_declaration, target_secret_inputs, random_data,
-                                                 None, number_of_measurement, target_macro)
-            if compile_test_harness_and_run:
-                print("-----======-----CASE: compile_test_harness_and_run")
-                print("-----======-----CASE: compile_test_harness_and_run: ", compile_test_harness_and_run)
-                libraries_names = Path(path_to_link_library).stem
-                path_to_directory_link_library = os.path.dirname(path_to_link_library)
-                if tool.strip() == 'dudect':
-                    extended_library = "m"
-                libraries_names += f' {extended_library}'
-                print("_______++++++++++generic_compilation")
-                generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
-                                    libraries_names, path_to_include_directory, cflags, compiler)
-                print("_______++++++++++=========generic_run")
-                generic_run(tool, target_basename, depth, sse_timeout, timeout)
-            if run_test_only:
-                print("-----======-----CASE: run_test_only")
-                print("-----======-----CASE: run_test_only: ", run_test_only)
-                print("_______++++++++++=========generic_run")
-                generic_run(tool, target_basename, depth, sse_timeout, timeout)
-
-
 def generic_template(target_basename: str, tools: Union[str, list], targets_dict: dict,
                      number_of_measurement: Optional[Union[str, int]] = '1e5', template_only: Optional[bool] = False,
                      compile_test_harness_and_run: Optional[bool] = True, run_test_only: Optional[bool] = False):
@@ -1170,34 +862,25 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
     for tool in tools:
         path_to_target_wrapper = f'{tool}/{target_basename}/{target_basename}.c'
         path_to_target_binary = f'{tool}/{target_basename}/{target_basename}'
-        cflags = []  # This has to be fixed
-
         if template_only:
-            print("::::::::template_only")
             template_compilation_execution = False
             if tool.strip() == 'binsec':
-                print("_______binsec_test_harness_template")
                 binsec_test_harness_template(target_basename, target_call, target_return_type, target_includes,
                                              target_input_declaration, target_secret_inputs,
                                              None, target_macro, random_data)
             if tool.strip() == 'timecop':
-                print("_______timecop_test_harness_template")
                 timecop_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
                                               target_input_declaration, target_secret_inputs, random_data,
                                               None, target_macro)
             if tool.strip() == 'dudect':
-                print("_______dudect_test_harness_template")
                 dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
                                              target_input_declaration, target_secret_inputs, random_data,
                                              None, number_of_measurement, target_macro)
         elif run_test_only:
             template_compilation_execution = False
-            print("::::::::run_test_only")
-            print("_______++++++++++=========generic_run")
             generic_run(tool, target_basename, depth, sse_timeout, timeout)
         elif compile_test_harness_and_run:
             template_compilation_execution = False
-            print("::::::::compile_test_harness_and_run")
             cflags = ["-g"]
             if tool.strip() == 'dudect':
                 extended_library = "m"
@@ -1205,26 +888,20 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
             libraries_names = Path(path_to_link_library).stem
             libraries_names += f' {extended_library}'
             path_to_directory_link_library = os.path.dirname(path_to_link_library)
-            print("_______++++++++++generic_compilation")
             generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
                                 libraries_names, path_to_include_directory, cflags, compiler)
-            print("_______++++++++++=========generic_run")
             generic_run(tool, target_basename, depth, sse_timeout, timeout)
         if template_compilation_execution:
-            print("::::::::template - compilation - run ")
             cflags = ["-g"]
             if tool.strip() == 'binsec':
-                print("_______binsec_test_harness_template")
                 binsec_test_harness_template(target_basename, target_call, target_return_type, target_includes,
                                              target_input_declaration, target_secret_inputs,
                                              None, target_macro, random_data)
             if tool.strip() == 'timecop':
-                print("_______timecop_test_harness_template")
                 timecop_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
                                               target_input_declaration, target_secret_inputs, random_data,
                                               None, target_macro)
             if tool.strip() == 'dudect':
-                print("_______dudect_test_harness_template")
                 dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
                                              target_input_declaration, target_secret_inputs, random_data,
                                              None, number_of_measurement, target_macro)
@@ -1233,12 +910,9 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
             libraries_names = Path(path_to_link_library).stem
             libraries_names += f' {extended_library}'
             path_to_directory_link_library = os.path.dirname(path_to_link_library)
-            print("_______++++++++++generic_compilation")
             generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
                                 libraries_names, path_to_include_directory, cflags, compiler)
-            print("_______++++++++++=========generic_run")
             generic_run(tool, target_basename, depth, sse_timeout, timeout)
-
 
 
 def generic_run(tool: str, target_basename, depth: Optional[Union[str, int]] = '1000000',
@@ -1255,17 +929,9 @@ def generic_run(tool: str, target_basename, depth: Optional[Union[str, int]] = '
         run_binsec(path_to_snapshot_file, path_to_cfg_file,
                    path_to_stats_files_file, path_to_output_file, depth)
     if tool.strip() == 'timecop':
-        timecop_ctgrind(path_to_target_binary, path_to_output_file)
+        run_timecop(path_to_target_binary, path_to_output_file)
     if tool.strip() == 'dudect':
         run_dudect(path_to_target_binary, path_to_output_file, timeout)
-
-
-def parse_additional_options(tool_name: str, additional_options: Optional[Union[dict, list, str]] = None):
-    pass
-
-
-def parse_additional_options1(tool_name: str, **kwargs):
-    pass
 
 
 def generic_tests_templates(user_entry_point: str, targets: Optional[Union[str, list]] = None,
