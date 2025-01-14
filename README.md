@@ -355,6 +355,13 @@ OPTIMISATION FOLDER
 - `Optimizated Implementation folder`: Optimized_Implementation
 - `Instance`: mirith_avx2_Ia_fast
 
+Note: For each candidate, the Optimized implementation folder has a
+default value: the one proposed by bidders.
+
+```
+python3 toolchain-scripts/toolchain_script.py --candidate mirith --tools binsec --instances mirith_avx2_Ia_fast
+```
+
 ```
 mpc-in-the-head
 └── mirith
@@ -378,63 +385,4 @@ mpc-in-the-head
 
 ```
 
-Note: For each candidate, the Optimized implementation folder has a 
-default value: the one proposed by bidders.
 
-As already mentioned above, to create required files for the tests and run the tests with a given tool:
-
-```
-python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast
-```
-
-
-## Special cases
-
-For the following candidates, run the commands:
-
-### Candidates with no instance
-
-Candidates: `cross`, `less`
-```
-python3 toolchain-scripts/toolchain_script.py CANDIDATE --tools TOOLS 
-```
-
-
-### Mayo
-
-Instances: `src/mayo_1`, `src/mayo_2`, `src/mayo_3`, `src/mayo_5`
-```
-python3 toolchain-scripts/toolchain_script.py mayo --tools TOOLS --instance_folders_list src/mayo_1
-```
-
-### Qr_uov
-
-Instances: `qruov1q7L10v740m100`, `qruov1q31L3v165m60`, etc..
-
-The List of instances can be found in the `Makefile` of the folder: `Optimized_Implementation`.
-
-```
-python3 toolchain-scripts/toolchain_script.py mayo --tools TOOLS --instance_folders_list qruov1q7L10v740m100
-```
-
-## Note
-
-We have focused our work on the unbroken candidates (candidates with no security issues).
-We didn't succeed to run our scripts on some of them. However, we are working on it.
-We are also trying to improve the scripts, by enhancing the templates of each tool,  
-
-
-
-
-
-
-### sqisign
-
-```shell
-python3 cttool-draft/main_test.py ct-tests --candidate sqisign --tools timecop  --additional_options SQISIGN_BUILD_TYPE=broadwell
-```
-
-### pqov
-```shell
-python3 cttool-draft/main_test.py benchmark --candidate pqov --additional_options PARAM=1
-```
