@@ -160,6 +160,67 @@ python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --candidate CANDIDATE --tools
 python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --candidate perk --tools binsec
 ```
 
+#### Structure of the folders created with the scripts
+
+Here's the structure of the generated files:
+
+```
+OPTIMISATION FOLDER
+└── TOOL
+    └── INSTANCE
+        ├── CANDIDATE_keypair
+        │   ├── required files for tests (.c file, .ini, .gdb, .snapshot)
+        │   ├── TEST_HARNESS_crypto_sign_keypair
+        │   └── output file of the test (.txt)
+        └── CANDIDATE_sign
+            ├── required files for tests (.c file, .ini, .gdb, .snapshot)
+            ├── TEST_HARNESS_crypto_sign
+            └── output file of the test (.txt)
+```
+
+`Remark`: According to the chosen tool, `TEST_HARNESS` is equal to the following patterns:
+- `binsec`: test_harness
+- `dudect`: dude
+- `timecop`: taint
+
+##### Example
+
+- `tool`: binsec
+- `candidate`: mirith
+- `Optimizated Implementation folder`: Optimized_Implementation
+- `Instance`: mirith_avx2_Ia_fast
+
+Note: For each candidate, the Optimized implementation folder has a
+default value: the one proposed by bidders.
+
+```
+python3 toolchain-scripts/toolchain_script.py --candidate mirith --tools binsec --instances mirith_avx2_Ia_fast
+```
+
+```
+mpc-in-the-head
+└── mirith
+        ├── Optimized_Implementation
+            ├── binsec
+                └── mirith_avx2_Ia_fast
+                    ├── mirith_keypair
+                    │      ├── cfg_keypair.ini
+                    │      ├── crypto_sign_keypair_output.txt
+                    │      ├── test_harness_crypto_sign_keypair
+                    │      ├── test_harness_crypto_sign_keypair.c
+                    │      ├── test_harness_crypto_sign_keypair.gdb
+                    │      └── test_harness_crypto_sign_keypair.snapshot
+                    └── mirith_sign
+                           ├── cfg_sign.ini
+                           ├── crypto_sign_output.txt
+                           ├── test_harness_crypto_sign
+                           ├── test_harness_crypto_sign.c
+                           ├── test_harness_crypto_sign.gdb
+                           └── test_harness_crypto_sign.snapshot
+
+```
+
+
 ### Feature: pqdss-benchmarks
 
 #### List of instances
@@ -272,117 +333,3 @@ one can directly run the tests with different options of the given tool.
 ```shell
 python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point PATH_TO_THE_USER_ENTRY_POINT --target_basename TARGET_NAME --tools TOOL(S) --run_only yes
 ```
-
-
-
-
-### All instances of all candidates
-
-```
-python3 toolchain-scripts/toolchain_script.py -a  TOOLS OPTION1=VALUE1 OPTION2=VALUE2
-```
-where possible `OPTIONi` are: 
-- number_measurements (for Dudect)
-- timeout (for Dudect)
-- depth (for binsec)
-- ref_opt_add_implementation (for all tools)
-- algorithms_patterns (for all tools)
-
-and `TOOLS` are among the chosen tools of our toolchain.
-
-`NOTE`: That option works only on the optimized implementation for now.
-It could work on the additional and reference implementations, but some changes
-need to be done in the script. We are working on it to make it automatic.
-
-
-## Example
-
-- 1 instance of the optimized implementation of mirith
-
-````
-python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --instance_folders_list mirith_avx2_Ia_fast --ref_opt_add_implementation opt
-````
-
-- all instances of the optimized implementation of mirith
-
-
-````
-python3 toolchain-scripts/toolchain_script.py mirith --tools binsec --ref_opt_add_implementation opt
-````
-
-If we want to run the tests for the `sign()` function only:
-
-````
-python3 toolchain-scripts/toolchain_script.py mirith --tools binsec  --ref_opt_add_implementation opt --algorithms_patterns sign
-````
-
-- all instances of all candidates
-
-Run dudect on the `Optimized implementation` of `crypto_sign()` algorithm for all instances of all integrated candidates with a timeout of `10` minutes (`600` s),
- with `100K` number of measurements.
-
-```
-python3 toolchain-scripts/toolchain_script.py -a  dudect ref_opt_add_implementation=opt number_measurements=1e5  timeout=600 algorithms_patterns=sign
-```
-
-
-## Structure of the folders created with the scripts
-
-Here's the structure of the generated files:
-
-```
-OPTIMISATION FOLDER
-└── TOOL
-    └── INSTANCE
-        ├── CANDIDATE_keypair
-        │   ├── required files for tests (.c file, .ini, .gdb, .snapshot)
-        │   ├── TEST_HARNESS_crypto_sign_keypair
-        │   └── output file of the test (.txt)
-        └── CANDIDATE_sign
-            ├── required files for tests (.c file, .ini, .gdb, .snapshot)
-            ├── TEST_HARNESS_crypto_sign
-            └── output file of the test (.txt)
-```
-
-`Remark`: According to the chosen tool, `TEST_HARNESS` is equal to the following patterns:
-- `binsec`: test_harness
-- `dudect`: dude
-- `timecop`: taint
-
-### Example
-- `tool`: binsec
-- `candidate`: mirith
-- `Optimizated Implementation folder`: Optimized_Implementation
-- `Instance`: mirith_avx2_Ia_fast
-
-Note: For each candidate, the Optimized implementation folder has a
-default value: the one proposed by bidders.
-
-```
-python3 toolchain-scripts/toolchain_script.py --candidate mirith --tools binsec --instances mirith_avx2_Ia_fast
-```
-
-```
-mpc-in-the-head
-└── mirith
-        ├── Optimized_Implementation
-            ├── binsec
-                └── mirith_avx2_Ia_fast
-                    ├── mirith_keypair
-                    │      ├── cfg_keypair.ini
-                    │      ├── crypto_sign_keypair_output.txt
-                    │      ├── test_harness_crypto_sign_keypair
-                    │      ├── test_harness_crypto_sign_keypair.c
-                    │      ├── test_harness_crypto_sign_keypair.gdb
-                    │      └── test_harness_crypto_sign_keypair.snapshot
-                    └── mirith_sign
-                           ├── cfg_sign.ini
-                           ├── crypto_sign_output.txt
-                           ├── test_harness_crypto_sign
-                           ├── test_harness_crypto_sign.c
-                           ├── test_harness_crypto_sign.gdb
-                           └── test_harness_crypto_sign.snapshot
-
-```
-
-
