@@ -306,7 +306,6 @@ python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point PATH_TO_USER_
 ##### Example 
 
 ```shell
-```shell
 python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point user_entry_point/generics_tests.json --target_basename TARGET_NAME --tools TOOL(S)
 ```
 
