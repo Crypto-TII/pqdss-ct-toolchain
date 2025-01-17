@@ -88,7 +88,8 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
     
     int main(void)
     {{
-   
+    printf(" CRYPTO_PUBLICKEYBYTES = %d\n",CRYPTO_PUBLICKEYBYTES);
+    printf(" CRYPTO_SECRETKEYBYTES = %d\n",CRYPTO_SECRETKEYBYTES);
     \t//int i = 0;
     \t//int iterations = TOTAL_ITERATIONS;
     \t//int min_msg_len = MINIMUM_MSG_LENGTH;
@@ -712,182 +713,8 @@ def generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_pa
                             add_includes, number_of_iterations, min_msg_len, max_msg_len, security_level)
 
 
-def generic_benchmarks_init_compile_21(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                    default_instance: str, instances, additional_includes,
-                                    path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
-                                    libraries_names: Union[str, list] = 'lbench',
-                                    path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
-                                    additional_cmake_definitions=None, compiler: str = 'gcc',
-                                    custom_benchmark: Optional[bool] = True, number_of_iterations='1e3',
-                                    min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
-                                    security_level: Union[str, list] = '128', *args, **kwargs):
 
-    if candidate == 'qruov':
-        cwd = os.getcwd()
-        os.chdir(path_to_candidate_makefile_cmake)
-        platform = 'portable64'
-        if args:
-            platform = args[0]
-        makefile = 'Makefile'
-        chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
-        subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
-        instances_str = ''
-        if isinstance(instances, str):
-            instances_str = instances.split()
-        elif isinstance(instances, list):
-            instances_str = " ".join(instances)
-        cmd_str = f'make {instances_str}'
-        subprocess.call(cmd_str.split(), stdin=sys.stdin)
-        os.chdir(cwd)
-
-        for instance in instances:
-            abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
-            abs_path_to_api_or_sign_split.insert(1, instance)
-            abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
-            abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
-            generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
-                                              additional_includes, number_of_iterations, min_msg_len,
-                                              max_msg_len, security_level)
-
-    else:
-        if custom_benchmark:
-            generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
-                                              additional_includes, number_of_iterations, min_msg_len,
-                                              max_msg_len, security_level)
-    path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
-    cflags = []  # to be fixed
-    path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-    if path_candidate.endswith('/'):
-        path_candidate += candidate
-    else:
-        path_candidate += f'/{candidate}'
-    path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-    if direct_link_or_compile_target:
-        if not instances:
-            gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                         additional_cmake_definitions, *args, **kwargs)
-        else:
-            if candidate == 'qruov':
-                for instance in instances:
-                    platform = 'portable64'
-                    if args:
-                        platform = args[0]
-                    instance_updated = f'{instance}/{platform}'
-                    path_to_include_directories_split = path_to_include_directories.split(default_instance)
-                    path_to_include_directories_split.insert(1, instance_updated)
-                    path_to_include_directories = "".join(path_to_include_directories_split[:-1])
-
-            else:
-                if build_with_make:
-                    for instance in instances:
-                        path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
-                        path_to_candidate_makefile_cmake_split.insert(1, instance)
-                        path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
-                        gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                                     additional_cmake_definitions, *args, **kwargs)
-                        path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
-                else:
-                    gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                                 additional_cmake_definitions, *args, **kwargs)
-
-    if custom_benchmark:
-        if build_with_make:
-            generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
-                                       path_to_include_directories, cflags, default_instance, instances, compiler)
-
-
-def generic_benchmarks_init_compile_22(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                    default_instance: str, instances, additional_includes,
-                                    path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
-                                    libraries_names: Union[str, list] = 'lbench',
-                                    path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
-                                    additional_cmake_definitions=None, compiler: str = 'gcc',
-                                    custom_benchmark: Optional[bool] = True, number_of_iterations='1e3',
-                                    min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
-                                    security_level: Union[str, list] = '128',
-                                    binary_format: Optional[Union[str, list, dict]] = None, *args, **kwargs):
-    if candidate == 'qruov':
-        cwd = os.getcwd()
-        os.chdir(path_to_candidate_makefile_cmake)
-        platform = 'portable64'
-        if args:
-            platform = args[0]
-        makefile = 'Makefile'
-        chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
-        subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
-        instances_str = ''
-        if isinstance(instances, str):
-            instances_str = instances.split()
-        elif isinstance(instances, list):
-            instances_str = " ".join(instances)
-        cmd_str = f'make {instances_str}'
-        subprocess.call(cmd_str.split(), stdin=sys.stdin)
-        os.chdir(cwd)
-
-        for instance in instances:
-            abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
-            abs_path_to_api_or_sign_split.insert(1, instance)
-            abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
-            abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
-            generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
-                                              additional_includes, number_of_iterations, min_msg_len,
-                                              max_msg_len, security_level)
-
-    else:
-        if custom_benchmark:
-            generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
-                                              additional_includes, number_of_iterations, min_msg_len,
-                                              max_msg_len, security_level)
-    path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
-    print("=========generic_benchmarks_init_compile:::::::")
-    print("+++++++A:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
-    cflags = []  # to be fixed
-    path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-    if path_candidate.endswith('/'):
-        path_candidate += candidate
-    else:
-        path_candidate += f'/{candidate}'
-    path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-    if direct_link_or_compile_target:
-        if not instances:
-            gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                         additional_cmake_definitions, *args, **kwargs)
-        else:
-            if candidate == 'qruov':
-                for instance in instances:
-                    platform = 'portable64'
-                    if args:
-                        platform = args[0]
-                    instance_updated = f'{instance}/{platform}'
-                    path_to_include_directories_split = path_to_include_directories.split(default_instance)
-                    path_to_include_directories_split.insert(1, instance_updated)
-                    path_to_include_directories = "".join(path_to_include_directories_split[:-1])
-            elif candidate == 'pqov':
-                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
-                print("+++++++B:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
-            else:
-                if build_with_make:
-                    for instance in instances:
-                        path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
-                        path_to_candidate_makefile_cmake_split.insert(1, instance)
-                        path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
-                        print("+++++++B:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
-                        gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                                     additional_cmake_definitions, *args, **kwargs)
-                        path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
-                else:
-                    gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                                 additional_cmake_definitions, *args, **kwargs)
-
-    if custom_benchmark:
-        instance_format = reconstruct_instance_name_from_options(binary_format, **kwargs)
-        if build_with_make:
-            generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
-                                       path_to_include_directories, cflags, default_instance, instances, compiler, instance_format)
-
-
-
-def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+def generic_benchmarks_init_compile_17_jan(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
                                     default_instance: str, instances, additional_includes,
                                     path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
                                     libraries_names: Union[str, list] = 'lbench',
@@ -980,47 +807,102 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
 
 
 
-
-def generic_compile_run_bench_candidate_21(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                        default_instance: str, instances, additional_includes,
-                                        path_to_candidate_makefile_cmake, path_to_candidate_bench: Optional[str] = None,
-                                        direct_link_or_compile_target: bool = True,
-                                        libraries_names: Union[str, list] = 'lbench',
-                                        path_to_include_directories: Union[str, list] = '',
-                                        build_with_make: bool = True,
-                                        additional_cmake_definitions=None, compiler: str = 'gcc',
-                                        number_of_iterations='1e3',
-                                        min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
-                                        cpu_core_isolated: Union[str, list] = '1', compilation: str = 'yes',
-                                        execution: str = 'yes', custom_benchmark: bool = True,
-                                        candidate_benchmark: bool = True, security_level: Union[str, list, dict] = '128',
-                                        *args, **kwargs):
-    path_to_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-    if path_to_candidate.endswith('/'):
-        path_to_candidate += candidate
+def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+                                    default_instance: str, instances, additional_includes,
+                                    path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
+                                    libraries_names: Union[str, list] = 'lbench',
+                                    path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
+                                    additional_cmake_definitions=None, compiler: str = 'gcc',
+                                    custom_benchmark: Optional[bool] = True, number_of_iterations='1e3',
+                                    min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
+                                    security_level: Union[str, list] = '128',
+                                    binary_format: Optional[Union[str, list, dict]] = None, *args, **kwargs):
+    if candidate == 'snova':
+        print("Skip benchmark template generation for SNOVA")
+        print("-----path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
+        gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                     additional_cmake_definitions, *args, **kwargs)
     else:
-        path_to_candidate += f'/{candidate}'
-    if 'yes' in compilation.lower() and 'yes' in execution.lower():
-        generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                        default_instance, instances, additional_includes, path_to_candidate_makefile_cmake,
-                                        direct_link_or_compile_target, libraries_names, path_to_include_directories,
-                                        build_with_make, additional_cmake_definitions, compiler,
-                                        custom_benchmark, number_of_iterations, min_msg_len, max_msg_len, security_level,
-                                        *args, **kwargs)
-        generic_run_bench_candidate(path_to_candidate, instances, default_instance,
-                                    cpu_core_isolated, path_to_candidate_bench, custom_benchmark,
-                                    candidate_benchmark, security_level)
-    elif 'yes' in compilation.lower() and 'no' in execution.lower():
-        generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                        default_instance, instances, additional_includes, path_to_candidate_makefile_cmake,
-                                        direct_link_or_compile_target, libraries_names, path_to_include_directories,
-                                        build_with_make, additional_cmake_definitions, compiler,
-                                        custom_benchmark, number_of_iterations, min_msg_len, max_msg_len, security_level,
-                                        *args, **kwargs)
-    if 'no' in compilation.lower() and 'yes' in execution.lower():
-        generic_run_bench_candidate(path_to_candidate, instances, default_instance,
-                                    cpu_core_isolated, path_to_candidate_bench, custom_benchmark,
-                                    candidate_benchmark, security_level)
+
+        if candidate == 'qruov':
+            cwd = os.getcwd()
+            os.chdir(path_to_candidate_makefile_cmake)
+            platform = 'portable64'
+            if args:
+                platform = args[0]
+            makefile = 'Makefile'
+            chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
+            subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
+            instances_str = ''
+            if isinstance(instances, str):
+                instances_str = instances.split()
+            elif isinstance(instances, list):
+                instances_str = " ".join(instances)
+            cmd_str = f'make {instances_str}'
+            subprocess.call(cmd_str.split(), stdin=sys.stdin)
+            os.chdir(cwd)
+
+            for instance in instances:
+                abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
+                abs_path_to_api_or_sign_split.insert(1, instance)
+                abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
+                abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
+                generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
+                                                  additional_includes, number_of_iterations, min_msg_len,
+                                                  max_msg_len, security_level)
+        else:
+            if custom_benchmark:
+                generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
+                                                  additional_includes, number_of_iterations, min_msg_len,
+                                                  max_msg_len, security_level)
+        path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
+        print("=========generic_benchmarks_init_compile:::::::")
+        print("+++++++A:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
+        cflags = []  # to be fixed
+        path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+        if path_candidate.endswith('/'):
+            path_candidate += candidate
+        else:
+            path_candidate += f'/{candidate}'
+        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+        if direct_link_or_compile_target:
+            if not instances:
+                gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                             additional_cmake_definitions, *args, **kwargs)
+            else:
+                if candidate == 'qruov':
+                    for instance in instances:
+                        platform = 'portable64'
+                        if args:
+                            platform = args[0]
+                        instance_updated = f'{instance}/{platform}'
+                        path_to_include_directories_split = path_to_include_directories.split(default_instance)
+                        path_to_include_directories_split.insert(1, instance_updated)
+                        path_to_include_directories = "".join(path_to_include_directories_split[:-1])
+                # elif candidate == 'pqov':
+                #     path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+                #     print("+++++++B:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
+                else:
+                    if build_with_make:
+                        for instance in instances:
+                            if candidate != 'pqov':
+                                path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
+                                path_to_candidate_makefile_cmake_split.insert(1, instance)
+                                path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
+                            print("+++++++C:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
+                            gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                         additional_cmake_definitions, *args, **kwargs)
+                            path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+                    else:
+                        gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                     additional_cmake_definitions, *args, **kwargs)
+
+        if custom_benchmark:
+            instance_format = reconstruct_instance_name_from_options(binary_format, **kwargs)
+            if build_with_make:
+                print("+++++++D:  path_to_include_directories: ", path_to_include_directories)
+                generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                           path_to_include_directories, cflags, default_instance, instances, compiler, instance_format)
 
 
 def generic_compile_run_bench_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,

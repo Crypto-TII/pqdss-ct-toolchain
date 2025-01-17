@@ -10,7 +10,8 @@ ARM_FEATURE_AES := $(findstring ARM_FEATURE_AES, $(shell gcc -march=$(ARCH) -dM 
 CC = gcc
 AR = ar
 
-TOOLS_FLAGS := -Wall -g -Wextra
+TOOLS_FLAGS :=
+TOOL_LINK_LIBS :=
 
 ifeq ($(ARM_FEATURE_AES), ARM_FEATURE_AES)
 CFLAGS = -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -ftree-vectorize -O3 -march=armv8-a+crypto -mtune=$(ARCH) -fPIC $(TOOLS_FLAGS)
@@ -18,6 +19,7 @@ else
 CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -ftree-vectorize -O3 -march=$(ARCH) -mtune=$(ARCH) -fPIC $(TOOLS_FLAGS)
 endif
 
+BENCH_CFLAGS = -std=c17 -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -ftree-vectorize -O3 -march=$(ARCH) -mtune=$(ARCH) -fPIC $(TOOLS_FLAGS)
 
 BUILD_OUT_PATH = build/
 BUILD_LIBO_OUT_PATH = build_libo
@@ -49,6 +51,7 @@ SNOVA_V ?= 24
 SNOVA_O ?= 5
 SNOVA_L ?= 4
 
+
 # 0: sk = esk; 1: sk = ssk
 SK_IS_SEED ?= 0
 
@@ -78,14 +81,19 @@ WASM = 0
 
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
+CUSTOM_BENCHMARKS = benchmarks
 
 
-all: $(CTTEST_LIB)
+all: custom_bench
 
 
 $(CTTEST_LIB): init info $(OLIST) build/sign.o $(STATICLIB)
 	mkdir -p $(BUILD_CTLIB)
-	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/sign.o -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LIBS)
+	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/sign.o -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LIBS) $(TOOL_LINK_LIBS)
+
+test_api: init info $(OLIST) build/sign.o $(STATICLIB)
+	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) test/test_api.c build/sign.o -o test_api.a $(LIBS)
+	./test_api.a > test_api_$(CRYPTO_ALGNAME).log
 
 init:
 	@mkdir -p $(BUILD_OUT_PATH)
@@ -121,10 +129,18 @@ wasm:
 	@echo "WASM_OUT_EXT:   $(WASM_OUT_EXT)"
 	@echo "==================================="
 
+.PHONY: clean
+
+clean:
+	rm -rf build
+	rm -rf build_libo
+
+
 clean: clean_kat
 	rm -f ./*/*.o ./*/*.a *.a *.wasm *.js
 	rm -rf ./build/ 2>/dev/null
 	rm -rf ./build_libo/ 2>/dev/null
+
 
 clean_all: clean
 	rm -f *.log
@@ -133,7 +149,7 @@ clean_without_libsnovasym:
 	rm -f *.wasm *.js
 	rm -rf ./build/ 2>/dev/null
 
-clean_kat: 
+clean_kat:
 	rm -f *.req *.rsp
 
 clean_sign:
@@ -168,13 +184,18 @@ test_api: init info $(OLIST) build/sign.o $(STATICLIB)
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) test/test_api.c build/sign.o -o test_api.a $(LIBS)
 	./test_api.a > test_api_$(CRYPTO_ALGNAME).log
 
+
 test_speed: init info $(OLIST) $(STATICLIB)
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) -D TEST_SPEED_N=$(TEST_SPEED_N) $(OLIST) ./test_speed/test_speed.c -o test_speed.a $(LIBS)
-	./test_speed.a
+	#./test_speed.a
 
 PQCgenKAT: init info $(OLIST) build/sign.o $(STATICLIB)
-	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/sign.o ./PQCgenKAT_sign.c -o ./PQCgenKAT.a $(LIBS)
-	./PQCgenKAT.a
+	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/sign.o ./PQCgenKAT_sign.c -o PQCgenKAT $(LIBS)
+	#./PQCgenKAT.a
+
+custom_bench: init info $(OLIST) build/sign.o $(STATICLIB)
+	@mkdir -p $(CUSTOM_BENCHMARKS)
+	$(CC) $(BENCH_CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/sign.o ./custom_bench.c -o $(CUSTOM_BENCHMARKS)/bench_SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L) $(LIBS) -lcpucycles -lm
 
 build_wasmapi: init wasm info $(SNOVA_API_OLIST) $(STATICLIB)
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(SNOVA_API_OLIST) wasmapi.c -o $(WASM_OUT_PATH)$(CRYPTO_ALGNAME).$(WASM_OUT_EXT) -s WASM=1 -s EXPORTED_FUNCTIONS='["_malloc", "_free"]' -s SAFE_HEAP=1 -s TOTAL_STACK=16777216 -s ALLOW_MEMORY_GROWTH=1 $(LIBS) --no-entry

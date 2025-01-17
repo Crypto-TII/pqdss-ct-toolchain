@@ -448,12 +448,14 @@ def compile_with_makefile(path_to_makefile, default=None, *args, **kwargs):
     additional_options = list(args)
     for key, val in kwargs.items():
         additional_options.append(f'{key}={val}')
-    cmd = ["make", "all"]
+    # cmd = ["make", "all"]
+    cmd = ["make"]
     if not additional_options:
         cmd.append('all')
     cmd.extend(additional_options)
     if default:
         cmd.append(default)
+    cmd.append('all')
     print("++++++++++++cmd++++++++++++: ", cmd)
     subprocess.call(cmd, stdin=sys.stdin)
     os.chdir(cwd)
