@@ -603,26 +603,21 @@ def dudect_sign_dude_content(taint_file, api_or_sign, add_includes,
 
     \tdudect_init(&ctx, &config);
     
-    FILE *static_distribution, *random_distribution;
-    static_distribution = fopen("{static_class_execution_times}", "w");
-    random_distribution = fopen("{random_class_execution_times}", "w");
-    fprintf(static_distribution, "%s", "Static distribution measurements\\n");
-    fprintf(random_distribution, "%s", "Random distribution measurements\\n");
-
+    FILE *measurement;
+    measurement = fopen("measurement.txt", "w");
     \tdudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
     \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
     \t\tstate = dudect_main(&ctx);
     \t\tfor(int i=0;i<{number_of_measurements};i++){{
     \t\t\tif (ctx.classes[i] == 0){{
-    \t\t\t\tfprintf(static_distribution, "%ld\\n", ctx.exec_times[i]);
+    \t\t\t\tfprintf(measurement, "fixed;%ld\\n", ctx.exec_times[i]);
     \t\t\t}}
     \t\t\telse{{
-    \t\t\t\tfprintf(random_distribution, "%ld\\n", ctx.exec_times[i]);
+    \t\t\t\tfprintf(measurement, "random;%ld\\n", ctx.exec_times[i]);
     \t\t\t}}
     \t\t}}
     \t}}
-    \tfclose(static_distribution);
-    \tfclose(random_distribution);
+    \tfclose(measurement);
     \tdudect_free(&ctx);
     \treturn (int)state;
     }}
