@@ -1,4 +1,4 @@
-CC = c99
+CC = gcc
 TOOLS_FLAGS :=
 CFLAGS = -Wall -Wextra -Wshadow -Wundef -O2 -fPIC $(TOOLS_FLAGS)
 LD = $(CC)
