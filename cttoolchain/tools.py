@@ -547,8 +547,9 @@ def dudect_sign_dude_content(taint_file, api_or_sign, add_includes,
 
     taint_file_split = taint_file.split('/')
     taint_file_folder = "/".join(taint_file_split[0:-1])
-    static_class_execution_times = f'{taint_file_folder}/static.txt'
-    random_class_execution_times = f'{taint_file_folder}/random.txt'
+    time_measurement = f'{taint_file_folder}/measurement.txt'
+    # static_class_execution_times = f'{taint_file_folder}/static.txt'
+    # random_class_execution_times = f'{taint_file_folder}/random.txt'
 
     taint_file_content_block_main = f'''
     uint8_t do_one_computation(uint8_t *data) {{
@@ -604,7 +605,7 @@ def dudect_sign_dude_content(taint_file, api_or_sign, add_includes,
     \tdudect_init(&ctx, &config);
     
     FILE *measurement;
-    measurement = fopen("measurement.txt", "w");
+    measurement = fopen("{time_measurement}", "w");
     \tdudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
     \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
     \t\tstate = dudect_main(&ctx);
