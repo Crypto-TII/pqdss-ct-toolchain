@@ -47,14 +47,17 @@ RNG_OBJ=generator/rng.o
 
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
+CTTEST_LIB_CFLAGS = $(CFLAGS)
+$(info "CTTEST_LIB_CFLAGS: $(CTTEST_LIB_CFLAGS)")
 
-all: sign bench $(CTTEST_LIB)
+all: sign bench $(CTTEST_LIB) bench_custom_test
 
 libhash:
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH)
 
 $(CTTEST_LIB): ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${RNG_OBJ} libhash
 	mkdir -p $(BUILD_CTLIB)
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	-${CC} ${CFLAGS} -I. ${HASH_INCLUDE} ${AVXFLAGS} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${RNG_OBJ} -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L${HASH_PATH} -lcrypto -lhash
 
 sign: ${SRC} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${KAT_MAIN_SRC} libhash
@@ -63,7 +66,13 @@ sign: ${SRC} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${KAT_MAIN_SRC} libhash
 bench: ${SRC} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${BENCH_MAIN_SRC} libhash
 	-${CC} ${CFLAGS} ${AVXFLAGS} -o $@ ${SRC} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${BENCH_MAIN_SRC} -I. ${HASH_INCLUDE} -L${HASH_PATH} -lcrypto -lhash -lm
 
+bench_custom_test: bench.c ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${RNG_OBJ} libhash
+	-${CC} ${CFLAGS} ${AVXFLAGS} -o bench_custom bench.c ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${RNG_OBJ}  -I. ${HASH_INCLUDE} -L${HASH_PATH} -lcrypto -lhash -lm -lcpucycles
+
 clean:
 	-rm -f *.o *.a sign bench
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH) clean
 	-rm -rf $(BUILD_CTLIB)
+	-rm $(RNG_OBJ)
+	-rm bench_custom
+	-rm *.txt

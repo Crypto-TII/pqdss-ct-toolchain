@@ -47,6 +47,7 @@ RNG_OBJ=generator/rng.o
 
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
+CTTEST_LIB_CFLAGS = $(CFLAGS)
 
 all: sign bench $(CTTEST_LIB)
 
@@ -55,6 +56,7 @@ libhash:
 
 $(CTTEST_LIB): ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${RNG_OBJ} libhash
 	mkdir -p $(BUILD_CTLIB)
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	-${CC} ${CFLAGS} -I. ${HASH_INCLUDE} ${AVXFLAGS} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${RNG_OBJ} -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L${HASH_PATH} -lcrypto -lhash
 
 sign: ${SRC} ${FIELD_SRC} ${CRYPTO_SRC} ${SDITH_SRC} ${KAT_MAIN_SRC} libhash

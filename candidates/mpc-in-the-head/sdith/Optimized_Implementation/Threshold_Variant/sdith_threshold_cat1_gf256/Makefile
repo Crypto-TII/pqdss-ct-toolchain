@@ -24,6 +24,8 @@ RNG_OBJ=generator/rng.o
 
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
+CTTEST_LIB_CFLAGS = $(CFLAGS)
+
 
 %.o : %.c
 	$(CC) -c $(ALL_FLAGS) $(HASH_INCLUDE) $(APP_INCLUDE) -I. $< -o $@
@@ -35,6 +37,7 @@ libhash:
 
 $(CTTEST_LIB): $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) libhash
 	mkdir -p $(BUILD_CTLIB)
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	-$(CC) $(ALL_FLAGS) -I. $(HASH_INCLUDE) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L${HASH_PATH} -lhash -lcrypto
 
 # Generation of the KAT
