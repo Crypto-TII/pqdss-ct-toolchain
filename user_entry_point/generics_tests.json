@@ -11,7 +11,8 @@
         "secret_inputs": ["array", "array2"],
         "compiler": "gcc",
         "macro": ["ARRAY_SIZE 120"],
-        "random_data": {"array":"ARRAY_SIZE", "array2":"ARRAY_SIZE"}
+        "random_data": {"array":"ARRAY_SIZE", "array2":"ARRAY_SIZE"},
+        "compilation_flags": null
       }
     },
     {
@@ -25,7 +26,23 @@
         "secret_inputs": ["array1"],
         "compiler": "gcc",
         "macro": {"ARRAY_SIZE": 120},
-        "random_data": {"array2": "120"}
+        "random_data": {"array2": "120"},
+        "compilation_flags": null
+      }
+    },
+    {
+      "crypto_kem_dec": {
+        "target_call": "crypto_kem_dec(ss, ct, sk)",
+        "target_return_type": "int",
+        "target_input_declaration": [ " unsigned char ss[CRYPTO_BYTES]", "unsigned char ct[CRYPTO_CIPHERTEXTBYTES]", "unsigned char sk[CRYPTO_SECRETKEYBYTES];"],
+        "target_include_header": ["kem.h"],
+        "link_binary": "kyber/ref/libpqcrystals_kyber512_ref.so",
+        "path_to_include_directory": "kyber/ref",
+        "secret_inputs": ["sk", "ss"],
+        "compiler": "gcc",
+        "macro": {"ARRAY_SIZE": 120},
+        "random_data": null,
+        "compilation_flags": null
       }
     }
 
