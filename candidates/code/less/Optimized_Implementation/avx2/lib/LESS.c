@@ -35,6 +35,7 @@
 #include "keccakf1600.h"
 #include "sha3.h"
 
+
 void LESS_keygen(prikey_t *SK,
                  pubkey_t *PK) {
     /* generating private key from a single seed */
@@ -217,8 +218,6 @@ int LESS_verify(const pubkey_t *const PK,
     uint8_t fixed_weight_string[T] = {0};
     expand_digest_to_fixed_weight(fixed_weight_string, sig->digest);
     monomial_action_IS_t mono_action;
-
-
     uint8_t published_seed_indexes[T];
     for (uint32_t i = 0; i < T; i++) {
         published_seed_indexes[i] = !!(fixed_weight_string[i]);
@@ -232,7 +231,6 @@ int LESS_verify(const pubkey_t *const PK,
                                           SEED_LENGTH_BYTES * (NUM_LEAVES_OF_SEED_TREE - 1);
 
     int employed_monoms = 0;
-
     rref_generator_mat_t G0_rref;
     generator_SF_seed_expand(&G0_rref, PK->G_0_seed);
 
@@ -293,14 +291,12 @@ int LESS_verify(const pubkey_t *const PK,
             employed_monoms++;
         }
     }
-
     uint8_t recomputed_digest[HASH_DIGEST_LENGTH] = {0};
     LESS_SHA3_INC_ABSORB(&state, (const uint8_t *) m, mlen);
     LESS_SHA3_INC_ABSORB(&state, sig->tree_salt, HASH_DIGEST_LENGTH);
 
     /* Squeeze output */
     LESS_SHA3_INC_FINALIZE(recomputed_digest, &state);
-
     return (timing_safe_memcmp(recomputed_digest,
                                sig->digest,
                                HASH_DIGEST_LENGTH) == 0);

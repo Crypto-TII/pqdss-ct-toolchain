@@ -87,7 +87,6 @@ int crypto_sign_open(unsigned char *m,
                                  pk,                                    // in parameter
                          (const char *const) m, (const uint64_t) *mlen, // in parameter
                          (const sign_t *const) (sm + *mlen));            // in parameter
-
     return ok - 1; // NIST convention: 0 == zero errors, -1 == error condition
 } // end crypto_sign_open
 
