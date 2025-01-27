@@ -69,7 +69,7 @@ def find_target_by_basename(target_basename: str, path_to_target_header_file: st
 
 def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
                         path_to_test_library_directory: str, libraries_names: [Union[str, list]],
-                        path_to_include_directories: Union[str, list], cflags: list, compiler: str = 'gcc'):
+                        path_to_include_directories: Union[str, list], cflags: Union[list, str], compiler: str = 'gcc'):
     target_include_dir = path_to_include_directories
     target_link_libraries = []
     if libraries_names:
@@ -153,7 +153,7 @@ def binsec_generate_core_dump(path_to_executable_file: str, path_to_gdb_script: 
     subprocess.call(cmd_list, stdin=sys.stdin)
 
 
-def binsec_update_declaration(target_call: str, target_input_declaration: Union[list, str], random_data: dict):
+def binsec_update_declaration_17_jan(target_call: str, target_input_declaration: Union[list, str], random_data: dict):
     parameters_info = get_target_type_of_inputs(target_call, target_input_declaration)
     parameter_index = 0
     if random_data:
@@ -184,6 +184,99 @@ def binsec_update_declaration(target_call: str, target_input_declaration: Union[
                 {value_param[1]} {key_param} = {value_param[2]} ;
                 '''
     return updated_declaration, random_data_block, deallocate_block
+
+
+
+def binsec_update_declaration_20(target_call: str, target_input_declaration: Union[list, str], random_data: dict):
+    parameters_info = get_target_type_of_inputs(target_call, target_input_declaration)
+    parameter_index = 0
+    if random_data:
+        for parameter, parameter_length in random_data.items():
+            parameters_info[parameter][-1] = parameter_length
+        parameter_index += 1
+    random_data_block = f''''''
+    deallocate_block = f''''''
+    updated_declaration = f''''''
+    print("------parameters_info: ", parameters_info)
+    print("------target_input_declaration: ", target_input_declaration)
+    print("------target_call: ", target_call)
+    print("------random_data: ", random_data)
+    for key_param, value_param in parameters_info.items():
+        print("---key_param: {0} --- value_param: {1}".format(key_param, value_param))
+        if random_data:
+            if key_param in random_data.keys():
+                key = key_param
+                value = parameters_info[key]
+                if value[0] == 'pointer' or value[0] == 'array':
+                    updated_declaration += f'''
+                    {value[1]} {key}[{value[2]}] = {{0}};'''
+                elif value[0] == 'default':
+                    updated_declaration += f'''
+                    {value[1]} {key} = {value[2]}'''
+        if random_data:
+            if key_param not in random_data.keys():
+                if value_param[0] == 'pointer' or value_param[0] == 'array':
+                    updated_declaration += f'''
+                    {value_param[1]} {key_param}[{value_param[2]}] = {{0}};
+                    '''
+                if value_param[0] == 'default':
+                    updated_declaration += f'''
+                    {value_param[1]} {key_param} = {value_param[2]} ;
+                    '''
+        else:
+            if value_param[0] == 'pointer' or value_param[0] == 'array':
+                updated_declaration += f'''
+                    {value_param[1]} {key_param}[{value_param[2]}] = {{0}};
+                    '''
+            if value_param[0] == 'default':
+                updated_declaration += f'''
+                    {value_param[1]} {key_param} = {value_param[2]} ;
+                    '''
+    return updated_declaration, random_data_block, deallocate_block
+
+
+def binsec_update_declaration(target_call: str, target_input_declaration: Union[list, str], random_data: dict):
+    parameters_info = get_target_type_of_inputs(target_call, target_input_declaration)
+    parameter_index = 0
+    if random_data:
+        for parameter, parameter_length in random_data.items():
+            parameters_info[parameter][-1] = parameter_length
+        parameter_index += 1
+    random_data_block = f''''''
+    deallocate_block = f''''''
+    updated_declaration = f''''''
+    for key_param, value_param in parameters_info.items():
+        if random_data:
+            if key_param in random_data.keys():
+                key = key_param
+                value = parameters_info[key]
+                if value[0] == 'pointer' or value[0] == 'array':
+                    updated_declaration += f'''
+                    {value[1]} {key}[{value[2]}] = {{0}};'''
+                elif value[0] == 'default':
+                    updated_declaration += f'''
+                    {value[1]} {key} = {value[2]}'''
+        if random_data:
+            if key_param not in random_data.keys():
+                if value_param[0] == 'pointer' or value_param[0] == 'array':
+                    updated_declaration += f'''
+                    {value_param[1]} {key_param}[{value_param[2]}] = {{0}};
+                    '''
+                if value_param[0] == 'default':
+                    updated_declaration += f'''
+                    {value_param[1]} {key_param} = {value_param[2]} ;
+                    '''
+        else:
+            if value_param[0] == 'pointer' or value_param[0] == 'array':
+                updated_declaration += f'''
+                    {value_param[1]} {key_param}[{value_param[2]}] = {{0}};
+                    '''
+            if value_param[0] == 'default':
+                updated_declaration += f'''
+                    {value_param[1]} {key_param} = {value_param[2]} ;
+                    '''
+    return updated_declaration, random_data_block, deallocate_block
+
 
 
 # Run timecop
@@ -568,6 +661,42 @@ def timecop_get_type_of_inputs(target_function_call: str, target_input_declarati
 
 
 # output: {VAR_NAME: [VAR_CATEGORY, VAR_TYPE, VAR_SIZE]}
+def get_target_type_of_inputs_20(target_function_call: str, target_input_declaration: Union[str, list]):
+    target_call_custom = target_function_call.replace('&', '')
+    target_call_custom = target_call_custom.replace(',', '')
+    target_all_inputs = target_call_custom[target_call_custom.find("(")+1:target_call_custom.find(")")]
+    target_all_inputs = target_all_inputs.split()
+    print("------+++++++++target_all_inputs: ", target_all_inputs)
+    print("------+++++++++target_input_declaration: ", target_input_declaration)
+    target_inputs_type = {}
+    parameter_found = False
+    parameter_infos = []
+    for i in range(len(target_input_declaration)):
+        parameter_category = 'default'
+        length = '0'  # we set length = 0  for a variable of type pointer
+        decl = target_input_declaration[i].strip()
+        parameter = target_all_inputs[i]
+        if parameter in decl:
+            input_type = ''
+            if '[' not in decl and ']' not in decl:
+                if '*' in decl:
+                    input_type = decl.split('*')[0]
+                    parameter_category = 'pointer'
+                else:
+                    input_type = decl.split(parameter)[0]
+                    length = '0'
+                    if '=' in decl:
+                        length = decl.split('=')[-1]
+            else:
+                parameter_category = 'array'
+                input_type = decl.split(parameter)[0]
+                length = decl[decl.find("[")+1:decl.find("]")]
+            parameter_infos = [parameter_category, input_type.strip(), length]
+            target_inputs_type[parameter] = parameter_infos
+    return target_inputs_type
+
+
+
 def get_target_type_of_inputs(target_function_call: str, target_input_declaration: Union[str, list]):
     target_call_custom = target_function_call.replace('&', '')
     target_call_custom = target_call_custom.replace(',', '')
@@ -854,6 +983,12 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
     path_to_link_library = target_dict['link_binary']
     path_to_include_directory = target_dict['path_to_include_directory']
     compiler = target_dict['compiler']
+    compilation_flags = target_dict['compilation_flags']
+    if not compilation_flags:
+        compilation_flags = []
+    else:
+        if isinstance(compilation_flags, str):
+            compilation_flags = compilation_flags.split()
     # To be set as input parameters
     sse_timeout = '120'
     timeout = '300'
@@ -890,6 +1025,7 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
             libraries_names = Path(path_to_link_library).stem
             libraries_names += f' {extended_library}'
             path_to_directory_link_library = os.path.dirname(path_to_link_library)
+            compilation_flags.extend(cflags)
             generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
                                 libraries_names, path_to_include_directory, cflags, compiler)
             generic_run(tool, target_basename, depth, sse_timeout, timeout)
@@ -909,6 +1045,7 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
                                              None, number_of_measurement, target_macro)
                 extended_library = "m"
                 cflags = ["-std=c11"]
+            compilation_flags.extend(cflags)
             libraries_names = Path(path_to_link_library).stem
             libraries_names += f' {extended_library}'
             path_to_directory_link_library = os.path.dirname(path_to_link_library)

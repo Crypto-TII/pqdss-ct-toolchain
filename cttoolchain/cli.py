@@ -126,7 +126,7 @@ def add_cli_arguments(subparser,
                      f"default='', help = 'Benchmarks average, mean, quartile'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
-        arguments = f"'--iterations', '-iterations', dest='iterations', default='1e3', help = 'number of iterations'"
+        arguments = f"'--iterations', '-iterations', dest='iterations', default='1000', help = 'number of iterations'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
         arguments = f"'--min_msg_size', '-min_msg_len', dest='min_msg_len', default='1', help = 'minimum message size'"
@@ -180,5 +180,9 @@ def add_cli_arguments(subparser,
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
         arguments = f"'--run_test_only','-run_test_only',dest='run_test_only', default='no', help='no'"
+        add_args_commdand = f"candidate_parser.add_argument({arguments})"
+        exec(add_args_commdand)
+        arguments = (f"'--compilation_flags', '-compilation_flags', dest='compilation_flags', nargs='+',"
+                     f" help = 'compilation flags'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)

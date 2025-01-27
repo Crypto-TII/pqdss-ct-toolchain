@@ -146,50 +146,6 @@ def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
 
-def generic_target_compilation_28(path_candidate: str, path_to_test_library_directory: str,
-                               libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
-                               tool_name: str, default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
-                               binary_patterns: Optional[Union[str, list]] = None):
-    tool_type = tools.Tools(tool_name)
-    test_keypair_basename, test_sign_basename = tool_type.get_tool_test_file_name()
-    keypair_sign = []
-    path_to_tool_folder = f'{path_candidate}/{tool_name}'
-    path_to_instances = [path_to_tool_folder]
-    candidate = path_candidate.split('/')[-1]
-    instances_list = []
-    if instances:
-        instances_list = []
-        if isinstance(instances, str):
-            instances_list = instances.split()
-        elif isinstance(instances, list):
-            instances_list = instances.copy()
-    for instance in instances_list:
-        path_to_include_directories_split = path_to_include_directories.split(default_instance)
-        path_to_include_directories_split.insert(1, instance)
-        path_to_include_directories = "".join(path_to_include_directories_split)
-        if default_instance in path_to_test_library_directory:
-            path_to_test_library_directory_split = path_to_test_library_directory.split(default_instance)
-            path_to_test_library_directory_split.insert(1, instance)
-            path_to_test_library_directory = "".join(path_to_test_library_directory_split)
-
-        path_to_instance = f'{path_to_tool_folder}/{instance}'
-        path_to_instance_build_folder = f'{path_to_instance}/build'
-        if binary_patterns is not None:
-            if isinstance(binary_patterns, str):
-                keypair_sign.append(binary_patterns.split())
-            else:
-                keypair_sign = binary_patterns.copy()
-        else:
-            binary_patterns = ['keypair', 'sign']
-        for bin_pattern in binary_patterns:
-            target_folder_basename = f'{candidate}_{bin_pattern}'
-            path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_sign_basename}'
-            if bin_pattern.strip() == 'keypair':
-                path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_keypair_basename}'
-            path_to_target_binary = path_to_target_wrapper.split('.c')[0]
-            generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_test_library_directory,
-                                libraries_names, path_to_include_directories, tool_name, compiler)
-
 
 def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
                                libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
@@ -238,25 +194,6 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
             generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_test_library_directory,
                                 libraries_names, path_to_include_directories, tool_name, compiler)
 
-
-def compile_target_candidate_09_sept(path_to_candidate_makefile_cmake: str,
-                             build_with_make: bool = True, additional_options=None, tool_name: Optional[str] = None):
-    tool_cflags = ''
-    tool_libs = ''
-    tool_flags = []
-    tool_template_pattern = ''
-    if tool_name is not None:
-        tool_type = tools.Tools(tool_name)
-        tool_cflags, tool_libs = tool_type.get_tool_flags_and_libs()
-        tool_type.get_tool_test_file_name()
-        tool_template_pattern = tool_type.tool_test_file_name
-        print("-----tool_template_pattern: ", tool_template_pattern)
-        tool_flags.extend([tool_name, tool_cflags])
-    if build_with_make:
-        compile_with_makefile(path_to_candidate_makefile_cmake, additional_options, tool_flags)
-    if not build_with_make:
-        path_to_build_folder = f'{path_to_candidate_makefile_cmake}/build'
-        compile_with_cmake(path_to_build_folder, additional_options, tool_cflags)
 
 
 def compile_target_candidate(path_to_candidate_makefile_cmake: str,
@@ -407,22 +344,6 @@ def initialization(tools_list, abs_path_to_api_or_sign,
 
 # generic_initialize_nist_candidate: generalisation of the function 'initialization', taking into account the fact
 # that some candidates have only 'one' instance
-def generic_initialize_nist_candidate_16_nov(tools_list, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
-                                      optimized_imp_folder, instances_list, add_includes,
-                                      with_core_dump="yes", number_of_measurements='1e4'):
-    list_of_instances = []
-    if not instances_list:
-        list_of_instances = [""]
-    else:
-        for instance_folder in instances_list:
-            list_of_instances.append(instance_folder)
-    for instance in list_of_instances:
-        initialization(tools_list, abs_path_to_api_or_sign, abs_path_to_rng,
-                       candidate, optimized_imp_folder, instance, add_includes,
-                       with_core_dump, number_of_measurements)
-
-
-
 def generic_initialize_nist_candidate(tools_list, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                       optimized_imp_folder, instances_list, add_includes,
                                       with_core_dump="yes", number_of_measurements='1e4'):
@@ -440,21 +361,6 @@ def generic_initialize_nist_candidate(tools_list, candidate, abs_path_to_api_or_
                        with_core_dump, number_of_measurements)
 
 
-def compile_target_from_library_09_sept(path_to_candidate_makefile_cmake,
-                                libraries_names: Union[str, list] = 'lcttest',
-                                path_to_include_directories: Union[str, list] = '',
-                                path_to_target_wrapper: str = '', path_to_target_binary: str = '',
-                                tool_name: str = '', compiler: str = 'gcc', build_with_make: bool = True,
-                                additional_optional=None):
-
-    path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-    # Compile candidate and generate the library 'libcttest.a' for the tests
-    compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make, additional_optional)
-    # Compile target function
-    generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_test_library_directory,
-                        libraries_names, path_to_include_directories, tool_name, compiler)
-
-
 def compile_target_from_library(path_to_candidate_makefile_cmake,
                                 libraries_names: Union[str, list] = 'lcttest',
                                 path_to_include_directories: Union[str, list] = '',
@@ -469,64 +375,6 @@ def compile_target_from_library(path_to_candidate_makefile_cmake,
     # Compile target function
     generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_test_library_directory,
                         libraries_names, path_to_include_directories, tool_name, compiler)
-
-
-def generic_init_compile1(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                          default_instance: str, instances, additional_includes, path_to_candidate_makefile_cmake,
-                          libraries_names: Union[str, list] = 'lcttest',
-                          path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
-                          additional_cmake_definitions=None, number_of_measurements='1e4', compiler: str = 'gcc',
-                          compile_test_harness: str = 'yes', binary_patterns: Optional[Union[str, list]] = None):
-
-    generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
-                                      optimized_imp_folder, instances, additional_includes, 'yes',
-                                      number_of_measurements)
-    for instance in instances:
-        path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
-        path_to_candidate_makefile_cmake_split.insert(1, instance)
-        path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
-        compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make, additional_cmake_definitions)
-    path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-    if path_candidate.endswith('/'):
-        path_candidate += candidate
-    else:
-        path_candidate += f'/{candidate}'
-    if 'yes' in compile_test_harness.lower():
-        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-        for tool in tools:
-            generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
-                                       path_to_include_directories, tool, default_instance, instances,
-                                       compiler, binary_patterns)
-
-
-# generic_init_compile: in addition to initializing a given candidate for desired tools and instances
-def generic_init_compile2(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                         default_instance: str, instances, additional_includes, path_to_candidate_makefile_cmake,
-                         direct_link_or_compile_target: bool = True, libraries_names: Union[str, list] = 'lcttest',
-                         path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
-                         additional_cmake_definitions=None, number_of_measurements='1e4', compiler: str = 'gcc',
-                         compile_test_harness: str = 'yes', binary_patterns: Optional[Union[str, list]] = None):
-
-    generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
-                                      optimized_imp_folder, instances, additional_includes, 'yes',
-                                      number_of_measurements)
-    if not direct_link_or_compile_target:
-        for instance in instances:
-            path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
-            path_to_candidate_makefile_cmake_split.insert(1, instance)
-            path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
-            compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make, additional_cmake_definitions)
-    path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-    if path_candidate.endswith('/'):
-        path_candidate += candidate
-    else:
-        path_candidate += f'/{candidate}'
-    if 'yes' in compile_test_harness.lower():
-        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-        for tool in tools:
-            generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
-                                       path_to_include_directories, tool, default_instance,instances,
-                                       compiler, binary_patterns)
 
 
 # generic_init_compile: in addition to initializing a given candidate for desired tools and instances

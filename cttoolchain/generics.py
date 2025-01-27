@@ -531,7 +531,7 @@ def compile_target_candidate(path_to_candidate_makefile_cmake: str,
         compile_with_cmake(path_to_build_folder, additional_options, *args, **kwargs)
 
 
-def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
+def generic_compilation_25_jan(path_to_target_wrapper: str, path_to_target_binary: str,
                         path_to_test_library_directory: str, libraries_names: [Union[str, list]],
                         path_to_include_directories: Union[str, list], cflags: list, compiler: str = 'gcc'):
     target_include_dir = path_to_include_directories
@@ -562,10 +562,44 @@ def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
 
+def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
+                        path_to_test_library_directory: str, libraries_names: [Union[str, list]],
+                        path_to_include_directories: Union[str, list], cflags: Union[list, str], compiler: str = 'gcc'):
+    target_include_dir = path_to_include_directories
+    target_link_libraries = []
+    if isinstance(libraries_names, str):
+        target_link_libraries.extend(libraries_names.split())
+    elif isinstance(libraries_names, list):
+        target_link_libraries.extend(libraries_names.copy())
+    target_link_libraries = list(set(target_link_libraries))
+    target_link_libraries = list(map(lambda incs: f'{incs}' if '-l' in incs else f'-l{incs}', target_link_libraries))
+    target_link_libraries_str = " ".join(target_link_libraries)
+    all_flags_str = ''
+    if isinstance(cflags, list):
+        all_flags_str = " ".join(cflags)
+    elif isinstance(cflags, str):
+        all_flags_str = cflags
+    cmd = f'{compiler} {all_flags_str} '
+    if target_include_dir:
+        if isinstance(target_include_dir, list):
+            include_directories = target_include_dir.copy()
+            include_directories = list(map(lambda incs: f'-I{incs}', include_directories))
+            cmd += f' {" ".join(target_include_dir)}'
+        else:
+            include_directories = list(map(lambda incs: f'-I {incs}', target_include_dir.split()))
+            cmd += f' {" ".join(include_directories)}'
+    if not path_to_target_wrapper.endswith('.c'):
+        path_to_target_wrapper = f'{path_to_target_wrapper}.c'
+    cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
+    cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
+    print("----------cmd: ")
+    print(cmd)
+    subprocess.call(cmd, stdin=sys.stdin, shell=True)
+
 
 def generic_target_compilation_1(path_candidate: str, path_to_test_library_directory: str,
                                libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
-                               cflags: list, default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
+                               cflags: Union[list, str], default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
                                binary_patterns: Optional[Union[str, list]] = None):
 
     test_keypair_basename, test_sign_basename = '', '' # tool_type.get_tool_test_file_name() to be fixed
