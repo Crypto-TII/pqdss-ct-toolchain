@@ -430,7 +430,7 @@ def generic_create_tests_folders(list_of_path_to_folders):
             subprocess.call(cmd, stdin=sys.stdin)
 
 
-def compile_with_makefile(path_to_makefile, default=None, *args, **kwargs):
+def compile_with_makefile_27_jan(path_to_makefile, default=None, *args, **kwargs):
     print(":::::::compile_with_makefile:::::::")
     print(".....path_to_makefile: ", path_to_makefile)
     cwd = os.getcwd()
@@ -461,31 +461,40 @@ def compile_with_makefile(path_to_makefile, default=None, *args, **kwargs):
     os.chdir(cwd)
 
 
-def compile_with_cmake_14(build_folder_full_path, optional_flags=None, *args, **kwargs):
-    if optional_flags is None:
-        optional_flags = []
+def compile_with_makefile(path_to_makefile, default=None, *args, **kwargs):
+    print(":::::::compile_with_makefile:::::::")
+    print(".....path_to_makefile: ", path_to_makefile)
     cwd = os.getcwd()
-    create_directory(build_folder_full_path)
-    # Set the tool's flags in the CMakeLists.txt
-    cmakelist = '../CMakeLists.txt'
-    set_tool_flags = [f"sed -i -E 's/(TOOLS_FLAGS .+)/TOOLS_FLAGS "")/g'" + f" {cmakelist}"]
+    os.chdir(path_to_makefile)
+    # Set the tool's flags in the Makefile
+    makefile = 'Makefile'
+    set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := /g' {makefile}"]
     subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-    set_tool_name = [f"sed -i -E 's/(TOOL_NAME .+)/TOOL_NAME "")/g'" + f" {cmakelist}"]
-    subprocess.call(set_tool_name, stdin=sys.stdin, shell=True)
-    os.chdir(build_folder_full_path)
-
+    # For now for benchmark. But this should be generic
+    set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS := .*$/TOOL_LINK_LIBS := /g' {makefile}"]
+    subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+    # Run make clean first in case objects files have already been obtained with the flags of a different tool.
     additional_options = list(args)
+    no_make_clean = 'no-make-clean'
+    print(">>>>>>>>>>additional_options: ", additional_options)
+    if no_make_clean not in additional_options:
+        print("--------+++++++========performing make clean")
+        cmd_clean = ["make", "clean"]
+        subprocess.call(cmd_clean, stdin=sys.stdin)
+    else:
+        additional_options.remove(no_make_clean)
+    # additional_options = list(args)
     for key, val in kwargs.items():
-        additional_options.append(f'-D{key}={val}')
-    cmd = ["cmake"]
+        additional_options.append(f'{key}={val}')
+    # cmd = ["make", "all"]
+    cmd = ["make"]
+    if not additional_options:
+        cmd.append('all')
     cmd.extend(additional_options)
-    if not optional_flags == []:
-        cmd.extend(optional_flags)
-    cmd_ext = ["../"]
-    cmd.extend(cmd_ext)
-    print("+++++++++cmd++++++++: ", cmd)
-    subprocess.call(cmd, stdin=sys.stdin)
-    cmd = ["make", "-j"]
+    if default:
+        cmd.append(default)
+    cmd.append('all')
+    print("++++++++++++cmd++++++++++++: ", cmd)
     subprocess.call(cmd, stdin=sys.stdin)
     os.chdir(cwd)
 

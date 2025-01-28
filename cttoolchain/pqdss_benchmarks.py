@@ -20,513 +20,6 @@ import generics as gen
 import errors as error
 
 
-def benchmark_template_22_jan(candidate: str, instance: str, security_level: str, path_to_benchmark_file: str,
-                       api_or_sign: str, rng: str, add_includes: str, function_return_type: str, args_types: list,
-                       args_names: list, number_of_iterations: Union[str, int] = '1000',
-                       min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300'):
-    api_h = os.path.basename(api_or_sign)
-    rng_h = os.path.basename(rng)
-    args_types[2] = re.sub("const ", "", args_types[2])
-    args_types[4] = re.sub("const ", "", args_types[4])
-
-    sorting_functions_block = f'''
-    void swap(ticks* a, ticks* b)
-    {{
-        ticks t = *a;
-        *a = *b;
-        *b = t;
-    }}
-    
-    /* Performs one step of pivot sorting with the last
-        element taken as pivot. */
-    int partition (ticks arr[], int low, int high)
-    {{
-        ticks pivot = arr[high];
-        int i = (low - 1);
-    
-        int j;
-        for(j = low; j <= high- 1; j++)
-        {{
-        if(arr[j] < pivot)
-        {{
-        i++;
-        swap(&arr[i], &arr[j]);
-        }}
-        }}
-        swap(&arr[i + 1], &arr[high]);
-        return (i + 1);
-    }}
-    
-    void quicksort(ticks arr[], int low, int high)
-    {{
-        if (low < high)
-        {{
-        int pi = partition(arr, low, high);
-        quicksort(arr, low, pi - 1);
-        quicksort(arr, pi + 1, high);
-        }}
-    }}
-    '''
-
-    includes_block = f'''
-    #include<time.h>
-    #include <math.h>
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <stdbool.h>
-    
-    #include "cycle.h"
-    
-    #include "{api_h}"
-    
-    //#include "{rng_h}"
-    #include "toolchain_randombytes.h"
-    '''
-    bench_content_block = f'''
-    
-    {sorting_functions_block}
-    
-    int main(void)
-    {{
-    \t//int i = 0;
-    \t//int iterations = TOTAL_ITERATIONS;
-    \t//int min_msg_len = MINIMUM_MSG_LENGTH;
-    \t//int max_msg_len = MAXIMUM_MSG_LENGTH;
-    \t{args_types[3]} i = 0;
-    \t{args_types[3]} iterations = TOTAL_ITERATIONS;
-    \t{args_types[3]} min_msg_len = MINIMUM_MSG_LENGTH;
-    \t{args_types[3]} max_msg_len = MAXIMUM_MSG_LENGTH;
-    \t{args_types[3]} mlen = 0;
-    \t{args_types[1]} smlen = 0;
-    \t//bool pass;
-    \t{function_return_type} pass;
-
-    \t// For storing clock cycle counts
-    \tticks cc_mean = 0, cc_stdev = 0,
-    \tcc0, cc1,
-    \t*cc_sample =(ticks *)malloc(iterations * sizeof(ticks));
-
-    \t// For storing keypair
-    \t{args_types[4]} *pk = ({args_types[4]} *)malloc(CRYPTO_PUBLICKEYBYTES * iterations * sizeof({args_types[4]}));
-    \t{args_types[4]} *sk = ({args_types[4]} *)malloc(CRYPTO_SECRETKEYBYTES * iterations * sizeof({args_types[4]}));
-
-    \t// For storing plaintext messages
-    \t{args_types[2]} *m = ({args_types[2]} *)malloc(max_msg_len * iterations * sizeof({args_types[2]}));
-    \t//mlen = getrandom(m, max_msg_len * iterations, 0);
-    \tct_randombytes(m, max_msg_len * iterations);
-    \t//mlen = sizeof(m);
-    \tmlen =  max_msg_len * iterations;
-    \t//if((int)mlen < max_msg_len * iterations){{
-    \tif(mlen < max_msg_len * iterations){{
-    \t\tprintf("Error in generating random messages\\n");
-    \t\treturn -1;
-    \t}}
-
-    \t// For storing signed messages
-    \t{args_types[0]} *sm = ({args_types[0]} *)malloc((CRYPTO_BYTES + max_msg_len) * iterations * sizeof({args_types[0]}));
-
-    \tprintf("Candidate: {candidate}\\n");
-    \tprintf("Security Level: {security_level}\\n");
-    \tprintf("Instance: {instance}\\n");
-
-    \t// ================== KEYGEN ===================
-    \tcc_mean = 0; cc_stdev = 0;
-    \t//Gather statistics
-    \tfor (i = 0; i < iterations; i++)
-    \t{{
-   
-    \t\tcc0 = getticks();
-    \t\tpass = crypto_sign_keypair(&pk[i*CRYPTO_PUBLICKEYBYTES], &sk[i*CRYPTO_SECRETKEYBYTES]);
-    \t\tcc1 = getticks();
-    \t\tcc_sample[i] = cc1 - cc0;
-    \t\tcc_mean += cc_sample[i];
-
-    \t\tif(pass){{
-    \t\t\tprintf("Error in Keygen\\n");
-    \t\t\treturn -1;
-    \t\t}}
-    \t}};
-    \tprintf("Algorithm: Keygen:\\n");
-    \tcc_mean /= iterations;
-    \tquicksort(cc_sample, 0, iterations - 1);
-
-    \t// Compute the standard deviation
-    \tfor (i = 0; i < iterations; ++i){{
-    \t\tcc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
-    \t}}
-    \tcc_stdev = sqrt(cc_stdev / iterations);
-
-    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
-    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
-    \tprintf("Minimum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
-    \tprintf("First quartile (million cycles): \\t \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-    \tprintf("Median (million cycles):    \\t \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
-    \tprintf("\\n");
-
-    \t// ================== SIGNING ===================
-    \tcc_mean = 0; cc_stdev = 0;
-    \t// Gather statistics
-    \tfor (i = 0; i < iterations; i++)
-    \t{{
-    \t\tmlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
-    \t\tsmlen = mlen + CRYPTO_BYTES;
-    \t\tcc0 = getticks();
-    \t\tpass = crypto_sign(&sm[(CRYPTO_BYTES + max_msg_len)*i], &smlen, &m[max_msg_len*i], mlen, &sk[i*CRYPTO_SECRETKEYBYTES]);
-    \t\tcc1 = getticks();
-    \t\tcc_sample[i] = cc1 - cc0;
-    \t\tcc_mean += cc_sample[i];
-
-    \t\tif(pass)
-    \t\t{{
-    \t\t\tprintf("Error in signing\\n");
-    \t\t\treturn -1;
-    \t\t}}
-    \t}};
-    \tprintf("Candidate: {candidate}\\n");
-    \tprintf("Security Level: {security_level}\\n");
-    \tprintf("Instance: {instance}\\n");
-    \tprintf("Algorithm: Sign:\\n");
-    \tcc_mean /= iterations;
-    \tquicksort(cc_sample, 0, iterations - 1);
-
-    \t// Compute the standard deviation
-    
-    \tfor (i = 0; i < iterations; ++i){{
-    \t\tcc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
-    }}
-    \tcc_stdev = sqrt(cc_stdev / iterations);
-    
-    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
-    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
-    \tprintf("Minimum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
-    \tprintf("First quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-    \tprintf("Median (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
-    \tprintf("\\n");
-
-    \t// ================== VERIFICATION ===================
-    \tcc_mean = 0; cc_stdev = 0;
-    \t// Gather statistics
-    \tfor (i = 0; i < iterations; i++)
-    \t{{
-    \t\tmlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
-    \t\tsmlen = mlen + CRYPTO_BYTES;
-    \t\tcc0 = getticks();
-    \t\tpass = crypto_sign_open(&m[max_msg_len*i], &mlen, &sm[(CRYPTO_BYTES + max_msg_len)*i], smlen, &pk[i*CRYPTO_PUBLICKEYBYTES]);
-    \t\tcc1 = getticks();
-    \t\tcc_sample[i] = cc1 - cc0;
-    \t\tcc_mean += cc_sample[i];
-    
-    \t\tif(pass){{
-    \t\t\tprintf("Verification failed\\n");
-    \t\t\treturn -1;
-    \t\t}}
-    \t}};
-        
-    \tprintf("Candidate: {candidate}\\n");
-    \tprintf("Security Level: {security_level}\\n");
-    \tprintf("Instance: {instance}\\n");
-    \tprintf("Algorithm: Verify:\\n");
-    \tcc_mean /= iterations;
-    \tquicksort(cc_sample, 0, iterations - 1);
-
-    \t// Compute the standard deviation
-    \tfor (i = 0; i < iterations; ++i){{
-    \t\tcc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
-    }}
-    \tcc_stdev = sqrt(cc_stdev / iterations);
-
-    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
-    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
-    \tprintf("Minimum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
-    \tprintf("First quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-    \tprintf("Median (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
-    \tprintf("\\n");
-
-    \t// -----------------------------------------------------
-    \tfree(cc_sample);
-    \tfree(m);
-    \tfree(sm);
-    \tfree(pk);
-    \tfree(sk);
-    \treturn 0;
-    }}
-    '''
-    add_includes_block = f''''''
-    if not add_includes == []:
-        for include in add_includes:
-            add_includes_block += f'#include {include}\n'
-    benchmark_content = f'''
-    {includes_block}
-    #define MINIMUM_MSG_LENGTH {min_msg_len}
-    #define MAXIMUM_MSG_LENGTH {max_msg_len}
-    #define TOTAL_ITERATIONS   {number_of_iterations}
-    {add_includes_block}
-    {bench_content_block}
-    '''
-    with open(path_to_benchmark_file, "w") as bench_file:
-        bench_file.write(textwrap.dedent(benchmark_content))
-
-
-
-def benchmark_template_25(candidate: str, instance: str, security_level: str, path_to_benchmark_file: str,
-                       api_or_sign: str, rng: str, add_includes: str, function_return_type: str, args_types: list,
-                       args_names: list, number_of_iterations: Union[str, int] = '1000',
-                       min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300'):
-    api_h = os.path.basename(api_or_sign)
-    rng_h = os.path.basename(rng)
-    args_types[2] = re.sub("const ", "", args_types[2])
-    args_types[4] = re.sub("const ", "", args_types[4])
-
-    sorting_functions_block = f'''
-    void swap(ticks* a, ticks* b)
-    {{
-        ticks t = *a;
-        *a = *b;
-        *b = t;
-    }}
-    
-    /* Performs one step of pivot sorting with the last
-        element taken as pivot. */
-    int partition (ticks arr[], int low, int high)
-    {{
-        ticks pivot = arr[high];
-        int i = (low - 1);
-    
-        int j;
-        for(j = low; j <= high- 1; j++)
-        {{
-        if(arr[j] < pivot)
-        {{
-        i++;
-        swap(&arr[i], &arr[j]);
-        }}
-        }}
-        swap(&arr[i + 1], &arr[high]);
-        return (i + 1);
-    }}
-    
-    void quicksort(ticks arr[], int low, int high)
-    {{
-        if (low < high)
-        {{
-        int pi = partition(arr, low, high);
-        quicksort(arr, low, pi - 1);
-        quicksort(arr, pi + 1, high);
-        }}
-    }}
-    '''
-
-    includes_block = f'''
-    #include<time.h>
-    #include <math.h>
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <stdbool.h>
-    
-    #include <cpucycles.h>
-    #include "{api_h}"
-    
-    //#include "{rng_h}"
-    #include "toolchain_randombytes.h"
-    
-    typedef uint64_t ticks;
-    '''
-    bench_content_block = f'''
-    
-    {sorting_functions_block}
-    
-    int main(void)
-    {{
-    \t//int i = 0;
-    \t//int iterations = TOTAL_ITERATIONS;
-    \t//int min_msg_len = MINIMUM_MSG_LENGTH;
-    \t//int max_msg_len = MAXIMUM_MSG_LENGTH;
-    \t{args_types[3]} i = 0;
-    \t{args_types[3]} iterations = TOTAL_ITERATIONS;
-    \t{args_types[3]} min_msg_len = MINIMUM_MSG_LENGTH;
-    \t{args_types[3]} max_msg_len = MAXIMUM_MSG_LENGTH;
-    \t{args_types[3]} mlen = 0;
-    \t{args_types[1]} smlen = 0;
-    \t//bool pass;
-    \t{function_return_type} pass;
-
-    \t// For storing clock cycle counts
-    \tticks cc_mean = 0, cc_stdev = 0,
-    \tcc0, cc1,
-    \t*cc_sample =(ticks *)malloc(iterations * sizeof(ticks));
-
-    \t// For storing keypair
-    \t{args_types[4]} *pk = ({args_types[4]} *)malloc(CRYPTO_PUBLICKEYBYTES * iterations * sizeof({args_types[4]}));
-    \t{args_types[4]} *sk = ({args_types[4]} *)malloc(CRYPTO_SECRETKEYBYTES * iterations * sizeof({args_types[4]}));
-
-    \t// For storing plaintext messages
-    \t{args_types[2]} *m = ({args_types[2]} *)malloc(max_msg_len * iterations * sizeof({args_types[2]}));
-    \t//mlen = getrandom(m, max_msg_len * iterations, 0);
-    \tct_randombytes(m, max_msg_len * iterations);
-    \t//mlen = sizeof(m);
-    \tmlen =  max_msg_len * iterations;
-    \t//if((int)mlen < max_msg_len * iterations){{
-    \tif(mlen < max_msg_len * iterations){{
-    \t\tprintf("Error in generating random messages\\n");
-    \t\treturn -1;
-    \t}}
-
-    \t// For storing signed messages
-    \t{args_types[0]} *sm = ({args_types[0]} *)malloc((CRYPTO_BYTES + max_msg_len) * iterations * sizeof({args_types[0]}));
-
-    \tprintf("Candidate: {candidate}\\n");
-    \tprintf("Security Level: {security_level}\\n");
-    \tprintf("Instance: {instance}\\n");
-
-    \t// ================== KEYGEN ===================
-    \tcc_mean = 0; cc_stdev = 0;
-    \t//Gather statistics
-    \tfor (i = 0; i < iterations; i++)
-    \t{{
-   
-    \t\tcc0 = cpucycles();
-    \t\tpass = crypto_sign_keypair(&pk[i*CRYPTO_PUBLICKEYBYTES], &sk[i*CRYPTO_SECRETKEYBYTES]);
-    \t\tcc1 = cpucycles();
-    \t\tcc_sample[i] = cc1 - cc0;
-    \t\tcc_mean += cc_sample[i];
-
-    \t\tif(pass){{
-    \t\t\tprintf("Error in Keygen\\n");
-    \t\t\treturn -1;
-    \t\t}}
-    \t}};
-    \tprintf("Algorithm: Keygen:\\n");
-    \tcc_mean /= iterations;
-    \tquicksort(cc_sample, 0, iterations - 1);
-
-    \t// Compute the standard deviation
-    \tfor (i = 0; i < iterations; ++i){{
-    \t\tcc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
-    \t}}
-    \tcc_stdev = sqrt(cc_stdev / iterations);
-
-    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
-    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
-    \tprintf("Minimum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
-    \tprintf("First quartile (million cycles): \\t \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-    \tprintf("Median (million cycles):    \\t \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
-    \tprintf("\\n");
-
-    \t// ================== SIGNING ===================
-    \tcc_mean = 0; cc_stdev = 0;
-    \t// Gather statistics
-    \tfor (i = 0; i < iterations; i++)
-    \t{{
-    \t\tmlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
-    \t\tsmlen = mlen + CRYPTO_BYTES;
-    \t\tcc0 = cpucycles();
-    \t\tpass = crypto_sign(&sm[(CRYPTO_BYTES + max_msg_len)*i], &smlen, &m[max_msg_len*i], mlen, &sk[i*CRYPTO_SECRETKEYBYTES]);
-    \t\tcc1 = cpucycles();
-    \t\tcc_sample[i] = cc1 - cc0;
-    \t\tcc_mean += cc_sample[i];
-
-    \t\tif(pass)
-    \t\t{{
-    \t\t\tprintf("Error in signing\\n");
-    \t\t\treturn -1;
-    \t\t}}
-    \t}};
-    \tprintf("Candidate: {candidate}\\n");
-    \tprintf("Security Level: {security_level}\\n");
-    \tprintf("Instance: {instance}\\n");
-    \tprintf("Algorithm: Sign:\\n");
-    \tcc_mean /= iterations;
-    \tquicksort(cc_sample, 0, iterations - 1);
-
-    \t// Compute the standard deviation
-    
-    \tfor (i = 0; i < iterations; ++i){{
-    \t\tcc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
-    }}
-    \tcc_stdev = sqrt(cc_stdev / iterations);
-    
-    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
-    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
-    \tprintf("Minimum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
-    \tprintf("First quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-    \tprintf("Median (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
-    \tprintf("\\n");
-
-    \t// ================== VERIFICATION ===================
-    \tcc_mean = 0; cc_stdev = 0;
-    \t// Gather statistics
-    \tfor (i = 0; i < iterations; i++)
-    \t{{
-    \t\tmlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
-    \t\tsmlen = mlen + CRYPTO_BYTES;
-    \t\tcc0 = cpucycles();
-    \t\tpass = crypto_sign_open(&m[max_msg_len*i], &mlen, &sm[(CRYPTO_BYTES + max_msg_len)*i], smlen, &pk[i*CRYPTO_PUBLICKEYBYTES]);
-    \t\tcc1 = cpucycles();
-    \t\tcc_sample[i] = cc1 - cc0;
-    \t\tcc_mean += cc_sample[i];
-    
-    \t\tif(pass){{
-    \t\t\tprintf("Verification failed\\n");
-    \t\t\treturn -1;
-    \t\t}}
-    \t}};
-        
-    \tprintf("Candidate: {candidate}\\n");
-    \tprintf("Security Level: {security_level}\\n");
-    \tprintf("Instance: {instance}\\n");
-    \tprintf("Algorithm: Verify:\\n");
-    \tcc_mean /= iterations;
-    \tquicksort(cc_sample, 0, iterations - 1);
-
-    \t// Compute the standard deviation
-    \tfor (i = 0; i < iterations; ++i){{
-    \t\tcc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
-    }}
-    \tcc_stdev = sqrt(cc_stdev / iterations);
-
-    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
-    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
-    \tprintf("Minimum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
-    \tprintf("First quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-    \tprintf("Median (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
-    \tprintf("\\n");
-
-    \t// -----------------------------------------------------
-    \tfree(cc_sample);
-    \tfree(m);
-    \tfree(sm);
-    \tfree(pk);
-    \tfree(sk);
-    \treturn 0;
-    }}
-    '''
-    add_includes_block = f''''''
-    if not add_includes == []:
-        for include in add_includes:
-            add_includes_block += f'#include {include}\n'
-    benchmark_content = f'''
-    {includes_block}
-    #define MINIMUM_MSG_LENGTH {min_msg_len}
-    #define MAXIMUM_MSG_LENGTH {max_msg_len}
-    #define TOTAL_ITERATIONS   {number_of_iterations}
-    {add_includes_block}
-    {bench_content_block}
-    '''
-    with open(path_to_benchmark_file, "w") as bench_file:
-        bench_file.write(textwrap.dedent(benchmark_content))
-
 
 def benchmark_template(candidate: str, instance: str, security_level: str, path_to_benchmark_file: str,
                        api_or_sign: str, rng: str, add_includes: str, function_return_type: str, args_types: list,
@@ -787,224 +280,6 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
 
 
 
-
-def generic_target_compilation_24(path_candidate: str, path_to_test_library_directory: str,
-                               libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
-                               cflags: list, default_instance: str, instances: Optional[Union[str, list]] = None,
-                               compiler: str = 'gcc'):
-    benchmark_file_basename = 'bench.c'  # it has to be handled by a generic Object or global
-    benchmarks_folder_basename = 'benchmarks'  # it has to be handled by a generic Object or global
-    path_to_benchmark_folder = f'{path_candidate}/{benchmarks_folder_basename}'  # to be fixed
-
-    candidate = path_candidate.split('/')[-1]
-    instances_list = []
-    if instances:
-        instances_list = []
-        if isinstance(instances, str):
-            instances_list = instances.split()
-        elif isinstance(instances, list):
-            instances_list = instances.copy()
-    else:
-        instances_list = ["."]
-    for instance in instances_list:
-        if instance == ".":
-            path_to_instance = f'{path_to_benchmark_folder}'
-        else:
-            path_to_instance = f'{path_to_benchmark_folder}/{instance}'
-            path_to_include_directories_split = path_to_include_directories.split(default_instance)
-            path_to_include_directories_split.insert(1, instance)
-            path_to_include_directories = "".join(path_to_include_directories_split)
-            if default_instance in path_to_test_library_directory:
-                path_to_test_library_directory_split = path_to_test_library_directory.split(default_instance)
-                path_to_test_library_directory_split.insert(1, instance)
-                path_to_test_library_directory = "".join(path_to_test_library_directory_split)
-
-        path_to_benchmark_file = f'{path_to_instance}/{benchmark_file_basename}'
-        path_to_bench_binary = path_to_benchmark_file.split('.c')[0]
-        gen.generic_compilation(path_to_benchmark_file, path_to_bench_binary, path_to_test_library_directory,
-                                libraries_names, path_to_include_directories, cflags, compiler)
-
-
-def generic_target_compilation_21(path_candidate: str, path_to_test_library_directory: str,
-                               libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
-                               cflags: list, default_instance: str, instances: Optional[Union[str, list]] = None,
-                               compiler: str = 'gcc'):
-    path_to_include_directories_initial = path_to_include_directories
-    path_to_test_library_directory_initial = path_to_test_library_directory
-    benchmark_file_basename = 'bench.c'  # it has to be handled by a generic Object or global
-    benchmarks_folder_basename = 'benchmarks'  # it has to be handled by a generic Object or global
-    path_to_benchmark_folder = f'{path_candidate}/{benchmarks_folder_basename}'  # to be fixed
-
-    candidate = path_candidate.split('/')[-1]
-    instances_list = []
-    if instances:
-        instances_list = []
-        if isinstance(instances, str):
-            instances_list = instances.split()
-        elif isinstance(instances, list):
-            instances_list = instances.copy()
-    else:
-        instances_list = ["."]
-    for instance in instances_list:
-        if instance == ".":
-            path_to_instance = f'{path_to_benchmark_folder}'
-        else:
-            path_to_instance = f'{path_to_benchmark_folder}/{instance}'
-            path_to_include_directories_split = path_to_include_directories.split(default_instance)
-            path_to_include_directories_split.insert(1, instance)
-            path_to_include_directories = "".join(path_to_include_directories_split)
-            if default_instance in path_to_test_library_directory:
-                path_to_test_library_directory_split = path_to_test_library_directory.split(default_instance)
-                path_to_test_library_directory_split.insert(1, instance)
-                path_to_test_library_directory = "".join(path_to_test_library_directory_split)
-
-        path_to_benchmark_file = f'{path_to_instance}/{benchmark_file_basename}'
-        path_to_bench_binary = path_to_benchmark_file.split('.c')[0]
-        gen.generic_compilation(path_to_benchmark_file, path_to_bench_binary, path_to_test_library_directory,
-                                libraries_names, path_to_include_directories, cflags, compiler)
-        path_to_include_directories = path_to_include_directories_initial
-        path_to_test_library_directory = path_to_test_library_directory_initial
-
-
-def generic_target_compilation_22(path_candidate: str, path_to_test_library_directory: str,
-                               libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
-                               cflags: list, default_instance: str, instances: Optional[Union[str, list]] = None,
-                               compiler: str = 'gcc', binary_format: Optional[str] = None):
-    print(":::::::::generic_target_compilation::::::")
-    print("+++++++D:  path_to_include_directories: ", path_to_include_directories)
-    path_to_include_directories_initial = path_to_include_directories
-    path_to_test_library_directory_initial = path_to_test_library_directory
-    benchmark_file_basename = 'bench.c'  # it has to be handled by a generic Object or global
-    benchmarks_folder_basename = 'benchmarks'  # it has to be handled by a generic Object or global
-    path_to_benchmark_folder = f'{path_candidate}/{benchmarks_folder_basename}'  # to be fixed
-
-    candidate = path_candidate.split('/')[-1]
-    instances_list = []
-    if instances:
-        instances_list = []
-        if isinstance(instances, str):
-            instances_list = instances.split()
-        elif isinstance(instances, list):
-            instances_list = instances.copy()
-    else:
-        instances_list = ["."]
-    for instance in instances_list:
-        if instance == ".":
-            path_to_instance = f'{path_to_benchmark_folder}'
-        else:
-            path_to_instance = f'{path_to_benchmark_folder}/{instance}'
-            path_to_include_directories_split = path_to_include_directories.split(default_instance)
-            path_to_include_directories_split.insert(1, instance)
-            path_to_include_directories = "".join(path_to_include_directories_split)
-            if default_instance in path_to_test_library_directory:
-                path_to_test_library_directory_split = path_to_test_library_directory.split(default_instance)
-                path_to_test_library_directory_split.insert(1, instance)
-                path_to_test_library_directory = "".join(path_to_test_library_directory_split)
-
-        path_to_benchmark_file = f'{path_to_instance}/{benchmark_file_basename}'
-        path_to_bench_binary = path_to_benchmark_file.split('.c')[0]
-        if binary_format:
-            path_to_bench_binary += f'_{binary_format}'
-        gen.generic_compilation(path_to_benchmark_file, path_to_bench_binary, path_to_test_library_directory,
-                                libraries_names, path_to_include_directories, cflags, compiler)
-        path_to_include_directories = path_to_include_directories_initial
-        path_to_test_library_directory = path_to_test_library_directory_initial
-
-
-def generic_target_compilation_27(path_candidate: str, path_to_test_library_directory: str,
-                               libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
-                               cflags: list, default_instance: str, instances: Optional[Union[str, list]] = None,
-                               compiler: str = 'gcc', binary_format: Optional[str] = None):
-    path_to_include_directories_initial = path_to_include_directories
-    path_to_test_library_directory_initial = path_to_test_library_directory
-    benchmark_file_basename = 'bench.c'  # it has to be handled by a generic Object or global
-    benchmarks_folder_basename = 'benchmarks'  # it has to be handled by a generic Object or global
-    path_to_benchmark_folder = f'{path_candidate}/{benchmarks_folder_basename}'  # to be fixed
-
-    candidate = path_candidate.split('/')[-1]
-    instances_list = []
-    if instances:
-        instances_list = []
-        if isinstance(instances, str):
-            instances_list = instances.split()
-        elif isinstance(instances, list):
-            instances_list = instances.copy()
-    else:
-        instances_list = ["."]
-    for instance in instances_list:
-        if instance == ".":
-            path_to_instance = f'{path_to_benchmark_folder}'
-        else:
-            path_to_instance = f'{path_to_benchmark_folder}/{instance}'
-            path_to_include_directories_split = path_to_include_directories.split(default_instance)
-            path_to_include_directories_split.insert(1, instance)
-            path_to_include_directories = "".join(path_to_include_directories_split)
-            if default_instance in path_to_test_library_directory:
-                path_to_test_library_directory_split = path_to_test_library_directory.split(default_instance)
-                path_to_test_library_directory_split.insert(1, instance)
-                path_to_test_library_directory = "".join(path_to_test_library_directory_split)
-
-        path_to_benchmark_file = f'{path_to_instance}/{benchmark_file_basename}'
-        path_to_bench_binary = path_to_benchmark_file.split('.c')[0]
-        if binary_format:
-            path_to_bench_binary += f'_{binary_format}'
-        gen.generic_compilation(path_to_benchmark_file, path_to_bench_binary, path_to_test_library_directory,
-                                libraries_names, path_to_include_directories, cflags, compiler)
-        path_to_include_directories = path_to_include_directories_initial
-        path_to_test_library_directory = path_to_test_library_directory_initial
-
-
-
-def generic_target_compilation_27_bis(path_candidate: str, path_to_test_library_directory: str,
-                               libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
-                               cflags: list, default_instance: str, instances: Optional[Union[str, list]] = None,
-                               compiler: str = 'gcc', binary_format: Optional[str] = None):
-    path_to_include_directories_initial = path_to_include_directories
-    path_to_test_library_directory_initial = path_to_test_library_directory
-    benchmark_file_basename = 'bench.c'  # it has to be handled by a generic Object or global
-    benchmarks_folder_basename = 'benchmarks'  # it has to be handled by a generic Object or global
-    path_to_benchmark_folder = f'{path_candidate}/{benchmarks_folder_basename}'  # to be fixed
-
-    candidate = path_candidate.split('/')[-1]
-    instances_list = []
-    if instances:
-        instances_list = []
-        if isinstance(instances, str):
-            instances_list = instances.split()
-        elif isinstance(instances, list):
-            instances_list = instances.copy()
-    else:
-        instances_list = ["."]
-    for instance in instances_list:
-        if instance == ".":
-            path_to_instance = f'{path_to_benchmark_folder}'
-        else:
-            path_to_instance = f'{path_to_benchmark_folder}/{instance}'
-            path_to_include_directories_split = path_to_include_directories.split(default_instance)
-            path_to_include_directories_split.insert(1, instance)
-            path_to_include_directories = "".join(path_to_include_directories_split)
-            if default_instance in path_to_test_library_directory:
-                path_to_test_library_directory_split = path_to_test_library_directory.split(default_instance)
-                path_to_test_library_directory_split.insert(1, instance)
-                path_to_test_library_directory = "".join(path_to_test_library_directory_split)
-                cflags_custom_path = f'{path_to_test_library_directory}/cflags.txt'
-                with open(cflags_custom_path, 'r') as read_cflags:
-                    cflags_custom = read_cflags.readline()
-                    cflags_custom = cflags_custom.strip()
-                print("~~~~~~~~~~~~~~~~~~~`cflags_custom: ", cflags_custom)
-                print("~~~~~~~~~~~~~~~~~~~type of cflags_custom: ", type(cflags_custom))
-
-        path_to_benchmark_file = f'{path_to_instance}/{benchmark_file_basename}'
-        path_to_bench_binary = path_to_benchmark_file.split('.c')[0]
-        if binary_format:
-            path_to_bench_binary += f'_{binary_format}'
-        gen.generic_compilation(path_to_benchmark_file, path_to_bench_binary, path_to_test_library_directory,
-                                libraries_names, path_to_include_directories, cflags_custom, compiler)
-        path_to_include_directories = path_to_include_directories_initial
-        path_to_test_library_directory = path_to_test_library_directory_initial
-
-
-
 def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
                                libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
                                cflags: list, default_instance: str, instances: Optional[Union[str, list]] = None,
@@ -1040,12 +315,9 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
                 path_to_test_library_directory = "".join(path_to_test_library_directory_split)
                 cflags_custom_path = f'{path_to_test_library_directory}/cflags.txt'
                 if os.path.isfile(cflags_custom_path):
-                    print("++++++++================= clfags found: ")
                     with open(cflags_custom_path, 'r') as read_cflags:
                         cflags_custom = read_cflags.readline()
                         cflags_custom = cflags_custom.strip()
-                    print("~~~~~~~~~~~~~~~~~~~`cflags_custom: ", cflags_custom)
-                    print("~~~~~~~~~~~~~~~~~~~type of cflags_custom: ", type(cflags_custom))
         path_to_benchmark_file = f'{path_to_instance}/{benchmark_file_basename}'
         path_to_bench_binary = path_to_benchmark_file.split('.c')[0]
         if binary_format:
@@ -1105,51 +377,6 @@ def update_instance_and_security_level(binary_basename: str, path_to_bench_outpu
     subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
 
 
-def reconstruct_instance_name_from_options_21(instance_format: Optional[Union[dict, list, str]] = None,
-                                           compilation_options: Optional[Union[str, dict, list]] = None):
-    print(".........compilation_options: ", compilation_options)
-    print(".........instance_format: ", instance_format)
-    compile_options = None
-    instance_pattern = ''
-    instance_format_value = ''
-    instance = ''
-    if compilation_options:
-
-        instance, instance_format_value = instance_format.items()
-        instance = list(instance)[0]
-        instance_format_value = list(instance_format)[0]
-
-        compile_options = list(filter(lambda element: '=' in element, compilation_options))
-        print(".........compile_options: ", compile_options)
-        if isinstance(compilation_options, list):
-            pass
-        elif isinstance(compilation_options, dict):
-            pass
-        else:
-            pass
-        #SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)$(PK_EXPAND)
-        if isinstance(instance_format, list):
-            pass
-        elif isinstance(instance_format, dict):
-            instance_pattern, instance_format_value = instance_format.items()
-            instance_pattern = list(instance_pattern)[0]
-            instance_format_value = list(instance_format)[0]
-
-        else:
-            pass
-        instance = f'{instance_pattern}_{instance_format_value}'
-        for compile_option in compile_options:
-            option, value = compile_option.split('=')
-            print("--option: ", option)
-            print("--value: ", value)
-            instance = instance.replace(rf'{option}', value)
-
-        instance = instance.replace('(', '{')
-        instance = instance.replace(')', '}')
-        instance = instance.replace('$', '')
-    print("~~~~....-------instance: ", instance)
-    return instance
-
 
 def reconstruct_instance_name_from_options(instance_format: Optional[Union[dict, list, str]] = None, **kwargs):
     compilation_options = kwargs
@@ -1180,35 +407,6 @@ def reconstruct_instance_name_from_options(instance_format: Optional[Union[dict,
             instance = None
     return instance
 
-
-def reconstruct_instance_name_from_options_22(instance_format: Optional[Union[dict, list, str]] = None, **kwargs):
-    compilation_options = kwargs
-    compile_options = []
-    instance_pattern = ''
-    instance_format_value = ''
-    instance = ''
-    if instance_format:
-        if compilation_options:
-            instance_pattern = instance_format.keys()
-            instance_format_value = instance_format.values()
-            instance_pattern = list(instance_pattern)[0]
-            instance_format_value = list(instance_format_value)[0]
-            if isinstance(compilation_options, list):
-                compile_options = list(filter(lambda element: '=' in element, compilation_options))
-            elif isinstance(compilation_options, dict):
-                for key, value in compilation_options.items():
-                    temp = f'{key}={value}'
-                    compile_options.append(temp)
-            instance = instance_format_value
-            for compile_option in compile_options:
-                option, value = compile_option.split('=')
-                instance = instance.replace(rf'{option}', value)
-            instance = instance.replace('(', '')
-            instance = instance.replace(')', '')
-            instance = instance.replace('$', '')
-        else:
-            instance = None
-    return instance
 
 
 def generic_run_bench_candidate(path_to_candidate, instances, default_instance: str,
@@ -1416,199 +614,7 @@ def generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_pa
 
 
 
-def generic_benchmarks_init_compile_17_jan(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                    default_instance: str, instances, additional_includes,
-                                    path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
-                                    libraries_names: Union[str, list] = 'lbench',
-                                    path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
-                                    additional_cmake_definitions=None, compiler: str = 'gcc',
-                                    custom_benchmark: Optional[bool] = True, number_of_iterations='1000',
-                                    min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
-                                    security_level: Union[str, list] = '128',
-                                    binary_format: Optional[Union[str, list, dict]] = None, *args, **kwargs):
-    if candidate == 'qruov':
-        cwd = os.getcwd()
-        os.chdir(path_to_candidate_makefile_cmake)
-        platform = 'portable64'
-        if args:
-            platform = args[0]
-        makefile = 'Makefile'
-        chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
-        subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
-        instances_str = ''
-        if isinstance(instances, str):
-            instances_str = instances.split()
-        elif isinstance(instances, list):
-            instances_str = " ".join(instances)
-        cmd_str = f'make {instances_str}'
-        subprocess.call(cmd_str.split(), stdin=sys.stdin)
-        os.chdir(cwd)
-
-        for instance in instances:
-            abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
-            abs_path_to_api_or_sign_split.insert(1, instance)
-            abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
-            abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
-            generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
-                                              additional_includes, number_of_iterations, min_msg_len,
-                                              max_msg_len, security_level)
-
-    else:
-        if custom_benchmark:
-            generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
-                                              additional_includes, number_of_iterations, min_msg_len,
-                                              max_msg_len, security_level)
-    path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
-    print("=========generic_benchmarks_init_compile:::::::")
-    print("+++++++A:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
-    cflags = []  # to be fixed
-    path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-    if path_candidate.endswith('/'):
-        path_candidate += candidate
-    else:
-        path_candidate += f'/{candidate}'
-    path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-    if direct_link_or_compile_target:
-        if not instances:
-            gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                         additional_cmake_definitions, *args, **kwargs)
-        else:
-            if candidate == 'qruov':
-                for instance in instances:
-                    platform = 'portable64'
-                    if args:
-                        platform = args[0]
-                    instance_updated = f'{instance}/{platform}'
-                    path_to_include_directories_split = path_to_include_directories.split(default_instance)
-                    path_to_include_directories_split.insert(1, instance_updated)
-                    path_to_include_directories = "".join(path_to_include_directories_split[:-1])
-            # elif candidate == 'pqov':
-            #     path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
-            #     print("+++++++B:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
-            else:
-                if build_with_make:
-                    for instance in instances:
-                        if candidate != 'pqov':
-                            path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
-                            path_to_candidate_makefile_cmake_split.insert(1, instance)
-                            path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
-                        print("+++++++C:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
-                        gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                                     additional_cmake_definitions, *args, **kwargs)
-                        path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
-                else:
-                    gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                                 additional_cmake_definitions, *args, **kwargs)
-
-    if custom_benchmark:
-        instance_format = reconstruct_instance_name_from_options(binary_format, **kwargs)
-        if build_with_make:
-            print("+++++++D:  path_to_include_directories: ", path_to_include_directories)
-            generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
-                                       path_to_include_directories, cflags, default_instance, instances, compiler, instance_format)
-
-
-
-def generic_benchmarks_init_compile_25(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                    default_instance: str, instances, additional_includes,
-                                    path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
-                                    libraries_names: Union[str, list] = 'lbench',
-                                    path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
-                                    additional_cmake_definitions=None, compiler: str = 'gcc',
-                                    custom_benchmark: Optional[bool] = True, number_of_iterations='1000',
-                                    min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
-                                    security_level: Union[str, list] = '128',
-                                    binary_format: Optional[Union[str, list, dict]] = None, *args, **kwargs):
-    if candidate == 'snova':
-        print("Skip benchmark template generation for SNOVA")
-        print("-----path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
-        gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                     additional_cmake_definitions, *args, **kwargs)
-    else:
-
-        if candidate == 'qruov':
-            cwd = os.getcwd()
-            os.chdir(path_to_candidate_makefile_cmake)
-            platform = 'portable64'
-            if args:
-                platform = args[0]
-            makefile = 'Makefile'
-            chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
-            subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
-            instances_str = ''
-            if isinstance(instances, str):
-                instances_str = instances.split()
-            elif isinstance(instances, list):
-                instances_str = " ".join(instances)
-            cmd_str = f'make {instances_str}'
-            subprocess.call(cmd_str.split(), stdin=sys.stdin)
-            os.chdir(cwd)
-
-            for instance in instances:
-                abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
-                abs_path_to_api_or_sign_split.insert(1, instance)
-                abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
-                abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
-                generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
-                                                  additional_includes, number_of_iterations, min_msg_len,
-                                                  max_msg_len, security_level)
-        else:
-            if custom_benchmark:
-                generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
-                                                  additional_includes, number_of_iterations, min_msg_len,
-                                                  max_msg_len, security_level)
-        path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
-        print("=========generic_benchmarks_init_compile:::::::")
-        print("+++++++A:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
-        cflags = []  # to be fixed
-        path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-        if path_candidate.endswith('/'):
-            path_candidate += candidate
-        else:
-            path_candidate += f'/{candidate}'
-        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-        if direct_link_or_compile_target:
-            if not instances:
-                gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                             additional_cmake_definitions, *args, **kwargs)
-            else:
-                if candidate == 'qruov':
-                    for instance in instances:
-                        platform = 'portable64'
-                        if args:
-                            platform = args[0]
-                        instance_updated = f'{instance}/{platform}'
-                        path_to_include_directories_split = path_to_include_directories.split(default_instance)
-                        path_to_include_directories_split.insert(1, instance_updated)
-                        path_to_include_directories = "".join(path_to_include_directories_split[:-1])
-                # elif candidate == 'pqov':
-                #     path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
-                #     print("+++++++B:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
-                else:
-                    if build_with_make:
-                        for instance in instances:
-                            if candidate != 'pqov':
-                                path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
-                                path_to_candidate_makefile_cmake_split.insert(1, instance)
-                                path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
-                            print("+++++++C:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
-                            gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                                         additional_cmake_definitions, *args, **kwargs)
-                            path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
-                    else:
-                        gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                                     additional_cmake_definitions, *args, **kwargs)
-
-        if custom_benchmark:
-            instance_format = reconstruct_instance_name_from_options(binary_format, **kwargs)
-            if build_with_make:
-                print("+++++++D:  path_to_include_directories: ", path_to_include_directories)
-                generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
-                                           path_to_include_directories, cflags, default_instance, instances, compiler, instance_format)
-
-
-
-def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+def generic_benchmarks_init_compile_27_jan(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
                                     default_instance: str, instances, additional_includes,
                                     path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
                                     cflags: Optional[Union[str, list]] = None,
@@ -1643,23 +649,27 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
             cmd_str = f'make {instances_str}'
             subprocess.call(cmd_str.split(), stdin=sys.stdin)
             os.chdir(cwd)
-
+            abs_path_to_api_or_sign_initial = abs_path_to_api_or_sign
             for instance in instances:
+                print("_________instance: ", instance)
                 abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
+                print("_________A: abs_path_to_api_or_sign_split: ", abs_path_to_api_or_sign_split)
                 abs_path_to_api_or_sign_split.insert(1, instance)
+                print("_________B: abs_path_to_api_or_sign_split: ", abs_path_to_api_or_sign_split)
                 abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
+                print("_________C: abs_path_to_api_or_sign_split: ", abs_path_to_api_or_sign_split)
                 abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
+                print("_________E: abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
                 generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
                                                   additional_includes, number_of_iterations, min_msg_len,
                                                   max_msg_len, security_level)
+                abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
         else:
             if custom_benchmark:
                 generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
                                                   additional_includes, number_of_iterations, min_msg_len,
                                                   max_msg_len, security_level)
         path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
-        print("=========generic_benchmarks_init_compile:::::::")
-        print("+++++++A:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
         # cflags = []  # to be fixed
         path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
         if path_candidate.endswith('/'):
@@ -1673,17 +683,27 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
                                              additional_cmake_definitions, *args, **kwargs)
             else:
                 if candidate == 'qruov':
+                    path_to_include_directories_initial = path_to_include_directories
+                    print("_____________+++++++++++path_to_include_directories: ", path_to_include_directories)
+                    extended_args = ['no-make-clean']
+                    if args:
+                        extended_args.extend(args)
                     for instance in instances:
+                        print("_________________+++++++++++A: path_to_include_directories: ", path_to_include_directories)
                         platform = 'portable64'
                         if args:
                             platform = args[0]
                         instance_updated = f'{instance}/{platform}'
                         path_to_include_directories_split = path_to_include_directories.split(default_instance)
+                        print("________________+++++++++++B:path_to_include_directories: ", path_to_include_directories)
                         path_to_include_directories_split.insert(1, instance_updated)
+                        print("_______________+++++++++++C:path_to_include_directories: ", path_to_include_directories)
                         path_to_include_directories = "".join(path_to_include_directories_split[:-1])
-                # elif candidate == 'pqov':
-                #     path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
-                #     print("+++++++B:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
+                        print("________________+++++++++++D:path_to_include_directories: ", path_to_include_directories)
+                        gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                     additional_cmake_definitions, *extended_args, **kwargs)
+                        path_to_include_directories = path_to_include_directories_initial
+                        path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
                 else:
                     if build_with_make:
                         for instance in instances:
@@ -1691,7 +711,6 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
                                 path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
                                 path_to_candidate_makefile_cmake_split.insert(1, instance)
                                 path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
-                            print("+++++++C:  path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
                             gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
                                                          additional_cmake_definitions, *args, **kwargs)
                             path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
@@ -1702,9 +721,167 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
         if custom_benchmark:
             instance_format = reconstruct_instance_name_from_options(binary_format, **kwargs)
             if build_with_make:
-                print("+++++++D:  path_to_include_directories: ", path_to_include_directories)
                 generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                            path_to_include_directories, cflags, default_instance, instances, compiler, instance_format)
+
+
+def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+                                    default_instance: str, instances, additional_includes,
+                                    path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
+                                    cflags: Optional[Union[str, list]] = None,
+                                    libraries_names: Union[str, list] = 'lbench',
+                                    path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
+                                    additional_cmake_definitions=None, compiler: str = 'gcc',
+                                    custom_benchmark: Optional[bool] = True, number_of_iterations='1000',
+                                    min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
+                                    security_level: Union[str, list] = '128',
+                                    binary_format: Optional[Union[str, list, dict]] = None, *args, **kwargs):
+    if candidate == 'snova':
+        gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                     additional_cmake_definitions, *args, **kwargs)
+
+    if candidate == 'qruov':
+        cwd = os.getcwd()
+        # os.chdir(path_to_candidate_makefile_cmake)
+        print("................<<<<<<<<<: instances", instances)
+        path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+        if path_candidate.endswith('/'):
+            path_candidate += candidate
+        else:
+            path_candidate += f'/{candidate}'
+        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+        os.chdir(path_to_candidate_makefile_cmake)
+        default_platform = 'portable64'
+        platform = default_platform
+        # if args:
+        #     platform = args[0]
+        if 'platform' in kwargs.keys():
+            platform = kwargs['platform']
+        print("-------++++++++===========platform: ", platform)
+        makefile = 'Makefile'
+        chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
+        subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
+        os.chdir(cwd)
+        if platform not in abs_path_to_api_or_sign:
+            abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
+            path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
+            print("________________+++++++++++=====abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
+            print("________________+++++++++++=====path_to_include_directories: ", path_to_include_directories)
+
+        abs_path_to_api_or_sign_initial = abs_path_to_api_or_sign
+        path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
+        path_to_include_directories_initial = path_to_include_directories
+        for instance in instances:
+            os.chdir(path_to_candidate_makefile_cmake)
+            cmd_str = f'make {instance} platform={platform}'
+            print(":::::::******cmd_str: ", cmd_str)
+            subprocess.call(cmd_str.split(), stdin=sys.stdin)
+            os.chdir(cwd)
+            abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
+            abs_path_to_api_or_sign_split.insert(1, instance)
+            abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
+            abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
+            generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instance.split(),
+                                              additional_includes, number_of_iterations, min_msg_len,
+                                              max_msg_len, security_level)
+            instance_format = ''
+            # path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+            instance_updated = f'{instance}/{platform}'
+            path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
+            print("================+++++++++++(1):path_to_include_directories: ", path_to_include_directories)
+            path_to_include_directories_split = path_to_include_directories.split(default_instance)
+            # print("================+++++++++++(2):path_to_include_directories_split: ", path_to_include_directories_split)
+            # path_to_include_directories_split.insert(1, instance_updated)
+            # print("================+++++++++++(3):path_to_include_directories_split: ", path_to_include_directories_split)
+            # path_to_include_directories = "".join(path_to_include_directories_split[:-1])
+            # print("================+++++++++++(4):path_to_include_directories: ", path_to_include_directories)
+            generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                       path_to_include_directories, cflags, default_instance, instance.split(), compiler, instance_format)
+            # gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+            #                                                           additional_cmake_definitions, *args, **kwargs)
+            path_to_include_directories = path_to_include_directories_initial
+            path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+            abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
+
+
+        # path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+        # if path_candidate.endswith('/'):
+        #     path_candidate += candidate
+        # else:
+        #     path_candidate += f'/{candidate}'
+        # path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+        # extended_args = ['no-make-clean']
+        # if args:
+        #     extended_args.extend(args)
+        # for instance in instances:
+        #     print("__________instance: ", instance)
+        #     abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
+        #     abs_path_to_api_or_sign_split.insert(1, instance)
+        #     abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
+        #     abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
+        #     generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
+        #                                       additional_includes, number_of_iterations, min_msg_len,
+        #                                       max_msg_len, security_level)
+        #     platform = 'portable64'
+        #     if args:
+        #         platform = args[0]
+        #     instance_updated = f'{instance}/{platform}'
+        #     print("================+++++++++++(1):path_to_include_directories: ", path_to_include_directories)
+        #     path_to_include_directories_split = path_to_include_directories.split(default_instance)
+        #     print("================+++++++++++(2):path_to_include_directories_split: ", path_to_include_directories_split)
+        #     path_to_include_directories_split.insert(1, instance_updated)
+        #     print("================+++++++++++(3):path_to_include_directories_split: ", path_to_include_directories_split)
+        #     path_to_include_directories = "".join(path_to_include_directories_split[:-1])
+        #     print("================+++++++++++(4):path_to_include_directories: ", path_to_include_directories)
+        #     cmd = ["make", "clean"]
+        #     # gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+        #     #                              additional_cmake_definitions, *extended_args, **kwargs)
+        #
+        #     # instance_format = reconstruct_instance_name_from_options(binary_format, **kwargs)
+        #     # generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+        #     #                            path_to_include_directories, cflags, default_instance, instances, compiler, instance_format)
+        #     path_to_include_directories = path_to_include_directories_initial
+        #     path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+        #     abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
+        #     print("_____________+++++++++++B:path_to_include_directories: ", path_to_include_directories)
+        #     print("_________________+++++++++++B:path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
+        #     print("_________________+++++++++++B:abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
+    else:
+        if custom_benchmark:
+            generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
+                                              additional_includes, number_of_iterations, min_msg_len,
+                                              max_msg_len, security_level)
+        path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
+        path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+        if path_candidate.endswith('/'):
+            path_candidate += candidate
+        else:
+            path_candidate += f'/{candidate}'
+        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+        if direct_link_or_compile_target:
+            if not instances:
+                gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                             additional_cmake_definitions, *args, **kwargs)
+            else:
+                if build_with_make:
+                    for instance in instances:
+                        if candidate != 'pqov':
+                            path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
+                            path_to_candidate_makefile_cmake_split.insert(1, instance)
+                            path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
+                        gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                     additional_cmake_definitions, *args, **kwargs)
+                        path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+                else:
+                    gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                 additional_cmake_definitions, *args, **kwargs)
+
+        if custom_benchmark:
+            instance_format = reconstruct_instance_name_from_options(binary_format, **kwargs)
+            if build_with_make:
+                generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                           path_to_include_directories, cflags, default_instance, instances, compiler, instance_format)
+
 
 
 def generic_benchmarks_init_compile_next(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
@@ -1823,50 +1000,6 @@ def generic_benchmarks_init_compile_next(candidate, abs_path_to_api_or_sign, abs
 
 
 
-
-
-def generic_compile_run_bench_candidate_25(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                        default_instance: str, instances, additional_includes,
-                                        path_to_candidate_makefile_cmake, path_to_candidate_bench: Optional[str] = None,
-                                        direct_link_or_compile_target: bool = True,
-                                        libraries_names: Union[str, list] = 'lbench',
-                                        path_to_include_directories: Union[str, list] = '',
-                                        build_with_make: bool = True,
-                                        additional_cmake_definitions=None, compiler: str = 'gcc',
-                                        number_of_iterations='1000',
-                                        min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
-                                        cpu_core_isolated: Union[str, list] = '1', compilation: str = 'yes',
-                                        execution: str = 'yes', custom_benchmark: bool = True,
-                                        candidate_benchmark: bool = True, security_level: Union[str, list, dict] = '128',
-                                        binary_format: Optional[Union[str, list, dict]] = None, *args, **kwargs):
-    path_to_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-    if path_to_candidate.endswith('/'):
-        path_to_candidate += candidate
-    else:
-        path_to_candidate += f'/{candidate}'
-    if 'yes' in compilation.lower() and 'yes' in execution.lower():
-        generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                        default_instance, instances, additional_includes, path_to_candidate_makefile_cmake,
-                                        direct_link_or_compile_target, libraries_names, path_to_include_directories,
-                                        build_with_make, additional_cmake_definitions, compiler,
-                                        custom_benchmark, number_of_iterations, min_msg_len, max_msg_len, security_level,
-                                        binary_format, *args, **kwargs)
-        generic_run_bench_candidate(path_to_candidate, instances, default_instance,
-                                    cpu_core_isolated, path_to_candidate_bench, custom_benchmark,
-                                    candidate_benchmark, security_level)
-    elif 'yes' in compilation.lower() and 'no' in execution.lower():
-        generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                        default_instance, instances, additional_includes, path_to_candidate_makefile_cmake,
-                                        direct_link_or_compile_target, libraries_names, path_to_include_directories,
-                                        build_with_make, additional_cmake_definitions, compiler,
-                                        custom_benchmark, number_of_iterations, min_msg_len, max_msg_len, security_level,
-                                        binary_format, *args, **kwargs)
-    if 'no' in compilation.lower() and 'yes' in execution.lower():
-        generic_run_bench_candidate(path_to_candidate, instances, default_instance,
-                                    cpu_core_isolated, path_to_candidate_bench, custom_benchmark,
-                                    candidate_benchmark, security_level)
-
-
 def generic_compile_run_bench_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
                                         default_instance: str, instances, additional_includes,
                                         path_to_candidate_makefile_cmake, path_to_candidate_bench: Optional[str] = None,
@@ -1921,129 +1054,6 @@ def get_instance_security_level(instances: Union[str, list], security_level_dict
     return security_level_list
 
 
-def run_benchmarks_21(candidate: str, instances, candidates_dict,
-                   direct_link_or_compile_target: bool = False, implementation_type='opt',
-                   security_level=None, number_of_iterations='1000',
-                   min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
-                   cpu_core_isolated: Union[str, list] = '1', compilation: str = 'yes',
-                   execution: str = 'yes', custom_benchmark: bool = True,
-                   candidate_benchmark: bool = True, *args, **kwargs):
-    candidate_dict = gen.parse_candidates_json_file(candidates_dict, candidate)
-    abs_path_to_api_or_sign = candidate_dict['path_to_api']
-    abs_path_to_rng = candidate_dict['path_to_rng']
-    optimized_imp_folder = candidate_dict['optimized_implementation']
-    additional_imp_folder = candidate_dict['additional_implementation']
-    additional_includes = ''
-    path_to_candidate_makefile_cmake = candidate_dict['path_to_makefile_folder']
-    libraries_names_all = candidate_dict['link_libraries']
-    libraries_names = libraries_names_all["ct_tests"]
-    bench_additional_library = libraries_names_all["bench"]
-    if not instances or instances is None:
-        instances = candidate_dict['instances']
-    if isinstance(bench_additional_library, str):
-        libraries_names.extend(bench_additional_library.split())
-    elif isinstance(bench_additional_library, list):
-        libraries_names.extend(bench_additional_library)
-    path_to_include_directories = os.path.dirname(abs_path_to_api_or_sign)
-    build_with_make = candidate_dict['build_with_makefile']
-    compiler = candidate_dict['compiler']
-    default_instance = candidate_dict['default_instance']
-    path_to_bench_binary = candidate_dict['path_to_bench_binary']
-    additional_cmake_definitions = ''  # to be fixed
-    print("-----build_with_make: ", build_with_make)
-    if not build_with_make:
-        print("--------Building with make")
-        additional_cmake_definitions = kwargs
-        # additional_cmake_definitions['RUN_BENCHMARKS'] = "ON"
-        print(".........additional_cmake_definitions: ", additional_cmake_definitions)
-    security_levels = candidate_dict['security_level']
-    security_level_list = get_instance_security_level(instances, security_levels)
-    print(":::::::::::::run_benchmarks: ")
-    if implementation_type == 'add':
-        abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(optimized_imp_folder)
-        abs_path_to_api_or_sign_split.insert(1, additional_imp_folder)
-        abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
-        abs_path_to_rng_split = abs_path_to_rng.split(optimized_imp_folder)
-        abs_path_to_rng_split.insert(1, additional_imp_folder)
-        abs_path_to_rng = "".join(abs_path_to_rng_split)
-        path_to_include_directories_split = path_to_include_directories.split(optimized_imp_folder)
-        path_to_include_directories_split.insert(1, additional_imp_folder)
-        path_to_include_directories = "".join(path_to_include_directories_split)
-
-        path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(optimized_imp_folder)
-        path_to_candidate_makefile_cmake_split.insert(1, additional_imp_folder)
-        path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
-        optimized_imp_folder = additional_imp_folder
-    generic_compile_run_bench_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                        default_instance, instances, additional_includes,
-                                        path_to_candidate_makefile_cmake, path_to_bench_binary,
-                                        direct_link_or_compile_target, libraries_names, path_to_include_directories,
-                                        build_with_make, additional_cmake_definitions, compiler, number_of_iterations,
-                                        min_msg_len, max_msg_len, cpu_core_isolated, compilation, execution,
-                                        custom_benchmark, candidate_benchmark, security_level_list, *args, **kwargs)
-
-
-def run_benchmarks_25(candidate: str, instances, candidates_dict,
-                   direct_link_or_compile_target: bool = False, implementation_type='opt',
-                   security_level=None, number_of_iterations='1000',
-                   min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
-                   cpu_core_isolated: Union[str, list] = '1', compilation: str = 'yes',
-                   execution: str = 'yes', custom_benchmark: bool = True,
-                   candidate_benchmark: bool = True, *args, **kwargs):
-    candidate_dict = gen.parse_candidates_json_file(candidates_dict, candidate)
-    abs_path_to_api_or_sign = candidate_dict['path_to_api']
-    abs_path_to_rng = candidate_dict['path_to_rng']
-    optimized_imp_folder = candidate_dict['optimized_implementation']
-    additional_imp_folder = candidate_dict['additional_implementation']
-    additional_includes = ''
-    path_to_candidate_makefile_cmake = candidate_dict['path_to_makefile_folder']
-    libraries_names_all = candidate_dict['link_libraries']
-    libraries_names = libraries_names_all["ct_tests"]
-    bench_additional_library = libraries_names_all["bench"]
-    if not instances or instances is None:
-        instances = candidate_dict['instances']
-    if isinstance(bench_additional_library, str):
-        libraries_names.extend(bench_additional_library.split())
-    elif isinstance(bench_additional_library, list):
-        libraries_names.extend(bench_additional_library)
-    path_to_include_directories = os.path.dirname(abs_path_to_api_or_sign)
-    build_with_make = candidate_dict['build_with_makefile']
-    compiler = candidate_dict['compiler']
-    default_instance = candidate_dict['default_instance']
-    path_to_bench_binary = candidate_dict['path_to_bench_binary']
-    additional_cmake_definitions = ''  # to be fixed
-    if not build_with_make:
-        additional_cmake_definitions = kwargs
-    security_levels = candidate_dict['security_level']
-    security_level_list = get_instance_security_level(instances, security_levels)
-    if not instances and security_levels:
-        security_level_list = security_levels
-    instance_format = candidate_dict['instance_format']
-    print(":::::::::::::run_benchmarks: ")
-    if implementation_type == 'add':
-        abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(optimized_imp_folder)
-        abs_path_to_api_or_sign_split.insert(1, additional_imp_folder)
-        abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
-        abs_path_to_rng_split = abs_path_to_rng.split(optimized_imp_folder)
-        abs_path_to_rng_split.insert(1, additional_imp_folder)
-        abs_path_to_rng = "".join(abs_path_to_rng_split)
-        path_to_include_directories_split = path_to_include_directories.split(optimized_imp_folder)
-        path_to_include_directories_split.insert(1, additional_imp_folder)
-        path_to_include_directories = "".join(path_to_include_directories_split)
-
-        path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(optimized_imp_folder)
-        path_to_candidate_makefile_cmake_split.insert(1, additional_imp_folder)
-        path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
-        optimized_imp_folder = additional_imp_folder
-    generic_compile_run_bench_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                                        default_instance, instances, additional_includes,
-                                        path_to_candidate_makefile_cmake, path_to_bench_binary,
-                                        direct_link_or_compile_target, libraries_names, path_to_include_directories,
-                                        build_with_make, additional_cmake_definitions, compiler, number_of_iterations,
-                                        min_msg_len, max_msg_len, cpu_core_isolated, compilation, execution,
-                                        custom_benchmark, candidate_benchmark, security_level_list, instance_format, *args, **kwargs)
-
-
 def run_benchmarks(candidate: str, instances, candidates_dict,
                    direct_link_or_compile_target: bool = False, implementation_type='opt',
                    security_level=None, number_of_iterations='1000',
@@ -2081,8 +1091,6 @@ def run_benchmarks(candidate: str, instances, candidates_dict,
         security_level_list = security_levels
     instance_format = candidate_dict['instance_format']
     cflags = candidate_dict['cflags']
-    print("--------++++++++========cflags: ", cflags)
-    print(":::::::::::::run_benchmarks: ")
     if implementation_type == 'add':
         abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(optimized_imp_folder)
         abs_path_to_api_or_sign_split.insert(1, additional_imp_folder)
@@ -2105,7 +1113,6 @@ def run_benchmarks(candidate: str, instances, candidates_dict,
                                         build_with_make, additional_cmake_definitions, compiler, number_of_iterations,
                                         min_msg_len, max_msg_len, cpu_core_isolated, compilation, execution,
                                         custom_benchmark, candidate_benchmark, security_level_list, instance_format, *args, **kwargs)
-
 
 
 
