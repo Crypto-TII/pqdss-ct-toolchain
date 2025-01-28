@@ -8,8 +8,9 @@ OBJS=Fql.o mgf.o PQCgenKAT_sign.o qruov.o rng.o sign.o matrix.o
 .SUFFIXES:
 .SUFFIXES: .rsp .req .diff .c .o .h
 
+INSTANCE:=qruov1q7L10v740m100
 CTTEST_LIB = libcttest.so
-BUILD_CTLIB = ../../build
+BUILD_CTLIB = ../../build/$(INSTANCE)
 
 .PHONY: all clean
 
@@ -36,3 +37,4 @@ api.h: api_h_gen.c
 
 clean:
 	rm -f PQCgenKAT_sign PQCsignKAT_*.req PQCsignKAT_*.rsp ${OBJS}
+	rm $(BUILD_CTLIB)/$(CTTEST_LIB)
