@@ -13,6 +13,7 @@ AR = ar
 TOOLS_FLAGS :=
 TOOL_LINK_LIBS :=
 
+
 ifeq ($(ARM_FEATURE_AES), ARM_FEATURE_AES)
 CFLAGS = -Wall -Wextra -Wpedantic -Wredundant-decls -Wshadow -Wvla -Wpointer-arith -ftree-vectorize -O3 -march=armv8-a+crypto -mtune=$(ARCH) -fPIC $(TOOLS_FLAGS)
 else
@@ -82,13 +83,15 @@ WASM = 0
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
 CUSTOM_BENCHMARKS = benchmarks
+CTTEST_LIB_CFLAGS = $(CFLAGS)
 
 
-all: custom_bench
+all: custom_bench $(CTTEST_LIB)
 
 
 $(CTTEST_LIB): init info $(OLIST) build/sign.o $(STATICLIB)
 	mkdir -p $(BUILD_CTLIB)
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/sign.o -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LIBS) $(TOOL_LINK_LIBS)
 
 test_api: init info $(OLIST) build/sign.o $(STATICLIB)
@@ -194,8 +197,10 @@ PQCgenKAT: init info $(OLIST) build/sign.o $(STATICLIB)
 	#./PQCgenKAT.a
 
 custom_bench: init info $(OLIST) build/sign.o $(STATICLIB)
-	@mkdir -p $(CUSTOM_BENCHMARKS)
-	$(CC) $(BENCH_CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/sign.o ./custom_bench.c -o $(CUSTOM_BENCHMARKS)/bench_SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L) $(LIBS) -lcpucycles -lm
+	echo "Creating $(CUSTOM_BENCHMARKS)/SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)"
+	@mkdir -p $(CUSTOM_BENCHMARKS)/SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)
+	$(CC) $(BENCH_CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/sign.o ./custom_bench.c -o $(CUSTOM_BENCHMARKS)/SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)/bench_SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L) $(LIBS) -lcpucycles -lm
+
 
 build_wasmapi: init wasm info $(SNOVA_API_OLIST) $(STATICLIB)
 	$(CC) $(CFLAGS) $(SNOVA_PARAMS) $(SNOVA_API_OLIST) wasmapi.c -o $(WASM_OUT_PATH)$(CRYPTO_ALGNAME).$(WASM_OUT_EXT) -s WASM=1 -s EXPORTED_FUNCTIONS='["_malloc", "_free"]' -s SAFE_HEAP=1 -s TOTAL_STACK=16777216 -s ALLOW_MEMORY_GROWTH=1 $(LIBS) --no-entry
