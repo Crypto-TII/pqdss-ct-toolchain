@@ -1,5 +1,5 @@
 # ref portable64 avx2 avx512
-platform :=  portable64
+platform :=  avx2
 # subdirs := qruov1q127L3v156m54 
 subdirs :=\
   qruov1q7L10v740m100  qruov1q31L3v165m60  qruov1q31L10v600m70   qruov1q127L3v156m54  \
@@ -14,6 +14,7 @@ $(subdirs): qruov_config.src
 	mkdir -p $@/$(platform)
 	grep $@ qruov_config.src > $@/$(platform)/qruov_config.txt
 	sh -c "cd $@/$(platform) ; ln -s ../../$(platform)/* . || true"
+	sed -i 's/INSTANCE:=.*/INSTANCE:=$@/g' $@/$(platform)/Makefile
 	$(MAKE) -C $@/$(platform)
 
 clean:
