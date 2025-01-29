@@ -5,35 +5,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <sys/random.h>
-#include <cpucycles.h>
 
+#include <cpucycles.h>
 #include "api.h"
 
-//#include "rng.h"
+//#include "rnd.h"
 #include "toolchain_randombytes.h"
 
+typedef uint64_t ticks;
 
-#define MINIMUM_MSG_LENGTH 1
-#define MAXIMUM_MSG_LENGTH 3300
-#define TOTAL_ITERATIONS   1e3
+#define MINIMUM_MSG_LENGTH      1
+#define MAXIMUM_MSG_LENGTH      3300
+#define TOTAL_ITERATIONS        1000
+#define DEFAULT_MESSAGE_LENGTH  3300
 
 
-typedef  uint64_t ticks;
 
 
-void swap(uint64_t* a, uint64_t* b)
+void swap(ticks* a, ticks* b)
 {
-    uint64_t t = *a;
+    ticks t = *a;
     *a = *b;
     *b = t;
 }
 
-/* Perofroms one step of pivot sorting with the last
-	element taken as pivot. */
-int partition (uint64_t arr[], int low, int high)
+/* Performs one step of pivot sorting with the last
+    element taken as pivot. */
+int partition (ticks arr[], int low, int high)
 {
-    uint64_t pivot = arr[high];
+    ticks pivot = arr[high];
     int i = (low - 1);
 
     int j;
@@ -49,7 +49,7 @@ int partition (uint64_t arr[], int low, int high)
     return (i + 1);
 }
 
-void quicksort(uint64_t arr[], int low, int high)
+void quicksort(ticks arr[], int low, int high)
 {
     if (low < high)
     {
@@ -62,167 +62,184 @@ void quicksort(uint64_t arr[], int low, int high)
 
 int main(void)
 {
+    unsigned long long i = 0;
+    unsigned long long iterations = TOTAL_ITERATIONS;
+    unsigned long long min_msg_len = MINIMUM_MSG_LENGTH;
+    unsigned long long max_msg_len = MAXIMUM_MSG_LENGTH;
+    unsigned long long mlen = 0;
+    unsigned long long default_mlen = DEFAULT_MESSAGE_LENGTH;
+    //unsigned long long smlen = 0;
+    unsigned long long smlen[TOTAL_ITERATIONS] = {0};
+    int pass;
 
-    snova_init();
-	unsigned long long i = 0;
-	unsigned long long iterations = TOTAL_ITERATIONS;
-	unsigned long long min_msg_len = MINIMUM_MSG_LENGTH;
-	unsigned long long max_msg_len = MAXIMUM_MSG_LENGTH;
-	unsigned long long mlen = 0;
-	unsigned long long smlen = 0;
+    // For storing clock cycle counts
+    ticks cc_mean = 0, cc_stdev = 0,
+            cc0, cc1,
+            *cc_sample =(ticks *)malloc(iterations * sizeof(ticks));
 
-	int pass;
+    // For storing keypair
+    unsigned char *pk = (unsigned char *)malloc(CRYPTO_PUBLICKEYBYTES * iterations * sizeof(unsigned char));
+    unsigned char *sk = (unsigned char *)malloc(CRYPTO_SECRETKEYBYTES * iterations * sizeof(unsigned char));
 
-	// For storing clock cycle counts
-    uint64_t cc_mean = 0, cc_stdev = 0,
-	cc0, cc1,
-	*cc_sample =(uint64_t *)malloc(iterations * sizeof(uint64_t));
+    // For storing plaintext messages
+    //unsigned char *m = (unsigned char *)malloc(max_msg_len * iterations * sizeof(unsigned char));
+    unsigned char *m = (unsigned char *)malloc(default_mlen * iterations * sizeof(unsigned char));
+    //unsigned char *m2 = (unsigned char *)malloc(max_msg_len * iterations * sizeof(unsigned char));
+    unsigned char *m2 = (unsigned char *)malloc(default_mlen * iterations * sizeof(unsigned char));
+    ct_randombytes(m, max_msg_len * iterations);
+    //mlen =  max_msg_len * iterations;
+    mlen =  default_mlen * iterations;
+    //if((int)mlen < max_msg_len * iterations){
+    //if(mlen < max_msg_len * iterations){
+    if(mlen < default_mlen * iterations){
+        printf("Error in generating random messages\n");
+        return -1;
+    }
 
-	// For storing keypair
-	unsigned char *pk = (unsigned char *)malloc(CRYPTO_PUBLICKEYBYTES * iterations * sizeof(unsigned char));
-	unsigned char *sk = (unsigned char *)malloc(CRYPTO_SECRETKEYBYTES * iterations * sizeof(unsigned char));
+    // For storing signed messages
+    //unsigned char *sm = (unsigned char *)malloc((CRYPTO_BYTES + max_msg_len) * iterations * sizeof(unsigned char));
+    unsigned char *sm = (unsigned char *)malloc((CRYPTO_BYTES + default_mlen) * iterations * sizeof(unsigned char));
 
-	// For storing plaintext messages
-	unsigned char *m = (unsigned char *)malloc(max_msg_len * iterations * sizeof(unsigned char));
-	ct_randombytes(m, max_msg_len * iterations);
-	mlen =  max_msg_len * iterations;
-	if(mlen < max_msg_len * iterations){
-		printf("Error in generating random messages\n");
-		return -1;
-	}
+    printf("Candidate: snova\n");
+    printf("Security Level: 128\n");
+    printf("Instance: \n");
 
-	// For storing signed messages
-	unsigned char *sm = (unsigned char *)malloc((CRYPTO_BYTES + max_msg_len) * iterations * sizeof(unsigned char));
+    // ================== KEYGEN ===================
+    cc_mean = 0; cc_stdev = 0;
+    //Gather statistics
+    for (i = 0; i < iterations; i++)
+    {
 
-	printf("Candidate: snova\n");
-	printf("Security Level: \n");
-	printf("Instance: \n");
+        cc0 = cpucycles();
+        pass = crypto_sign_keypair(&pk[i*CRYPTO_PUBLICKEYBYTES], &sk[i*CRYPTO_SECRETKEYBYTES]);
+        cc1 = cpucycles();
+        cc_sample[i] = cc1 - cc0;
+        cc_mean += cc_sample[i];
 
-	// ================== KEYGEN ===================
-	cc_mean = 0; cc_stdev = 0;
-	//Gather statistics
-	for (i = 0; i < iterations; i++)
-	{
+        if(pass){
+            printf("Error in Keygen\n");
+            return -1;
+        }
+    };
+    printf("Algorithm: Keygen:\n");
+    cc_mean /= iterations;
+    quicksort(cc_sample, 0, iterations - 1);
 
-		cc0 = cpucycles();;
-		pass = crypto_sign_keypair(&pk[i*CRYPTO_PUBLICKEYBYTES], &sk[i*CRYPTO_SECRETKEYBYTES]);
-		cc1 = cpucycles();;
-		cc_sample[i] = cc1 - cc0;
-		cc_mean += cc_sample[i];
+    // Compute the standard deviation
+    for (i = 0; i < iterations; ++i){
+        cc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
+    }
+    cc_stdev = sqrt(cc_stdev / iterations);
 
-		if(pass){
-			printf("Error in Keygen\n");
-			return -1;
-		}
-	};
-	printf("Algorithm: Keygen:\n");
-	cc_mean /= iterations;
-	quicksort(cc_sample, 0, iterations - 1);
+    printf("Average running time (million cycles): \t %7.03lf\n", (1.0 * cc_mean) / 1000000.0);
+    printf("Standard deviation (million cycles): \t %7.03lf\n", (1.0 * cc_stdev) / 1000000.0);
+    printf("Minimum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[0]) / 1000000.0);
+    printf("First quartile (million cycles): \t \t %7.03lf\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
+    printf("Median (million cycles):    \t \t %7.03lf\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
+    printf("Third quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
+    printf("Maximum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
+    printf("Public key size (bytes): \t %d\n", CRYPTO_PUBLICKEYBYTES);
+    printf("Signature size (bytes): \t %lld\n", CRYPTO_BYTES + default_mlen);
+    printf("\n");
 
-	// Compute the standard deviation
-	for (i = 0; i < iterations; ++i){
-		cc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
-	}
-	cc_stdev = sqrt(cc_stdev / iterations);
+    // ================== SIGNING ===================
+    cc_mean = 0; cc_stdev = 0;
+    // Gather statistics
+    for (i = 0; i < iterations; i++)
+    {
+        //mlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
+        mlen = default_mlen;
+        //smlen = mlen + CRYPTO_BYTES;
+        cc0 = cpucycles();
+        //pass = crypto_sign(&sm[(CRYPTO_BYTES + max_msg_len)*i], &smlen, &m[max_msg_len*i], mlen, &sk[i*CRYPTO_SECRETKEYBYTES]);
+        pass = crypto_sign(&sm[(CRYPTO_BYTES + mlen) * i], &smlen[i], &m[mlen*i], mlen, &sk[i*CRYPTO_SECRETKEYBYTES]);
+        cc1 = cpucycles();
+        cc_sample[i] = cc1 - cc0;
+        cc_mean += cc_sample[i];
 
-	printf("Average running time (million cycles): \t %7.03lf\n", (1.0 * cc_mean) / 1000000.0);
-	printf("Standard deviation (million cycles): \t %7.03lf\n", (1.0 * cc_stdev) / 1000000.0);
-	printf("Minimum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[0]) / 1000000.0);
-	printf("First quartile (million cycles): \t \t %7.03lf\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-	printf("Median (million cycles):    \t \t %7.03lf\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-	printf("Third quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-	printf("Maximum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
-	printf("\n");
+        if(pass)
+        {
+            printf("Error in signing\n");
+            return -1;
+        }
+    };
+    printf("Candidate: snova \n");
+    printf("Security Level: \n");
+    printf("Instance: \n");
+    printf("Algorithm: Sign:\n");
+    cc_mean /= iterations;
+    quicksort(cc_sample, 0, iterations - 1);
 
-	// ================== SIGNING ===================
-	cc_mean = 0; cc_stdev = 0;
-	// Gather statistics
-	for (i = 0; i < iterations; i++)
-	{
-		mlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
-		smlen = mlen + CRYPTO_BYTES;
-		cc0 = cpucycles();;
-		pass = crypto_sign(&sm[(CRYPTO_BYTES + max_msg_len)*i], &smlen, &m[max_msg_len*i], mlen, &sk[i*CRYPTO_SECRETKEYBYTES]);
-		cc1 = cpucycles();;
-		cc_sample[i] = cc1 - cc0;
-		cc_mean += cc_sample[i];
+    // Compute the standard deviation
 
-		if(pass)
-		{
-			printf("Error in signing\n");
-			return -1;
-		}
-	};
-	printf("Candidate: snova\n");
-	printf("Security Level: \n");
-	printf("Instance: \n");
-	printf("Algorithm: Sign:\n");
-	cc_mean /= iterations;
-	quicksort(cc_sample, 0, iterations - 1);
+    for (i = 0; i < iterations; ++i){
+        cc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
+    }
+    cc_stdev = sqrt(cc_stdev / iterations);
 
-	// Compute the standard deviation
+    printf("Average running time (million cycles): \t %7.03lf\n", (1.0 * cc_mean) / 1000000.0);
+    printf("Standard deviation (million cycles): \t %7.03lf\n", (1.0 * cc_stdev) / 1000000.0);
+    printf("Minimum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[0]) / 1000000.0);
+    printf("First quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
+    printf("Median (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
+    printf("Third quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
+    printf("Maximum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
+    printf("Public key size (bytes): \t %d\n", CRYPTO_PUBLICKEYBYTES);
+    printf("Signature size (bytes): \t %lld\n", CRYPTO_BYTES + default_mlen);
+    printf("\n");
 
-	for (i = 0; i < iterations; ++i){
-		cc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
-}
-	cc_stdev = sqrt(cc_stdev / iterations);
+    // ================== VERIFICATION ===================
+    cc_mean = 0; cc_stdev = 0;
+    // Gather statistics
+    for (i = 0; i < iterations; i++)
+    {
+        //mlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
+        mlen = default_mlen;
+        //smlen = mlen + CRYPTO_BYTES;
+        cc0 = cpucycles();
+        //pass = crypto_sign_open(&m[max_msg_len*i], &mlen, &sm[(CRYPTO_BYTES + max_msg_len)*i], smlen, &pk[i*CRYPTO_PUBLICKEYBYTES]);
+        pass = crypto_sign_open(&m2[mlen*i], &mlen, &sm[(CRYPTO_BYTES + mlen) * i], smlen[i], &pk[i*CRYPTO_PUBLICKEYBYTES]);
+        cc1 = cpucycles();
+        cc_sample[i] = cc1 - cc0;
+        cc_mean += cc_sample[i];
 
-	printf("Average running time (million cycles): \t %7.03lf\n", (1.0 * cc_mean) / 1000000.0);
-	printf("Standard deviation (million cycles): \t %7.03lf\n", (1.0 * cc_stdev) / 1000000.0);
-	printf("Minimum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[0]) / 1000000.0);
-	printf("First quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-	printf("Median (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-	printf("Third quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-	printf("Maximum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
-	printf("\n");
+        if(pass){
+            printf("Verification failed\n");
+            return -1;
+        }
+    };
 
-	// ================== VERIFICATION ===================
-	cc_mean = 0; cc_stdev = 0;
-	// Gather statistics
-	for (i = 0; i < iterations; i++)
-	{
-		mlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
-		smlen = mlen + CRYPTO_BYTES;
-		cc0 = cpucycles();;
-		pass = crypto_sign_open(&m[max_msg_len*i], &mlen, &sm[(CRYPTO_BYTES + max_msg_len)*i], smlen, &pk[i*CRYPTO_PUBLICKEYBYTES]);
-		cc1 = cpucycles();;
-		cc_sample[i] = cc1 - cc0;
-		cc_mean += cc_sample[i];
+    printf("Candidate: snova\n");
+    printf("Security Level: 128\n");
+    printf("Instance: \n");
+    printf("Algorithm: Verify:\n");
+    cc_mean /= iterations;
+    quicksort(cc_sample, 0, iterations - 1);
 
-		if(pass){
-			printf("Verification failed\n");
-			return -1;
-		}
-	};
+    // Compute the standard deviation
+    for (i = 0; i < iterations; ++i){
+        cc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
+    }
+    cc_stdev = sqrt(cc_stdev / iterations);
 
-	printf("Candidate: snova\n");
-	printf("Security Level: \n");
-	printf("Instance: \n");
-	printf("Algorithm: Verify:\n");
-	cc_mean /= iterations;
-	quicksort(cc_sample, 0, iterations - 1);
+    printf("Average running time (million cycles): \t %7.03lf\n", (1.0 * cc_mean) / 1000000.0);
+    printf("Standard deviation (million cycles): \t %7.03lf\n", (1.0 * cc_stdev) / 1000000.0);
+    printf("Minimum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[0]) / 1000000.0);
+    printf("First quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
+    printf("Median (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
+    printf("Third quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
+    printf("Maximum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
+    printf("Public key size (bytes): \t %d\n", CRYPTO_PUBLICKEYBYTES);
+    printf("Signature size (bytes): \t %lld\n", CRYPTO_BYTES + default_mlen);
+    printf("\n");
 
-	// Compute the standard deviation
-	for (i = 0; i < iterations; ++i){
-		cc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
-}
-	cc_stdev = sqrt(cc_stdev / iterations);
-
-	printf("Average running time (million cycles): \t %7.03lf\n", (1.0 * cc_mean) / 1000000.0);
-	printf("Standard deviation (million cycles): \t %7.03lf\n", (1.0 * cc_stdev) / 1000000.0);
-	printf("Minimum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[0]) / 1000000.0);
-	printf("First quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
-	printf("Median (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
-	printf("Third quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
-	printf("Maximum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
-	printf("\n");
-
-	// -----------------------------------------------------
-	free(cc_sample);
-	free(m);
-	free(sm);
-	free(pk);
-	free(sk);
-	return 0;
+    // -----------------------------------------------------
+    free(cc_sample);
+    free(m);
+    free(m2);
+    free(sm);
+    free(pk);
+    free(sk);
+    return 0;
 }
 
