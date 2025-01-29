@@ -192,8 +192,7 @@
       "compiler": "gcc",
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "security_level": {"128":  ["_37_17_2", "_25_8_3", "_24_5_4"], "192":  ["_56_25_2", "_49_11_3", "_37_8_4"], "256":  ["_75_33_2", "_66_15_3", "_60_10_4"]},
-      "instances1": ["SNOVA_37_17_2",  "SNOVA_25_8_3", "SNOVA_24_5_4", "SNOVA_56_25_2", "SNOVA_49_11_3", "SNOVA_37_8_4", "SNOVA_75_33_2", "SNOVA_66_15_3", "SNOVA_60_10_4"],
-      "instances": null,
+      "instances": ["SNOVA_37_17_2",  "SNOVA_25_8_3", "SNOVA_24_5_4", "SNOVA_56_25_2", "SNOVA_49_11_3", "SNOVA_37_8_4", "SNOVA_75_33_2", "SNOVA_66_15_3", "SNOVA_60_10_4"],
       "path_to_bench_binary": null,
       "instance_format": {"CRYPTO_ALGNAME":  "SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)"},
       "cflags": null
@@ -215,7 +214,7 @@
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "instance_format": {"BINARY_FORMAT":  "PROJ_$(PROJ)_VARIANT_$(VARIANT)_PARAM_$(PARAM)"}
     },
-    "pqov": {
+    "pqov2": {
       "path_to_api": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2/III/api.h",
       "path_to_rng": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2/nistkat/rng.h",
       "path_to_makefile_folder": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2",
@@ -231,6 +230,24 @@
       "path_to_bench_binary": null,
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "instance_format": {"BINARY_FORMAT":  "$(PROJ)"},
+      "cflags": null
+    },
+    "pqov": {
+      "path_to_api": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2/III/api.h",
+      "path_to_rng": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2/nistkat/rng.h",
+      "path_to_makefile_folder": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2",
+      "path_to_include_directory": ".",
+      "default_instance": "avx2/III",
+      "optimized_implementation": "pqov_nist_submission/Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
+      "build_with_makefile": true,
+      "compiler": "gcc",
+      "instances": ["avx2/III", "avx2/III_pkc", "avx2/III_pkc_skc", "avx2/Ip", "avx2/Ip_pkc", "avx2/Ip_pkc_skc", "avx2/Is" ,  "avx2/Is_pkc", "avx2/Is_pkc_skc", "avx2/V", "avx2/V_pkc", "avx2/V_pkc_skc"],
+      "security_level": {"128":  ["Is", "Ip"], "192":  ["III"], "256":  ["V"]},
+      "path_to_bench_binary": null,
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "instance_format": null,
       "cflags": null
     },
     "qruov1": {
