@@ -10,6 +10,9 @@ endif
 
 SRC_DIR  := $(PROJ)
 
+$(info "!!!!!PROJ = $(PROJ)")
+$(info "!!!!!SRC_DIR = $(SRC_DIR)")
+
 TOOLS_FLAGS :=
 
 CFLAGS   := -O3 $(CFLAGS) -std=c99 -Wall -Wextra -Wpedantic -Werror -fno-omit-frame-pointer -fPIC $(TOOLS_FLAGS)
@@ -45,9 +48,15 @@ BUILD_CTLIB = build
 
 all: $(CTTEST_LIB) #$(EXE)
 
-$(CTTEST_LIB): $(OBJ)
+$(CTTEST_LIB)1: $(OBJ)
 	mkdir -p $(BUILD_CTLIB)
 	$(LD) $(LDFLAGS) $(LIBPATH) $(OBJ) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LIBS)
+
+$(CTTEST_LIB): $(OBJ)
+	#mkdir -p $(BUILD_CTLIB)
+	mkdir -p $(BUILD_CTLIB)/$(SRC_DIR)
+	$(LD) $(LDFLAGS) $(LIBPATH) $(OBJ) -shared -o $(BUILD_CTLIB)/$(SRC_DIR)/$(CTTEST_LIB) $(LIBS)
+
 
 sign_api-test: $(OBJ) sign_api-test.c
 	$(CC) $(CFLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $(LIBS) $^ -o $@
@@ -73,4 +82,4 @@ $(foreach dir, $(SRC_EXT_DIRS), $(eval $(call GEN_O,$(dir))))
 
 clean:
 	-rm -f *.o *.req *.rsp PQCgenKAT_sign $(EXE);
-	-rm -rf $(BUILD_CTLIB)
+	-rm -rf $(BUILD_CTLIB)/$(SRC_DIR)

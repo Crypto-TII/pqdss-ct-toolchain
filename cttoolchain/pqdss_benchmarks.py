@@ -635,22 +635,10 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
             path_to_instance = f'{path_to_benchmark_folder}'
         else:
             path_to_instance = f'{path_to_benchmark_folder}/{instance}'
-            # path_to_include_directories_split = path_to_include_directories.split(default_instance)
-            # path_to_include_directories_split.insert(1, instance)
-            # path_to_include_directories = "".join(path_to_include_directories_split)
             path_to_include_directories = path_to_include_directories.replace(default_instance, instance)
-            print("________ABCDEF: path_to_test_library_directory: ", path_to_test_library_directory)
             # if default_instance in path_to_test_library_directory:
             if default_instance_updated in path_to_test_library_directory:
-                print("========== default_instance in path_to_lib")
-                # path_to_test_library_directory_split = path_to_test_library_directory.split(default_instance)
-                # path_to_test_library_directory_split.insert(1, instance)
-                # path_to_test_library_directory = "".join(path_to_test_library_directory_split)
-                print("________A: path_to_test_library_directory: ", path_to_test_library_directory)
-                # path_to_test_library_directory = path_to_test_library_directory.replace(default_instance, instance)
                 path_to_test_library_directory = path_to_test_library_directory.replace(default_instance_updated, instance_updated)
-
-                print("________B: path_to_test_library_directory: ", path_to_test_library_directory)
                 cflags_custom_path = f'{path_to_test_library_directory}/cflags.txt'
                 if os.path.isfile(cflags_custom_path):
                     with open(cflags_custom_path, 'r') as read_cflags:
@@ -705,11 +693,7 @@ def candidates_benchmarks(path_to_all_candidates: str, path_to_candidate_global_
 
 
 def update_instance_and_security_level(binary_basename: str, path_to_bench_output: str, security_level_dict: dict):
-    print("_________update_instance_and_security_level: ")
     instance_security_level = binary_basename.split('bench_')[-1]
-    print(">>>>>>>.............:binary_basename: ", binary_basename)
-    print(">>>>>>>.............:instance_security_level: ", instance_security_level)
-    print(">>>>>>>.............:security_level_dict: ", security_level_dict)
     security_level = ''
     for sec_level in security_level_dict.keys():
         if any(sec_lev_inst in instance_security_level for sec_lev_inst in security_level_dict[sec_level]):
@@ -1007,8 +991,6 @@ def generate_template_candidate(candidate: str, instance: str, security_level: s
     path_to_benchmark_file = f'{path_to_benchmark_folder}/bench.c'
     ret_sign = gen.sign_find_args_types_and_names(abs_path_to_api_or_sign)
     sign_return_type, sign_basename, sign_args_types, sign_args_names = ret_sign
-    print("!!!!!!!---------generate_template_candidate: ")
-    print("!!!!!!!---------security_level: ", security_level)
     benchmark_template(candidate, instance, security_level, path_to_benchmark_file, api_or_sign, rng, add_includes,
                        sign_return_type, sign_args_types, sign_args_names, number_of_iterations, min_msg_len,
                        max_msg_len)
@@ -1062,19 +1044,14 @@ def generic_benchmarks_nist_candidate_29_jan(candidate, abs_path_to_api_or_sign,
 def generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances_list,
                                              add_includes, number_of_iterations='1000', min_msg_len: Union[str, int] = '0',
                                              max_msg_len: Union[str, int] = '3300', security_level: Optional[Union[str, list, dict]] = None):
-    print("!!!!!!!---------------generic_benchmarks_nist_candidate: ")
-    print("!!!!!!!!!---------------security_level: ", security_level)
     list_of_instances = []
     if not instances_list:
         list_of_instances = [""]
     else:
         for instance_folder in instances_list:
             list_of_instances.append(instance_folder)
-    print("!!!!!!!!!---------------list_of_instances: ", list_of_instances)
     if instances_list:
         security_level_list = get_instance_security_level(instances_list, security_level)
-        print("!!!!!!!!!---------------security_level_list: ", security_level_list)
-        # for instance, sec_level in zip(list_of_instances, security_level):
         for instance, sec_level in zip(list_of_instances, security_level_list):
             generate_benchmarks(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instance,
                                 add_includes, number_of_iterations, min_msg_len, max_msg_len, sec_level)
@@ -1153,22 +1130,18 @@ def generic_benchmarks_init_compile_27_jan(candidate, abs_path_to_api_or_sign, a
             else:
                 if candidate == 'qruov':
                     path_to_include_directories_initial = path_to_include_directories
-                    print("_____________+++++++++++path_to_include_directories: ", path_to_include_directories)
                     extended_args = ['no-make-clean']
                     if args:
                         extended_args.extend(args)
                     for instance in instances:
-                        print("_________________+++++++++++A: path_to_include_directories: ", path_to_include_directories)
                         platform = 'portable64'
                         if args:
                             platform = args[0]
                         instance_updated = f'{instance}/{platform}'
-                        path_to_include_directories_split = path_to_include_directories.split(default_instance)
-                        print("________________+++++++++++B:path_to_include_directories: ", path_to_include_directories)
-                        path_to_include_directories_split.insert(1, instance_updated)
-                        print("_______________+++++++++++C:path_to_include_directories: ", path_to_include_directories)
-                        path_to_include_directories = "".join(path_to_include_directories_split[:-1])
-                        print("________________+++++++++++D:path_to_include_directories: ", path_to_include_directories)
+                        # path_to_include_directories_split = path_to_include_directories.split(default_instance)
+                        # path_to_include_directories_split.insert(1, instance_updated)
+                        # path_to_include_directories = "".join(path_to_include_directories_split[:-1])
+                        path_to_include_directories = path_to_include_directories.replace(default_instance, instance_updated)
                         gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
                                                      additional_cmake_definitions, *extended_args, **kwargs)
                         path_to_include_directories = path_to_include_directories_initial
@@ -1418,8 +1391,6 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
                                     min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
                                     security_level: Union[str, list] = '128',
                                     binary_format: Optional[Union[str, list, dict]] = None, *args, **kwargs):
-    if candidate == 'pqov':
-        pass
     if candidate == 'snova':
         cwd = os.getcwd()
         os.chdir(path_to_candidate_makefile_cmake)
@@ -1453,7 +1424,8 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
             path_candidate += f'/{candidate}'
         path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
         os.chdir(path_to_candidate_makefile_cmake)
-        default_platform = 'portable64'
+        # default_platform = 'portable64'
+        default_platform = 'avx2'
         platform = default_platform
         if 'platform' in kwargs.keys():
             platform = kwargs['platform']
@@ -1557,7 +1529,6 @@ def generic_compile_run_bench_candidate(candidate, abs_path_to_api_or_sign, abs_
                                         execution: str = 'yes', custom_benchmark: bool = True,
                                         candidate_benchmark: bool = True, security_level: Optional[Union[str, list, dict]] = None,
                                         binary_format: Optional[Union[str, list, dict]] = None, *args, **kwargs):
-    print("=::::::::::::::::::security_level_dict: ", security_level)
     path_to_candidate = abs_path_to_api_or_sign.split(candidate)[0]
     if path_to_candidate.endswith('/'):
         path_to_candidate += candidate
@@ -1738,7 +1709,7 @@ def run_benchmarks_all_candidates(candidates_dict: dict, implementation_type='op
     print("------:::::::::::list_of_candidates: ", list_of_candidates)
     # list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "qruov", "snova", "hawk", "cross", "less", "sqisign"]
     # candidates that required specific options to be benched: pqov, snova, sqisign, qruov
-    list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "hawk", "cross", "less", "qruov", "snova"]
+    list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "hawk", "cross", "less", "qruov", "snova", "pqov"]
     print("------:::::::::::list_of_candidates::::::::: ", list_of_candidates)
     for candidate in list_of_candidates:
         instances = None
