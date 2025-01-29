@@ -151,7 +151,7 @@ foreach(category RANGE 1 5 2)
 
                  add_executable(${TEST_BENCH} ${HEADERS} ${SOURCES} ${SRC_BENCHMARK}.c)
                  target_include_directories(${TEST_BENCH} PRIVATE ${COMMON_DIR}/include ${BASE_DIR}/include)
-                 target_link_libraries(${TEST_BENCH}  ${SANITIZE} ${KECCAK_EXTERNAL_LIB} m)
+                 target_link_libraries(${TEST_BENCH}  ${SANITIZE} ${KECCAK_EXTERNAL_LIB} m cpucycles)
                  set_target_properties(${TEST_BENCH} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BENCHMARKS_FOLDER})
                  set_property(TARGET ${TEST_BENCH} APPEND PROPERTY
                          COMPILE_FLAGS "${OMIT_SEED_TREE} -DCATEGORY_${category}=1 -D${optimiz_target}=1  -D${RSDP_VARIANT}=1 ${KECCAK_EXTERNAL_ENABLE} ")
