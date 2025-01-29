@@ -21,7 +21,7 @@ import errors as error
 
 
 
-def benchmark_template(candidate: str, instance: str, security_level: str, path_to_benchmark_file: str,
+def benchmark_template_28_jan(candidate: str, instance: str, security_level: str, path_to_benchmark_file: str,
                        api_or_sign: str, rng: str, add_includes: str, function_return_type: str, args_types: list,
                        args_names: list, number_of_iterations: Union[str, int] = '1000',
                        min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300'):
@@ -280,6 +280,278 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
 
 
 
+def benchmark_template(candidate: str, instance: str, security_level: str, path_to_benchmark_file: str,
+                       api_or_sign: str, rng: str, add_includes: str, function_return_type: str, args_types: list,
+                       args_names: list, number_of_iterations: Union[str, int] = '1000',
+                       min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300'):
+    api_h = os.path.basename(api_or_sign)
+    rng_h = os.path.basename(rng)
+    args_types[2] = re.sub("const ", "", args_types[2])
+    args_types[4] = re.sub("const ", "", args_types[4])
+
+    sorting_functions_block = f'''
+    void swap(ticks* a, ticks* b)
+    {{
+        ticks t = *a;
+        *a = *b;
+        *b = t;
+    }}
+    
+    /* Performs one step of pivot sorting with the last
+        element taken as pivot. */
+    int partition (ticks arr[], int low, int high)
+    {{
+        ticks pivot = arr[high];
+        int i = (low - 1);
+    
+        int j;
+        for(j = low; j <= high- 1; j++)
+        {{
+        if(arr[j] < pivot)
+        {{
+        i++;
+        swap(&arr[i], &arr[j]);
+        }}
+        }}
+        swap(&arr[i + 1], &arr[high]);
+        return (i + 1);
+    }}
+    
+    void quicksort(ticks arr[], int low, int high)
+    {{
+        if (low < high)
+        {{
+        int pi = partition(arr, low, high);
+        quicksort(arr, low, pi - 1);
+        quicksort(arr, pi + 1, high);
+        }}
+    }}
+    '''
+
+    includes_block = f'''
+    #include<time.h>
+    #include <math.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdbool.h>
+    
+    #include <cpucycles.h>
+    #include "{api_h}"
+    
+    //#include "{rng_h}"
+    #include "toolchain_randombytes.h"
+    
+    typedef uint64_t ticks;
+    '''
+    bench_content_block = f'''
+    
+    {sorting_functions_block}
+    
+    int main(void)
+    {{
+    \t//int i = 0;
+    \t//int iterations = TOTAL_ITERATIONS;
+    \t//int min_msg_len = MINIMUM_MSG_LENGTH;
+    \t//int max_msg_len = MAXIMUM_MSG_LENGTH;
+    \t{args_types[3]} i = 0;
+    \t{args_types[3]} iterations = TOTAL_ITERATIONS;
+    \t{args_types[3]} min_msg_len = MINIMUM_MSG_LENGTH;
+    \t{args_types[3]} max_msg_len = MAXIMUM_MSG_LENGTH;
+    \t{args_types[3]} mlen = 0;
+    \t{args_types[3]} default_mlen = DEFAULT_MESSAGE_LENGTH;
+    \t//{args_types[1]} smlen = 0;
+    \t{args_types[1]} smlen[TOTAL_ITERATIONS] = {{0}};
+    \t{function_return_type} pass;
+
+    \t// For storing clock cycle counts
+    \tticks cc_mean = 0, cc_stdev = 0,
+    \tcc0, cc1,
+    \t*cc_sample =(ticks *)malloc(iterations * sizeof(ticks));
+
+    \t// For storing keypair
+    \t{args_types[4]} *pk = ({args_types[4]} *)malloc(CRYPTO_PUBLICKEYBYTES * iterations * sizeof({args_types[4]}));
+    \t{args_types[4]} *sk = ({args_types[4]} *)malloc(CRYPTO_SECRETKEYBYTES * iterations * sizeof({args_types[4]}));
+
+    \t// For storing plaintext messages
+    \t//{args_types[2]} *m = ({args_types[2]} *)malloc(max_msg_len * iterations * sizeof({args_types[2]}));
+    \t{args_types[2]} *m = ({args_types[2]} *)malloc(default_mlen * iterations * sizeof({args_types[2]}));
+    \t//{args_types[2]} *m2 = ({args_types[2]} *)malloc(max_msg_len * iterations * sizeof({args_types[2]}));
+    \t{args_types[2]} *m2 = ({args_types[2]} *)malloc(default_mlen * iterations * sizeof({args_types[2]}));
+    \tct_randombytes(m, max_msg_len * iterations);
+    \t//mlen =  max_msg_len * iterations;
+    \tmlen =  default_mlen * iterations;
+    \t//if((int)mlen < max_msg_len * iterations){{
+    \t//if(mlen < max_msg_len * iterations){{
+    \tif(mlen < default_mlen * iterations){{
+    \t\tprintf("Error in generating random messages\\n");
+    \t\treturn -1;
+    \t}}
+
+    \t// For storing signed messages
+    \t//{args_types[0]} *sm = ({args_types[0]} *)malloc((CRYPTO_BYTES + max_msg_len) * iterations * sizeof({args_types[0]}));
+    \t{args_types[0]} *sm = ({args_types[0]} *)malloc((CRYPTO_BYTES + default_mlen) * iterations * sizeof({args_types[0]}));
+
+    \tprintf("Candidate: {candidate}\\n");
+    \tprintf("Security Level: {security_level}\\n");
+    \tprintf("Instance: {instance}\\n");
+
+    \t// ================== KEYGEN ===================
+    \tcc_mean = 0; cc_stdev = 0;
+    \t//Gather statistics
+    \tfor (i = 0; i < iterations; i++)
+    \t{{
+   
+    \t\tcc0 = cpucycles();
+    \t\tpass = crypto_sign_keypair(&pk[i*CRYPTO_PUBLICKEYBYTES], &sk[i*CRYPTO_SECRETKEYBYTES]);
+    \t\tcc1 = cpucycles();
+    \t\tcc_sample[i] = cc1 - cc0;
+    \t\tcc_mean += cc_sample[i];
+
+    \t\tif(pass){{
+    \t\t\tprintf("Error in Keygen\\n");
+    \t\t\treturn -1;
+    \t\t}}
+    \t}};
+    \tprintf("Algorithm: Keygen:\\n");
+    \tcc_mean /= iterations;
+    \tquicksort(cc_sample, 0, iterations - 1);
+
+    \t// Compute the standard deviation
+    \tfor (i = 0; i < iterations; ++i){{
+    \t\tcc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
+    \t}}
+    \tcc_stdev = sqrt(cc_stdev / iterations);
+
+    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
+    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
+    \tprintf("Minimum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
+    \tprintf("First quartile (million cycles): \\t \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
+    \tprintf("Median (million cycles):    \\t \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
+    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
+    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
+    \tprintf("Public key size (bytes): \\t %ld\\n", CRYPTO_PUBLICKEYBYTES);
+    \tprintf("Signature size (bytes): \\t %lld\\n", CRYPTO_BYTES + default_mlen);
+    \tprintf("\\n");
+
+    \t// ================== SIGNING ===================
+    \tcc_mean = 0; cc_stdev = 0;
+    \t// Gather statistics
+    \tfor (i = 0; i < iterations; i++)
+    \t{{
+    \t\t//mlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
+    \t\tmlen = default_mlen;
+    \t\t//smlen = mlen + CRYPTO_BYTES;
+    \t\tcc0 = cpucycles();
+    \t\t//pass = crypto_sign(&sm[(CRYPTO_BYTES + max_msg_len)*i], &smlen, &m[max_msg_len*i], mlen, &sk[i*CRYPTO_SECRETKEYBYTES]);
+    \t\tpass = crypto_sign(&sm[(CRYPTO_BYTES + mlen) * i], &smlen[i], &m[mlen*i], mlen, &sk[i*CRYPTO_SECRETKEYBYTES]);
+    \t\tcc1 = cpucycles();
+    \t\tcc_sample[i] = cc1 - cc0;
+    \t\tcc_mean += cc_sample[i];
+
+    \t\tif(pass)
+    \t\t{{
+    \t\t\tprintf("Error in signing\\n");
+    \t\t\treturn -1;
+    \t\t}}
+    \t}};
+    \tprintf("Candidate: {candidate}\\n");
+    \tprintf("Security Level: {security_level}\\n");
+    \tprintf("Instance: {instance}\\n");
+    \tprintf("Algorithm: Sign:\\n");
+    \tcc_mean /= iterations;
+    \tquicksort(cc_sample, 0, iterations - 1);
+
+    \t// Compute the standard deviation
+    
+    \tfor (i = 0; i < iterations; ++i){{
+    \t\tcc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
+    }}
+    \tcc_stdev = sqrt(cc_stdev / iterations);
+    
+    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
+    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
+    \tprintf("Minimum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
+    \tprintf("First quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
+    \tprintf("Median (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
+    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
+    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
+    \tprintf("Public key size (bytes): \\t %ld\\n", CRYPTO_PUBLICKEYBYTES);
+    \tprintf("Signature size (bytes): \\t %lld\\n", CRYPTO_BYTES + default_mlen);
+    \tprintf("\\n");
+
+    \t// ================== VERIFICATION ===================
+    \tcc_mean = 0; cc_stdev = 0;
+    \t// Gather statistics
+    \tfor (i = 0; i < iterations; i++)
+    \t{{
+    \t\t//mlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
+    \t\tmlen = default_mlen;
+    \t\t//smlen = mlen + CRYPTO_BYTES;
+    \t\tcc0 = cpucycles();
+    \t\t//pass = crypto_sign_open(&m[max_msg_len*i], &mlen, &sm[(CRYPTO_BYTES + max_msg_len)*i], smlen, &pk[i*CRYPTO_PUBLICKEYBYTES]);
+    \t\tpass = crypto_sign_open(&m2[mlen*i], &mlen, &sm[(CRYPTO_BYTES + mlen) * i], smlen[i], &pk[i*CRYPTO_PUBLICKEYBYTES]);
+    \t\tcc1 = cpucycles();
+    \t\tcc_sample[i] = cc1 - cc0;
+    \t\tcc_mean += cc_sample[i];
+    
+    \t\tif(pass){{
+    \t\t\tprintf("Verification failed\\n");
+    \t\t\treturn -1;
+    \t\t}}
+    \t}};
+        
+    \tprintf("Candidate: {candidate}\\n");
+    \tprintf("Security Level: {security_level}\\n");
+    \tprintf("Instance: {instance}\\n");
+    \tprintf("Algorithm: Verify:\\n");
+    \tcc_mean /= iterations;
+    \tquicksort(cc_sample, 0, iterations - 1);
+
+    \t// Compute the standard deviation
+    \tfor (i = 0; i < iterations; ++i){{
+    \t\tcc_stdev += (cc_sample[i] - cc_mean)*(cc_sample[i] - cc_mean);
+    }}
+    \tcc_stdev = sqrt(cc_stdev / iterations);
+
+    \tprintf("Average running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_mean) / 1000000.0);
+    \tprintf("Standard deviation (million cycles): \\t %7.03lf\\n", (1.0 * cc_stdev) / 1000000.0);
+    \tprintf("Minimum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[0]) / 1000000.0);
+    \tprintf("First quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/4]) / 1000000.0);
+    \tprintf("Median (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations/2]) / 1000000.0);
+    \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
+    \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
+    \tprintf("Public key size (bytes): \\t %ld\\n", CRYPTO_PUBLICKEYBYTES);
+    \tprintf("Signature size (bytes): \\t %lld\\n", CRYPTO_BYTES + default_mlen);
+    \tprintf("\\n");
+
+    \t// -----------------------------------------------------
+    \tfree(cc_sample);
+    \tfree(m);
+    \tfree(m2);
+    \tfree(sm);
+    \tfree(pk);
+    \tfree(sk);
+    \treturn 0;
+    }}
+    '''
+    add_includes_block = f''''''
+    if not add_includes == []:
+        for include in add_includes:
+            add_includes_block += f'#include {include}\n'
+    benchmark_content = f'''
+    {includes_block}
+    #define MINIMUM_MSG_LENGTH      {min_msg_len}
+    #define MAXIMUM_MSG_LENGTH      {max_msg_len}
+    #define TOTAL_ITERATIONS        {number_of_iterations}
+    #define DEFAULT_MESSAGE_LENGTH  3300
+    {add_includes_block}
+    {bench_content_block}
+    '''
+    with open(path_to_benchmark_file, "w") as bench_file:
+        bench_file.write(textwrap.dedent(benchmark_content))
+
+
+
 def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
                                libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
                                cflags: list, default_instance: str, instances: Optional[Union[str, list]] = None,
@@ -492,7 +764,6 @@ def generic_run_bench_candidate(path_to_candidate, instances, default_instance: 
                                 cpu_core_isolated: Union[str, list] = '1',
                                 path_to_candidate_bench: Optional[str] = None, custom_benchmark: bool = True,
                                 candidate_benchmark: bool = True, security_level_dict: Optional[Union[str, list, dict]] = None):
-    print("=::::::::::::::::::security_level_dict: ", security_level_dict)
     list_of_instances = []
     path_to_benchmark_binary = path_to_candidate_bench
     list_path_to_bench_binaries = []
@@ -557,8 +828,6 @@ def generic_run_bench_candidate(path_to_candidate, instances, default_instance: 
             run_bench_candidate(executable, cpu_core_isolated, path_to_output_file)
             if os.path.basename(executable) != 'bench':
                 binary_basename = os.path.basename(executable)
-                print("............path_to_output_file: ", path_to_output_file)
-                print("............security_level_dict: ", security_level_dict)
                 update_instance_and_security_level(binary_basename, path_to_output_file, security_level_dict)
             print("---Running: ", executable)
             candidate_instances_benchmarks(path_to_candidate_global_bench, path_to_output_file)
@@ -939,9 +1208,6 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
                         expanded_kwargs_list.append(f'{k}={value}')
                         cmd += f' {k}={value}'
                 expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
-                print("___________expanded_kwargs: ", expanded_kwargs)
-                print("++++++++++++cmd++++++++++++: ", cmd)
-                print("-------++++++++-------- cwd: ", os.getcwd())
                 subprocess.call(cmd.split(), stdin=sys.stdin)
         os.chdir(cwd)
 
@@ -1063,7 +1329,8 @@ def generic_benchmarks_init_compile_next(candidate, abs_path_to_api_or_sign, abs
         if candidate == 'qruov':
             cwd = os.getcwd()
             os.chdir(path_to_candidate_makefile_cmake)
-            platform = 'portable64'
+            # platform = 'portable64'
+            platform = 'avx2'
             if args:
                 platform = args[0]
             makefile = 'Makefile'
@@ -1337,7 +1604,7 @@ def run_benchmarks_all_candidates(candidates_dict: dict, implementation_type='op
     print("------:::::::::::list_of_candidates: ", list_of_candidates)
     # list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "qruov", "snova", "hawk", "cross", "less", "sqisign"]
     # candidates that required specific options to be benched: pqov, snova, sqisign, qruov
-    list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "hawk", "cross", "less", "qruov"]
+    list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "hawk", "cross", "less", "qruov", "snova"]
     print("------:::::::::::list_of_candidates::::::::: ", list_of_candidates)
     for candidate in list_of_candidates:
         instances = None

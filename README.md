@@ -220,6 +220,15 @@ mpc-in-the-head
 
 ```
 
+#### Specific cases
+
+- qruov
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-benchmarks --candidate qruov --additional_options platform=PLATFORM
+```
+
+where PLATFORM = avx2/avx512/portable64
 
 ### Feature: pqdss-benchmarks
 

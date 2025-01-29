@@ -233,6 +233,26 @@
       "instance_format": {"BINARY_FORMAT":  "$(PROJ)"},
       "cflags": null
     },
+    "qruov1": {
+      "path_to_api": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/api.h",
+      "path_to_rng": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/rng.h",
+      "path_to_makefile_folder": "candidates/multivariate/qruov/src",
+      "path_to_include_directory": ".",
+      "default_instance": "qruov1q7L10v740m100",
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
+      "build_with_makefile": true,
+      "compiler": "gcc",
+      "instances": ["qruov1q7L10v740m100", "qruov1q31L3v165m60", "qruov1q31L10v600m70", "qruov1q127L3v156m54",
+        "qruov3q7L10v1100m140", "qruov3q31L3v246m87", "qruov3q31L10v890m100", "qruov3q127L3v228m78",
+        "qruov5q7L10v1490m190", "qruov5q31L3v324m114", "qruov5q31L10v1120m120", "qruov5q127L3v306m105"],
+      "path_to_bench_binary": null,
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "security_level": {"128":  ["v1"], "192":  ["v3"], "256":  ["v5"]},
+      "instance_format": null,
+      "cflags": null
+    },
     "qruov": {
       "path_to_api": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/api.h",
       "path_to_rng": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/rng.h",
