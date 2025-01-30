@@ -936,8 +936,8 @@ def run_benchmarks_all_candidates(candidates_dict: dict, implementation_type='op
                                   min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
                                   cpu_core_isolated: Union[str, list] = '1', *args, **kwargs):
     # list_of_candidates = list(candidates_dict.keys())
-    # list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "hawk", "cross", "less", "qruov", "snova", "pqov", 'sqisign']
-    list_of_candidates = ["mira", 'sqisign']
+    list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "hawk", "cross", "less", "qruov", "snova", "pqov", 'sqisign']
+    # list_of_candidates = ["mira", 'sqisign']
     expanded_kwargs_list = []
     expanded_kwargs = {}
     if kwargs:
