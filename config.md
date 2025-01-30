@@ -94,7 +94,9 @@ while :; do ps -p $PID -o rss=; sleep 0.1; done
 ---
 
 ## F. Compiler
-All candidates use gcc.
+
+We utilize a standardized benchmark template for all candidates. Our tool links each candidate's binary, ensuring that every binary is compiled using the specified flags and compilers from their respective submissions. To generate the final benchmark executable, we consistently use the GCC compiler for all candidates.
+All benchmark executions are conducted on a single, isolated CPU in a noiseless environment.
 
 ---
 
