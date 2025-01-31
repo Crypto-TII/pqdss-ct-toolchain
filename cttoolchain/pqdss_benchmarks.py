@@ -159,7 +159,8 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
     \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
     \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
     \tprintf("Public key size (bytes): \\t %ld\\n", CRYPTO_PUBLICKEYBYTES);
-    \tprintf("Signature size (bytes): \\t %lld\\n", CRYPTO_BYTES + default_mlen);
+    \tprintf("Signature size (bytes): \\t %lld\\n", CRYPTO_BYTES);
+    \tprintf("Signature size + PK Size (bytes): \\t %lld\\n", CRYPTO_BYTES + CRYPTO_PUBLICKEYBYTES);
     \tprintf("Message size (bytes): \\t %lld\\n", default_mlen);
     \tprintf("\\n");
 
@@ -205,7 +206,8 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
     \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
     \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
     \tprintf("Public key size (bytes): \\t %ld\\n", CRYPTO_PUBLICKEYBYTES);
-    \tprintf("Signature size (bytes): \\t %lld\\n", CRYPTO_BYTES + default_mlen);
+    \tprintf("Signature size (bytes): \\t %lld\\n", CRYPTO_BYTES);
+    \tprintf("Signature size + PK Size (bytes): \\t %lld\\n", CRYPTO_BYTES + CRYPTO_PUBLICKEYBYTES);
     \tprintf("Message size (bytes): \\t %lld\\n", default_mlen);
     \tprintf("\\n");
 
@@ -250,7 +252,8 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
     \tprintf("Third quartile (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
     \tprintf("Maximum running time (million cycles): \\t %7.03lf\\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
     \tprintf("Public key size (bytes): \\t %ld\\n", CRYPTO_PUBLICKEYBYTES);
-    \tprintf("Signature size (bytes): \\t %lld\\n", CRYPTO_BYTES + default_mlen);
+    \tprintf("Signature size (bytes): \\t %lld\\n", CRYPTO_BYTES);
+    \tprintf("Signature size + PK Size (bytes): \\t %lld\\n", CRYPTO_BYTES + CRYPTO_PUBLICKEYBYTES);
     \tprintf("Message size (bytes): \\t %lld\\n", default_mlen);
     \tprintf("\\n");
 
@@ -273,7 +276,7 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
     #define MINIMUM_MSG_LENGTH      {min_msg_len}
     #define MAXIMUM_MSG_LENGTH      {max_msg_len}
     #define TOTAL_ITERATIONS        {number_of_iterations}
-    #define DEFAULT_MESSAGE_LENGTH  3300
+    #define DEFAULT_MESSAGE_LENGTH  32
     {add_includes_block}
     {bench_content_block}
     '''
@@ -591,6 +594,9 @@ def generic_benchmarks_init_compile_30_jan(candidate, abs_path_to_api_or_sign, a
         chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
         subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
         os.chdir(cwd)
+        print("---------------platform: ", platform)
+        print("---------------abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
+        print("---------------path_to_include_directories: ", path_to_include_directories)
         if platform not in abs_path_to_api_or_sign:
             abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
             path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
@@ -600,6 +606,7 @@ def generic_benchmarks_init_compile_30_jan(candidate, abs_path_to_api_or_sign, a
         for instance in instances:
             os.chdir(path_to_candidate_makefile_cmake)
             cmd_str = f'make {instance} platform={platform}'
+            print("::::::::cmd_str: ", cmd_str)
             subprocess.call(cmd_str.split(), stdin=sys.stdin)
             os.chdir(cwd)
             abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
@@ -612,11 +619,13 @@ def generic_benchmarks_init_compile_30_jan(candidate, abs_path_to_api_or_sign, a
             instance_format = ''
             instance_updated = f'{instance}/{platform}'
             path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
+            print("---------------AAAA:path_to_include_directories: ", path_to_include_directories)
             generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                        path_to_include_directories, cflags, default_instance, instance.split(), compiler, instance_format)
             path_to_include_directories = path_to_include_directories_initial
             path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
             abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
+            print("---------------BBBB:path_to_include_directories: ", path_to_include_directories)
     else:
         if custom_benchmark:
             generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
@@ -716,20 +725,28 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
             path_candidate += f'/{candidate}'
         path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
         os.chdir(path_to_candidate_makefile_cmake)
-        default_platform = 'avx2'
-        platform = default_platform
+        default_platform = 'portable64'
+        # default_platform = 'avx2'
+        # platform = default_platform
+        platform = 'avx2'
+        print("---------------(1): platform: ", platform)
         if 'platform' in kwargs.keys():
             platform = kwargs['platform']
+        print("---------------(2): platform: ", platform)
         makefile = 'Makefile'
         chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
         subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
         os.chdir(cwd)
+        print("---------------platform: ", platform)
+        print("---------------abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
+        print("---------------path_to_include_directories: ", path_to_include_directories)
         if platform not in abs_path_to_api_or_sign:
             abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
             path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
         abs_path_to_api_or_sign_initial = abs_path_to_api_or_sign
         path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
         path_to_include_directories_initial = path_to_include_directories
+        path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
         for instance in instances:
             os.chdir(path_to_candidate_makefile_cmake)
             cmd_str = f'make {instance} platform={platform}'
@@ -745,11 +762,13 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
             instance_format = ''
             instance_updated = f'{instance}/{platform}'
             path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
+            print("---------------AAAA:path_to_include_directories: ", path_to_include_directories)
             generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                        path_to_include_directories, cflags, default_instance, instance.split(), compiler, instance_format)
             path_to_include_directories = path_to_include_directories_initial
             path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
             abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
+            print("---------------BBBB:path_to_include_directories: ", path_to_include_directories)
     else:
         if custom_benchmark:
             generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
@@ -937,7 +956,6 @@ def run_benchmarks_all_candidates(candidates_dict: dict, implementation_type='op
                                   cpu_core_isolated: Union[str, list] = '1', *args, **kwargs):
     # list_of_candidates = list(candidates_dict.keys())
     list_of_candidates = ["perk", "ryde", "mqom", "sdith", "mirith", "mira", "mayo", "hawk", "cross", "less", "qruov", "snova", "pqov", 'sqisign']
-    # list_of_candidates = ["mira", 'sqisign']
     expanded_kwargs_list = []
     expanded_kwargs = {}
     if kwargs:

@@ -17,7 +17,7 @@ typedef uint64_t ticks;
 #define MINIMUM_MSG_LENGTH      1
 #define MAXIMUM_MSG_LENGTH      3300
 #define TOTAL_ITERATIONS        1000
-#define DEFAULT_MESSAGE_LENGTH  3300
+#define DEFAULT_MESSAGE_LENGTH  32
 
 
 
@@ -139,7 +139,9 @@ int main(void)
     printf("Third quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
     printf("Maximum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
     printf("Public key size (bytes): \t %d\n", CRYPTO_PUBLICKEYBYTES);
-    printf("Signature size (bytes): \t %lld\n", CRYPTO_BYTES + default_mlen);
+    printf("Signature size (bytes): \t %d\n", CRYPTO_BYTES);
+    printf("Signature size + PK Size (bytes): \t %d\n", CRYPTO_BYTES + CRYPTO_PUBLICKEYBYTES);
+    printf("Message size (bytes): \t %lld\n", default_mlen);
     printf("\n");
 
     // ================== SIGNING ===================
@@ -185,7 +187,9 @@ int main(void)
     printf("Third quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
     printf("Maximum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
     printf("Public key size (bytes): \t %d\n", CRYPTO_PUBLICKEYBYTES);
-    printf("Signature size (bytes): \t %lld\n", CRYPTO_BYTES + default_mlen);
+    printf("Signature size (bytes): \t %d\n", CRYPTO_BYTES);
+    printf("Signature size + PK Size (bytes): \t %d\n", CRYPTO_BYTES + CRYPTO_PUBLICKEYBYTES);
+    printf("Message size (bytes): \t %lld\n", default_mlen);
     printf("\n");
 
     // ================== VERIFICATION ===================
@@ -230,7 +234,9 @@ int main(void)
     printf("Third quartile (million cycles): \t %7.03lf\n", (1.0 * cc_sample[(3*iterations)/4]) / 1000000.0);
     printf("Maximum running time (million cycles): \t %7.03lf\n", (1.0 * cc_sample[iterations-1]) / 1000000.0);
     printf("Public key size (bytes): \t %d\n", CRYPTO_PUBLICKEYBYTES);
-    printf("Signature size (bytes): \t %lld\n", CRYPTO_BYTES + default_mlen);
+    printf("Signature size (bytes): \t %d\n", CRYPTO_BYTES);
+    printf("Signature size + PK Size (bytes): \t %d\n", CRYPTO_BYTES + CRYPTO_PUBLICKEYBYTES);
+    printf("Message size (bytes): \t %lld\n", default_mlen);
     printf("\n");
 
     // -----------------------------------------------------
