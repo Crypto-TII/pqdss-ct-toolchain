@@ -12,6 +12,98 @@ This README describes the steps we followed to configure our laptop for noiseles
 
 ---
 
+## **CPU Details**
+- **Architecture:** x86_64
+- **CPU Operating Modes:** 32-bit, 64-bit
+- **Address Sizes:** 39 bits physical, 48 bits virtual
+- **Byte Order:** Little Endian
+
+## **Processor**
+- **Model Name:** Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz
+- **Vendor ID:** GenuineIntel
+- **BIOS Vendor ID:** Intel(R) Corporation
+- **CPU Family:** 6
+- **Model:** 158
+- **Stepping:** 13
+
+## **Core & Thread Information**
+- **Total CPU(s):** 16
+- **Threads per Core:** 2
+- **Cores per Socket:** 8
+- **Socket(s):** 1
+- **Online CPU(s):** 0-15
+
+## **Clock Speed**
+- **Base Clock Speed:** 2.30 GHz
+- **Max Clock Speed:** 4.80 GHz
+- **Min Clock Speed:** 800 MHz
+- **CPU Scaling MHz:** 17%
+- **BogoMIPS:** 4601.60
+
+## **Cache Details**
+- **L1 Data Cache:** 256 KiB (8 instances)
+- **L1 Instruction Cache:** 256 KiB (8 instances)
+- **L2 Cache:** 2 MiB (8 instances)
+- **L3 Cache:** 16 MiB (1 instance)
+
+## **NUMA Information**
+- **NUMA Nodes:** 1
+- **NUMA Node 0 CPU(s):** 0-15
+
+## **Security & Vulnerabilities**
+- **Meltdown:** Not affected
+- **MDS (Microarchitectural Data Sampling):** Not affected
+- **L1TF (L1 Terminal Fault):** Not affected
+- **Spectre v1:** Mitigated
+- **Spectre v2:** Mitigated
+- **Retbleed:** Mitigated
+- **TSX Async Abort:** Mitigated (TSX disabled)
+- **SRBDS (Special Register Buffer Data Sampling):** Vulnerable (No microcode)
+- **Gather Data Sampling:** Vulnerable (No microcode)
+- **MMIO Stale Data:** Vulnerable (SMT vulnerable)
+
+## **OS Information**
+- **NAME:** Alpine Linux
+- **ID:** alpine
+- **VERSION_ID:** 3.19.1
+- **PRETTY_NAME:** Alpine Linux v3.19
+- **Home URL:** [https://alpinelinux.org/](https://alpinelinux.org/)
+- **Bug Report URL:** [https://gitlab.alpinelinux.org/alpine/aports/-/issues](https://gitlab.alpinelinux.org/alpine/aports/-/issues)
+
+## **Clock Speed**
+- **CPU MHz:** 800.049
+- **CPU MHz:** 800.022
+- **CPU MHz:** 800.020
+- **CPU MHz:** 800.000
+- **CPU MHz:** 800.000
+- **CPU MHz:** 800.000
+- **CPU MHz:** 800.000
+- **CPU MHz:** 800.000
+- **CPU MHz:** 800.000
+- **CPU MHz:** 800.000
+- **CPU MHz:** 800.000
+- **CPU MHz:** 800.000
+- **CPU MHz:** 800.000
+- **CPU MHz:** 800.000
+- **CPU MHz:** 800.000
+
+## **RAM Information**
+- **Total:** 31.1 GB
+- **Used:** 218.0 MB
+- **Free:** 28.8 GB
+- **Shared:** 32.0 MB
+- **Buffer/Cache:** 2.1 GB
+- **Available:** 30.4 GB
+
+## **Swap Information**
+- **Total:** 4.0 GB
+- **Used:** 0
+- **Free:** 4.0 GB
+
+---
+
+Generated from system information using `lscpu`.
+
 ## B. Operating System
 
 ### 1. Install Alpine Linux

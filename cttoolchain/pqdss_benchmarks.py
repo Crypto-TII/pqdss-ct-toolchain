@@ -594,9 +594,6 @@ def generic_benchmarks_init_compile_30_jan(candidate, abs_path_to_api_or_sign, a
         chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
         subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
         os.chdir(cwd)
-        print("---------------platform: ", platform)
-        print("---------------abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
-        print("---------------path_to_include_directories: ", path_to_include_directories)
         if platform not in abs_path_to_api_or_sign:
             abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
             path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
@@ -606,7 +603,6 @@ def generic_benchmarks_init_compile_30_jan(candidate, abs_path_to_api_or_sign, a
         for instance in instances:
             os.chdir(path_to_candidate_makefile_cmake)
             cmd_str = f'make {instance} platform={platform}'
-            print("::::::::cmd_str: ", cmd_str)
             subprocess.call(cmd_str.split(), stdin=sys.stdin)
             os.chdir(cwd)
             abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
@@ -619,13 +615,11 @@ def generic_benchmarks_init_compile_30_jan(candidate, abs_path_to_api_or_sign, a
             instance_format = ''
             instance_updated = f'{instance}/{platform}'
             path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
-            print("---------------AAAA:path_to_include_directories: ", path_to_include_directories)
             generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                        path_to_include_directories, cflags, default_instance, instance.split(), compiler, instance_format)
             path_to_include_directories = path_to_include_directories_initial
             path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
             abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
-            print("---------------BBBB:path_to_include_directories: ", path_to_include_directories)
     else:
         if custom_benchmark:
             generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
@@ -729,17 +723,12 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
         # default_platform = 'avx2'
         # platform = default_platform
         platform = 'avx2'
-        print("---------------(1): platform: ", platform)
         if 'platform' in kwargs.keys():
             platform = kwargs['platform']
-        print("---------------(2): platform: ", platform)
         makefile = 'Makefile'
         chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
         subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
         os.chdir(cwd)
-        print("---------------platform: ", platform)
-        print("---------------abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
-        print("---------------path_to_include_directories: ", path_to_include_directories)
         if platform not in abs_path_to_api_or_sign:
             abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
             path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
@@ -762,13 +751,11 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
             instance_format = ''
             instance_updated = f'{instance}/{platform}'
             path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
-            print("---------------AAAA:path_to_include_directories: ", path_to_include_directories)
             generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                        path_to_include_directories, cflags, default_instance, instance.split(), compiler, instance_format)
             path_to_include_directories = path_to_include_directories_initial
             path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
             abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
-            print("---------------BBBB:path_to_include_directories: ", path_to_include_directories)
     else:
         if custom_benchmark:
             generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
