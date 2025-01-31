@@ -14,8 +14,8 @@
 
 typedef uint64_t ticks;
 
-#define MINIMUM_MSG_LENGTH      1
-#define MAXIMUM_MSG_LENGTH      3300
+//#define MINIMUM_MSG_LENGTH      1
+//#define MAXIMUM_MSG_LENGTH      3300
 #define TOTAL_ITERATIONS        1000
 #define DEFAULT_MESSAGE_LENGTH  32
 
@@ -64,8 +64,8 @@ int main(void)
 {
     unsigned long long i = 0;
     unsigned long long iterations = TOTAL_ITERATIONS;
-    unsigned long long min_msg_len = MINIMUM_MSG_LENGTH;
-    unsigned long long max_msg_len = MAXIMUM_MSG_LENGTH;
+//    unsigned long long min_msg_len = MINIMUM_MSG_LENGTH;
+//    unsigned long long max_msg_len = MAXIMUM_MSG_LENGTH;
     unsigned long long mlen = 0;
     unsigned long long default_mlen = DEFAULT_MESSAGE_LENGTH;
     //unsigned long long smlen = 0;
@@ -86,7 +86,7 @@ int main(void)
     unsigned char *m = (unsigned char *)malloc(default_mlen * iterations * sizeof(unsigned char));
     //unsigned char *m2 = (unsigned char *)malloc(max_msg_len * iterations * sizeof(unsigned char));
     unsigned char *m2 = (unsigned char *)malloc(default_mlen * iterations * sizeof(unsigned char));
-    ct_randombytes(m, max_msg_len * iterations);
+    ct_randombytes(m, default_mlen * iterations);
     //mlen =  max_msg_len * iterations;
     mlen =  default_mlen * iterations;
     //if((int)mlen < max_msg_len * iterations){
@@ -101,7 +101,7 @@ int main(void)
     unsigned char *sm = (unsigned char *)malloc((CRYPTO_BYTES + default_mlen) * iterations * sizeof(unsigned char));
 
     printf("Candidate: snova\n");
-    printf("Security Level: 128\n");
+    printf("Security Level: lvl1\n");
     printf("Instance: \n");
 
     // ================== KEYGEN ===================

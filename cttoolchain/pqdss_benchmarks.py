@@ -91,8 +91,8 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
     {{
     \t{args_types[3]} i = 0;
     \t{args_types[3]} iterations = TOTAL_ITERATIONS;
-    \t{args_types[3]} min_msg_len = MINIMUM_MSG_LENGTH;
-    \t{args_types[3]} max_msg_len = MAXIMUM_MSG_LENGTH;
+    \t//{args_types[3]} min_msg_len = MINIMUM_MSG_LENGTH;
+    \t//{args_types[3]} max_msg_len = MAXIMUM_MSG_LENGTH;
     \t{args_types[3]} mlen = 0;
     \t{args_types[3]} default_mlen = DEFAULT_MESSAGE_LENGTH;
     \t{args_types[1]} smlen[TOTAL_ITERATIONS] = {{0}};
@@ -110,7 +110,7 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
     \t// For storing plaintext messages
     \t{args_types[2]} *m = ({args_types[2]} *)malloc(default_mlen * iterations * sizeof({args_types[2]}));
     \t{args_types[2]} *m2 = ({args_types[2]} *)malloc(default_mlen * iterations * sizeof({args_types[2]}));
-    \tct_randombytes(m, max_msg_len * iterations);
+    \tct_randombytes(m, default_mlen * iterations);
     \tmlen =  default_mlen * iterations;
     \tif(mlen < default_mlen * iterations){{
     \t\tprintf("Error in generating random messages\\n");
@@ -273,8 +273,8 @@ def benchmark_template(candidate: str, instance: str, security_level: str, path_
             add_includes_block += f'#include {include}\n'
     benchmark_content = f'''
     {includes_block}
-    #define MINIMUM_MSG_LENGTH      {min_msg_len}
-    #define MAXIMUM_MSG_LENGTH      {max_msg_len}
+    //#define MINIMUM_MSG_LENGTH      {min_msg_len}
+    //#define MAXIMUM_MSG_LENGTH      {max_msg_len}
     #define TOTAL_ITERATIONS        {number_of_iterations}
     #define DEFAULT_MESSAGE_LENGTH  32
     {add_includes_block}
