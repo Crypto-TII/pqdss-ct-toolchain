@@ -1,27 +1,13 @@
-### qruov
-- Wed May 31 03:08:39 JST 2023
-  - done:
-    - sha2_evp
-    - shake128/shake256 streaming input/output
-      - openssl-1.1.1t
-      - openssl-3.1.0
-    - sampling order of P1 and P2
-    - ref
-      - portable
-    - portable64
-      - 22 bit accumulation for extension of degree 3
-      - 16 bit accumulation
-  - working:
-    - avx2
-      - based on ref. not so optimized
-    - avx512
-      - based on ref. not so optimized
+### the Round 2 Reference Implementation of QR-UOV
+- Fri Dec 13 07:17:14 JST 2024
+  - released.
+    - ref vectorized implementation
+    - portable64 non-vectorized implementation
+    - avx2 vectorized implementation
+    - avx512 vectorized implementation
   - todo:
     - secret independent
-      - rejection sampling
-      - linear equation solver
-    - pending
-      - aes256_ctr_drbg
-      - strassen algorithm
-      - krylov subspace methods
-      - montgomery reduction
+      - constant time
+        - rejection sampling
+        - linear equation solver
+

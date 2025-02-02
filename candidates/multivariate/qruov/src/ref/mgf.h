@@ -1,4 +1,9 @@
 #pragma once
+#include <openssl/sha.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
+#include <string.h>
+#include <inttypes.h>
 #include "qruov_misc.h"
 
 /* =====================================================================
@@ -7,7 +12,7 @@
 
 #ifdef QRUOV_HASH_LEGACY
 
-#  if QRUOV_SEED_LEN == 32
+#  if QRUOV_SEED_LEN == 16
 #    define QRUOV_MGF_CORE EVP_sha256
 /*
 #    define HASH_CTX    SHA256_CTX
@@ -15,7 +20,7 @@
 #    define HASH_Update SHA256_Update
 #    define HASH_Final  SHA256_Final
 */
-#  elif QRUOV_SEED_LEN == 48
+#  elif QRUOV_SEED_LEN == 24
 #    define QRUOV_MGF_CORE EVP_sha384
 /*
 #    define HASH_CTX    SHA512_CTX
@@ -23,7 +28,7 @@
 #    define HASH_Update SHA384_Update
 #    define HASH_Final  SHA384_Final
 */
-#  elif QRUOV_SEED_LEN == 64
+#  elif QRUOV_SEED_LEN == 32
 #    define QRUOV_MGF_CORE EVP_sha512
 /*
 #    define HASH_CTX    SHA512_CTX
@@ -44,7 +49,7 @@ TYPEDEF_STRUCT (MGF_CTX,
 ) ;
 */
 
-#define QRUOV_MGF_POOLSIZE (QRUOV_SEED_LEN)
+#define QRUOV_MGF_POOLSIZE (QRUOV_SEED_LEN<<1)
 
 #else
 
@@ -54,10 +59,10 @@ TYPEDEF_STRUCT (MGF_CTX,
   unsigned char md [bsz+1]
 */
 
-#  if   QRUOV_SEED_LEN == 32
+#  if   QRUOV_SEED_LEN == 16
 #    define QRUOV_MGF_CORE  EVP_shake128
 #    define QRUOV_SHAKE_BSZ 168
-#  elif ( QRUOV_SEED_LEN == 48 ) || (QRUOV_SEED_LEN == 64)
+#  elif ( QRUOV_SEED_LEN == 24 ) || (QRUOV_SEED_LEN == 32)
 #    define QRUOV_MGF_CORE  EVP_shake256
 #    define QRUOV_SHAKE_BSZ 136
 #  else

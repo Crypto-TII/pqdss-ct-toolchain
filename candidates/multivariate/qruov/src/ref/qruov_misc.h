@@ -1,7 +1,5 @@
 #pragma once
-#ifndef DO_NOT_QRUOV_CONFIG
 #  include "qruov_config.h"
-#endif
 
 /*
   QRUOV_security_strength_category // 1/3/5
@@ -64,16 +62,14 @@
 #endif
 
 #if   (QRUOV_security_strength_category == 1)
-#  define QRUOV_SEED_LEN 32                   // 32 Byte == 256 bit
+#  define QRUOV_SEED_LEN 16                   // 16 Byte == 128 bit
 #elif (QRUOV_security_strength_category == 3)
-#  define QRUOV_SEED_LEN 48                   // 48 Byte == 384 bit
+#  define QRUOV_SEED_LEN 24                   // 24 Byte == 192 bit
 #elif (QRUOV_security_strength_category == 5)
-#  define QRUOV_SEED_LEN 64                   // 64 Byte == 512 bit
+#  define QRUOV_SEED_LEN 32                   // 32 Byte == 256 bit
 #else
 #  error "Unsupported: QRUOV_security_strength_category == " # QRUOV_security_strength_category
 #endif
-
-#define QRUOV_SALT_LEN      (QRUOV_SEED_LEN>>1)
 
 #define QRUOV_n             ((QRUOV_v)+(QRUOV_m))
 #define QRUOV_N             ((QRUOV_n)/(QRUOV_L))
@@ -104,8 +100,6 @@
   ")"
 #endif
 
-#define BITS2BYTES(BITS)      (((BITS)>>3)+(((BITS)&7)?1:0))
-
 #define TYPEDEF_STRUCT(TYPE_NAME, BODY)             \
 typedef struct TYPE_NAME ## _t {                    \
   BODY                                              \
@@ -116,10 +110,20 @@ typedef struct TYPE_NAME ## _t {                    \
   abort(); \
 }
 
-// ==============================================================
-// integer types
-// ==============================================================
+//=============================================================
+// qruov_misc.h (for random_sampling.c)
+//=============================================================
 
-#include <inttypes.h>
-typedef          __int128  INT128_T ;
-typedef unsigned __int128 UINT128_T ;
+#define BITS2BYTES(BITS)           (((BITS)>>3)+(((BITS)&7)?1:0))
+
+#define QRUOV_SALT_LEN QRUOV_SEED_LEN
+
+#define QRUOV_MU_LEN   64 // 64 byte == 512 bit, message representative
+
+#define ALIGN_8BIT   __attribute((__aligned__( 1))) ; //   8 bit
+#define ALIGN_16BIT  __attribute((__aligned__( 2))) ; //  16 bit
+#define ALIGN_32BIT  __attribute((__aligned__( 4))) ; //  32 bit
+#define ALIGN_64BIT  __attribute((__aligned__( 8))) ; //  64 bit
+#define ALIGN_128BIT __attribute((__aligned__(16))) ; // 128 bit
+#define ALIGN_256BIT __attribute((__aligned__(32))) ; // 256 bit
+#define ALIGN_512BIT __attribute((__aligned__(64))) ; // 512 bit

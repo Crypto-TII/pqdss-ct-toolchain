@@ -52,7 +52,7 @@ inline static Fql Fql_mul_1 (Fql X, Fql Y){
   for(int i=0; i< QRUOV_L-1; i++) Z[i] += Z[i+QRUOV_L] ;
   for(int i=1; i< QRUOV_L  ; i++) Z[i] += Z[i+QRUOV_L-1] * 2 ;
   for(int i=0; i< QRUOV_L  ; i++) Z[i] %= QRUOV_q ;
-  return Fq2Fql(Z) ;
+  return Fq2Fql_uint16(Z) ;
 }
 
 inline static Fql Fql_mul_0(Fql X, Fql Y){ return Fql_acc_reduce(Fql_acc_mul(X,Y)) ; }

@@ -25,11 +25,6 @@ include(.cmake/flags.cmake)
 include(.cmake/sanitizers.cmake)
 include(.cmake/target.cmake)
 
-set(TOOLS_FLAGS )
-set(TOOL_NAME )
-set(TOOL_TEMPLATE_PATTERN "taint")
-set(TOOL_LINK_LIBS "")
-
 add_subdirectory(src)
 add_subdirectory(apps)
 

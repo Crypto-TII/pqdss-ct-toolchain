@@ -15,8 +15,17 @@ char * format =
   "#define QRUOV_fc                         %d\n"
   "#define QRUOV_fe                         %d\n"
   "#define QRUOV_fc0                        %d\n"
-  "#define QRUOV_PLATFORM                   %s\n"
+  "#define QRUOV_PLATFORM                   %s%s\n"
+  "%s\n"
 ;
+
+#ifdef QRUOV_PRG_SHAKE
+#  define TAIL "s"
+#  define PRG  "#define QRUOV_PRG_SHAKE"
+#else
+#  define TAIL "a"
+#  define PRG  ""
+#endif
 
 int main(){
   printf(format,
@@ -28,7 +37,9 @@ int main(){
     QRUOV_fc,
     QRUOV_fe,
     QRUOV_fc0,
-    QRUOV_STR(QRUOV_PLATFORM)
+    QRUOV_STR(QRUOV_PLATFORM),
+    TAIL,
+    PRG
   ) ;
   return 0 ;
 }

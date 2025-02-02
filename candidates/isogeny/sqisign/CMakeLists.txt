@@ -38,13 +38,6 @@ set(SELECT_SQISIGN_VARIANT ${PROJECT_SOURCE_DIR}/.cmake/sqisign_variant.cmake)
 
 set(INC_PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
-# Constant-time tests - Benchmarks
-set(TOOLS_FLAGS )
-set(TOOL_NAME )
-set(TOOL_TEMPLATE_PATTERN "dude")
-set(TOOL_LINK_LIBS "m")
-
-
 
 add_subdirectory(src)
 add_subdirectory(apps)

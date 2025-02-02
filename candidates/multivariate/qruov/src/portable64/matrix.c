@@ -72,6 +72,12 @@
 #define Fql_ACC(T)                           Fql_acc T ; int overflow_POOL ;
 #define Fql_ACC_ZERO(A)                      { A = Fql_acc_zero ; overflow_POOL = 0 ; }
 
+/*
+  Assuming random matrices, there is a very small probability of errors
+  in matrix operations, since we employed a Monte Carlo algorithm.
+  To avoid error, set overflow_DELTA = QRUOV_L+1.
+*/
+
 #  if (QRUOV_L== 3)
 #  define overflow_DELTA 1
 #elif (QRUOV_L==10)
@@ -120,82 +126,74 @@
 #define Fql_SUB(A,B,C)                       { C = Fql_sub(A,B) ; }
 #define Fql_COPY(A,C)                        { C = A ; }
 
-void MATRIX_MUL_MxV_VxV(MATRIX_MxV A, MATRIX_VxV B, MATRIX_MxV C){
+void VECTOR_M_ADD(const VECTOR_M A, const VECTOR_M B, VECTOR_M C){
+  MATRIX_ADD(1, QRUOV_M, ((VECTOR_M *)A), ((VECTOR_M *)B), ((VECTOR_M *)C)) ;
+}
+
+void VECTOR_M_SUB(const VECTOR_M A, const VECTOR_M B, VECTOR_M C){
+  MATRIX_SUB(1, QRUOV_M, ((VECTOR_M *)A), ((VECTOR_M *)B), ((VECTOR_M *)C)) ;
+}
+
+void VECTOR_V_SUB(const VECTOR_V A, const VECTOR_V B, VECTOR_V C){
+  MATRIX_SUB(1, QRUOV_V, ((VECTOR_V *)A), ((VECTOR_V *)B), ((VECTOR_V *)C)) ;
+}
+
+Fql VECTOR_V_dot_VECTOR_V(const VECTOR_V A, const VECTOR_V B){
+  Fql C ;
+  MATRIX_MUL(1, QRUOV_V, 1, ((VECTOR_V *)A), ((VECTOR_1 *)B), ((VECTOR_1 *)&C)) ;
+  return C ;
+}
+
+Fql VECTOR_M_dot_VECTOR_M(const VECTOR_M A, const VECTOR_M B){
+  Fql C ;
+  MATRIX_MUL(1, QRUOV_M, 1, ((VECTOR_M *)A), ((VECTOR_1 *)B), ((VECTOR_1 *)&C)) ;
+  return C ;
+}
+
+void VECTOR_V_MUL_MATRIX_VxV(const VECTOR_V A, const MATRIX_VxV B, VECTOR_V C){
+  MATRIX_MUL(1, QRUOV_V, QRUOV_V, ((VECTOR_V *)A), B, ((VECTOR_V*)C)) ;
+}
+
+void VECTOR_V_MUL_MATRIX_VxM(const VECTOR_V A, const MATRIX_VxM B, VECTOR_M C){
+  MATRIX_MUL(1, QRUOV_V, QRUOV_M, ((VECTOR_V *)A), B, ((VECTOR_M *)C)) ;
+}
+
+void MATRIX_MUL_MxV_VxV(const MATRIX_MxV A, const MATRIX_VxV B, MATRIX_MxV C){
   // V
   MATRIX_MUL(QRUOV_M, QRUOV_V, QRUOV_V, A, B, C) ;
 }
 
-void MATRIX_MUL_MxV_VxM(MATRIX_MxV A, MATRIX_VxM B, MATRIX_MxM C){
+void MATRIX_MUL_MxV_VxM(const MATRIX_MxV A, const MATRIX_VxM B, MATRIX_MxM C){
   // V
   MATRIX_MUL(QRUOV_M, QRUOV_V, QRUOV_M, A, B, C) ;
 }
 
-void MATRIX_MUL_ADD_MxV_VxM(MATRIX_MxV A, MATRIX_VxM B, MATRIX_MxM C){
+void MATRIX_MUL_ADD_MxV_VxM(const MATRIX_MxV A, const MATRIX_VxM B, MATRIX_MxM C){
   // V
   MATRIX_MUL_ADD(QRUOV_M, QRUOV_V, QRUOV_M, A, B, C) ;
 }
 
-void MATRIX_SUB_MxV(MATRIX_MxV A, MATRIX_MxV B, MATRIX_MxV C){
+void MATRIX_SUB_MxV(const MATRIX_MxV A, const MATRIX_MxV B, MATRIX_MxV C){
   MATRIX_SUB(QRUOV_M, QRUOV_V, A, B, C) ;
 }
 
-void MATRIX_ADD_MxM(MATRIX_MxM A, MATRIX_MxM B, MATRIX_MxM C){
+void MATRIX_ADD_MxM(const MATRIX_MxM A, const MATRIX_MxM B, MATRIX_MxM C){
   MATRIX_ADD(QRUOV_M, QRUOV_M, A, B, C) ;
 }
 
-void MATRIX_TRANSPOSE_VxM(MATRIX_VxM A, MATRIX_MxV C){
+void MATRIX_TRANSPOSE_VxM(const MATRIX_VxM A, MATRIX_MxV C){
   MATRIX_TRANSPOSE(QRUOV_V, QRUOV_M, A, C) ;
 }
 
-void EQN_GEN(VECTOR_V vineger, MATRIX_MxV F2T[QRUOV_m], Fq eqn[QRUOV_m][QRUOV_m]){
-  int i,j,k ;
-#pragma omp parallel for private(i,j,k) shared(vineger, F2T, eqn)
-  for(i=0; i<QRUOV_m; i++){
-    for(j=0; j<QRUOV_M; j++){
-      Fql_ACC(t) ;
-      Fql_ACC_ZERO(t) ; // V
-      for(k=0; k<QRUOV_V; k++){
-        Fql_ACC_MUL_ADD(vineger[k], F2T[i][j][k], t) ;
-      }
-      Fql u ;
-      Fql_ACC_REDUCE(t, u) ;
-      Fql_ADD(u, u, u) ;
-      for(int l=0; l<QRUOV_L; l++){
-        eqn[i][QRUOV_L*j+l] = Fql2Fq(u, QRUOV_perm(l)) ; // <- unpack_1(...)
-      }
-    }
-  }
-}
-
-void C_GEN(VECTOR_V vineger, MATRIX_VxV F1[QRUOV_m], Fq c[QRUOV_m]){
-  int i,j,k ;
-#pragma omp parallel for private(i,j,k) shared(vineger, F1, c)
-  for(i=0; i<QRUOV_m; i++){
-    Fql tmp [QRUOV_V] ;
-    for(j=0; j<QRUOV_V; j++){
-      Fql_ACC(t) ;
-      Fql_ACC_ZERO(t) ; // V
-      for(k=0; k<QRUOV_V; k++){
-        Fql_ACC_MUL_ADD(vineger[k], F1[i][j][k], t) ;
-      }
-      Fql_ACC_REDUCE(t, tmp[j]) ;
-    }
-    uint64_t c_i = 0 ;
-    for(k=0; k<QRUOV_V; k++){
-      c_i += (uint64_t) Fql2Fq(Fql_mul(tmp[k],vineger[k]), QRUOV_perm(0)) ; // <-- shrink
-    }
-    c[i] = (Fq)(c_i % QRUOV_q) ;
-  }
-}
 
 #undef Fql_ACC_MUL_ADD
 #undef Fql_ACC_DOUBLE
 #if (QRUOV_M * overflow_DELTA > overflow_THRESHOLD)
 #  define Fql_ACC_MUL_ADD(A,B,C)  Fql_ACC_MUL_ADD_0(A,B,C)
-#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_0(A,C)                
+#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_0(A,C)
 #else
 #  define Fql_ACC_MUL_ADD(A,B,C)  Fql_ACC_MUL_ADD_1(A,B,C)
-#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_1(A,C)                
+#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_1(A,C)
 #endif
 
 void SIG_GEN(VECTOR_M oil, MATRIX_MxV SdT, VECTOR_V vineger, QRUOV_SIGNATURE sig){
@@ -216,10 +214,11 @@ void SIG_GEN(VECTOR_M oil, MATRIX_MxV SdT, VECTOR_V vineger, QRUOV_SIGNATURE sig
   }
 }
 
-void RESULT_GEN(const QRUOV_P1 P1, const QRUOV_P2T P2T, const QRUOV_P3 P3, const VECTOR_M oil, const VECTOR_V vineger, const Fq msg [QRUOV_m], uint8_t result[QRUOV_m]) {
-  int i,j,k ;
-#pragma omp parallel for private(i,j,k) shared(P1, P2T, P3, oil, vineger, msg, result)
-  for(i=0; i<QRUOV_m; i++){
+uint8_t VERIFY_i(const MATRIX_VxV Pi1, const MATRIX_MxV Pi2T, const MATRIX_MxM Pi3, const VECTOR_M oil, const VECTOR_V vineger, const Fq msg_i){
+  int j,k ;
+// #pragma omp parallel for private(j,k) shared(Pi1, P2T, P3, oil, vineger, msg, result)
+//  for(i=0; i<QRUOV_m; i++)
+  {
     Fql tmp_v [QRUOV_V] ;
     Fql tmp_o [QRUOV_M] ;
 
@@ -227,21 +226,21 @@ void RESULT_GEN(const QRUOV_P1 P1, const QRUOV_P2T P2T, const QRUOV_P3 P3, const
 #undef Fql_ACC_DOUBLE
 #if ((2*QRUOV_M+QRUOV_V) * overflow_DELTA > overflow_THRESHOLD)
 #  define Fql_ACC_MUL_ADD(A,B,C)  Fql_ACC_MUL_ADD_0(A,B,C)
-#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_0(A,C)                
+#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_0(A,C)
 #else
 #  define Fql_ACC_MUL_ADD(A,B,C)  Fql_ACC_MUL_ADD_1(A,B,C)
-#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_1(A,C)                
+#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_1(A,C)
 #endif
 
     Fql_ACC(t) ;
     for(j=0;j<QRUOV_V;j++){
       Fql_ACC_ZERO(t) ; // 2M+V
       for(k=0;k<QRUOV_M;k++){
-        Fql_ACC_MUL_ADD(P2T[i][k][j],oil[k], t) ;
+        Fql_ACC_MUL_ADD(Pi2T[k][j],oil[k], t) ;
       }
       Fql_ACC_DOUBLE(t, t) ;
       for(k=0;k<QRUOV_V;k++){
-        Fql_ACC_MUL_ADD(P1[i][j][k],vineger[k], t) ;
+        Fql_ACC_MUL_ADD(Pi1[j][k],vineger[k], t) ;
       }
       Fql_ACC_REDUCE(t, tmp_v[j]) ;
     }
@@ -250,16 +249,16 @@ void RESULT_GEN(const QRUOV_P1 P1, const QRUOV_P2T P2T, const QRUOV_P3 P3, const
 #undef Fql_ACC_DOUBLE
 #if (QRUOV_M * overflow_DELTA > overflow_THRESHOLD)
 #  define Fql_ACC_MUL_ADD(A,B,C)  Fql_ACC_MUL_ADD_0(A,B,C)
-#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_0(A,C)                
+#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_0(A,C)
 #else
 #  define Fql_ACC_MUL_ADD(A,B,C)  Fql_ACC_MUL_ADD_1(A,B,C)
-#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_1(A,C)                
+#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_1(A,C)
 #endif
 
     for(j=0;j<QRUOV_M;j++){
       Fql_ACC_ZERO(t) ; // M
       for(k=0;k<QRUOV_M;k++){
-        Fql_ACC_MUL_ADD(P3[i][j][k],oil[k],t) ;
+        Fql_ACC_MUL_ADD(Pi3[j][k],oil[k],t) ;
       }
       Fql_ACC_REDUCE(t, tmp_o[j]) ;
     }
@@ -268,10 +267,10 @@ void RESULT_GEN(const QRUOV_P1 P1, const QRUOV_P2T P2T, const QRUOV_P3 P3, const
 #undef Fql_ACC_DOUBLE
 #if ((QRUOV_V+QRUOV_M) * overflow_DELTA > overflow_THRESHOLD)
 #  define Fql_ACC_MUL_ADD(A,B,C)  Fql_ACC_MUL_ADD_0(A,B,C)
-#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_0(A,C)                
+#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_0(A,C)
 #else
 #  define Fql_ACC_MUL_ADD(A,B,C)  Fql_ACC_MUL_ADD_1(A,B,C)
-#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_1(A,C)                
+#  define Fql_ACC_DOUBLE(A,C)     Fql_ACC_DOUBLE_1(A,C)
 #endif
 
     Fql_ACC_ZERO(t) ; // V+M
@@ -283,10 +282,6 @@ void RESULT_GEN(const QRUOV_P1 P1, const QRUOV_P2T P2T, const QRUOV_P3 P3, const
     }
     Fql t_dash ;
     Fql_ACC_REDUCE(t, t_dash) ;
-    if(msg[i] != Fql2Fq(t_dash,QRUOV_perm(0))){ // <-- shrink
-      result[i] = 0 ;
-    }else{
-      result[i] = 1 ;
-    }
+    return msg_i == Fql2Fq(t_dash,QRUOV_perm(0)) ;
   }
 }

@@ -1,10 +1,8 @@
 # This Makefile compiles the implementation in this directory.
 .POSIX:
 
-TOOLS_FLAGS := -Wall -g -Wextra
-
 CC = c99
-CFLAGS = -Wall -Wextra -Wshadow -Wundef -O2 -fdiagnostics-color=always -fPIC $(TOOLS_FLAGS)
+CFLAGS = -Wall -Wextra -Wshadow -Wundef -O2 -fdiagnostics-color=always
 CXXFLAGS = --std=c++17 $(CFLAGS)
 LIBS = -lm -lpthread
 
@@ -16,10 +14,7 @@ PROGS = \
 HEAD = hawk.h hawk_inner.h hawk_config.h sha3.h
 NG_HEAD = ng_config.h ng_inner.h sha3.h
 
-CTTEST_LIB = libcttest.so
-BUILD_CTLIB = ../../build
-
-all: build bin $(PROGS) $(CTTEST_LIB)
+all: build bin $(PROGS)
 
 build:
 	-mkdir -p build
@@ -28,12 +23,6 @@ bin:
 
 clean:
 	-rm -f $(OBJ) $(PROGS)
-	-rm -rf $(BUILD_CTLIB)
-
-
-$(CTTEST_LIB): $(OBJ) $(HEAD)
-	mkdir -p $(BUILD_CTLIB)
-	$(CC) $(CFLAGS) $(OBJ) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LIBS)
 
 # Binaries:
 

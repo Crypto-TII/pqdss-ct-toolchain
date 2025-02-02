@@ -11,7 +11,7 @@ inline static Fql Fql_reduction_0(Fql Z){
   z0 %= QRUOV_q ;
   z1 %= QRUOV_q ;
   z2 %= QRUOV_q ;
-  return Fq2Fql(z0, z1, z2) ;
+  return Fq2Fql_immediate(z0, z1, z2) ;
 }
 
 inline static Fql Fql_reduction_2(Fql Z){
@@ -102,7 +102,7 @@ inline static Fql Fql_acc_reduce_1 (Fql_acc Z){
   z0 %= QRUOV_q ;
   z1 %= QRUOV_q ;
   z2 %= QRUOV_q ;
-  return Fq2Fql(z0, z1, z2) ;
+  return Fq2Fql_immediate(z0, z1, z2) ;
 }
 
 inline static Fql Fql_acc_reduce_debug (Fql_acc Z) ;
@@ -148,7 +148,7 @@ inline static Fql Fql_mul_1(Fql X, Fql Y){
   z0 %= QRUOV_q ;
   z1 %= QRUOV_q ;
   z2 %= QRUOV_q ;
-  return Fq2Fql(z0, z1, z2) ;
+  return Fq2Fql_immediate(z0, z1, z2) ;
 #endif
 }
 

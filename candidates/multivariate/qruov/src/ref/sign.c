@@ -14,19 +14,19 @@
 int
 crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 {
-  QRUOV_SEED sk_seed ; randombytes(sk_seed, QRUOV_SEED_LEN) ;
-  QRUOV_SEED pk_seed ; randombytes(pk_seed, QRUOV_SEED_LEN) ;
+  QRUOV_SEED seed_sk ; randombytes(seed_sk, QRUOV_SEED_LEN) ;
+  QRUOV_SEED seed_pk ; randombytes(seed_pk, QRUOV_SEED_LEN) ;
   static QRUOV_P3 P3 ; // to avoid huge array in stack,
                        // (but problematic in mult-thread environment)
 
-  QRUOV_KeyGen (sk_seed, pk_seed, P3) ;
+  QRUOV_KeyGen (seed_sk, seed_pk, P3) ;
 
   size_t sk_pool_bits = 0 ;
-  store_QRUOV_SEED(sk_seed, sk, &sk_pool_bits) ;
-  store_QRUOV_SEED(pk_seed, sk, &sk_pool_bits) ;
+  store_QRUOV_SEED(seed_sk, sk, &sk_pool_bits) ;
+  store_QRUOV_SEED(seed_pk, sk, &sk_pool_bits) ;
 
   size_t pk_pool_bits = 0 ;
-  store_QRUOV_SEED(pk_seed, pk, &pk_pool_bits) ;
+  store_QRUOV_SEED(seed_pk, pk, &pk_pool_bits) ;
   store_QRUOV_P3  (P3,      pk, &pk_pool_bits) ;
 
   return 0 ;
@@ -39,14 +39,15 @@ crypto_sign(unsigned char *sm, unsigned long long *smlen,
 {
 
   size_t sk_pool_bits = 0 ;
-  QRUOV_SEED sk_seed      ; restore_QRUOV_SEED(sk, &sk_pool_bits, sk_seed) ;
-  QRUOV_SEED pk_seed      ; restore_QRUOV_SEED(sk, &sk_pool_bits, pk_seed) ;
+  QRUOV_SEED seed_sk      ; restore_QRUOV_SEED(sk, &sk_pool_bits, seed_sk) ;
+  QRUOV_SEED seed_pk      ; restore_QRUOV_SEED(sk, &sk_pool_bits, seed_pk) ;
 
-  QRUOV_SEED vineger_seed ; randombytes(vineger_seed, QRUOV_SEED_LEN) ;
-  QRUOV_SEED r_seed       ; randombytes(r_seed      , QRUOV_SEED_LEN) ;
+  QRUOV_SEED seed_y       ; randombytes(seed_y  , QRUOV_SEED_LEN) ;
+  QRUOV_SEED seed_r       ; randombytes(seed_r  , QRUOV_SEED_LEN) ;
+  QRUOV_SEED seed_sol     ; randombytes(seed_sol, QRUOV_SEED_LEN) ;
 
   QRUOV_SIGNATURE sig     ;
-  QRUOV_Sign(sk_seed, pk_seed, vineger_seed, r_seed, m, mlen, sig) ;
+  QRUOV_Sign(seed_sk, seed_pk, seed_y, seed_r, seed_sol, m, mlen, sig) ;
 
   size_t sig_pool_bits = 0 ;
   store_QRUOV_SIGNATURE(sig, sm, &sig_pool_bits) ;
@@ -63,7 +64,7 @@ crypto_sign_open(unsigned char *m, unsigned long long *mlen,
                  const unsigned char *pk){
 
   size_t pk_pool_bits = 0 ;
-  QRUOV_SEED pk_seed      ; restore_QRUOV_SEED(pk, &pk_pool_bits, pk_seed) ;
+  QRUOV_SEED seed_pk      ; restore_QRUOV_SEED(pk, &pk_pool_bits, seed_pk) ;
   static QRUOV_P3 P3      ; // to avoid huge array in stack
                             // (but problematic in mult-thread environment)
 
@@ -72,7 +73,7 @@ crypto_sign_open(unsigned char *m, unsigned long long *mlen,
   size_t sig_pool_bits = 0 ;
   QRUOV_SIGNATURE sig ; restore_QRUOV_SIGNATURE(sm, &sig_pool_bits, sig) ;
 
-  if(QRUOV_Verify(pk_seed, P3, sm+CRYPTO_BYTES, smlen-CRYPTO_BYTES, sig)){
+  if(QRUOV_Verify(seed_pk, P3, sm+CRYPTO_BYTES, smlen-CRYPTO_BYTES, sig)){
     *mlen = smlen - CRYPTO_BYTES ;
     memcpy(m, sm+CRYPTO_BYTES, *mlen) ;
   }else{

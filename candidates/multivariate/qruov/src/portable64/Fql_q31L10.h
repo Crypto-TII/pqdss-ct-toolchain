@@ -65,7 +65,7 @@ inline static Fql Fql_mul_1(Fql X, Fql Y){
   for(int i=0; i<=1; i++) Z[i] +=  5*Z[i+17] ;
   for(int i=3; i<=4; i++) Z[i] += 25*Z[i+14] ;
 
-  uint16_t z[QRUOV_L] ;
+  uint8_t z[QRUOV_L] ;
   for(int i=0; i<QRUOV_L; i++) z[i] = (Z[i] % QRUOV_q) ;
   return Fq2Fql(z) ;
 }

@@ -18,7 +18,7 @@ MGF_CTX_s * MGF_update (const uint8_t * seed, const size_t n0, MGF_CTX ctx) {
 
 #ifdef QRUOV_HASH_LEGACY
 
-#define HASH_LEN QRUOV_SEED_LEN
+#define HASH_LEN (QRUOV_SEED_LEN<<1)
 
 static inline uint32_t MGF_htonl(uint32_t x) {
   uint8_t y[4] ;
@@ -262,6 +262,11 @@ int EVP_DigestFinalXOF_BEGIN(EVP_MD_CTX * ctx, unsigned char * md){
     ((ctx->digest->prov == NULL)?((KECCAK1600_CTX *)ctx->md_data):((KECCAK1600_CTX *)ctx->algctx))
 
 #  endif
+
+// ---------------------
+// OpenSSL 3.3
+// int EVP_DigestSqueeze(EVP_MD_CTX *ctx, unsigned char *out, size_t outlen) ;
+// ---------------------
 
 int EVP_DigestFinalXOF_SQUEEZE(EVP_MD_CTX * ctx, unsigned char * md) {
     int ret = 0;

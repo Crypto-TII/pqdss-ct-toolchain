@@ -8,8 +8,6 @@
 
 typedef uint8_t Fq ;
 
-inline static Fq  Fq_ncRANDOM(){ return random() % QRUOV_q ; } // not for cryptography
-
 // ============================================================================
 // Fq add/sub ...
 // ============================================================================
@@ -33,29 +31,8 @@ extern Fql Fql_zero ;
 // F_q^L House keeping
 // ============================================================================
 
-inline static void Fql_fprint_n(FILE *stream, int n, char * header, void * A_){
-  Fql * A = (Fql *) A_ ;
-  fprintf(stream, "%s",header) ;
-  for(int i=n-1;i>=0;i--)fprintf(stream, "%04x", A->c[i]) ;
-  fprintf(stream, "\n") ;
-}
-
-inline static void Fql_print_n  (int n, char * header, void * A_){ Fql_fprint_n(stderr, n,   header, A_) ; }
-inline static void Fql_print    (       char * header, Fql A    ){ Fql_print_n (QRUOV_L,  header, &A) ; }
-
-#define Fql_PRINT(a)      Fql_print(#a " = ", a)
-
-inline static int Fql_eq(Fql a, Fql b){ return memcmp(&a, &b, sizeof(Fql)) == 0 ; }
-inline static int Fql_ne(Fql a, Fql b){ return ! Fql_eq(a, b) ; }
-
 inline static Fq  Fql2Fq(Fql Z, int i){ return Z.c[i] ; }
-inline static Fql Fq2Fql(uint16_t c[QRUOV_L]){ return *(Fql*)c ; }
-
-inline static Fql Fql_ncRANDOM(){
-  uint16_t c[QRUOV_L] ;
-  for(int i=0;i<QRUOV_L;i++)c[i]=Fq_ncRANDOM();
-  return Fq2Fql(c) ;
-}
+inline static Fql Fq2Fql(uint8_t c[QRUOV_L]){ return *(Fql*)c ; }
 
 // ============================================================================
 // Fq^L add/sub
@@ -96,63 +73,116 @@ inline static Fql Fql_mul(Fql X, Fql Y){
 }
 
 /* =====================================================================
-   pseudo random number generator
+   memory I/O
    ===================================================================== */
 
-TYPEDEF_STRUCT ( Fql_RANDOM_CTX,
-  MGF_CTX   mgf_ctx ;
-  unsigned  pool_bits ;
-  uint64_t  pool ;
-) ;
+inline static void store_bits(
+  int             x,               // \in {0,...,255}
+  const int       num_bits,        // \in {0,...,8}
+  uint8_t       * pool,            //
+  size_t        * pool_bits
+){
+  int    shift = (int)(*pool_bits &  7) ;
+  size_t index = (*pool_bits >> 3) ;
+  int    mask  = (1<<num_bits) - 1 ;
 
-typedef uint8_t QRUOV_SEED  [QRUOV_SEED_LEN] ;
-typedef uint8_t QRUOV_SALT  [QRUOV_SALT_LEN] ;
+  x &= mask ;
+  x <<= shift ;
+  uint8_t x0 = (x & 0xFF) ;
+  if(shift == 0){
+    pool[index] = x0 ;
+  }else{
+    pool[index] |= x0 ;
+  }
+  if(shift + num_bits > 8){
+    uint8_t x1 = (x >> 8) ;
+    pool[index+1] = x1 ;
+  }
 
-inline static void Fql_srandom_init(const uint8_t * seed, const size_t n0, Fql_RANDOM_CTX ctx){
-  MGF_init(seed, n0, ctx->mgf_ctx) ;
-  ctx->pool      = 0 ;
-  ctx->pool_bits = 0 ;
-  return ;
+  *pool_bits += (size_t) num_bits ;
 }
 
-inline static void Fql_srandom(const QRUOV_SEED seed, Fql_RANDOM_CTX ctx){
-  Fql_srandom_init(seed, QRUOV_SEED_LEN, ctx) ;
-  return ;
+inline static int restore_bits(     // \in {0,...,255}
+  const uint8_t * pool,
+  size_t        * pool_bits,
+  const int       num_bits          // \in {0,...,8}
+){
+  int    shift = (int)(*pool_bits &  7) ;
+  size_t index = (*pool_bits >> 3) ;
+  int    mask  = (1<<num_bits) - 1 ;
+
+  int x        = ((int) pool[index]) 
+               | (((shift + num_bits > 8) ? (int)pool[index+1] : 0) << 8) ;
+  x >>= shift ;
+  x &= mask ; 
+  *pool_bits += (size_t) num_bits ;
+  return x ;
 }
 
-inline static void Fql_srandom_update(const uint8_t * seed, const size_t n0, Fql_RANDOM_CTX ctx){
-  MGF_update(seed, n0, ctx->mgf_ctx) ;
-  return ;
+inline static void store_Fq(
+  int             x,               // \in Fq
+  uint8_t       * pool,
+  size_t        * pool_bits
+){
+  store_bits(x, QRUOV_ceil_log_2_q, pool, pool_bits) ;
 }
 
-/* random bits -> {0,...,q-1} */
-extern Fq Fq_random (Fql_RANDOM_CTX ctx) ;
-
-/* random bits -> (1) */
-extern Fql   Fql_random (Fql_RANDOM_CTX ctx) ;
-extern Fql * Fql_random_vector (Fql_RANDOM_CTX ctx, const size_t n0, Fql vec[]) ;
-
-inline static void Fq_random_final (Fql_RANDOM_CTX ctx) {
-  MGF_final(ctx->mgf_ctx) ;
-  ctx->pool = 0 ;
+inline static Fq restore_Fq(
+  const uint8_t * pool,
+  size_t        * pool_bits
+){
+  return (Fq) restore_bits(pool, pool_bits, QRUOV_ceil_log_2_q) ;
 }
 
-inline static void Fql_random_final (Fql_RANDOM_CTX ctx) {
-  Fq_random_final (ctx) ;
+inline static void store_Fq_vector(
+  const Fq  * X,
+  const int   n,
+  uint8_t   * pool,
+  size_t    * pool_bits
+){
+  for(size_t i=0; i<n; i++) store_Fq(X[i], pool, pool_bits) ;
 }
 
-inline static void Fql_RANDOM_CTX_copy (Fql_RANDOM_CTX src, Fql_RANDOM_CTX dst) {
-  memcpy(dst, src, sizeof(Fql_RANDOM_CTX)) ;
-  MGF_CTX_copy(src->mgf_ctx, dst->mgf_ctx) ;
+inline static void restore_Fq_vector(
+  const uint8_t * pool,
+  size_t        * pool_bits,
+  Fq            * Z,
+  const size_t    n
+){
+  for(size_t i=0; i<n; i++) Z[i] = restore_Fq(pool, pool_bits) ;
 }
 
-/* =====================================================================
-   signature
-   ===================================================================== */
+inline static void store_Fql(
+  const Fql       X,
+  uint8_t       * pool,            // bit pool
+  size_t        * pool_bits        // current bit index
+){
+  store_Fq_vector(X.c, QRUOV_L, pool, pool_bits) ;
+}
 
-typedef uint8_t QRUOV_SALT  [QRUOV_SALT_LEN] ;
+inline static Fql restore_Fql(
+  const uint8_t * pool,            // bit pool
+  size_t        * pool_bits        // current bit index
+){
+  Fql Z ;
+  restore_Fq_vector(pool, pool_bits, Z.c, QRUOV_L) ;
+  return Z ;
+}
 
-TYPEDEF_STRUCT(QRUOV_SIGNATURE,
-  QRUOV_SALT r           ;
-  Fql        s [QRUOV_N] ;
-) ;
+inline static void store_Fql_vector(
+  const Fql    * X,
+  const size_t   n,
+  uint8_t      * pool,
+  size_t       * pool_bits
+){
+  for(size_t i=0; i<n; i++) store_Fql(X[i], pool, pool_bits) ;
+}
+
+inline static void restore_Fql_vector(
+  const uint8_t * pool,
+  size_t        * pool_bits,
+  Fql           * Z,
+  const size_t    n
+){
+  for(size_t i=0; i<n; i++) Z[i] = restore_Fql(pool, pool_bits) ;
+}

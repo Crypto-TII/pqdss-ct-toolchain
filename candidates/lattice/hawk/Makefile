@@ -10,6 +10,3 @@ avx2:
 	make -C Optimized_Implementation/avx2
 ref:
 	make -C Reference_Implementation
-
-clean:
-	cd Optimized_Implementation/avx2; make clean

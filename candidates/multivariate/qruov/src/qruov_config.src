@@ -19,7 +19,7 @@
 # (Apr 5 2023) new
 
 -DQRUOV_dir=qruov1q7L10v740m100 -DQRUOV_security_strength_category=1 -DQRUOV_q=7 -DQRUOV_L=10 -DQRUOV_v=740 -DQRUOV_m=100 -DQRUOV_fc=2 -DQRUOV_fe=1 -DQRUOV_fc0=1
--DQRUOV_dir=qruov3q7L10v1100m140 -DQRUOV_security_strength_category=3 -DQRUOV_q=7 -DQRUOV_L=10 -DQRUOV_v=1150 -DQRUOV_m=140 -DQRUOV_fc=2 -DQRUOV_fe=1 -DQRUOV_fc0=1
+-DQRUOV_dir=qruov3q7L10v1100m140 -DQRUOV_security_strength_category=3 -DQRUOV_q=7 -DQRUOV_L=10 -DQRUOV_v=1100 -DQRUOV_m=140 -DQRUOV_fc=2 -DQRUOV_fe=1 -DQRUOV_fc0=1
 -DQRUOV_dir=qruov5q7L10v1490m190 -DQRUOV_security_strength_category=5 -DQRUOV_q=7 -DQRUOV_L=10 -DQRUOV_v=1490 -DQRUOV_m=190 -DQRUOV_fc=2 -DQRUOV_fe=1 -DQRUOV_fc0=1
 
 # (Apr 5 2023) deplecated

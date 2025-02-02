@@ -1,213 +1,169 @@
 #include "qruov.h"
+#include <x86intrin.h>
 
-// C = A*B
-#define MATRIX_MUL(N, K, M, A, B, C) {                             \
-  int _i,_j,_k ;                                                   \
-  _Pragma("omp parallel for private(_i,_j,_k) shared(A, B, C)")    \
-  for(_i=0;_i<N;_i++){                                             \
-    for(_j=0;_j<M;_j++){                                           \
-      Fql_ACC(_t) ;                                                \
-      Fql_ACC_ZERO(_t) ;                                           \
-      for(_k=0;_k<K;_k++){                                         \
-        Fql_ACC_MUL_ADD(A[_i][_k], B[_k][_j], _t) ;                \
-      }                                                            \
-      Fql_ACC_REDUCE(_t, C[_i][_j]) ;                              \
-    }                                                              \
-  }                                                                \
+typedef Fq Fq_vec ;
+
+inline static Fq_vec Fq_vec_add(Fq_vec a, Fq_vec b){ return Fq_add(a,b); }
+inline static Fq_vec Fq_vec_sub(Fq_vec a, Fq_vec b){ return Fq_sub(a,b); }
+inline static uint64_t Fq_vec_dot_accumulate(Fq_vec a, Fq_vec b, uint64_t c){ return c + (uint64_t)a * (uint64_t)b ; }
+inline static uint64_t Fq_vec_dot_accumulate_final(uint64_t c){ return c ; }
+
+// =============================================================================
+//
+// =============================================================================
+
+inline static void vector_M_add(const vector_M A, const vector_M B, vector_M C){
+  Fq_vec * a = (Fq_vec *) A ;
+  Fq_vec * b = (Fq_vec *) B ;
+  Fq_vec * c = (Fq_vec *) C ;
+  for(int j = 0 ; j < BYTES2BLOCKS(QRUOV_M) ; j++) *c++ = Fq_vec_add(*a++, *b++) ;
 }
 
-// C += A*B
-#define MATRIX_MUL_ADD(N, K, M, A, B, C) {                         \
-  int _i,_j,_k ;                                                   \
-  _Pragma("omp parallel for private(_i,_j,_k) shared(A, B, C)")    \
-  for(_i=0;_i<N;_i++){                                             \
-    for(_j=0;_j<M;_j++){                                           \
-      Fql_ACC(_t) ;                                                \
-      Fql_ACC_ZERO(_t) ;                                           \
-      for(_k=0;_k<K;_k++){                                         \
-        Fql_ACC_MUL_ADD(A[_i][_k], B[_k][_j], _t) ;                \
-      }                                                            \
-      Fql _v ;                                                     \
-      Fql_ACC_REDUCE(_t, _v) ;                                     \
-      Fql_ADD(_v, C[_i][_j], C[_i][_j]) ;                          \
-    }                                                              \
-  }                                                                \
+inline static void vector_M_sub(const vector_M A, const vector_M B, vector_M C){
+  Fq_vec * a = (Fq_vec *) A ;
+  Fq_vec * b = (Fq_vec *) B ;
+  Fq_vec * c = (Fq_vec *) C ;
+  for(int j = 0 ; j < BYTES2BLOCKS(QRUOV_M) ; j++) *c++ = Fq_vec_sub(*a++, *b++) ;
 }
 
-// C = A+B
-#define MATRIX_ADD(N, M, A, B, C) {                          \
-  int _i,_j ;                                                \
-  _Pragma("omp parallel for private(_i,_j) shared(A, B, C)") \
-  for(_i=0;_i<N;_i++){                                       \
-    for(_j=0;_j<M;_j++){                                     \
-      Fql_ADD(A[_i][_j], B[_i][_j], C[_i][_j]) ;             \
-    }                                                        \
-  }                                                          \
+inline static void vector_V_sub(const vector_V A, const vector_V B, vector_V C){
+  Fq_vec * a = (Fq_vec *) A ;
+  Fq_vec * b = (Fq_vec *) B ;
+  Fq_vec * c = (Fq_vec *) C ;
+  for(int j = 0 ; j < BYTES2BLOCKS(QRUOV_V) ; j++) *c++ = Fq_vec_sub(*a++, *b++) ;
 }
 
-// C = A-B
-#define MATRIX_SUB(N, M, A, B, C) {                          \
-  int _i,_j ;                                                \
-  _Pragma("omp parallel for private(_i,_j) shared(A, B, C)") \
-  for(_i=0;_i<N;_i++){                                       \
-    for(_j=0;_j<M;_j++){                                     \
-      Fql_SUB(A[_i][_j], B[_i][_j], C[_i][_j]) ;             \
-    }                                                        \
-  }                                                          \
+inline static uint64_t vector_V_dot_vector_V(const vector_V A, const vector_V B){
+  Fq_vec * a = (Fq_vec *) A ;
+  Fq_vec * b = (Fq_vec *) B ;
+  uint64_t c = 0 ;
+  for(int j = 0 ; j < BYTES2BLOCKS(QRUOV_V) ; j++) c = Fq_vec_dot_accumulate(*a++, *b++, c) ;
+  uint64_t C = Fq_vec_dot_accumulate_final(c) ;
+  return C ;
 }
 
-// C = A^T
-#define MATRIX_TRANSPOSE(N, M, A, C) {                    \
-  int _i,_j ;                                             \
-  _Pragma("omp parallel for private(_i,_j) shared(A, C)") \
-  for(_i=0;_i<N;_i++){                                    \
-    for(_j=0;_j<M;_j++){                                  \
-      Fql_COPY(A[_i][_j], C[_j][_i]) ;                    \
-    }                                                     \
-  }                                                       \
+inline static uint64_t vector_M_dot_vector_M(const vector_M A, const vector_M B){
+  Fq_vec * a = (Fq_vec *) A ;
+  Fq_vec * b = (Fq_vec *) B ;
+  uint64_t c = 0 ;
+  for(int j = 0 ; j < BYTES2BLOCKS(QRUOV_M) ; j++) c = Fq_vec_dot_accumulate(*a++, *b++, c) ;
+  uint64_t C = Fq_vec_dot_accumulate_final(c) ;
+  return C ;
 }
 
-#define Fql_ACC(T)                           Fql T ;
-#define Fql_ACC_ZERO(A)                      { A = Fql_zero ; }
+// =============================================================================
+//
+// =============================================================================
 
-#define Fql_ACC_MUL_ADD(A,B,C)               { C = Fql_add(C, Fql_mul(A,B)) ; }
-#define Fql_ACC_DOUBLE(A,C)                  { C = Fql_add(C,C) ; }
-
-#define Fql_ACC_REDUCE(A,C)                  { C = A ; }
-
-#define Fql_ACC_DEBUG                        Fql
-#define Fql_ACC_ZERO_DEBUG(A)                { A = Fql_zero ; }
-#define Fql_ACC_MUL_ADD_DEBUG(A,B,C)         { C = Fql_add(C, Fql_mul(A,B)) ; }
-#define Fql_ACC_REDUCE_DEBUG(A,C)            { C = A ; }
-
-#define Fql_ADD(A,B,C)                       { C = Fql_add(A,B) ; }
-#define Fql_SUB(A,B,C)                       { C = Fql_sub(A,B) ; }
-#define Fql_COPY(A,C)                        { C = A ; }
-
-void MATRIX_MUL_MxV_VxV(MATRIX_MxV A, MATRIX_VxV B, MATRIX_MxV C){
-  MATRIX_MUL(QRUOV_M, QRUOV_V, QRUOV_V, A, B, C) ;
+void VECTOR_M_ADD(const VECTOR_M A, const VECTOR_M B, VECTOR_M C){
+  for(int i = 0 ; i < QRUOV_L ; i++) vector_M_add(A[i], B[i], C[i]) ;
 }
 
-void MATRIX_MUL_MxV_VxM(MATRIX_MxV A, MATRIX_VxM B, MATRIX_MxM C){
-  MATRIX_MUL(QRUOV_M, QRUOV_V, QRUOV_M, A, B, C) ;
+void VECTOR_M_SUB(const VECTOR_M A, const VECTOR_M B, VECTOR_M C){
+  for(int i = 0 ; i < QRUOV_L ; i++) vector_M_sub(A[i], B[i], C[i]) ;
 }
 
-void MATRIX_MUL_ADD_MxV_VxM(MATRIX_MxV A, MATRIX_VxM B, MATRIX_MxM C){
-  MATRIX_MUL_ADD(QRUOV_M, QRUOV_V, QRUOV_M, A, B, C) ;
+void VECTOR_V_SUB(const VECTOR_V A, const VECTOR_V B, VECTOR_V C){
+  for(int i = 0 ; i < QRUOV_L ; i++) vector_V_sub(A[i], B[i], C[i]) ;
 }
 
-void MATRIX_SUB_MxV(MATRIX_MxV A, MATRIX_MxV B, MATRIX_MxV C){
-  MATRIX_SUB(QRUOV_M, QRUOV_V, A, B, C) ;
+void VECTOR_V_dot_VECTOR_V (
+  const VECTOR_V A,         // input
+  const VECTOR_V B,         // input
+        Fq       C[QRUOV_L] // output
+){
+  uint64_t T[2*QRUOV_L - 1] ;
+  memset(T, 0, sizeof(T)) ;
+
+  for(int i = 0 ; i < QRUOV_L ; i++)
+    for(int j = 0 ; j < QRUOV_L ; j++)
+      T[i+j] += vector_V_dot_vector_V (A[i], B[j]) ;
+
+  for(int i = 2*QRUOV_L-2; i >= QRUOV_L; i--){
+    T[i-QRUOV_L]          += QRUOV_fc0 * T[i] ;
+    T[i-QRUOV_L+QRUOV_fe] += QRUOV_fc  * T[i] ;
+  }
+
+  for(int i = 0; i < QRUOV_L; i++) C[i] = (Fq)(T[i] % QRUOV_q) ;
 }
 
-void MATRIX_ADD_MxM(MATRIX_MxM A, MATRIX_MxM B, MATRIX_MxM C){
-  MATRIX_ADD(QRUOV_M, QRUOV_M, A, B, C) ;
+void VECTOR_M_dot_VECTOR_M (
+  const VECTOR_M A,         // input
+  const VECTOR_M B,         // input
+        Fq       C[QRUOV_L] // output
+){
+  uint64_t T[2*QRUOV_L - 1] ;
+  memset(T, 0, sizeof(T)) ;
+
+  for(int i = 0 ; i < QRUOV_L ; i++)
+    for(int j = 0 ; j < QRUOV_L ; j++)
+      T[i+j] += vector_M_dot_vector_M (A[i], B[j]) ;
+
+  for(int i = 2*QRUOV_L-2; i >= QRUOV_L; i--){
+    T[i-QRUOV_L]          += QRUOV_fc0 * T[i] ;
+    T[i-QRUOV_L+QRUOV_fe] += QRUOV_fc  * T[i] ;
+  }
+
+  for(int i = 0; i < QRUOV_L; i++) C[i] = (Fq)(T[i] % QRUOV_q) ;
 }
 
-void MATRIX_TRANSPOSE_VxM(MATRIX_VxM A, MATRIX_MxV C){
-  MATRIX_TRANSPOSE(QRUOV_V, QRUOV_M, A, C) ;
+void VECTOR_V_MUL_SYMMETRIC_MATRIX_VxV(const VECTOR_V A, const MATRIX_VxV B, VECTOR_V C){
+  Fq tmp [QRUOV_L] ;
+  for(int i = 0 ; i < QRUOV_V ; i++){
+    VECTOR_V_dot_VECTOR_V (A, B[i], tmp) ;
+    for(int k = 0; k < QRUOV_L; k++) C[k][i] = tmp[k] ;
+  }
+  VECTOR_V_CLEAR_TAIL(C) ;
 }
 
-void EQN_GEN(VECTOR_V vineger, MATRIX_MxV F2T[QRUOV_m], Fq eqn[QRUOV_m][QRUOV_m]){
-  int i,j,k ;
-#pragma omp parallel for private(i,j,k) shared(vineger, F2T, eqn)
-  for(i=0; i<QRUOV_m; i++){
-    for(j=0; j<QRUOV_M; j++){
-      Fql_ACC(t) ;
-      Fql_ACC_ZERO(t) ;
-      for(k=0; k<QRUOV_V; k++){
-        Fql_ACC_MUL_ADD(vineger[k], F2T[i][j][k], t) ;
-      }
-      Fql u ;
-      Fql_ACC_REDUCE(t, u) ;
-      Fql_ADD(u, u, u) ;
-      for(int l=0; l<QRUOV_L; l++){
-        eqn[i][QRUOV_L*j+l] = Fql2Fq(u, QRUOV_perm(l)) ; // <- unpack_1(...)
+void MATRIX_TRANSPOSE_VxM(const MATRIX_VxM A, MATRIX_MxV C){
+  for(int i=0;i<QRUOV_V;i++){
+    for(int k=0;k<QRUOV_L;k++){
+      for(int j=0;j<QRUOV_M;j++){
+        C[j][k][i] = A[i][k][j] ;
       }
     }
   }
+  for(int j=0;j<QRUOV_M;j++) VECTOR_V_CLEAR_TAIL(C[j]) ;
 }
 
-void C_GEN(VECTOR_V vineger, MATRIX_VxV F1[QRUOV_m], Fq c[QRUOV_m]){
-  int i,j,k ;
-#pragma omp parallel for private(i,j,k) shared(vineger, F1, c)
-  for(i=0; i<QRUOV_m; i++){
-    Fql tmp [QRUOV_V] ;
-    for(j=0; j<QRUOV_V; j++){
-      Fql_ACC(t) ;
-      Fql_ACC_ZERO(t) ;
-      for(k=0; k<QRUOV_V; k++){
-        Fql_ACC_MUL_ADD(vineger[k], F1[i][j][k], t) ;
-      }
-      Fql_ACC_REDUCE(t, tmp[j]) ;
-    }
-    uint64_t c_i = 0 ;
-    for(k=0; k<QRUOV_V; k++){
-      c_i += (uint64_t) Fql2Fq(Fql_mul(tmp[k],vineger[k]), QRUOV_perm(0)) ; // <-- shrink
-    }
-    c[i] = (Fq)(c_i % QRUOV_q) ;
+void VECTOR_V_MUL_MATRIX_VxM(const VECTOR_V A, const MATRIX_VxM B, VECTOR_M C){
+  MATRIX_MxV BT ;
+  MATRIX_TRANSPOSE_VxM(B, BT) ;
+  Fq tmp [QRUOV_L] ;
+  for(int i = 0 ; i < QRUOV_M ; i++){
+    VECTOR_V_dot_VECTOR_V (A, BT[i], tmp) ;
+    for(int k = 0; k < QRUOV_L; k++) C[k][i] = tmp[k] ;
+  }
+  VECTOR_M_CLEAR_TAIL(C) ;
+}
+
+void MATRIX_MxV_MUL_SYMMETRIC_MATRIX_VxV(const MATRIX_MxV A, const MATRIX_VxV B, MATRIX_MxV C){
+  for(int i = 0 ; i < QRUOV_M ; i++){
+    VECTOR_V_MUL_SYMMETRIC_MATRIX_VxV(A[i], B, C[i]) ;
   }
 }
 
-void SIG_GEN(VECTOR_M oil, MATRIX_MxV SdT, VECTOR_V vineger, QRUOV_SIGNATURE sig){
-  int i,j ;
-#pragma omp parallel for private(i,j) shared(oil, SdT, vineger, sig)
-  for(i=0;i<QRUOV_V;i++){
-    Fql_ACC(t) ;
-    Fql_ACC_ZERO(t) ;
-    for(j=0;j<QRUOV_M;j++){
-      Fql_ACC_MUL_ADD(oil[j], SdT[j][i], t) ;
-    }
-    Fql u ;
-    Fql_ACC_REDUCE(t, u) ;
-    sig->s[i] = Fql_sub(vineger[i], u) ;
-  }
-  for(i=QRUOV_V;i<QRUOV_N;i++){
-    sig->s[i] = oil[i-QRUOV_V] ;
+void MATRIX_MUL_MxV_VxM(const MATRIX_MxV A, const MATRIX_VxM B, MATRIX_MxM C){
+  for(int i = 0 ; i < QRUOV_M ; i++){
+    VECTOR_V_MUL_MATRIX_VxM(A[i], B, C[i]) ;
   }
 }
 
-void RESULT_GEN(const QRUOV_P1 P1, const QRUOV_P2T P2T, const QRUOV_P3 P3, const VECTOR_M oil, const VECTOR_V vineger, const Fq msg [QRUOV_m], uint8_t result[QRUOV_m]) {
-  int i,j,k ;
-#pragma omp parallel for private(i,j,k) shared(P1, P2T, P3, oil, vineger, msg, result)
-  for(i=0; i<QRUOV_m; i++){
-    Fql tmp_v [QRUOV_V] ;
-    Fql tmp_o [QRUOV_M] ;
+void MATRIX_ADD_MxM(const MATRIX_MxM A, const MATRIX_MxM B, MATRIX_MxM C){
+  for(int i = 0 ; i < QRUOV_M ; i++){
+    VECTOR_M_ADD(A[i], B[i], C[i]) ;
+  }
+}
 
-    Fql_ACC(t) ;
-    for(j=0;j<QRUOV_V;j++){
-      Fql_ACC_ZERO(t) ;
-      for(k=0;k<QRUOV_M;k++){
-        Fql_ACC_MUL_ADD(P2T[i][k][j],oil[k], t) ;
-      }
-      Fql_ACC_DOUBLE(t, t) ;
-      for(k=0;k<QRUOV_V;k++){
-        Fql_ACC_MUL_ADD(P1[i][j][k],vineger[k], t) ;
-      }
-      Fql_ACC_REDUCE(t, tmp_v[j]) ;
-    }
+void MATRIX_MUL_ADD_MxV_VxM(const MATRIX_MxV A, const MATRIX_VxM B, MATRIX_MxM C){
+  MATRIX_MxM T ;
+  MATRIX_MUL_MxV_VxM(A, B, T) ;
+  MATRIX_ADD_MxM(C, T, C) ;
+}
 
-    for(j=0;j<QRUOV_M;j++){
-      Fql_ACC_ZERO(t) ;
-      for(k=0;k<QRUOV_M;k++){
-        Fql_ACC_MUL_ADD(P3[i][j][k],oil[k],t) ;
-      }
-      Fql_ACC_REDUCE(t, tmp_o[j]) ;
-    }
-
-    Fql_ACC_ZERO(t) ;
-    for(j=0;j<QRUOV_V;j++){
-      Fql_ACC_MUL_ADD(vineger[j],tmp_v[j],t) ;
-    }
-    for(j=0;j<QRUOV_M;j++){
-      Fql_ACC_MUL_ADD(oil[j],tmp_o[j],t) ;
-    }
-    Fql t_dash ;
-    Fql_ACC_REDUCE(t, t_dash) ;
-    if(msg[i] != Fql2Fq(t_dash,QRUOV_perm(0))){ // <-- shrink
-      result[i] = 0 ;
-    }else{
-      result[i] = 1 ;
-    }
+void MATRIX_SUB_MxV(const MATRIX_MxV A, const MATRIX_MxV B, MATRIX_MxV C){
+  for(int i = 0 ; i < QRUOV_M ; i++){
+    VECTOR_V_SUB(A[i], B[i], C[i]) ;
   }
 }
