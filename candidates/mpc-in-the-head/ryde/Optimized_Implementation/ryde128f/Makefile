@@ -2,7 +2,9 @@
 SCRIPT_VERSION=v1.0
 SCRIPT_AUTHOR=RYDE team
 
-TOOLS_FLAGS := 
+TOOLS_FLAGS :=
+TOOL_LINK_LIBS :=
+CTTEST_LIB_CFLAGS :=
 
 CC=gcc
 C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -fPIC $(TOOLS_FLAGS)
@@ -39,6 +41,7 @@ BIN:=bin
 
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
+CTTEST_LIB_CFLAGS = $(C_FLAGS)
 TEST_LIB = ct_test
 
 
@@ -79,7 +82,8 @@ all: ryde128f-main ryde128f-kat ryde128f-verbose $(CTTEST_LIB) ##@Build Build al
 
 $(CTTEST_LIB): $(RYDE_OBJS) $(LIB_OBJS) | xkcp
 	mkdir -p $(BUILD_CTLIB)
-	$(CC) $(C_FLAGS) $(addprefix $(BUILD)/, $^) $(INCLUDE) $(XKCP_LINKER) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB)
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
+	$(CC) $(C_FLAGS) $(addprefix $(BUILD)/, $^) $(INCLUDE) $(XKCP_LINKER) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(TOOL_LINK_LIBS)
 
 .PHONY: ryde128f-main
 ryde128f-main: $(RYDE_OBJS) $(LIB_OBJS) | xkcp folders ##@Build a single example

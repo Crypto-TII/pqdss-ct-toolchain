@@ -1,5 +1,10 @@
-CC = c99
+#CC = c99
+
+CC = gcc
 TOOLS_FLAGS :=
+TOOL_LINK_LIBS :=
+CTTEST_LIB_CFLAGS :=
+
 CFLAGS = -Wall -Wextra -Wshadow -Wundef -O2 -fPIC $(TOOLS_FLAGS)
 LD = $(CC)
 LDFLAGS =
@@ -13,11 +18,13 @@ OBJEXTRA = PQCgenKAT_sign.o rng.o
 
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
+CTTEST_LIB_CFLAGS = $(CFLAGS)
 
 all: PQCgenKAT_sign $(CTTEST_LIB)
 
 $(CTTEST_LIB): $(OBJCORE) $(OBJAPI) rng.o
 	mkdir -p $(BUILD_CTLIB)
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) $(CFLAGS) $(OBJCORE) $(OBJAPI) rng.o -shared -o  $(BUILD_CTLIB)/$(CTTEST_LIB) $(LIBS)
 
 

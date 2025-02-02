@@ -1,9 +1,11 @@
 CC?=gcc
 
-TOOLS_FLAGS := 
+TOOLS_FLAGS :=
+TOOL_LINK_LIBS :=
+CTTEST_LIB_CFLAGS :=
 
 ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow -DPARAM_HYPERCUBE_7R -DPARAM_GF31 -DPARAM_L1 -DPARAM_RND_EXPANSION_X4 -DHASHX4 -DXOFX4 -DPRGX4 -DNDEBUG -mavx $(TOOLS_FLAGS)
-ALL_FLAGS+=$(EXTRA_ALL_FLAGS) -DBENCHMARK_CYCLES
+ALL_FLAGS+=$(EXTRA_ALL_FLAGS)
 
 SYM_OBJ= rnd.o hash.o xof.o
 ARITH_OBJ= gf31-matrix.o gf31.o
@@ -19,40 +21,32 @@ APP_READ_BENCH_OBJ=benchmark/bench-read.o
 APP_KAT_MAIN_OBJ=generator/PQCgenKAT_sign.o generator/rng.o
 APP_KAT_CHECK_OBJ=generator/PQCgenKAT_check.o generator/rng.o
 
-RNG_OBJ=generator/rng.o
-
-
 HASH_INCLUDE=-Isha3 -I. -Isha3/avx2
 APP_INCLUDE=-Ibenchmark
 
+RNG_OBJ=generator/rng.o
+
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
-
+CTTEST_LIB_CFLAGS = $(ALL_FLAGS)
 
 %.o : %.c
 	$(CC) -c $(ALL_FLAGS) $(HASH_INCLUDE) $(APP_INCLUDE) -I. $< -o $@
 
-
-all: kat_gen  $(CTTEST_LIB) #taint
-
+all: kat_gen $(CTTEST_LIB) #bench
 
 libhash:
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH)
 
-
-# $(HASH_INCLUDE)
-# $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
 $(CTTEST_LIB): $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) libhash
 	mkdir -p $(BUILD_CTLIB)
-	$(CC) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) $(ALL_FLAGS) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L$(HASH_PATH) -lhash -lcrypto
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
+	$(CC) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(RNG_OBJ) $(ALL_FLAGS) $(HASH_INCLUDE) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -L$(HASH_PATH) -lhash -lcrypto
 
 
 # Generation of the KAT
 sign: kat_gen
 	cp kat_gen sign
-
-taint: $(TAINT_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
-	$(CC) $(TAINT_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto -o $@
 
 kat_gen: $(APP_KAT_MAIN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
 	$(CC) $(APP_KAT_MAIN_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(ALL_FLAGS) -L$(HASH_PATH) -L. -lhash -lcrypto -o $@
@@ -64,6 +58,12 @@ kat_check: $(APP_KAT_CHECK_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) l
 
 bench: $(APP_BENCH_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
 	$(CC) $(APP_BENCH_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(ALL_FLAGS) -L$(HASH_PATH) -lhash -lm -L. -o $@
+
+bench_custom1: $(CTTEST_LIB)
+	$(CC) $(ALL_FLAGS) -I. -Isha3/avx2 bench.c -o custom_bench_bin  -Lbuild -lcttest -lm -lcpucycles
+
+bench_custom: $(CTTEST_LIB)
+	$(CC) $(ALL_FLAGS) bench.c -o custom_bench_bin  -Lbuild -lcttest -lm -lcpucycles
 
 bench-write: $(APP_WRITE_BENCH_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) libhash
 	$(CC) $(APP_WRITE_BENCH_OBJ) $(SYM_OBJ) $(ARITH_OBJ) $(MPC_OBJ) $(CORE_OBJ) $(ALL_FLAGS) -L$(HASH_PATH) -lhash -lm -L. -o $@
@@ -81,3 +81,4 @@ clean:
 	$(HASH_MAKE_OPTIONS) make -C $(HASH_PATH) clean
 	rm -rf $(BUILD_CTLIB)
 	rm kat_gen
+	rm custom_bench_bin

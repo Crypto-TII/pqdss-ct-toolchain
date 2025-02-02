@@ -1,6 +1,9 @@
 CC = gcc
 
 TOOLS_FLAGS :=
+TOOL_LINK_LIBS :=
+CTTEST_LIB_CFLAGS :=
+
 CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-all-loops -march=native -Wimplicit-function-declaration -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes -Wundef -Wshadow -Wno-newline-eof \
                   -mavx2 -mpclmul -msse4.2 -maes -fPIC $(TOOLS_FLAGS)
 ASMFLAGS := -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1
@@ -44,6 +47,7 @@ PERK_INCLUDE:=-I $(SRC_DIR) $(LIB_INCLUDE)
 
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
+CTTEST_LIB_CFLAGS = $(CFLAGS)
 
 .PHONY: all
 all: perk-128-fast-5 perk-128-fast-5-verbose perk-128-fast-5-kat $(CTTEST_LIB)
@@ -51,6 +55,7 @@ all: perk-128-fast-5 perk-128-fast-5-verbose perk-128-fast-5-kat $(CTTEST_LIB)
 
 $(CTTEST_LIB): $(PERK_OBJS) $(LIB_OBJS)
 	mkdir -p $(BUILD_CTLIB)
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) -shared $(PERK_OBJS) $(LIB_OBJS) $(CFLAGS) -fPIC -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LDFLAGS)
 
 

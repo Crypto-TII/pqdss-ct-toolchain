@@ -1,0 +1,35 @@
+[sse:error] Cut path 1 (uninterpreted "KO") @ 0x7ffff7f8ac5a
+[sse:info] Empty path worklist: halting ...
+[sse:info] SMT queries
+             Preprocessing simplifications
+               total          774
+               true           257
+               false          514
+               constant enum  3
+             
+             Satisfiability queries
+               total          0
+               sat            0
+               unsat          0
+               unknown        0
+               time           0.00
+               average        -nan
+             
+           Exploration
+             total paths                      1
+             completed/cut paths              0
+             pending paths                    0
+             stale paths                      1
+             failed assertions                0
+             branching points                 517
+             max path depth                   305
+             visited instructions (unrolled)  305
+             visited instructions (static)    50
+             
+           
+[checkct:result] Program status is : unknown (1.403)
+[checkct:info] 0 visited path covering 50 instructions
+[checkct:info] 517 / 517 control flow checks pass
+[checkct:info] 294 / 294 memory access checks pass
+[checkct:info] 0 / 0 division operand checks pass
+[checkct:warning] Exploration is incomplete:

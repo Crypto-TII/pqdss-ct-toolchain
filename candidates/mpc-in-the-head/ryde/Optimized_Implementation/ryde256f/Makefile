@@ -3,6 +3,8 @@ SCRIPT_VERSION=v1.0
 SCRIPT_AUTHOR=RYDE team
 
 TOOLS_FLAGS :=
+TOOL_LINK_LIBS :=
+CTTEST_LIB_CFLAGS :=
 
 CC=gcc
 C_FLAGS:=-O3 -flto -mavx2 -mpclmul -msse4.2 -maes -std=c99 -pedantic -Wall -Wextra -DSHAKE_TIMES4 -fPIC $(TOOLS_FLAGS)
@@ -38,6 +40,7 @@ BIN:=bin
 
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
+CTTEST_LIB_CFLAGS = $(C_FLAGS)
 
 folders:
 	@echo -e "\n### Creating build folders\n"
@@ -76,6 +79,7 @@ all: ryde256f-main ryde256f-kat ryde256f-verbose $(CTTEST_LIB) ##@Build Build al
 
 $(CTTEST_LIB): $(RYDE_OBJS) $(LIB_OBJS) | xkcp
 	mkdir -p $(BUILD_CTLIB)
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) $(C_FLAGS) $(addprefix $(BUILD)/, $^) $(INCLUDE) $(XKCP_LINKER) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB)
 
 

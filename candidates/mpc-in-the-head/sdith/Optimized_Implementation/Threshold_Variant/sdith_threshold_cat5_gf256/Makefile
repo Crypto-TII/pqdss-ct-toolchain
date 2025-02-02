@@ -1,5 +1,9 @@
 CC?=gcc
-TOOLS_FLAGS := 
+
+TOOLS_FLAGS :=
+TOOL_LINK_LIBS :=
+CTTEST_LIB_CFLAGS :=
+
 ALL_FLAGS?=-O3 -flto -fPIC -std=c11 -march=native -Wall -Wextra -Wpedantic -Wshadow -DPARAM_THRESHOLD_NFPR -DPARAM_GF256 -DPARAM_L5 -DHASHX4 -DXOFX4 -DNDEBUG -mavx $(TOOLS_FLAGS)
 ALL_FLAGS+=$(EXTRA_ALL_FLAGS)
 
@@ -24,7 +28,7 @@ RNG_OBJ=generator/rng.o
 
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
-CTTEST_LIB_CFLAGS = $(CFLAGS)
+CTTEST_LIB_CFLAGS = $(ALL_FLAGS)
 
 %.o : %.c
 	$(CC) -c $(ALL_FLAGS) $(HASH_INCLUDE) $(APP_INCLUDE) -I. $< -o $@
