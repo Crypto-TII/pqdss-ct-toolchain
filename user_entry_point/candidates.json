@@ -254,6 +254,26 @@
       "instance_format": null,
       "cflags": null
     },
+    "uov": {
+      "path_to_api": "candidates/multivariate/uov/pqov_nist_submission/Optimized_Implementation/avx2/III/api.h",
+      "path_to_rng1": "candidates/multivariate/uov/pqov_nist_submission/Optimized_Implementation/avx2/nistkat/rng.h",
+      "path_to_rng": "candidates/multivariate/uov/pqov_nist_submission/Optimized_Implementation/avx2/nistkat/rng.h",
+      "path_to_makefile_folder1": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2",
+      "path_to_makefile_folder": "candidates/multivariate/uov/pqov_nist_submission/Optimized_Implementation/avx2",
+      "path_to_include_directory": ".",
+      "default_instance": "avx2/III",
+      "optimized_implementation": "pqov_nist_submission/Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
+      "build_with_makefile": true,
+      "compiler": "gcc",
+      "instances": ["avx2/III", "avx2/III_pkc", "avx2/III_pkc_skc", "avx2/Ip_pkc", "avx2/Ip_pkc_skc", "avx2/Is" ,  "avx2/Is_pkc", "avx2/Is_pkc_skc", "avx2/V", "avx2/V_pkc", "avx2/V_pkc_skc", "avx2/Ip"],
+      "security_level": {"lvl1":  ["Is", "Ip"], "lvl3":  ["III"], "lvl5":  ["V"]},
+      "path_to_bench_binary": null,
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "instance_format": null,
+      "cflags": null
+    },
     "qruov1": {
       "path_to_api": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/api.h",
       "path_to_rng": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/rng.h",
@@ -290,7 +310,7 @@
         "qruov5q7L10v1490m190", "qruov5q31L3v324m114", "qruov5q31L10v1120m120", "qruov5q127L3v306m105"],
       "path_to_bench_binary": null,
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"lvl1":  ["v1"], "lvl3":  ["v3"], "lvl5":  ["v5"]},
+      "security_level": {"lvl1":  ["qruov1"], "lvl3":  ["qruov3"], "lvl5":  ["qruov5"]},
       "instance_format": null,
       "cflags": null
     },
