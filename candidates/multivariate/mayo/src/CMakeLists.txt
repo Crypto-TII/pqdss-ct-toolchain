@@ -31,6 +31,25 @@ else()
 endif()
 
 
+# Constant-time - benchmarks tests
+# == Constant-time tests
+option(RUN_CT_TESTS "Run constant time tests" OFF)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLS_FLAGS}")
+set(TOOL_FOLDER ../${TOOL_NAME})
+set(TOOL_TEMPLATE_PATTERN "test_harness")
+set(BUILD_KEYPAIR ${TOOL_FOLDER}/sqisign_keypair)
+set(BUILD_SIGN ${TOOL_FOLDER}/sqisign_sign)
+# == Benchmarks
+option(RUN_BENCHMARKS "Run custom benchmarks" OFF)
+set(BENCHMARK_TESTS "benchmarks")
+set(BENCHMARKS_FOLDER ../${BENCHMARK_TESTS})
+set(SRC_BENCHMARK ${BENCHMARKS_FOLDER}/bench)
+set(TOOL_TEMPLATE_PATTERN ${BENCHMARKS_FOLDER}/bench)
+# Constant-time - benchmarks tests
+
+set(BUILD_KEYPAIR ${TOOL_FOLDER}/mayo_keypair)
+set(BUILD_SIGN ${TOOL_FOLDER}/mayo_sign)
+
 if (ENABLE_PARAMS_DYNAMIC)
     # mayo and mayo_test libraries
     add_library(mayo ${SOURCE_FILES_MAYO})
@@ -53,6 +72,32 @@ if (ENABLE_PARAMS_DYNAMIC)
         add_library(${MVARIANT_LOWER}_test_nistapi ${SOURCE_FILES_VARIANT})
         target_link_libraries(${MVARIANT_LOWER}_test_nistapi PRIVATE mayo_test)
         target_include_directories(${MVARIANT_LOWER}_test_nistapi PUBLIC ${MVARIANT_LOWER} ${INC_PLATFORM})
+
+        # Constant-time and benchmarks
+        # === Constant-time tests
+        if (RUN_CT_TESTS)
+            #Test harness for crypto_sign_keypair
+            set(TARGET_BINARY_NAME ${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair_${MVARIANT_LOWER})
+            add_executable(${TARGET_BINARY_NAME}  ${TOOL_FOLDER}/mayo_keypair/${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair.c)
+            target_link_libraries(${TARGET_BINARY_NAME} ${MVARIANT_LOWER}_nistapi ${M_LIB} ${TOOL_LINK_LIBS})
+            target_include_directories(${TARGET_BINARY_NAME} PRIVATE ../include ../src/${MVARIANT_LOWER})
+            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_KEYPAIR})
+            #Test harness for crypto_sign
+            set(TARGET_BINARY_NAME ${TOOL_TEMPLATE_PATTERN}_crypto_sign_${MVARIANT_LOWER})
+            add_executable(${TARGET_BINARY_NAME}  ${TOOL_FOLDER}/mayo_sign/${TOOL_TEMPLATE_PATTERN}_crypto_sign.c)
+            target_include_directories(${TARGET_BINARY_NAME} PRIVATE ../include ../src/${MVARIANT_LOWER})
+            target_link_libraries(${TARGET_BINARY_NAME}  ${MVARIANT_LOWER}_nistapi ${M_LIB} ${TOOL_LINK_LIBS})
+            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_SIGN})
+        endif (RUN_CT_TESTS)
+        # === Benchmark tests
+        if (RUN_BENCHMARKS)
+            set(TEST_BENCH bench_${MVARIANT_LOWER})
+            #            add_executable(${TEST_BENCH} ${SRC_BENCHMARK}.c)
+            add_executable(${TEST_BENCH} ../${BENCHMARK_TESTS}/src/${MVARIANT_LOWER}/bench.c)
+            target_link_libraries(${TEST_BENCH} PRIVATE ${MVARIANT_LOWER}_nistapi m cpucycles)
+            #            set_target_properties(${TEST_BENCH} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BENCHMARKS_FOLDER})
+            set_target_properties(${TEST_BENCH} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../../${BENCHMARK_TESTS}/src/${MVARIANT_LOWER})
+        endif (RUN_BENCHMARKS)
     endforeach()
 
 else()
@@ -77,5 +122,32 @@ else()
         add_library(${MVARIANT_LOWER}_test_nistapi ${SOURCE_FILES_VARIANT})
         target_link_libraries(${MVARIANT_LOWER}_test_nistapi PRIVATE ${MVARIANT_LOWER}_test)
         target_include_directories(${MVARIANT_LOWER}_test_nistapi PUBLIC ${MVARIANT_LOWER} ${INC_PLATFORM})
+
+
+        # Constant-time and benchmarks
+        # === Constant-time tests
+        if (RUN_CT_TESTS)
+            #Test harness for crypto_sign_keypair
+            set(TARGET_BINARY_NAME ${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair_${MVARIANT_LOWER})
+            add_executable(${TARGET_BINARY_NAME}  ${TOOL_FOLDER}/mayo_keypair/${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair.c)
+            target_link_libraries(${TARGET_BINARY_NAME} ${MVARIANT_LOWER}_nistapi ${M_LIB} ${TOOL_LINK_LIBS})
+            target_include_directories(${TARGET_BINARY_NAME} PRIVATE ../include ../src/${MVARIANT_LOWER})
+            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_KEYPAIR})
+            #Test harness for crypto_sign
+            set(TARGET_BINARY_NAME ${TOOL_TEMPLATE_PATTERN}_crypto_sign_${MVARIANT_LOWER})
+            add_executable(${TARGET_BINARY_NAME}  ${TOOL_FOLDER}/mayo_sign/${TOOL_TEMPLATE_PATTERN}_crypto_sign.c)
+            target_include_directories(${TARGET_BINARY_NAME} PRIVATE ../include ../src/${MVARIANT_LOWER})
+            target_link_libraries(${TARGET_BINARY_NAME}  ${MVARIANT_LOWER}_nistapi ${M_LIB} ${TOOL_LINK_LIBS})
+            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_SIGN})
+        endif (RUN_CT_TESTS)
+        # === Benchmark tests
+        if (RUN_BENCHMARKS)
+            set(TEST_BENCH bench_${MVARIANT_LOWER})
+            #            add_executable(${TEST_BENCH} ${SRC_BENCHMARK}.c)
+            add_executable(${TEST_BENCH} ../${BENCHMARK_TESTS}/src/${MVARIANT_LOWER}/bench.c)
+            target_link_libraries(${TEST_BENCH} PRIVATE ${MVARIANT_LOWER}_nistapi m cpucycles)
+            #            set_target_properties(${TEST_BENCH} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BENCHMARKS_FOLDER})
+            set_target_properties(${TEST_BENCH} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../../${BENCHMARK_TESTS}/src/${MVARIANT_LOWER})
+        endif (RUN_BENCHMARKS)
     endforeach()
 endif()
