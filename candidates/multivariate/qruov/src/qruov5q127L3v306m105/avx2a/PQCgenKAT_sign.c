@@ -1,1 +1,0 @@
-../../avx2/PQCgenKAT_sign.c

@@ -1,0 +1,48 @@
+Candidate: snova
+Security Level: lvl1
+Instance: SNOVA_37_17_2
+Algorithm: Keygen:
+Average running time (million cycles): 	   0.636
+Standard deviation (million cycles): 	   0.251
+Minimum running time (million cycles): 	   0.566
+First quartile (million cycles): 	 	   0.573
+Median (million cycles):    	 	   0.588
+Third quartile (million cycles): 	   0.640
+Maximum running time (million cycles): 	   7.822
+Public key size (bytes): 	 9842
+Signature size (bytes): 	 124
+Signature size + PK Size (bytes): 	 9966
+Message size (bytes): 	 32
+
+Candidate: snova 
+Security Level: lvl1
+Instance: SNOVA_37_17_2
+Algorithm: Sign:
+Average running time (million cycles): 	   0.233
+Standard deviation (million cycles): 	   0.043
+Minimum running time (million cycles): 	   0.211
+First quartile (million cycles): 	   0.214
+Median (million cycles): 	   0.216
+Third quartile (million cycles): 	   0.220
+Maximum running time (million cycles): 	   0.555
+Public key size (bytes): 	 9842
+Signature size (bytes): 	 124
+Signature size + PK Size (bytes): 	 9966
+Message size (bytes): 	 32
+
+Candidate: snova
+Security Level: lvl1
+Instance: SNOVA_37_17_2
+Algorithm: Verify:
+Average running time (million cycles): 	   0.084
+Standard deviation (million cycles): 	   0.030
+Minimum running time (million cycles): 	   0.074
+First quartile (million cycles): 	   0.075
+Median (million cycles): 	   0.075
+Third quartile (million cycles): 	   0.075
+Maximum running time (million cycles): 	   0.319
+Public key size (bytes): 	 9842
+Signature size (bytes): 	 124
+Signature size + PK Size (bytes): 	 9966
+Message size (bytes): 	 32
+

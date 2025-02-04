@@ -1,0 +1,48 @@
+Candidate: qruov
+Security Level: lvl5
+Instance: qruov5q127L3v306m105
+Algorithm: Keygen:
+Average running time (million cycles): 	 160.533
+Standard deviation (million cycles): 	  19.868
+Minimum running time (million cycles): 	 143.835
+First quartile (million cycles): 	 	 150.399
+Median (million cycles):    	 	 154.582
+Third quartile (million cycles): 	 162.346
+Maximum running time (million cycles): 	 380.565
+Public key size (bytes): 	 173676
+Signature size (bytes): 	 392
+Signature size + PK Size (bytes): 	 174068
+Message size (bytes): 	 32
+
+Candidate: qruov
+Security Level: lvl5
+Instance: qruov5q127L3v306m105
+Algorithm: Sign:
+Average running time (million cycles): 	  15.531
+Standard deviation (million cycles): 	   1.039
+Minimum running time (million cycles): 	  14.058
+First quartile (million cycles): 	  14.834
+Median (million cycles): 	  15.194
+Third quartile (million cycles): 	  15.942
+Maximum running time (million cycles): 	  22.062
+Public key size (bytes): 	 173676
+Signature size (bytes): 	 392
+Signature size + PK Size (bytes): 	 174068
+Message size (bytes): 	 32
+
+Candidate: qruov
+Security Level: lvl5
+Instance: qruov5q127L3v306m105
+Algorithm: Verify:
+Average running time (million cycles): 	  11.597
+Standard deviation (million cycles): 	   1.084
+Minimum running time (million cycles): 	  10.262
+First quartile (million cycles): 	  10.947
+Median (million cycles): 	  11.271
+Third quartile (million cycles): 	  12.042
+Maximum running time (million cycles): 	  29.646
+Public key size (bytes): 	 173676
+Signature size (bytes): 	 392
+Signature size + PK Size (bytes): 	 174068
+Message size (bytes): 	 32
+
