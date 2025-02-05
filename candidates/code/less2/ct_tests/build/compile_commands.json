@@ -1,0 +1,527 @@
+[
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include -isystem /usr/include -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=192   -std=gnu99 -o CMakeFiles/bench_252_192.dir/home/bench/candidates/code/less/benchmarks/bench.c.o -c /home/bench/candidates/code/less/benchmarks/bench.c",
+  "file": "/home/bench/candidates/code/less/benchmarks/bench.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include -isystem /usr/include -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=68   -std=gnu99 -o CMakeFiles/bench_252_68.dir/home/bench/candidates/code/less/benchmarks/bench.c.o -c /home/bench/candidates/code/less/benchmarks/bench.c",
+  "file": "/home/bench/candidates/code/less/benchmarks/bench.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include -isystem /usr/include -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=252 -DTARGET=45   -std=gnu99 -o CMakeFiles/bench_252_45.dir/home/bench/candidates/code/less/benchmarks/bench.c.o -c /home/bench/candidates/code/less/benchmarks/bench.c",
+  "file": "/home/bench/candidates/code/less/benchmarks/bench.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include -isystem /usr/include -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=220   -std=gnu99 -o CMakeFiles/bench_400_220.dir/home/bench/candidates/code/less/benchmarks/bench.c.o -c /home/bench/candidates/code/less/benchmarks/bench.c",
+  "file": "/home/bench/candidates/code/less/benchmarks/bench.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include -isystem /usr/include -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=400 -DTARGET=102   -std=gnu99 -o CMakeFiles/bench_400_102.dir/home/bench/candidates/code/less/benchmarks/bench.c.o -c /home/bench/candidates/code/less/benchmarks/bench.c",
+  "file": "/home/bench/candidates/code/less/benchmarks/bench.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include -isystem /usr/include -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=345   -std=gnu99 -o CMakeFiles/bench_548_345.dir/home/bench/candidates/code/less/benchmarks/bench.c.o -c /home/bench/candidates/code/less/benchmarks/bench.c",
+  "file": "/home/bench/candidates/code/less/benchmarks/bench.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/fips202.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/codes.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/LESS.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/monomial.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/canonical.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/rng.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/seedtree.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sign.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/sort.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/keccakf1600.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/utils.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include -isystem /usr/include -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/KeccakP-1600-AVX2.s"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c.o -c /home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c",
+  "file": "/home/bench/candidates/code/less/Optimized_Implementation/avx2/lib/transpose_avx2.c"
+},
+{
+  "directory": "/home/bench/candidates/code/less/ct_tests/build",
+  "command": "/usr/bin/cc  -I/home/bench/candidates/code/less/ct_tests/../Optimized_Implementation/avx2/include   -flto -ftree-vectorize -funroll-loops -Wall -Wpedantic -pedantic  -O3  -march=native -DUSE_AVX2 -mavx -mavx2 -mbmi -mbmi2  -O3 -DNDEBUG -DCATEGORY=548 -DTARGET=137   -std=gnu99 -o CMakeFiles/bench_548_137.dir/home/bench/candidates/code/less/benchmarks/bench.c.o -c /home/bench/candidates/code/less/benchmarks/bench.c",
+  "file": "/home/bench/candidates/code/less/benchmarks/bench.c"
+}
+]
