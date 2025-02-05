@@ -1252,7 +1252,7 @@ def generic_benchmarks_init_compile_04_fev(candidate, abs_path_to_api_or_sign, a
 
 
 
-def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+def generic_benchmarks_init_compile_05_fev(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
                                     default_instance: str, instances, additional_includes,
                                     path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
                                     cflags: Optional[Union[str, list]] = None,
@@ -1443,6 +1443,211 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
                         # print(".......B: cflags: ", cflags)
                     generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                                path_to_include_directories, cflags, default_instance, instances, compiler, instance_format)
+
+
+def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+                                    default_instance: str, instances, additional_includes,
+                                    path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
+                                    cflags: Optional[Union[str, list]] = None,
+                                    libraries_names: Union[str, list] = 'lbench',
+                                    path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
+                                    additional_cmake_definitions=None, compiler: str = 'gcc',
+                                    custom_benchmark: Optional[bool] = True, number_of_iterations='1000',
+                                    min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
+                                    security_level: Union[str, list] = '128',
+                                    binary_format: Optional[Union[str, list, dict]] = None, *args, **kwargs):
+    # expanded_kwargs_list = []
+    # expanded_kwargs = {}
+    if candidate == 'snova':
+        cwd = os.getcwd()
+        os.chdir(path_to_candidate_makefile_cmake)
+        makefile = 'Makefile'
+        set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := /g' {makefile}"]
+        subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+        set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS := .*$/TOOL_LINK_LIBS := /g' {makefile}"]
+        subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+        expanded_kwargs_list = []
+        if instances:
+            for instance in instances:
+                make_clean = ["make", "clean"]
+                subprocess.call(make_clean, stdin=sys.stdin)
+                snova_v, snova_o, snova_l = instance.split('_')[1:]
+                expanded_kwargs_list.extend([f'SNOVA_V={snova_v}', f'SNOVA_O={snova_o}', f'SNOVA_L={snova_l}'])
+                cmd = f'make custom_bench SNOVA_V={snova_v} SNOVA_O={snova_o} SNOVA_L={snova_l}'
+                if kwargs:
+                    for k, value in kwargs.items():
+                        expanded_kwargs_list.append(f'{k}={value}')
+                        cmd += f' {k}={value}'
+                expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
+                subprocess.call(cmd.split(), stdin=sys.stdin)
+        os.chdir(cwd)
+
+    elif candidate == 'qruov':
+        cwd = os.getcwd()
+        path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+        if path_candidate.endswith('/'):
+            path_candidate += candidate
+        else:
+            path_candidate += f'/{candidate}'
+        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+        os.chdir(path_to_candidate_makefile_cmake)
+        default_platform = 'portable64'
+        # default_platform = 'avx2'
+        # platform = default_platform
+        platform = 'avx2'
+        if 'platform' in kwargs.keys():
+            platform = kwargs['platform']
+        makefile = 'Makefile'
+        # chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
+        chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
+        subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
+        os.chdir(cwd)
+        if platform not in abs_path_to_api_or_sign:
+            abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
+            path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
+        abs_path_to_api_or_sign_initial = abs_path_to_api_or_sign
+        path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
+        path_to_include_directories_initial = path_to_include_directories
+        path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
+        for instance in instances:
+            os.chdir(path_to_candidate_makefile_cmake)
+            cmd_str = f'make {instance} platform={platform}'
+            subprocess.call(cmd_str.split(), stdin=sys.stdin)
+            os.chdir(cwd)
+            abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
+            abs_path_to_api_or_sign_split.insert(1, instance)
+            # abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
+            abs_path_to_api_or_sign_split[-1] = f'/{platform}a/api.h'
+            abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
+            generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instance.split(),
+                                              additional_includes, number_of_iterations, min_msg_len,
+                                              max_msg_len, security_level)
+            instance_format = ''
+            instance_updated = f'{instance}/{platform}'
+            path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
+            path_to_include_directories += f'a'
+            generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                       path_to_include_directories, cflags, default_instance, instance.split(), compiler, instance_format)
+            path_to_include_directories = path_to_include_directories_initial
+            path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+            abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
+    else:
+        if custom_benchmark:
+            generic_benchmarks_nist_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, instances,
+                                              additional_includes, number_of_iterations, min_msg_len,
+                                              max_msg_len, security_level)
+        path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
+        path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+        if path_candidate.endswith('/'):
+            path_candidate += candidate
+        else:
+            path_candidate += f'/{candidate}'
+        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+        if direct_link_or_compile_target:
+            if not instances:
+                gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                             additional_cmake_definitions, *args, **kwargs)
+            else:
+                if build_with_make:
+                    # if candidate == 'pqov':
+                    if candidate == 'uov':
+                        expanded_kwargs_list = []
+                        default_platform = 'avx2'
+                        if kwargs:
+                            for k, value in kwargs.items():
+                                expanded_kwargs_list.append(f'{k}={value}')
+                        expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
+                        for instance in instances:
+                            platform, instance_basename = instance.split('/')
+                            path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
+                            path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_platform, platform)
+                            expanded_kwargs['PROJ'] = instance_basename
+                            gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                         additional_cmake_definitions, *args, **expanded_kwargs)
+
+                    else:
+                        for instance in instances:
+                            path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
+                            gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                         additional_cmake_definitions, *args, **kwargs)
+                            path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+                else:
+                    expanded_kwargs_list = []
+                    expanded_kwargs = {}
+                    if kwargs:
+                        for k, value in kwargs.items():
+                            expanded_kwargs_list.append(f'{k}={value}')
+                    expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
+                    if candidate == 'mayo':
+                       if 'MAYO_BUILD_TYPE' not in expanded_kwargs:
+                           expanded_kwargs['MAYO_BUILD_TYPE'] = 'opt'
+                       if 'ENABLE_AESNI' not in expanded_kwargs:
+                           expanded_kwargs['ENABLE_AESNI'] = 'ON'
+                    gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                 additional_cmake_definitions, *args, **expanded_kwargs)
+
+        if custom_benchmark:
+            instance_format = reconstruct_instance_name_from_options(binary_format, **kwargs)
+            if build_with_make:
+                if candidate == 'mqom':
+                    for instance in instances:
+                        if isinstance(cflags, str):
+                            cflags += f' -I {path_to_include_directories}/sha3 -I {path_to_include_directories}/sha3/avx2'
+                        elif isinstance(cflags, list):
+                            cflags.extend([f' -I {path_to_include_directories}/sha3', f'-I {path_to_include_directories}/sha3/avx2'])
+                        elif not cflags:
+                            cflags = [f' -I {path_to_include_directories}/sha3', f'-I {path_to_include_directories}/sha3/avx2']
+                        generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                                   path_to_include_directories, cflags, default_instance, instance, compiler, instance_format)
+                if candidate == 'sdith':
+                    threshold_variant = 'Threshold_Variant'
+                    threshold = 'threshold'
+                    hypercube_variant = 'Hypercube_Variant'
+                    hypercube = 'hypercube'
+                    default_instance_initial = default_instance
+                    path_to_test_library_directory_initial = path_to_test_library_directory
+                    path_to_include_directories_initial = path_to_include_directories
+                    cflags_initial = cflags
+                    for instance in instances:
+                        if isinstance(cflags, str):
+                            cflags += f' -I {path_to_include_directories}/sha3 -I {path_to_include_directories}/sha3/avx2'
+                        elif isinstance(cflags, list):
+                            cflags.extend([f' -I {path_to_include_directories}/sha3', f'-I {path_to_include_directories}/sha3/avx2'])
+                        elif not cflags:
+                            cflags = [f' -I {path_to_include_directories}/sha3', f'-I {path_to_include_directories}/sha3/avx2']
+                        if 'threshold' in instance:
+                            default_instance = 'Threshold_Variant/sdith_threshold_cat1_gf256'
+                            path_to_test_library_directory = path_to_test_library_directory.replace(hypercube_variant, threshold_variant)
+                            path_to_test_library_directory = path_to_test_library_directory.replace(hypercube, threshold)
+                            path_to_include_directories = path_to_include_directories.replace(hypercube_variant, threshold_variant)
+                            path_to_include_directories = path_to_include_directories.replace(hypercube, threshold)
+                        else:
+                            default_instance = default_instance_initial
+                            path_to_test_library_directory = path_to_test_library_directory_initial
+                            path_to_include_directories = path_to_include_directories_initial
+
+
+                        generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                                   path_to_include_directories, cflags, default_instance, instance, compiler, instance_format)
+                        cflags = cflags_initial
+                else:
+                    # if candidate == 'pqov':
+                    if candidate == 'uov':
+                        platform, instance_basename = default_instance.split('/')
+                        default_platform = 'avx2'
+                        path_to_test_library_directory = path_to_test_library_directory.replace(default_platform, platform)
+                        path_to_test_library_directory += f'/{instance_basename}'
+                        # print(".......A: cflags: ", cflags)
+                        # werror = '-Werror'
+                        # if isinstance(cflags, list):
+                        #     if werror in cflags:
+                        #         cflags = cflags.remove(werror)
+                        # elif isinstance(cflags, str):
+                        #     cflags = cflags.replace(werror, '')
+                        # print(".......B: cflags: ", cflags)
+                    generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                               path_to_include_directories, cflags, default_instance, instances, compiler, instance_format)
+
 
 
 
