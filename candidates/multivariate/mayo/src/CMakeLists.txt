@@ -50,6 +50,7 @@ set(TOOL_TEMPLATE_PATTERN ${BENCHMARKS_FOLDER}/bench)
 set(BUILD_KEYPAIR ${TOOL_FOLDER}/mayo_keypair)
 set(BUILD_SIGN ${TOOL_FOLDER}/mayo_sign)
 
+
 if (ENABLE_PARAMS_DYNAMIC)
     # mayo and mayo_test libraries
     add_library(mayo ${SOURCE_FILES_MAYO})
@@ -72,6 +73,7 @@ if (ENABLE_PARAMS_DYNAMIC)
         add_library(${MVARIANT_LOWER}_test_nistapi ${SOURCE_FILES_VARIANT})
         target_link_libraries(${MVARIANT_LOWER}_test_nistapi PRIVATE mayo_test)
         target_include_directories(${MVARIANT_LOWER}_test_nistapi PUBLIC ${MVARIANT_LOWER} ${INC_PLATFORM})
+
 
         # Constant-time and benchmarks
         # === Constant-time tests
