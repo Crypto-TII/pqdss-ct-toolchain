@@ -1,0 +1,165 @@
+#ifndef ARITH_FF_H
+#define ARITH_FF_H
+
+#include <stdint.h>
+#include <immintrin.h>
+
+#include "data_type.h"
+
+/// i*j = [i*16 + j]
+static const ff_t mirath_ff_mult_table[256] = {
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 
+    0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f, 
+    0x00,0x02,0x04,0x06,0x08,0x0a,0x0c,0x0e,0x03,0x01,0x07,0x05,0x0b,0x09,0x0f,0x0d, 
+    0x00,0x03,0x06,0x05,0x0c,0x0f,0x0a,0x09,0x0b,0x08,0x0d,0x0e,0x07,0x04,0x01,0x02, 
+    0x00,0x04,0x08,0x0c,0x03,0x07,0x0b,0x0f,0x06,0x02,0x0e,0x0a,0x05,0x01,0x0d,0x09, 
+    0x00,0x05,0x0a,0x0f,0x07,0x02,0x0d,0x08,0x0e,0x0b,0x04,0x01,0x09,0x0c,0x03,0x06, 
+    0x00,0x06,0x0c,0x0a,0x0b,0x0d,0x07,0x01,0x05,0x03,0x09,0x0f,0x0e,0x08,0x02,0x04, 
+    0x00,0x07,0x0e,0x09,0x0f,0x08,0x01,0x06,0x0d,0x0a,0x03,0x04,0x02,0x05,0x0c,0x0b, 
+    0x00,0x08,0x03,0x0b,0x06,0x0e,0x05,0x0d,0x0c,0x04,0x0f,0x07,0x0a,0x02,0x09,0x01, 
+    0x00,0x09,0x01,0x08,0x02,0x0b,0x03,0x0a,0x04,0x0d,0x05,0x0c,0x06,0x0f,0x07,0x0e, 
+    0x00,0x0a,0x07,0x0d,0x0e,0x04,0x09,0x03,0x0f,0x05,0x08,0x02,0x01,0x0b,0x06,0x0c, 
+    0x00,0x0b,0x05,0x0e,0x0a,0x01,0x0f,0x04,0x07,0x0c,0x02,0x09,0x0d,0x06,0x08,0x03, 
+    0x00,0x0c,0x0b,0x07,0x05,0x09,0x0e,0x02,0x0a,0x06,0x01,0x0d,0x0f,0x03,0x04,0x08, 
+    0x00,0x0d,0x09,0x04,0x01,0x0c,0x08,0x05,0x02,0x0f,0x0b,0x06,0x03,0x0e,0x0a,0x07, 
+    0x00,0x0e,0x0f,0x01,0x0d,0x03,0x02,0x0c,0x09,0x07,0x06,0x08,0x04,0x0a,0x0b,0x05, 
+    0x00,0x0f,0x0d,0x02,0x09,0x06,0x04,0x0b,0x01,0x0e,0x0c,0x03,0x08,0x07,0x05,0x0a, 
+};
+
+/// M[i, j] = 16**i * j mod 16 for i = row, j = column
+static const uint8_t mirath_ff_mulbase[128] __attribute__((aligned(32))) = {
+        0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07, 0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f, 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07, 0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,
+        0x00,0x02,0x04,0x06,0x08,0x0a,0x0c,0x0e, 0x03,0x01,0x07,0x05,0x0b,0x09,0x0f,0x0d, 0x00,0x02,0x04,0x06,0x08,0x0a,0x0c,0x0e, 0x03,0x01,0x07,0x05,0x0b,0x09,0x0f,0x0d,
+        0x00,0x04,0x08,0x0c,0x03,0x07,0x0b,0x0f, 0x06,0x02,0x0e,0x0a,0x05,0x01,0x0d,0x09, 0x00,0x04,0x08,0x0c,0x03,0x07,0x0b,0x0f, 0x06,0x02,0x0e,0x0a,0x05,0x01,0x0d,0x09,
+        0x00,0x08,0x03,0x0b,0x06,0x0e,0x05,0x0d, 0x0c,0x04,0x0f,0x07,0x0a,0x02,0x09,0x01, 0x00,0x08,0x03,0x0b,0x06,0x0e,0x05,0x0d, 0x0c,0x04,0x0f,0x07,0x0a,0x02,0x09,0x01,
+};
+
+
+
+/// i*{-1} = [i]
+static const ff_t mirath_ff_inv_table[16] __attribute__((aligned(16))) = {
+    0, 1, 9, 14, 13, 11, 7, 6, 15, 2, 12, 5, 10, 4, 3, 8
+};
+
+static inline ff_t mirath_ff_add(const ff_t a,
+                                 const ff_t b) {
+    return a ^ b;
+}
+
+/// NOTE: assumes a mod 16
+/// \param a input element
+/// \return a**{-1}
+static inline ff_t mirath_ff_inv(const ff_t a) {
+    return mirath_ff_inv_table[a];
+}
+
+/// NOTE: assumes that a and b are % 16.
+/// \param a input element
+/// \param b input element
+/// \return a*b % 16
+static inline ff_t mirath_ff_product(const ff_t a, const ff_t b) {
+    return mirath_ff_mult_table[a + 16 * b];
+}
+
+
+/// Full multiplication
+/// \return a*b \in \F_16 for all 64 nibbles in the
+static inline __m256i mirath_ff_mul_full_u256(const __m256i a,
+                                              const __m256i _b) {
+    const __m256i mask_lvl2 = _mm256_load_si256((__m256i const *) (mirath_ff_mulbase +   32));
+    const __m256i mask_lvl3 = _mm256_load_si256((__m256i const *) (mirath_ff_mulbase + 32*2));
+    const __m256i mask_lvl4 = _mm256_load_si256((__m256i const *) (mirath_ff_mulbase + 32*3));
+    const __m256i zero = _mm256_setzero_si256();
+    const __m256i mask1 = _mm256_set1_epi8(0x0F);
+
+    const __m256i b = _b & mask1;
+    const __m256i b2 = _mm256_srli_epi16(_b, 4) & mask1;
+    __m256i low_lookup  = b;
+    __m256i high_lookup = _mm256_slli_epi16(b2, 4);
+    __m256i tmp1l = _mm256_slli_epi16(a, 7);
+    __m256i tmp2h = _mm256_slli_epi16(a, 3);
+    __m256i tmp_mul_0_1 = _mm256_blendv_epi8(zero, low_lookup , tmp1l);
+    __m256i tmp_mul_0_2 = _mm256_blendv_epi8(zero, high_lookup, tmp2h);
+    __m256i tmp = _mm256_xor_si256(tmp_mul_0_1, tmp_mul_0_2);
+    __m256i tmp1;
+
+    /// 1
+    low_lookup = _mm256_shuffle_epi8(mask_lvl2, b);
+    high_lookup = _mm256_slli_epi16(_mm256_shuffle_epi8(mask_lvl2, b2), 4);
+    tmp1l = _mm256_slli_epi16(a, 6);
+    tmp2h = _mm256_slli_epi16(a, 2);
+    tmp_mul_0_1 = _mm256_blendv_epi8(zero, low_lookup , tmp1l);
+    tmp_mul_0_2 = _mm256_blendv_epi8(zero, high_lookup, tmp2h);
+    tmp1 = _mm256_xor_si256(tmp_mul_0_1, tmp_mul_0_2);
+    tmp  = _mm256_xor_si256(tmp, tmp1);
+
+    /// 2
+    low_lookup = _mm256_shuffle_epi8(mask_lvl3, b);
+    high_lookup = _mm256_slli_epi16(_mm256_shuffle_epi8(mask_lvl3, b2), 4);
+    tmp1l = _mm256_slli_epi16(a, 5);
+    tmp2h = _mm256_slli_epi16(a, 1);
+    tmp_mul_0_1 = _mm256_blendv_epi8(zero, low_lookup , tmp1l);
+    tmp_mul_0_2 = _mm256_blendv_epi8(zero, high_lookup, tmp2h);
+    tmp1 = _mm256_xor_si256(tmp_mul_0_1, tmp_mul_0_2);
+    tmp  = _mm256_xor_si256(tmp, tmp1);
+
+    /// 3
+    low_lookup = _mm256_shuffle_epi8(mask_lvl4, b);
+    high_lookup = _mm256_slli_epi16(_mm256_shuffle_epi8(mask_lvl4, b2), 4);
+    tmp1l = _mm256_slli_epi16(a, 4);
+    tmp_mul_0_1 = _mm256_blendv_epi8(zero, low_lookup , tmp1l);
+    tmp_mul_0_2 = _mm256_blendv_epi8(zero, high_lookup, a );
+    tmp1 = _mm256_xor_si256(tmp_mul_0_1, tmp_mul_0_2);
+    tmp  = _mm256_xor_si256(tmp, tmp1);
+    return tmp;
+}
+
+/// NOTE: assumes that in every byte the two nibbles are the same in b
+/// \return a*b \in \F_16 for all 64 nibbles in the
+static inline __m256i mirath_ff_mul_u256(const __m256i a,
+                                         const __m256i b) {
+    const __m256i mask_lvl2 = _mm256_load_si256((__m256i const *) (mirath_ff_mulbase +   32));
+    const __m256i mask_lvl3 = _mm256_load_si256((__m256i const *) (mirath_ff_mulbase + 32*2));
+    const __m256i mask_lvl4 = _mm256_load_si256((__m256i const *) (mirath_ff_mulbase + 32*3));
+    const __m256i zero = _mm256_setzero_si256();
+
+    __m256i low_lookup = b;
+    __m256i high_lookup = _mm256_slli_epi16(low_lookup, 4);
+    __m256i tmp1l = _mm256_slli_epi16(a, 7);
+    __m256i tmp2h = _mm256_slli_epi16(a, 3);
+    __m256i tmp_mul_0_1 = _mm256_blendv_epi8(zero, low_lookup , tmp1l);
+    __m256i tmp_mul_0_2 = _mm256_blendv_epi8(zero, high_lookup, tmp2h);
+    __m256i tmp = _mm256_xor_si256(tmp_mul_0_1, tmp_mul_0_2);
+    __m256i tmp1;
+
+    /// 1
+    low_lookup = _mm256_shuffle_epi8(mask_lvl2, b);
+    high_lookup = _mm256_slli_epi16(low_lookup, 4);
+    tmp1l = _mm256_slli_epi16(a, 6);
+    tmp2h = _mm256_slli_epi16(a, 2);
+    tmp_mul_0_1 = _mm256_blendv_epi8(zero, low_lookup , tmp1l);
+    tmp_mul_0_2 = _mm256_blendv_epi8(zero, high_lookup, tmp2h);
+    tmp1 = _mm256_xor_si256(tmp_mul_0_1, tmp_mul_0_2);
+    tmp  = _mm256_xor_si256(tmp, tmp1);
+
+    /// 2
+    low_lookup = _mm256_shuffle_epi8(mask_lvl3, b);
+    high_lookup = _mm256_slli_epi16(low_lookup, 4);
+    tmp1l = _mm256_slli_epi16(a, 5);
+    tmp2h = _mm256_slli_epi16(a, 1);
+    tmp_mul_0_1 = _mm256_blendv_epi8(zero, low_lookup , tmp1l);
+    tmp_mul_0_2 = _mm256_blendv_epi8(zero, high_lookup, tmp2h);
+    tmp1 = _mm256_xor_si256(tmp_mul_0_1, tmp_mul_0_2);
+    tmp  = _mm256_xor_si256(tmp, tmp1);
+
+    /// 3
+    low_lookup = _mm256_shuffle_epi8(mask_lvl4, b);
+    high_lookup = _mm256_slli_epi16(low_lookup, 4);
+    tmp1l = _mm256_slli_epi16(a, 4);
+    tmp_mul_0_1 = _mm256_blendv_epi8(zero, low_lookup , tmp1l);
+    tmp_mul_0_2 = _mm256_blendv_epi8(zero, high_lookup, a );
+    tmp1 = _mm256_xor_si256(tmp_mul_0_1, tmp_mul_0_2);
+    tmp  = _mm256_xor_si256(tmp, tmp1);
+    return tmp;
+}
+#endif

@@ -72,10 +72,12 @@ static void sig_perk_verify_gen_instance_commitments(perk_instance_t *instance, 
         sig_perk_hash_init(&state, salt, &tau, &idx);
         sig_perk_hash_update(&state, pi_1_bytes, PARAM_N1);
         sig_perk_hash_update(&state, instance->theta_tree[THETA_SEEDS_OFFSET], sizeof(theta_t));
-        sig_perk_hash_final(&state, instance->cmt_1_i[0], H0);
+        // Commitments are stored in reverse order: from element (PARAM_N-1) down to element 0.
+        sig_perk_hash_final(&state, instance->cmt_1_i[PARAM_N - 1], H0);
     }
     // copy cmt_1_alpha
-    memcpy(instance->cmt_1_i[challenge.alpha - 1], (uint8_t *)response->cmt_1_alpha, sizeof(cmt_t));
+    // Commitments are stored in reverse order: from element (PARAM_N-1) down to element 0.
+    memcpy(instance->cmt_1_i[(PARAM_N - 1) - (challenge.alpha - 1)], (uint8_t *)response->cmt_1_alpha, sizeof(cmt_t));
 }
 
 /**
@@ -128,8 +130,10 @@ static void sig_perk_verify_compute_h1(digest_t h1, sig_perk_hash_state_t *saved
     sig_perk_hash_update(&hash_state, pk_bytes, PUBLIC_KEY_BYTES);
     memcpy(saved_state, &hash_state, sizeof(hash_state));
     for (int i = 0; i < PARAM_TAU; ++i) {
-        sig_perk_hash_update(&hash_state, (uint8_t *)instances[i].cmt_1, sizeof(cmt_t));
+        // absorb cmt_1_N to cmt_1_1
+        // Commitments are stored in reverse order: from element (PARAM_N-1) down to element 0.
         sig_perk_hash_update(&hash_state, (uint8_t *)instances[i].cmt_1_i, sizeof(cmt_t) * PARAM_N);
+        sig_perk_hash_update(&hash_state, (uint8_t *)instances[i].cmt_1, sizeof(cmt_t));
     }
     sig_perk_hash_final(&hash_state, h1, H1);
 }
@@ -155,6 +159,7 @@ int sig_perk_verify(perk_signature_t *signature, const challenge_t challenge[PAR
                     const uint64_t message_length, const uint8_t *pk_bytes) {
     perk_public_key_t public_key = {0};
     perk_instance_t instances[PARAM_TAU] = {0};
+    perk_instance_t_array_init(instances, PARAM_TAU);
     digest_t h1_prime, h2_prime;
     sig_perk_hash_state_t saved_state;
 

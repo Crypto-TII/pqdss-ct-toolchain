@@ -4,10 +4,10 @@ TOOLS_FLAGS :=
 TOOL_LINK_LIBS :=
 CTTEST_LIB_CFLAGS :=
 
-CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-all-loops -march=native -Wimplicit-function-declaration -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes -Wundef -Wshadow -Wno-newline-eof \
+CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-loops -march=native -Wimplicit-function-declaration -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes -Wundef -Wshadow -Wno-newline-eof \
                   -mavx2 -mpclmul -msse4.2 -maes -fPIC $(TOOLS_FLAGS)
 ASMFLAGS := -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1
-LDFLAGS:= -lcrypto
+LDFLAGS:= -lcrypto -lgmp
 ADDITIONAL_CFLAGS:= -Wno-missing-prototypes -Wno-sign-compare -Wno-unused-but-set-variable -Wno-unused-parameter
 
 # Directories

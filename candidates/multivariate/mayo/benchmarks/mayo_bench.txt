@@ -1,0 +1,144 @@
+Candidate: mayo
+Security Level: lvl1
+Instance: mayo_1
+Algorithm: Keygen:
+Average running time (million cycles): 	   0.918
+Standard deviation (million cycles): 	   0.274
+Minimum running time (million cycles): 	   0.679
+First quartile (million cycles): 	 	   0.702
+Median (million cycles):    	 	   0.831
+Third quartile (million cycles): 	   1.061
+Maximum running time (million cycles): 	   2.937
+Public key size (bytes): 	 1420
+Signature size (bytes): 	 454
+Signature size + PK Size (bytes): 	 1874
+Message size (bytes): 	 32
+
+Candidate: mayo
+Security Level: lvl1
+Instance: mayo_1
+Algorithm: Sign:
+Average running time (million cycles): 	   2.626
+Standard deviation (million cycles): 	   0.843
+Minimum running time (million cycles): 	   1.948
+First quartile (million cycles): 	   2.142
+Median (million cycles): 	   2.218
+Third quartile (million cycles): 	   2.756
+Maximum running time (million cycles): 	  10.990
+Public key size (bytes): 	 1420
+Signature size (bytes): 	 454
+Signature size + PK Size (bytes): 	 1874
+Message size (bytes): 	 32
+
+Candidate: mayo
+Security Level: lvl1
+Instance: mayo_1
+Algorithm: Verify:
+Average running time (million cycles): 	   0.380
+Standard deviation (million cycles): 	   0.057
+Minimum running time (million cycles): 	   0.347
+First quartile (million cycles): 	   0.351
+Median (million cycles): 	   0.354
+Third quartile (million cycles): 	   0.380
+Maximum running time (million cycles): 	   0.926
+Public key size (bytes): 	 1420
+Signature size (bytes): 	 454
+Signature size + PK Size (bytes): 	 1874
+Message size (bytes): 	 32
+
+Candidate: mayo
+Security Level: lvl3
+Instance: mayo_3
+Algorithm: Keygen:
+Average running time (million cycles): 	   2.403
+Standard deviation (million cycles): 	   0.457
+Minimum running time (million cycles): 	   2.079
+First quartile (million cycles): 	 	   2.155
+Median (million cycles):    	 	   2.210
+Third quartile (million cycles): 	   2.442
+Maximum running time (million cycles): 	   8.436
+Public key size (bytes): 	 2986
+Signature size (bytes): 	 681
+Signature size + PK Size (bytes): 	 3667
+Message size (bytes): 	 32
+
+Candidate: mayo
+Security Level: lvl3
+Instance: mayo_3
+Algorithm: Sign:
+Average running time (million cycles): 	   7.495
+Standard deviation (million cycles): 	   0.708
+Minimum running time (million cycles): 	   6.984
+First quartile (million cycles): 	   7.166
+Median (million cycles): 	   7.213
+Third quartile (million cycles): 	   7.461
+Maximum running time (million cycles): 	  13.859
+Public key size (bytes): 	 2986
+Signature size (bytes): 	 681
+Signature size + PK Size (bytes): 	 3667
+Message size (bytes): 	 32
+
+Candidate: mayo
+Security Level: lvl3
+Instance: mayo_3
+Algorithm: Verify:
+Average running time (million cycles): 	   0.902
+Standard deviation (million cycles): 	   0.074
+Minimum running time (million cycles): 	   0.849
+First quartile (million cycles): 	   0.858
+Median (million cycles): 	   0.869
+Third quartile (million cycles): 	   0.924
+Maximum running time (million cycles): 	   2.076
+Public key size (bytes): 	 2986
+Signature size (bytes): 	 681
+Signature size + PK Size (bytes): 	 3667
+Message size (bytes): 	 32
+
+Candidate: mayo
+Security Level: lvl5
+Instance: mayo_5
+Algorithm: Keygen:
+Average running time (million cycles): 	   5.523
+Standard deviation (million cycles): 	   0.431
+Minimum running time (million cycles): 	   5.263
+First quartile (million cycles): 	 	   5.317
+Median (million cycles):    	 	   5.353
+Third quartile (million cycles): 	   5.519
+Maximum running time (million cycles): 	  13.304
+Public key size (bytes): 	 5554
+Signature size (bytes): 	 964
+Signature size + PK Size (bytes): 	 6518
+Message size (bytes): 	 32
+
+Candidate: mayo
+Security Level: lvl5
+Instance: mayo_5
+Algorithm: Sign:
+Average running time (million cycles): 	  15.294
+Standard deviation (million cycles): 	   1.309
+Minimum running time (million cycles): 	  14.199
+First quartile (million cycles): 	  14.608
+Median (million cycles): 	  14.706
+Third quartile (million cycles): 	  15.478
+Maximum running time (million cycles): 	  29.767
+Public key size (bytes): 	 5554
+Signature size (bytes): 	 964
+Signature size + PK Size (bytes): 	 6518
+Message size (bytes): 	 32
+
+Candidate: mayo
+Security Level: lvl5
+Instance: mayo_5
+Algorithm: Verify:
+Average running time (million cycles): 	   1.690
+Standard deviation (million cycles): 	   0.351
+Minimum running time (million cycles): 	   1.542
+First quartile (million cycles): 	   1.583
+Median (million cycles): 	   1.635
+Third quartile (million cycles): 	   1.659
+Maximum running time (million cycles): 	   6.774
+Public key size (bytes): 	 5554
+Signature size (bytes): 	 964
+Signature size + PK Size (bytes): 	 6518
+Message size (bytes): 	 32
+

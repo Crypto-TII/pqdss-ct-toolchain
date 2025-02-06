@@ -56,6 +56,7 @@ void sig_perk_gen_vect_v(vect1_t o, perm_t *pi_i, vect1_t *v_i, const perm_t pi)
     sig_perk_vect1_add(o, o, v_i[PARAM_N - 1]);
 }
 
+// Commitments are stored in reverse order: from element (PARAM_N-1) down to element 0.
 void sig_perk_gen_commitment_cmt_1_i(perk_instance_t *instance, salt_t salt, uint8_t tau) {
     for (int i = 0; i < PARAM_N; ++i) {
         sig_perk_hash_state_t state;
@@ -68,11 +69,11 @@ void sig_perk_gen_commitment_cmt_1_i(perk_instance_t *instance, salt_t salt, uin
             sig_perk_hash_init(&state, salt, &tau, &idx);
             sig_perk_hash_update(&state, pi_1_bytes, PARAM_N1);
             sig_perk_hash_update(&state, instance->theta_tree[THETA_SEEDS_OFFSET], sizeof(theta_t));
-            sig_perk_hash_final(&state, instance->cmt_1_i[0], H0);
+            sig_perk_hash_final(&state, instance->cmt_1_i[PARAM_N - 1], H0);
         } else {
             sig_perk_hash_init(&state, salt, &tau, &idx);
             sig_perk_hash_update(&state, instance->theta_tree[THETA_SEEDS_OFFSET + i], sizeof(theta_t));
-            sig_perk_hash_final(&state, instance->cmt_1_i[i], H0);
+            sig_perk_hash_final(&state, instance->cmt_1_i[(PARAM_N - 1) - i], H0);
         }
     }
 }

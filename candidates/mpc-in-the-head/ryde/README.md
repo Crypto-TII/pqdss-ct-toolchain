@@ -17,6 +17,7 @@
 |                  - Thibauld FENEUIL                                         |
 |                  - Philippe GABORIT                                         |
 |                  - Antoine JOUX                                             |
+|                  - Romaric NEVEU                                            |
 |                  - Matthieu RIVAIN                                          |
 |                  - Jean-Pierre TILLICH                                      |
 |                  - Adrien VINÇOTTE                                          |

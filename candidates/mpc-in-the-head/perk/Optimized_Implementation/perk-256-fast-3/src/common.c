@@ -109,6 +109,7 @@ void sig_perk_gen_vect_v(vect1_t o, perm_t *pi_i, vect1_t *v_i, const perm_t pi)
     sig_perk_vect1_add(o, o, v_i[PARAM_N - 1]);
 }
 
+// Commitments are stored in reverse order: from element (PARAM_N-1) down to element 0.
 void sig_perk_gen_commitment_cmt_1_i(perk_instance_t *instance, salt_t salt, uint8_t tau) {
     uint8_t *cmt_i_times4[4];
     for (int i = 0; i < PARAM_N / 4; ++i) {
@@ -127,15 +128,15 @@ void sig_perk_gen_commitment_cmt_1_i(perk_instance_t *instance, salt_t salt, uin
             sig_perk_hash_init(&state, salt, &tau, &idx4[0]);
             sig_perk_hash_update(&state, pi_1_bytes, PARAM_N1);
             sig_perk_hash_update(&state, instance->theta_tree[THETA_SEEDS_OFFSET], sizeof(theta_t));
-            sig_perk_hash_final(&state, instance->cmt_1_i[0], H0);
-            // avoid to clobber cmt_i[0] - implies PARAM_N >= 8
-            cmt_i_times4[0] = instance->cmt_1_i[4];
+            sig_perk_hash_final(&state, instance->cmt_1_i[PARAM_N - 1], H0);
+            // avoid to clobber cmt_i[PARAM_N - 1] - implies PARAM_N >= 8
+            cmt_i_times4[0] = instance->cmt_1_i[(PARAM_N - 1) - 4];
         } else {
-            cmt_i_times4[0] = instance->cmt_1_i[i * 4 + 0];
+            cmt_i_times4[0] = instance->cmt_1_i[(PARAM_N - 1) - (i * 4 + 0)];
         }
-        cmt_i_times4[1] = instance->cmt_1_i[i * 4 + 1];
-        cmt_i_times4[2] = instance->cmt_1_i[i * 4 + 2];
-        cmt_i_times4[3] = instance->cmt_1_i[i * 4 + 3];
+        cmt_i_times4[1] = instance->cmt_1_i[(PARAM_N - 1) - (i * 4 + 1)];
+        cmt_i_times4[2] = instance->cmt_1_i[(PARAM_N - 1) - (i * 4 + 2)];
+        cmt_i_times4[3] = instance->cmt_1_i[(PARAM_N - 1) - (i * 4 + 3)];
 
         sig_perk_hash_times4_init(&state4, salt, tau4, idx4);
         sig_perk_hash_times4_update(&state4, theta_i_times4, sizeof(theta_t));

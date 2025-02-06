@@ -4,12 +4,11 @@ TOOLS_FLAGS :=
 TOOL_LINK_LIBS :=
 CTTEST_LIB_CFLAGS :=
 
-CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-all-loops -march=native -Wimplicit-function-declaration -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes -Wundef -Wshadow -Wno-newline-eof \
+CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-loops -march=native -Wimplicit-function-declaration -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes -Wundef -Wshadow -Wno-newline-eof \
                   -mavx2 -mpclmul -msse4.2 -maes -fPIC $(TOOLS_FLAGS)
 ASMFLAGS := -x assembler-with-cpp -Wa,-defsym,old_gas_syntax=1 -Wa,-defsym,no_plt=1
-LDFLAGS:= -lcrypto
+LDFLAGS:= -lcrypto -lgmp
 ADDITIONAL_CFLAGS:= -Wno-missing-prototypes -Wno-sign-compare -Wno-unused-but-set-variable -Wno-unused-parameter
-
 
 # Directories
 BUILD_DIR:=build
@@ -46,13 +45,9 @@ LIB_OBJS:=$(LIB_COBJS) $(LIB_SOBJS) $(SORT_COBJS)
 LIB_INCLUDE:=-I $(LIB_DIR)/cryptocode -I $(LIB_DIR)/XKCP -I $(LIB_DIR)/randombytes -I $(LIB_DIR)/djbsort
 PERK_INCLUDE:=-I $(SRC_DIR) $(LIB_INCLUDE)
 
-
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
 CTTEST_LIB_CFLAGS = $(CFLAGS)
-
-# -Wl,-rpath='$ORIGIN'
-# -Wl,-soname
 
 .PHONY: all
 all: perk-128-fast-3 perk-128-fast-3-verbose perk-128-fast-3-kat $(CTTEST_LIB)
@@ -62,7 +57,6 @@ $(CTTEST_LIB): $(PERK_OBJS) $(LIB_OBJS)
 	mkdir -p $(BUILD_CTLIB)
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) $(PERK_OBJS) $(LIB_OBJS) $(CFLAGS) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LDFLAGS) $(TOOL_LINK_LIBS)
-
 
 # build rules
 $(LIB_COBJS): $(BUILD_DIR)/%.o: %.c

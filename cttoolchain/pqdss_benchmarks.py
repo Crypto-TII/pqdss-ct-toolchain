@@ -1456,9 +1456,30 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
                                     min_msg_len: Union[str, int] = '0', max_msg_len: Union[str, int] = '3300',
                                     security_level: Union[str, list] = '128',
                                     binary_format: Optional[Union[str, list, dict]] = None, *args, **kwargs):
-    # expanded_kwargs_list = []
-    # expanded_kwargs = {}
-    if candidate == 'snova':
+    if candidate == 'mirath':
+        cwd = os.getcwd()
+        path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
+        abs_path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+        default_instance_updated = default_instance
+        if instances:
+            for instance in instances:
+                abs_path_to_candidate_makefile_cmake = abs_path_to_candidate_makefile_cmake.replace(default_instance_updated, instance)
+                os.chdir(abs_path_to_candidate_makefile_cmake)
+                makefile = 'Makefile'
+                set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := /g' {makefile}"]
+                subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+                set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS := .*$/TOOL_LINK_LIBS := /g' {makefile}"]
+                subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+                make_clean = ["make", "clean"]
+                subprocess.call(make_clean, stdin=sys.stdin)
+                cmd = f'make custom_bench '
+                subprocess.call(cmd.split(), stdin=sys.stdin)
+                default_instance_updated = instance
+                abs_path_to_candidate_makefile_cmake = os.getcwd()
+                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+        os.chdir(cwd)
+
+    elif candidate == 'snova':
         cwd = os.getcwd()
         os.chdir(path_to_candidate_makefile_cmake)
         makefile = 'Makefile'

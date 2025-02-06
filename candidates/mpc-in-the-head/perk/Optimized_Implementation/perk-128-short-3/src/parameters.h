@@ -22,7 +22,10 @@
 #define PARAM_N_MASK ((1U << THETA_TREE_LEVELS) - 1) /**< Mask for bits representing PARAM_N */
 #define PARAM_Q_MASK ((1U << PARAM_Q_BITS) - 1)      /**< Mask for bits representing PARAM_Q */
 
-#define PARAM_N1_BITSx2 13 /**< Bits needed to store two permutation coefficients */
+#define PARAM_RANK_UNRANK_K         7   /**< Parameter for rank/unrank compression - log2(PARAM_N1) */
+#define PARAM_PERM_COMPRESSION_BITS 389 /**< Bits needed for Lehemr compression - log2(PARAM_N1!)  */
+#define PARAM_PERM_COMPRESSION_BYTES \
+    (((PARAM_PERM_COMPRESSION_BITS - 1) / 8) + 1) /**< Bytes needed for Lehemr compression */
 
 #define SEED_BYTES       SECURITY_BYTES       /**< Seed size used in the scheme */
 #define SALT_BYTES       (2 * SECURITY_BYTES) /**< Salt size used in the scheme */
@@ -35,7 +38,7 @@
 #define SIGNATURE_BYTES                                                                                      \
     (SALT_BYTES + (2 * COMMITMENT_BYTES) + (COMMITMENT_BYTES + SEED_BYTES * THETA_TREE_LEVELS) * PARAM_TAU + \
      ((PARAM_TAU * PARAM_N1 * PARAM_Q_BITS + 7) / 8) +                                                       \
-     ((PARAM_TAU * PARAM_N1 * PARAM_N1_BITSx2 / 2 + 7) / 8)) /**< Signature size */
+     (PARAM_PERM_COMPRESSION_BYTES * PARAM_TAU)) /**< Signature size */
 
 #define EXIT_FAILURE 1 /**< Exit code in case of failure */
 #define EXIT_SUCCESS 0 /**< Exit code in case of success */

@@ -63,8 +63,10 @@ void sig_perk_gen_first_challenge(challenge_t challenge[PARAM_TAU], sig_perk_has
     sig_perk_hash_update(&hash_state, pk_bytes, PUBLIC_KEY_BYTES);
     memcpy(saved_state, &hash_state, sizeof(hash_state));
     for (int i = 0; i < PARAM_TAU; ++i) {
-        sig_perk_hash_update(&hash_state, (uint8_t *)instances[i].cmt_1, sizeof(cmt_t));
+        // absorb cmt_1_N to cmt_1_1
+        // Commitments are stored in reverse order: from element (PARAM_N-1) down to element 0.
         sig_perk_hash_update(&hash_state, (uint8_t *)instances[i].cmt_1_i, sizeof(cmt_t) * PARAM_N);
+        sig_perk_hash_update(&hash_state, (uint8_t *)instances[i].cmt_1, sizeof(cmt_t));
     }
     sig_perk_hash_final(&hash_state, h1, H1);
 
@@ -147,7 +149,8 @@ static void sig_perk_gen_second_response(perk_signature_t *signature, const chal
             }
         }
         sig_perk_get_theta_partial_tree_seeds(signature->responses[i].z2_theta, instances[i].theta_tree, alpha - 1);
-        memcpy(signature->responses[i].cmt_1_alpha, instances[i].cmt_1_i[alpha - 1], sizeof(cmt_t));
+        // Commitments are stored in reverse order: from element (PARAM_N-1) down to element 0.
+        memcpy(signature->responses[i].cmt_1_alpha, instances[i].cmt_1_i[(PARAM_N - 1) - (alpha - 1)], sizeof(cmt_t));
     }
 }
 
@@ -155,6 +158,7 @@ uint8_t sig_perk_sign(perk_signature_t *signature, const perk_private_key_t *sk,
                       const uint64_t message_length) {
     perk_public_key_t pk;
     perk_instance_t instances[PARAM_TAU] = {0};
+    perk_instance_t_array_init(instances, PARAM_TAU);
     challenge_t challenges[PARAM_TAU] = {0};
     sig_perk_hash_state_t saved_state;  // stores a copy of the Keccak state ofter absorbing m, pk_bytes and com1
 

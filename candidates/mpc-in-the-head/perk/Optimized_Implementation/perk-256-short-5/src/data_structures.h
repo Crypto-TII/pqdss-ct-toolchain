@@ -61,22 +61,36 @@ typedef struct {
  *  @var perk_instance_t::pi_i
  *  Member 'pi_i' is a permutation
  *  @var perk_instance_t::v_i
- *  Member 'v_i' is an array of vectors
+ *  Member 'v_i' is a pointer to the second element of the s_i array. v_i shares the memory with s_i
  *  @var perk_instance_t::s_i
  *  Member 's_i' is an array of vectors
  *  @var perk_instance_t::cmt_1_i
- *  Member 'cmt_1_i' is an array of commitments
+ *  Member 'cmt_1_i' is an array of commitments. Commitments are stored in reverse order: from element (PARAM_N-1) down
+ *  to element 0.
  *  @var perk_instance_t::cmt_1
  *  Member 'cmt_1' is a commitment
  */
 typedef struct {
     perk_theta_seeds_tree_t theta_tree;
     perm_t pi_i[PARAM_N];
-    vect1_t v_i[PARAM_N];
+    // v_i shares the same memory with s_i. The pointer must be initialized to s_i + 1;
+    vect1_t *v_i;
     vect1_t s_i[PARAM_N + 1];
     cmt_t cmt_1_i[PARAM_N];
     cmt_t cmt_1;
 } perk_instance_t;
+
+/**
+ * @brief initialize an array of "perk_instance_t" elements
+ *
+ * @param [out,in] instances array of perk_instance_t elements
+ * @param [in]     elements number of elements to be initialized
+ */
+static inline void perk_instance_t_array_init(perk_instance_t *instances, const int elements) {
+    for (int i = 0; i < elements; i++) {
+        instances[i].v_i = &(instances[i].s_i[1]);
+    }
+}
 
 /** @struct perk_response_t
  *  @brief This structure contains the response

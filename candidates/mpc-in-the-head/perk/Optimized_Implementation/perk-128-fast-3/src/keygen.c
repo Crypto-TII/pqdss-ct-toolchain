@@ -11,6 +11,7 @@
 #include "parameters.h"
 #include "parsing.h"
 #include "rng.h"
+#include "symmetric.h"
 #include "verbose.h"
 
 uint8_t sig_perk_generate_keypair(perk_public_key_t *pk, perk_private_key_t *sk) {
@@ -22,10 +23,14 @@ uint8_t sig_perk_generate_keypair(perk_public_key_t *pk, perk_private_key_t *sk)
     // sample private key
     sig_perk_perm_set_random(sk->pi, sk->seed);
 
-    // sample public matrix H
-    sig_perk_mat_set_random(pk->H, pk->seed);
-    // sample public vector x
-    sig_perk_vect1_set_random_list(pk->x, pk->seed);
+    sig_perk_prg_state_t prg;
+    // initialize prg
+    sig_perk_prg_init(&prg, PRG1, NULL, pk->seed);
+
+    // Generate H and x
+    sig_perk_mat_set_random(pk->H, &prg);
+    sig_perk_vect1_set_random_list(pk->x, &prg);
+
     // compute y
     for (int i = 0; i < PARAM_T; i++) {
         // compute tmp = pi(x)

@@ -99,25 +99,4 @@ void sig_perk_perm_compose_set(perm_t o, perm_t *pi_i, const int nb_permutations
  */
 void sig_perk_perm_gen_pi_1(perm_t *pi_i, const perm_t pi);
 
-/**
- * @brief check the permutation to be valid:
- *        - coefficients < PARAM_N1
- *        - no coefficient duplicates
- *
- * @param p input permutation  to be checked
- * @return int
- */
-static inline int sig_perk_permutation_not_valid(const perm_t p) {
-    uint8_t c[sizeof(perm_t) / sizeof(**((perm_t *)0))] = {0};
-
-    for (unsigned i = 0; i < sizeof(c); i++) {
-        if (p[i] >= sizeof(c))
-            return 1;
-        if (c[p[i]])
-            return 1;
-        c[p[i]] = 1;
-    }
-    return 0;
-}
-
 #endif

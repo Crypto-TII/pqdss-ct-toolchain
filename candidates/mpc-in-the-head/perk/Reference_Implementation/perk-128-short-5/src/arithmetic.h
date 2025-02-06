@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include "parameters.h"
+#include "symmetric.h"
 
 #define SHBIT16 25
 #define SHBIT32 41
@@ -104,9 +105,9 @@ int sig_perk_vect1_compute_rank(vect1_t x[PARAM_T]);
  * @brief Sample uniformly at random a list of PARAM_T vect1_t vectors in Fq
  *
  * @param [out] output an array of vectors vect1_t containing the result
- * @param [in] seed a seed
+ * @param [out,in] prg PRG state to squeeze
  */
-void sig_perk_vect1_set_random_list(vect1_t output[PARAM_T], const uint8_t seed[SEED_BYTES]);
+void sig_perk_vect1_set_random_list(vect1_t output[PARAM_T], sig_perk_prg_state_t *prg);
 
 /**
  * @brief Add in Fq two vect2_t vectors
@@ -139,9 +140,9 @@ void sig_perk_vect2_mult_scalar_vect(vect2_t output, const uint16_t scalar, cons
  * @brief Generate a (PARAM_M x PARAM_N1) random matrix in Fq
  *
  * @param [out] m_output a matrix
- * @param [in] seed a seed used to initialize a PRNG
+ * @param [out,in] prg PRG state to squeeze
  */
-void sig_perk_mat_set_random(mat_t m_output, const uint8_t seed[SEED_BYTES]);
+void sig_perk_mat_set_random(mat_t m_output, sig_perk_prg_state_t *prg);
 
 /**
  * @brief Compute a matrix vector multiplication in Fq

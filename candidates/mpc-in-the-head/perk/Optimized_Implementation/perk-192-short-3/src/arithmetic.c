@@ -86,17 +86,14 @@ void sig_perk_vect1_mult_scalar_vect(vect1_t output, const uint16_t scalar, cons
     }
 }
 
-void sig_perk_vect1_set_random_list(vect1_t output[PARAM_T], const uint8_t seed[SEED_BYTES]) {
-    sig_perk_prg_state_t prg;
+void sig_perk_vect1_set_random_list(vect1_t output[PARAM_T], sig_perk_prg_state_t *prg) {
     uint16_t rnd_buff[PRNG_BLOCK_SIZE / 2];
-    // initialize prg
-    sig_perk_prg_init(&prg, PRG1, NULL, seed);
     // generate randomness
     int i = 0, rank;
     do {
         while (i < PARAM_N1 * PARAM_T) {
             int j = 0;
-            sig_perk_prg(&prg, (uint8_t *)rnd_buff, sizeof(rnd_buff));
+            sig_perk_prg(prg, (uint8_t *)rnd_buff, sizeof(rnd_buff));
             while ((i < PARAM_N1 * PARAM_T) && (j < PRNG_BLOCK_SIZE / 2)) {
                 output[i / PARAM_N1][i % PARAM_N1] = PARAM_Q_MASK & rnd_buff[j++];
                 if (output[i / PARAM_N1][i % PARAM_N1] < PARAM_Q) {  // accept the sample
@@ -128,16 +125,13 @@ void sig_perk_vect2_mult_scalar_vect(vect2_t output, const uint16_t scalar, cons
     }
 }
 
-void sig_perk_mat_set_random(mat_t m_output, const uint8_t seed[SEED_BYTES]) {
-    sig_perk_prg_state_t prg;
+void sig_perk_mat_set_random(mat_t m_output, sig_perk_prg_state_t *prg) {
     uint16_t rnd_buff[PRNG_BLOCK_SIZE / 2];
-    // initialize prg
-    sig_perk_prg_init(&prg, PRG1, NULL, seed);
     // generate randomness
     int j = 0;
     while (j < PARAM_M * PARAM_N1) {
         int k = 0;
-        sig_perk_prg(&prg, (uint8_t *)rnd_buff, sizeof(rnd_buff));
+        sig_perk_prg(prg, (uint8_t *)rnd_buff, sizeof(rnd_buff));
         while ((j < PARAM_M * PARAM_N1) && (k < PRNG_BLOCK_SIZE / 2)) {
             m_output[j / PARAM_N1][j % PARAM_N1] = PARAM_Q_MASK & rnd_buff[k++];
             if (m_output[j / PARAM_N1][j % PARAM_N1] < PARAM_Q) {  // accept the sample

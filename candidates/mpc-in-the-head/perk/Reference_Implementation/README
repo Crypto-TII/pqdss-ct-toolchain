@@ -28,7 +28,7 @@ folder is organized as follows:
 
 2.1 Requirements
 
-The following software and libraries are required: make and gcc.
+The following software and libraries are required: make, gcc and gmp (version >= 6.2.1).
 
 2.2 Compilation Step
 
@@ -45,8 +45,6 @@ different ways:
   generate KAT files.
 - Execute make perkX-verbose to compile a working example of the scheme in
   verbose mode. Run build/bin/perkX-verbose to generate intermediate values.
-- Some of parameters require more than 8 MBytes of stack (which is default stack in Linux) to run.
-  The command "ulimit -s 16384" maybe used to increase the available stack for the current shell session.
 - The valgrind tool must be run with the "--max-stackframe=33554432" option to avoid warnings concerning the stack.
 
 

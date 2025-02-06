@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-all-loops -march=native -Wimplicit-function-declaration -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes -Wundef -Wshadow -Wno-newline-eof
-LDFLAGS:= -lcrypto
+CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-loops -march=native -Wimplicit-function-declaration -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes -Wundef -Wshadow -Wno-newline-eof
+LDFLAGS:= -lcrypto -lgmp
 ADDITIONAL_CFLAGS:= -Wno-missing-prototypes -Wno-sign-compare -Wno-unused-but-set-variable -Wno-unused-parameter
 
 # Directories

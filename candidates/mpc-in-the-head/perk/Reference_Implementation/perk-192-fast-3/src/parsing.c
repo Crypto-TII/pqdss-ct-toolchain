@@ -10,6 +10,7 @@
 #include <string.h>
 #include "arithmetic.h"
 #include "data_structures.h"
+#include "symmetric.h"
 
 #if (PARAM_N1_BITSx2 == 14)
 /**
@@ -454,9 +455,13 @@ int sig_perk_public_key_from_bytes(perk_public_key_t* pk, const uint8_t pk_bytes
         pk->y[i / PARAM_M][i % PARAM_M] = y;
     }
 
+    sig_perk_prg_state_t prg;
+    // initialize prg
+    sig_perk_prg_init(&prg, PRG1, NULL, pk->seed);
+
     // Generate H and x
-    sig_perk_mat_set_random(pk->H, pk->seed);
-    sig_perk_vect1_set_random_list(pk->x, pk->seed);
+    sig_perk_mat_set_random(pk->H, &prg);
+    sig_perk_vect1_set_random_list(pk->x, &prg);
 
     return EXIT_SUCCESS;
 }
@@ -568,6 +573,7 @@ int sig_perk_signature_from_bytes(perk_signature_t* signature, const uint8_t sb[
     sb += ((PARAM_TAU * PARAM_N1 * PARAM_Q_BITS + 7) / 8) - 1;
 
     // cppcheck-suppress knownConditionTrueFalse
+    // cppcheck-suppress unmatchedSuppression
     if (sb[0] & z1_unused_mask) {
         // unused bits after the z1 != 0
         return EXIT_FAILURE;
@@ -584,6 +590,8 @@ int sig_perk_signature_from_bytes(perk_signature_t* signature, const uint8_t sb[
     }
     sb += ((PARAM_TAU * PARAM_N1 * PARAM_N1_BITSx2 / 2 + 7) / 8) - 1;
 
+    // cppcheck-suppress knownConditionTrueFalse
+    // cppcheck-suppress unmatchedSuppression
     if (sb[0] & z2_p1_unused_mask) {
         // unused bits after the z2_pi != 0
         return EXIT_FAILURE;

@@ -1,0 +1,105 @@
+/*! \mainpage RYDE: a Digital Signature scheme
+ *
+ *  1. SUBMISSION OVERVIEW
+ *  ----------------------
+ *
+ *  Both reference implementation and optimized implementations provide the twelve parameter sets as detailed in the Algorithm Specifications from the Supporting Documentation: RYDE-<b>XY</b>-<b>Z</b> where
+ *
+ * - Security Level: <b>X</b> = <b>1</b>, <b>3</b>, or <b>5</b>.
+ * - Fast or Short: <b>Y</b> = <b>F</b> or <b>S</b>
+ * - Commit generation: <b>Z</b> = <b>Rijndael</b> or <b>SHA3</b>
+ *
+ * Each parameter set folder is organized as follows:
+ *
+ *  - <b>bin/</b>: Files generated during compilation
+ *  - <b>doc/</b>: Technical documentation of the scheme
+ *  - <b>lib/</b>: Third party libraries used
+ *  - <b>src/</b>: Source code of the scheme
+ *  - <b>doxygen.conf</b>: Documentation configuration file
+ *  - <b>Makefile</b>: Makefile
+ *
+ *  <br />
+ *
+ *  2. INSTALLATION INSTRUCTIONS
+ *  ----------------------------
+ *
+ *  The following pieces of software and libraries are required: gcc and openssl.
+ *
+ * RYDE-<b>XY</b>-<b>Z</b> can be compiled in four different ways:
+ *
+ * - Execute <b>make rydeXY-Z-main</b> to compile a working example of the scheme. Run <b>./bin/rydeXY-Z-main</b> to execute the scheme.
+ * - Execute make rydeXY-Z-bench to compile a benchmark of the scheme. Run <b>./bin/rydeXY-Z-bench</b> to execute the scheme.
+ * - Execute make <b>rydeXY-Z-kat</b> to compile the NIST KAT generator. Run <b>./bin/rydeXY-Z-kat</b> to generate KAT files.
+ * - Execute make <b>rydeXY-Z-verbose</b> to compile a working example of the scheme in verbose mode. Run <b>./bin/rydeXY-Z-verbose</b> to generate intermediate values.
+ *
+ *  During compilation, the following files are created inside the bin/build folder:
+ *
+ * - <b>randombytes.o</b>: NIST randombytes implementation
+ * - From XKCP project:
+ *   - <b>SimpleFIPS202.o</b>: SHAKE implementation
+ *   - <b>KeccakHash.o</b>: SHAKE/SHA3 implementation
+ *   - <b>KeccakSponge.o</b>: Sponge construction required in SHAKE/SHA3 implementation
+ * - <b>seedexpander.o</b>: SHAKE-based seed expander implementation
+ * - <b>rbc_elt.o</b>: Functions to manipulate finite fields elements.
+ * - <b>rbc_mat.o</b>: Functions to manipulate matrices.
+ * - <b>rbc_mat_fq.o</b>: Functions to manipulate binary matrices.
+ * - <b>rbc_vec.o</b>: Functions to manipulate vectors.
+ * - <b>rbc_vspace.o</b>: Functions to manipulate vector spaces.
+ * - <b>tcith-rijndael.o</b>: Functions to perform the Threshold-Computation-in-th-Head, using Rijndael-based commits.
+ * - <b>tcith-sha3.o</b>: Functions to perform the Threshold-Computation-in-th-Head, using SHA3-based commits.
+ * - <b>parsing.o</b>: Functions to parse public key, secret key and signature.
+ * - <b>ggm_tree.o</b>: Functions to construct GGM trees and partial GGM trees.
+ * - <b>keypair.o</b>: The RYDE key pair generation (including in verbose mode).
+ * - <b>signature.o</b>: The RYDE signing procedure (including in verbose mode).
+ * - <b>verification.o</b>: The RYDE verifying procedure (including in verbose mode).
+ * - <b>sign.o</b>: The RYDE signature scheme.
+ *
+ * <br />
+ *
+ *  3. DOCUMENTATION GENERATION
+ *  ---------------------------
+ *
+ *  The following softwares are required: <b>doxygen</b> and <b>bibtex</b>.
+ *
+ *  - Run <b>doxygen doxygen.conf</b> to generate the code documentation
+ *  - Browse <b>doc/html/index.html</b> to read the documentation
+ *
+ * <br />
+ *
+ *  4. ADDITIONAL INFORMATIONS
+ *  --------------------------
+ *
+ * The RYDE scheme is defined in the <b>api.h</b> and <b>parameters.h</b> files and implemented in <b>sign.c</b>.
+ *
+ * The files <b>rbc.h</b>, <b>rbc_elt.h</b>, <b>rbc_mat.h</b>, <b>rbc_mat_fq.h</b>, <b>rbc_vec.h</b>, <b>rbc_vspace.h</b>, <b>rbc_elt.c</b>, <b>rbc_mat.c</b>, <b>rbc_mat_fq.c</b>, <b>rbc_vec.c</b> and <b>rbc_vspace.c</b> implement the various operations over finite fields required by the scheme.
+ *
+ * The files <b>parsing.h</b> and <b>parsing.c</b> provide the functions to switch between byte arrays and mathematical representations of the public and secret key, and the signature.
+ *
+ * In the <b>src/wrapper</b> folder, the files <b>hash_fips202.h</b> and <b>seedexpander_shake.h</b>, <b>randombytes.h</b>, <b>randombytes.c</b>, along with the files in the XKCP folder (see the <b>lib/</b> folder), include SHAKE and SHA3 implementations as well as the NIST random functions.
+ *
+ * Finally, the files <b>rijndael_avx.h and <b>rijndael_ref.h integrate both <b>AES-128 and <b>Rijndael-256 implementations. In particular, the files
+ *
+ * - <b>seed_expand_functions_avx.h</b>
+ * - <b>seed_expand_functions_ref.h</b>
+ *
+ * implements the procedure to expand seeds, generate commits, and expand shares as required in the signature when Rijndael-based commits is employed.
+ *
+ * Given that RYDE is a rank-based scheme that heavily relies on the finite field arithmetic. We provide an interface for finite fields.
+ * In the context of our interface, a finite field always describes an extension of a binary field namely a finite field of the form GF(2^m).
+ *
+ * - <b>rbc.h</b>: Constants that defines the considered finite field ;
+ * - <b>rbc_elt.h</b>: Functions to manipulate elements of GF(2^m) ;
+ * - <b>rbc_mat.h</b>: Functions to manipulate matrices over GF(2^m);
+ * - <b>rbc_mat_fq.h</b>: Functions to manipulate matrices over GF(2);
+ * - <b>rbc_vec.h</b>: Functions to manipulate vectors over GF(2^m) ;
+ * - <b>rbc_vspace.h</b>: Functions to manipulate subspaces of GF(2^m) ;
+ *
+ * In particular, the provided implementation considers the following fields:
+ *
+ * - RYDE-<b>1Y</b>-<b>Z</b>: GF(2^53)
+ * - RYDE-<b>3Y</b>-<b>Z</b>: GF(2^61)
+ * - RYDE-<b>5Y</b>-<b>Z</b>: GF(2^67)
+ *
+ * The public key, secret key and signature are respectively composed of (<b>H</b>, <b>y</b>), (<b>x</b>) and (<b>sm</b>, <b>m</b>). Furthermore, the public key is stored as (<b>seed1</b>, <b>y</b>), while the secret key as (<b>seed2</b>). To this end, the seed expander based on shake was used along with 32/48/64 bytes seeds.
+ *
+ */

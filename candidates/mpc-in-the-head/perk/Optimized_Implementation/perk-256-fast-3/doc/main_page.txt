@@ -20,7 +20,7 @@
  *
  *  <h3>2.1 Requirements</h3>
  *
- *  The following software and libraries are required: <b>make</b> and <b>gcc</b>. The target machine must support <b>AVX2</b> instructions.
+ *  The following software and libraries are required: <b>make</b>, <b>gcc</b> and <b>gmp</b> (version >= 6.2.1). The target machine must support <b>AVX2</b> instructions.
  *
  *  <h3>2.2 Compilation Step</h3>
  *
@@ -29,7 +29,6 @@
  *  - Execute <b>make perkX</b> to compile a working example of the scheme. Run <b>build/bin/perkX</b> to execute all the steps of the scheme and display theirs respective performances.
  *  - Execute <b>make perkX-kat</b> to compile the NIST KAT generator. Run <b>build/bin/perkX-PQCgenKAT_sign</b> to generate KAT files.
  *  - Execute <b>make perkX-verbose</b> to compile a working example of the scheme in verbose mode. Run <b>build/bin/perkX-verbose</b> to generate intermediate values.
- *  - Some of the parameters require more than 8 MBytes of stack (which is default stack in Linux) to run. The command <b>ulimit -s 16384</b> maybe used to increase the available stack for the current shell session.
  *  - The valgrind tool must be run with the <b>--max-stackframe=33554432</b> option to avoid warnings concerning the stack.
  *
  * During compilation, the following files are created inside the <b>build/src</b> folder:

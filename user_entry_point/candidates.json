@@ -1,5 +1,25 @@
 {
   "candidates":{
+    "perk_v1": {
+      "path_to_api": "candidates/mpc-in-the-head/perk/Optimized_Implementation/perk-128-fast-3/src/api.h",
+      "path_to_rng": "candidates/mpc-in-the-head/perk/Optimized_Implementation/perk-128-fast-3/lib/randombytes/rng.h",
+      "path_to_makefile_folder": "candidates/mpc-in-the-head/perk/Optimized_Implementation/perk-128-fast-3",
+      "path_to_include_directory": "src",
+      "default_instance": "perk-128-fast-3",
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
+      "build_with_makefile": true,
+      "compiler": "gcc",
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "security_level1": {"128":  ["-128-"], "192":  ["-192-"], "256":  ["-256-"]},
+      "security_level": {"lvl1":  ["-128-"], "lvl3":  ["-192-"], "lvl5":  ["-256-"]},
+      "path_to_bench_binary": null,
+      "instances": ["perk-192-short-5", "perk-192-fast-5", "perk-192-fast-3", "perk-192-short-3", "perk-128-fast-5",
+        "perk-256-fast-3", "perk-128-fast-3", "perk-256-fast-5", "perk-128-short-3", "perk-128-short-5", "perk-256-short-3", "perk-256-short-5"],
+      "instance_format": null,
+      "cflags": null
+    },
     "perk": {
       "path_to_api": "candidates/mpc-in-the-head/perk/Optimized_Implementation/perk-128-fast-3/src/api.h",
       "path_to_rng": "candidates/mpc-in-the-head/perk/Optimized_Implementation/perk-128-fast-3/lib/randombytes/rng.h",
@@ -67,6 +87,27 @@
       "instance_format": null,
       "cflags": null
     },
+    "mirath": {
+      "path_to_api": "candidates/mpc-in-the-head/mirath/Optimized_Implementation/mirath_tcith/avx/mirath_tcith_1a_fast/api.h",
+      "path_to_rng": "candidates/mpc-in-the-head/mirath/Optimized_Implementation/mirath_tcith/avx/mirath_tcith_1a_fast/rng.h",
+      "path_to_makefile_folder": "candidates/mpc-in-the-head/mirath/Optimized_Implementation/mirath_tcith/avx/mirath_tcith_1a_fast",
+      "path_to_include_directory": ".",
+      "default_instance": "mirath_tcith_1a_fast",
+      "optimized_implementation1": "Optimized_Implementation/mirath_tcith/avx",
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "security_level": {"lvl1":  ["_1_"], "lvl3":  ["_3_"], "lvl5":  ["_5_"]},
+      "build_with_makefile": true,
+      "compiler": "gcc",
+      "path_to_bench_binary": null,
+      "instances": ["mirath_tcith_1a_fast", "mirath_tcith_1a_short", "mirath_tcith_1b_fast", "mirath_tcith_1b_short",
+        "mirath_tcith_3a_fast", "mirath_tcith_3a_short", "mirath_tcith_3b_fast", "mirath_tcith_3b_short",
+        "mirath_tcith_5a_fast", "mirath_tcith_5a_short", "mirath_tcith_5b_fast", "mirath_tcith_5b_short"],
+      "instance_format": null,
+      "cflags": null
+    },
     "mqom": {
       "path_to_api": "candidates/mpc-in-the-head/mqom/Optimized_Implementation/mqom_cat1_gf31_fast/api.h",
       "path_to_rng": "candidates/mpc-in-the-head/mqom/Optimized_Implementation/mqom_cat1_gf31_fast/rnd.h",
@@ -88,7 +129,7 @@
       "cflags1": "-W -Wall -O3 -fPIC -DNDEBUG -DCAT_3",
       "cflags": null
     },
-    "ryde": {
+    "ryde_v1": {
       "path_to_api": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde128f/src/api.h",
       "path_to_rng": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde128f/lib/randombytes/randombytes.h",
       "path_to_makefile_folder": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde128f",
@@ -103,6 +144,24 @@
       "compiler": "gcc",
       "path_to_bench_binary": null,
       "instances": ["ryde192s", "ryde256s", "ryde192f", "ryde256f", "ryde128f", "ryde128s"],
+      "instance_format": null,
+      "cflags": null
+    },
+    "ryde": {
+      "path_to_api": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde1f/src/api.h",
+      "path_to_rng": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde1f/lib/randombytes/randombytes.h",
+      "path_to_makefile_folder": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde1f",
+      "path_to_include_directory": ".",
+      "default_instance": "ryde1f",
+      "optimized_implementation": "Optimized_Implementation",
+      "additional_implementation": null,
+      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
+      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
+      "security_level": {"lvl1":  ["1"], "lvl3":  ["3"], "lvl5":  ["5"]},
+      "build_with_makefile": true,
+      "compiler": "gcc",
+      "path_to_bench_binary": null,
+      "instances": ["ryde1f", "ryde1s", "ryde3f", "ryde3s", "ryde5f", "ryde5s"],
       "instance_format": null,
       "cflags": null
     },
