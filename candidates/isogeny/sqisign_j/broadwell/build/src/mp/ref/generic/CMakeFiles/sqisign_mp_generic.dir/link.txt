@@ -1,0 +1,2 @@
+"/usr/bin/gcc-ar-13" cr libsqisign_mp_generic.a CMakeFiles/sqisign_mp_generic.dir/mp.c.o
+"/usr/bin/gcc-ranlib-13" libsqisign_mp_generic.a

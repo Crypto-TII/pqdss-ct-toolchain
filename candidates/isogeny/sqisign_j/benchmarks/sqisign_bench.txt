@@ -1,0 +1,144 @@
+Candidate: sqisign
+Security Level: 
+Instance: lvl1
+Algorithm: Keygen:
+Average running time (million cycles): 	  54.374
+Standard deviation (million cycles): 	   9.665
+Minimum running time (million cycles): 	  40.466
+First quartile (million cycles): 	 	  47.979
+Median (million cycles):    	 	  52.419
+Third quartile (million cycles): 	  58.356
+Maximum running time (million cycles): 	 129.179
+Public key size (bytes): 	 65
+Signature size (bytes): 	 148
+Signature size + PK Size (bytes): 	 213
+Message size (bytes): 	 32
+
+Candidate: sqisign
+Security Level: 
+Instance: lvl1
+Algorithm: Sign:
+Average running time (million cycles): 	 110.210
+Standard deviation (million cycles): 	  11.193
+Minimum running time (million cycles): 	  90.544
+First quartile (million cycles): 	 102.689
+Median (million cycles): 	 108.517
+Third quartile (million cycles): 	 115.528
+Maximum running time (million cycles): 	 182.795
+Public key size (bytes): 	 65
+Signature size (bytes): 	 148
+Signature size + PK Size (bytes): 	 213
+Message size (bytes): 	 32
+
+Candidate: sqisign
+Security Level: 
+Instance: lvl1
+Algorithm: Verify:
+Average running time (million cycles): 	   4.445
+Standard deviation (million cycles): 	   0.395
+Minimum running time (million cycles): 	   4.029
+First quartile (million cycles): 	   4.238
+Median (million cycles): 	   4.307
+Third quartile (million cycles): 	   4.520
+Maximum running time (million cycles): 	   9.091
+Public key size (bytes): 	 65
+Signature size (bytes): 	 148
+Signature size + PK Size (bytes): 	 213
+Message size (bytes): 	 32
+
+Candidate: sqisign
+Security Level: 
+Instance: lvl3
+Algorithm: Keygen:
+Average running time (million cycles): 	 140.950
+Standard deviation (million cycles): 	  25.895
+Minimum running time (million cycles): 	 113.786
+First quartile (million cycles): 	 	 129.169
+Median (million cycles):    	 	 136.471
+Third quartile (million cycles): 	 145.960
+Maximum running time (million cycles): 	 703.502
+Public key size (bytes): 	 97
+Signature size (bytes): 	 224
+Signature size + PK Size (bytes): 	 321
+Message size (bytes): 	 32
+
+Candidate: sqisign
+Security Level: 
+Instance: lvl3
+Algorithm: Sign:
+Average running time (million cycles): 	 315.170
+Standard deviation (million cycles): 	  33.933
+Minimum running time (million cycles): 	 251.942
+First quartile (million cycles): 	 293.575
+Median (million cycles): 	 309.537
+Third quartile (million cycles): 	 329.039
+Maximum running time (million cycles): 	 556.996
+Public key size (bytes): 	 97
+Signature size (bytes): 	 224
+Signature size + PK Size (bytes): 	 321
+Message size (bytes): 	 32
+
+Candidate: sqisign
+Security Level: 
+Instance: lvl3
+Algorithm: Verify:
+Average running time (million cycles): 	  13.994
+Standard deviation (million cycles): 	   0.887
+Minimum running time (million cycles): 	  12.979
+First quartile (million cycles): 	  13.630
+Median (million cycles): 	  13.769
+Third quartile (million cycles): 	  14.095
+Maximum running time (million cycles): 	  29.877
+Public key size (bytes): 	 97
+Signature size (bytes): 	 224
+Signature size + PK Size (bytes): 	 321
+Message size (bytes): 	 32
+
+Candidate: sqisign
+Security Level: 
+Instance: lvl5
+Algorithm: Keygen:
+Average running time (million cycles): 	 200.599
+Standard deviation (million cycles): 	  26.559
+Minimum running time (million cycles): 	 161.284
+First quartile (million cycles): 	 	 182.075
+Median (million cycles):    	 	 195.507
+Third quartile (million cycles): 	 213.256
+Maximum running time (million cycles): 	 393.655
+Public key size (bytes): 	 129
+Signature size (bytes): 	 292
+Signature size + PK Size (bytes): 	 421
+Message size (bytes): 	 32
+
+Candidate: sqisign
+Security Level: 
+Instance: lvl5
+Algorithm: Sign:
+Average running time (million cycles): 	 483.740
+Standard deviation (million cycles): 	  65.562
+Minimum running time (million cycles): 	 370.722
+First quartile (million cycles): 	 438.560
+Median (million cycles): 	 472.800
+Third quartile (million cycles): 	 512.027
+Maximum running time (million cycles): 	 953.955
+Public key size (bytes): 	 129
+Signature size (bytes): 	 292
+Signature size + PK Size (bytes): 	 421
+Message size (bytes): 	 32
+
+Candidate: sqisign
+Security Level: 
+Instance: lvl5
+Algorithm: Verify:
+Average running time (million cycles): 	  28.413
+Standard deviation (million cycles): 	  10.194
+Minimum running time (million cycles): 	  25.011
+First quartile (million cycles): 	  26.109
+Median (million cycles): 	  26.565
+Third quartile (million cycles): 	  27.531
+Maximum running time (million cycles): 	 267.147
+Public key size (bytes): 	 129
+Signature size (bytes): 	 292
+Signature size + PK Size (bytes): 	 421
+Message size (bytes): 	 32
+
