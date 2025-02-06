@@ -1545,8 +1545,19 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
         path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
         if direct_link_or_compile_target:
             if not instances:
+                expanded_kwargs_list = []
+                expanded_kwargs = {}
+                if kwargs:
+                    for k, value in kwargs.items():
+                        expanded_kwargs_list.append(f'{k}={value}')
+                expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
+                if candidate == 'sqisign':
+                    if 'SQISIGN_BUILD_TYPE' not in expanded_kwargs:
+                        expanded_kwargs['SQISIGN_BUILD_TYPE'] = 'broadwell'
+                    if 'CMAKE_BUILD_TYPE' not in expanded_kwargs:
+                        expanded_kwargs['CMAKE_BUILD_TYPE'] = 'Release'
                 gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                             additional_cmake_definitions, *args, **kwargs)
+                                             additional_cmake_definitions, *args, **expanded_kwargs)
             else:
                 if build_with_make:
                     # if candidate == 'pqov':

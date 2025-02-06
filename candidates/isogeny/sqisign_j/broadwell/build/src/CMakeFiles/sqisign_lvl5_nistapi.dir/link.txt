@@ -1,2 +1,0 @@
-"/usr/bin/gcc-ar-13" cr libsqisign_lvl5_nistapi.a CMakeFiles/sqisign_lvl5_nistapi.dir/nistapi/lvl5/api.c.o
-"/usr/bin/gcc-ranlib-13" libsqisign_lvl5_nistapi.a
