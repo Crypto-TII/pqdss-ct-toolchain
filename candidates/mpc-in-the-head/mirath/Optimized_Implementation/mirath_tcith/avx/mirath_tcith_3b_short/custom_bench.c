@@ -16,7 +16,7 @@ typedef uint64_t ticks;
 
 //#define MINIMUM_MSG_LENGTH      1
 //#define MAXIMUM_MSG_LENGTH      3300
-#define TOTAL_ITERATIONS        1000
+#define TOTAL_ITERATIONS        10
 #define DEFAULT_MESSAGE_LENGTH  32
 
 

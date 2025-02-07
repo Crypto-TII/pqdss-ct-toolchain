@@ -60,7 +60,7 @@ custom_bench1: bench.o sign.o $(OBJ_CUSTOM_BENCH)
 
 custom_bench: custom_bench.o sign.o $(OBJ_CUSTOM_BENCH)
 	mkdir -p $(BENCHMARK_FOLDER)/$(INSTANCE)
-	$(CC) -o $(BENCHMARK_FOLDER)/$(INSTANCE)/bench $^ $(LIBS) -lm -lcpucycles
+	$(CC) $(CFLAGS) -o $(BENCHMARK_FOLDER)/$(INSTANCE)/bench $^ $(LIBS) -lm -lcpucycles
 
 
 run: PQCgenKAT_sign
