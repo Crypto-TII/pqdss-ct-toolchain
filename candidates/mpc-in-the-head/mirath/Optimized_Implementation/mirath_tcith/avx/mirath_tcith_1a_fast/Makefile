@@ -6,7 +6,7 @@ CTTEST_LIB_CFLAGS :=
 INSTANCE = mirath_tcith_1a_fast
 BENCHMARK_FOLDER = ../../../../benchmarks
 
-CFLAGS = -std=c11 -Wall -Wextra -pedantic -mavx -mavx2 -mbmi -mbmi2 -maes -fPIC $(TOOLS_FLAGS)
+CFLAGS =-O3 -std=c11 -Wall -Wextra -pedantic -mavx -mavx2 -mbmi -mbmi2 -maes -fPIC $(TOOLS_FLAGS)
 
 
 MIRATH = .
@@ -29,12 +29,7 @@ OBJ+=$(patsubst %.c,%.o,$(wildcard *.c))
 OBJ_MAIN = $(filter-out PQCgenKAT_sign.o, $(OBJ))
 OBJ_KATS = $(filter-out main.o, $(OBJ))
 
-#OBJ_CTTEST = $(filter-out PQCgenKAT_sign.o main.o, $(OBJ))
-OBJ_CTTEST = $(filter-out PQCgenKAT_sign.o, $(OBJ))
-OBJ_CUSTOM_BENCH = $(filter-out PQCgenKAT_sign.o main.o, $(OBJ))
-#OBJ_CTTEST = $(filter-out main.o, $(OBJ_CTTEST))
 
-$(info "====OBJ_CTTEST=========: $(OBJ_CTTEST)")
 
 VPATH = $(PARAMETERS):$(ARITH_MU):$(ARITH_X):$(ARITH):$(RIJNDAEL):$(COMMON):$(MIRATH)
 
@@ -47,9 +42,8 @@ endif
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
 CTTEST_LIB_CFLAGS = $(CFLAGS)
+OBJ_CUSTOM_BENCH = $(filter-out PQCgenKAT_sign.o main.o, $(OBJ))
 
-#all: PQCgenKAT_sign mirath_1a_f #$(CTTEST_LIB)
-#all: $(CTTEST_LIB)
 all: custom_bench
 
 %.o: %.c

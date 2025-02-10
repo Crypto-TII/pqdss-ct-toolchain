@@ -6,7 +6,7 @@ CTTEST_LIB_CFLAGS :=
 INSTANCE = mirath_tcith_5b_fast
 BENCHMARK_FOLDER = ../../../../benchmarks
 
-CFLAGS = -std=c11 -Wall -Wextra -pedantic -mavx -mavx2 -mbmi -mbmi2 -maes -fPIC $(TOOLS_FLAGS)
+CFLAGS =-O3 -std=c11 -Wall -Wextra -pedantic -mavx -mavx2 -mbmi -mbmi2 -maes -fPIC $(TOOLS_FLAGS)
 
 MIRATH = .
 COMMON = $(MIRATH)/common
