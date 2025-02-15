@@ -529,10 +529,9 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, *args, **kwa
     subprocess.call(cmd, stdin=sys.stdin)
     os.chdir(cwd)
 
+
 def compile_target_candidate(path_to_candidate_makefile_cmake: str,
                              build_with_make: bool = True, additional_options=None, *args, **kwargs):
-    print(":::::::compile_target_candidate::::::::")
-    print("..........path_to_candidate_makefile_cmake: ", path_to_candidate_makefile_cmake)
     if build_with_make:
         compile_with_makefile(path_to_candidate_makefile_cmake, additional_options, *args, **kwargs)
     if not build_with_make:

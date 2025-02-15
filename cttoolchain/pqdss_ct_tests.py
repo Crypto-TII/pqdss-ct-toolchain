@@ -36,8 +36,6 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, tool_flags: 
     print("-------cwd: ", cwd)
     gen.create_directory(build_folder_full_path)
     os.chdir(build_folder_full_path)
-    print("-------build_folder_full_path: ", build_folder_full_path)
-    print("-------os.getcwd(): ", os.getcwd())
     # Set the tool's flags in the CMakeLists.txt
     tool_name = tool_flags[0]
     tool_cflags = tool_flags[1]
@@ -75,7 +73,7 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, tool_flags: 
 
 
 
-def compile_with_makefile(path_to_makefile, default=None,
+def compile_with_makefile_11_fev(path_to_makefile, default=None,
                           tool_flags: Optional[Union[str, list]] = None, *args, **kwargs):
     cwd = os.getcwd()
     os.chdir(path_to_makefile)
@@ -108,7 +106,39 @@ def compile_with_makefile(path_to_makefile, default=None,
     os.chdir(cwd)
 
 
-def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
+def compile_with_makefile(path_to_makefile, default=None,
+                          tool_flags: Optional[Union[str, list]] = None, *args, **kwargs):
+    cwd = os.getcwd()
+    os.chdir(path_to_makefile)
+    # Set the tool's flags in the Makefile
+    tool_cflags = tool_flags[1]
+    tool_link_libs = tool_flags[2]
+    makefile = 'Makefile'
+    # set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS:= .*$/TOOLS_FLAGS:= {tool_cflags}/g' {makefile}"]
+    set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS:=.*$/TOOLS_FLAGS:={tool_cflags}/g' {makefile}"]
+    subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+    # set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS := .*$/TOOL_LINK_LIBS := {tool_link_libs}/g' {makefile}"]
+    set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS:=.*$/TOOL_LINK_LIBS:={tool_link_libs}/g' {makefile}"]
+    subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+    # Run make clean first in case objects files have already been obtained with the flags of a different tool.
+    cmd_clean = ["make", "clean"]
+    subprocess.call(cmd_clean, stdin=sys.stdin)
+    additional_options = list(args)
+    for key, val in kwargs.items():
+        additional_options.append(f'{key}={val}')
+    # cmd = ["make"]
+    cmd = ["make", "all"]
+    if not additional_options:
+        cmd.append('all')
+    cmd.extend(additional_options)
+    if default:
+        cmd.append(default)
+    print("++++++++++++cmd++++++++++++: ", cmd)
+    subprocess.call(cmd, stdin=sys.stdin)
+    os.chdir(cwd)
+
+
+def generic_compilation_13_fev(path_to_target_wrapper: str, path_to_target_binary: str,
                         path_to_test_library_directory: str, libraries_names: [Union[str, list]],
                         path_to_include_directories: Union[str, list], tool_name: str, compiler: str = 'gcc'):
     tool = tools.Tools(tool_name)
@@ -146,8 +176,56 @@ def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
 
+def generic_compilation(tool_name: str, path_to_target_wrapper: str, path_to_target_binary: str,
+                        path_to_test_library_directory: str, libraries_names: [Union[str, list]],
+                        path_to_include_directories: Union[str, list], cflags: Union[list, str], compiler: str = 'gcc'):
+    tool = tools.Tools(tool_name)
+    tool_cflags, tool_libs = tool.get_tool_flags_and_libs()
+    tool_link_libraries = []
+    if isinstance(tool_libs, str):
+        tool_link_libraries = tool_libs.split()
+    elif isinstance(tool_libs, list):
+        tool_link_libraries = tool_libs
+    target_include_dir = path_to_include_directories
+    # target_link_libraries = []
+    target_link_libraries = tool_link_libraries
+    if isinstance(libraries_names, str):
+        target_link_libraries.extend(libraries_names.split())
+    elif isinstance(libraries_names, list):
+        target_link_libraries.extend(libraries_names.copy())
+    target_link_libraries = list(set(target_link_libraries))
+    target_link_libraries = list(map(lambda incs: f'{incs}' if '-l' in incs else f'-l{incs}', target_link_libraries))
+    target_link_libraries_str = " ".join(target_link_libraries)
+    all_flags_str = ''
+    if isinstance(cflags, list):
+        all_flags_str = " ".join(cflags)
+    elif isinstance(cflags, str):
+        all_flags_str = cflags
 
-def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
+    if isinstance(tool_cflags, list):
+        all_flags_str += f' {" ".join(tool_cflags)}'
+    elif isinstance(tool_cflags, str):
+        all_flags_str += f' {tool_cflags}'
+
+    cmd = f'{compiler} {all_flags_str} '
+    if target_include_dir:
+        if isinstance(target_include_dir, list):
+            include_directories = target_include_dir.copy()
+            include_directories = list(map(lambda incs: f'-I{incs}', include_directories))
+            cmd += f' {" ".join(target_include_dir)}'
+        else:
+            include_directories = list(map(lambda incs: f'-I {incs}', target_include_dir.split()))
+            cmd += f' {" ".join(include_directories)}'
+    if not path_to_target_wrapper.endswith('.c'):
+        path_to_target_wrapper = f'{path_to_target_wrapper}.c'
+    cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
+    cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
+    print("----------cmd: ")
+    print(cmd)
+    subprocess.call(cmd, stdin=sys.stdin, shell=True)
+
+
+def generic_target_compilation_11_fev(path_candidate: str, path_to_test_library_directory: str,
                                libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
                                tool_name: str, default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
                                binary_patterns: Optional[Union[str, list]] = None):
@@ -194,6 +272,60 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
             generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_test_library_directory,
                                 libraries_names, path_to_include_directories, tool_name, compiler)
 
+
+def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
+                               libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
+                               tool_name: str, default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
+                               binary_patterns: Optional[Union[str, list]] = None):
+    print("::::::::generic_target_compilation")
+    tool_type = tools.Tools(tool_name)
+    test_keypair_basename, test_sign_basename = tool_type.get_tool_test_file_name()
+    keypair_sign = []
+    path_to_tool_folder = f'{path_candidate}/{tool_name}'
+    path_to_instances = [path_to_tool_folder]
+    # candidate = path_candidate.split('/')[-1]
+    candidate = os.path.basename(path_candidate)
+    instances_list = []
+    if instances:
+        instances_list = []
+        if isinstance(instances, str):
+            instances_list = instances.split()
+        elif isinstance(instances, list):
+            instances_list = instances.copy()
+    else:
+        instances_list = ["."]
+    for instance in instances_list:
+        if instance == ".":
+            path_to_instance = f'{path_to_tool_folder}'
+        else:
+            path_to_instance = f'{path_to_tool_folder}/{instance}'
+            path_to_include_directories = path_to_include_directories.replace(default_instance, instance)
+            if default_instance in path_to_test_library_directory:
+                path_to_test_library_directory = path_to_test_library_directory.replace(default_instance, instance)
+
+        if binary_patterns is not None:
+            if isinstance(binary_patterns, str):
+                keypair_sign.append(binary_patterns.split())
+            elif isinstance(binary_patterns, list):
+                keypair_sign = binary_patterns.copy()
+        else:
+            binary_patterns = ['keypair', 'sign']
+        cflags_custom_path = f'{path_to_test_library_directory}/cflags.txt'
+        if os.path.isfile(cflags_custom_path):
+            with open(cflags_custom_path, 'r') as read_cflags:
+                cflags_custom = read_cflags.readline()
+                cflags_custom = cflags_custom.strip()
+
+        cflags_custom = cflags_custom.split()
+        print("::::::::::-------cflags_custom: ", cflags_custom)
+        for bin_pattern in binary_patterns:
+            target_folder_basename = f'{candidate}_{bin_pattern}'
+            path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_sign_basename}'
+            if bin_pattern.strip() == 'keypair':
+                path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_keypair_basename}'
+            path_to_target_binary = path_to_target_wrapper.split('.c')[0]
+            generic_compilation(tool_name, path_to_target_wrapper, path_to_target_binary, path_to_test_library_directory,
+                                libraries_names, path_to_include_directories, cflags_custom, compiler)
 
 
 def compile_target_candidate(path_to_candidate_makefile_cmake: str,
@@ -378,7 +510,7 @@ def compile_target_from_library(path_to_candidate_makefile_cmake,
 
 
 # generic_init_compile: in addition to initializing a given candidate for desired tools and instances
-def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+def generic_init_compile_14_fev(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
                          default_instance: str, instances, additional_includes, path_to_candidate_makefile_cmake,
                          direct_link_or_compile_target: bool = True, libraries_names: Union[str, list] = 'lcttest',
                          path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
@@ -449,6 +581,179 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                 generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                            path_to_include_directories, tool, default_instance, instances,
                                            compiler, binary_patterns)
+
+
+
+def generic_init_compile_15_fev(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+                         default_instance: str, instances, additional_includes, path_to_candidate_makefile_cmake,
+                         direct_link_or_compile_target: bool = True, libraries_names: Union[str, list] = 'lcttest',
+                         path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
+                         additional_cmake_definitions=None, number_of_measurements='1e4', compiler: str = 'gcc',
+                         compile_test_harness: str = 'yes', binary_patterns: Optional[Union[str, list]] = None,
+                         *args, **kwargs):
+    if candidate == 'qruov':
+        cwd = os.getcwd()
+        os.chdir(path_to_candidate_makefile_cmake)
+        platform = 'portable64'
+        if args:
+            platform = args[0]
+        makefile = 'Makefile'
+        chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
+        subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
+        instances_str = ''
+        if isinstance(instances, str):
+            instances_str = instances.split()
+        elif isinstance(instances, list):
+            instances_str = " ".join(instances)
+        cmd_str = f'make {instances_str}'
+        subprocess.call(cmd_str.split(), stdin=sys.stdin)
+        os.chdir(cwd)
+
+        for instance in instances:
+            abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
+            abs_path_to_api_or_sign_split.insert(1, instance)
+            abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
+            abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
+            generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
+                                              optimized_imp_folder, instances, additional_includes, 'yes',
+                                              number_of_measurements)
+    else:
+        generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
+                                          optimized_imp_folder, instances, additional_includes, 'yes',
+                                          number_of_measurements)
+    path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+    if path_candidate.endswith('/'):
+        path_candidate += candidate
+    else:
+        path_candidate += f'/{candidate}'
+    if 'yes' in compile_test_harness.lower():
+        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+        for tool in tools:
+            if not direct_link_or_compile_target:
+                if not instances:
+                    compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                             additional_cmake_definitions, tool, *args, **kwargs)
+                else:
+                    if candidate == 'qruov':
+                        for instance in instances:
+                            platform = 'portable64'
+                            if args:
+                                platform = args[0]
+                            instance_updated = f'{instance}/{platform}'
+                            path_to_include_directories_split = path_to_include_directories.split(default_instance)
+                            path_to_include_directories_split.insert(1, instance_updated)
+                            path_to_include_directories = "".join(path_to_include_directories_split[:-1])
+                    else:
+                        if build_with_make:
+                            for instance in instances:
+                                path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
+                                path_to_candidate_makefile_cmake_split.insert(1, instance)
+                                path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
+                        compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                 additional_cmake_definitions, tool, *args, **kwargs)
+            if build_with_make:
+                generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                           path_to_include_directories, tool, default_instance, instances,
+                                           compiler, binary_patterns)
+
+
+
+def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+                         default_instance: str, instances, additional_includes, path_to_candidate_makefile_cmake,
+                         direct_link_or_compile_target: bool = True, libraries_names: Union[str, list] = 'lcttest',
+                         path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
+                         additional_cmake_definitions=None, number_of_measurements='1e4', compiler: str = 'gcc',
+                         compile_test_harness: str = 'yes', binary_patterns: Optional[Union[str, list]] = None,
+                         *args, **kwargs):
+    print("----------________:::::.......====candidate: ", candidate)
+    print("----------________:::::instances: ", instances)
+    path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
+    path_to_include_directories_initial = path_to_include_directories
+    if candidate == 'qruov':
+        cwd = os.getcwd()
+        os.chdir(path_to_candidate_makefile_cmake)
+        platform = 'portable64'
+        if args:
+            platform = args[0]
+        makefile = 'Makefile'
+        chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
+        subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
+        instances_str = ''
+        if isinstance(instances, str):
+            instances_str = instances.split()
+        elif isinstance(instances, list):
+            instances_str = " ".join(instances)
+        cmd_str = f'make {instances_str}'
+        subprocess.call(cmd_str.split(), stdin=sys.stdin)
+        os.chdir(cwd)
+
+        for instance in instances:
+            abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
+            abs_path_to_api_or_sign_split.insert(1, instance)
+            abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
+            abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
+            generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
+                                              optimized_imp_folder, instances, additional_includes, 'yes',
+                                              number_of_measurements)
+    else:
+        generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
+                                          optimized_imp_folder, instances, additional_includes, 'yes',
+                                          number_of_measurements)
+    path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+    if path_candidate.endswith('/'):
+        path_candidate += candidate
+    else:
+        path_candidate += f'/{candidate}'
+    if 'yes' in compile_test_harness.lower():
+        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+        for tool in tools:
+            if not direct_link_or_compile_target:
+                if not instances:
+                    print("----------NO INSTANCES")
+                    compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                             additional_cmake_definitions, tool, *args, **kwargs)
+                else:
+                    print("----------======= INSTANCES")
+                    if candidate == 'qruov':
+                        for instance in instances:
+                            platform = 'portable64'
+                            if args:
+                                platform = args[0]
+                            instance_updated = f'{instance}/{platform}'
+                            path_to_include_directories_split = path_to_include_directories.split(default_instance)
+                            path_to_include_directories_split.insert(1, instance_updated)
+                            path_to_include_directories = "".join(path_to_include_directories_split[:-1])
+                    else:
+                        if candidate == 'sdith':
+                            print(":::::::::candidate:", candidate)
+                            expanded_kwargs_list = []
+                            if kwargs:
+                                for k, value in kwargs.items():
+                                    expanded_kwargs_list.append(f'{k}={value}')
+                            expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
+                            expanded_kwargs['BUILD_TESTING'] = 'OFF'
+                            expanded_kwargs['BUILD_KATS'] = 'ON'
+                            expanded_kwargs['CMAKE_BUILD_TYPE'] = 'Release'
+                            print("-------=====list of instances: ", instances)
+                            for instance in instances:
+                                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
+                                compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                         additional_cmake_definitions, tool, *args, **expanded_kwargs)
+                                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+                        else:
+                            if build_with_make:
+                                for instance in instances:
+                                    path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
+                                    compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                             additional_cmake_definitions, tool, *args, **kwargs)
+            if build_with_make:
+                generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                           path_to_include_directories, tool, default_instance, instances,
+                                           compiler, binary_patterns)
+
+
+
+
 
 
 # instance/scr folder of the given candidate with respect to optimized_imp_folder
@@ -659,6 +964,8 @@ def run_tests(user_entry_point: str, tools: Union[str, list], candidate: str, in
     build_with_make = candidates_dict['build_with_makefile']
     compiler = candidates_dict['compiler']
     default_instance = candidates_dict['default_instance']
+    if not instances or instances is None:
+        instances = candidates_dict['instances']
     if implementation_type == 'add':
         abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(optimized_imp_folder)
         abs_path_to_api_or_sign_split.insert(1, additional_imp_folder)

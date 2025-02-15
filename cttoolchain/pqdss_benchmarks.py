@@ -763,8 +763,6 @@ def generic_benchmarks_init_compile(candidate, abs_path_to_api_or_sign, abs_path
                             default_instance = default_instance_initial
                             path_to_test_library_directory = path_to_test_library_directory_initial
                             path_to_include_directories = path_to_include_directories_initial
-
-
                         generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                                    path_to_include_directories, cflags, default_instance, instance, compiler, instance_format)
                         cflags = cflags_initial
