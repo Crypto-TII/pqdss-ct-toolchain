@@ -47,14 +47,18 @@ set(SELECT_SQISIGN_VARIANT ${PROJECT_SOURCE_DIR}/.cmake/sqisign_variant.cmake)
 
 set(INC_PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
+
+set(TOOLS_FLAGS "-Wall -g -Wextra")
+set(TOOL_NAME "timecop")
+set(TOOL_TEMPLATE_PATTERN "taint")
+set(TOOL_LINK_LIBS "")
+
+
+message(":::::::root:------TOOL_TEMPLATE_PATTERN: ${TOOL_TEMPLATE_PATTERN}")
+
 add_subdirectory(src)
 add_subdirectory(apps)
 add_subdirectory(test)
-
-set(TOOLS_FLAGS )
-set(TOOL_NAME )
-set(TOOL_TEMPLATE_PATTERN "test_harness")
-set(TOOL_LINK_LIBS "")
 
 
 include(.cmake/bm.cmake)

@@ -23,7 +23,8 @@ option(RUN_CT_TESTS "Run constant time tests" OFF)
 #set(TOOLS_FLAGS "-g")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLS_FLAGS}")
 #set(TOOL_NAME "timecop")
-set(TOOL_FOLDER ../${TOOL_NAME})
+#set(TOOL_FOLDER ../${TOOL_NAME})
+set(TOOL_FOLDER ../../${TOOL_NAME})
 set(BUILD_KEYPAIR ${TOOL_FOLDER}/sqisign_keypair)
 set(BUILD_SIGN ${TOOL_FOLDER}/sqisign_sign)
 # == Benchmarks
@@ -32,6 +33,13 @@ set(BENCHMARK_TESTS "benchmarks")
 set(BENCHMARKS_FOLDER ../../${BENCHMARK_TESTS})
 set(SRC_BENCHMARK ${BENCHMARKS_FOLDER}/bench)
 # Constant-time - benchmarks tests
+
+
+message(":::::::TOOL_TEMPLATE_PATTERN: ${TOOL_TEMPLATE_PATTERN}")
+
+
+message("")
+
 
 FOREACH(SVARIANT ${SVARIANT_S})
     string(TOLOWER ${SVARIANT} SVARIANT_LOWER)

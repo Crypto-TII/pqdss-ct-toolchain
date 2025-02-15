@@ -169,12 +169,11 @@ endif()
 
 
 # Constant-time tests - Benchmarks
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLS_FLAGS}")
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
-set(TOOLS_FLAGS )
-set(TOOL_NAME )
-set(TOOL_TEMPLATE_PATTERN "test_harness")
+set(TOOLS_FLAGS "-Wall -g -Wextra")
+set(TOOL_NAME "timecop")
+set(TOOL_TEMPLATE_PATTERN "taint")
 set(TOOL_LINK_LIBS "")
 set(TOOL_FOLDER ../${TOOL_NAME})
 
@@ -188,6 +187,8 @@ set(BENCHMARK_TESTS "benchmarks")
 set(BENCHMARKS_FOLDER ../${BENCHMARK_TESTS})
 set(SRC_BENCHMARK ${BENCHMARKS_FOLDER}/bench)
 # Constant-time - benchmarks tests
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLS_FLAGS}")
 
 
 include_directories(${BASE_DIR}/include)

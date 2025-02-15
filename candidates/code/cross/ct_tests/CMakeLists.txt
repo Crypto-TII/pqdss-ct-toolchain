@@ -97,21 +97,22 @@ set(SOURCES
 )
 
 # Constant-time tests - Benchmarks
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLS_FLAGS}")
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
-set(TOOLS_FLAGS )
-set(TOOL_NAME )
-set(TOOL_TEMPLATE_PATTERN "test_harness")
+set(TOOLS_FLAGS "-Wall -g -Wextra")
+set(TOOL_NAME "timecop")
+set(TOOL_TEMPLATE_PATTERN "taint")
 set(TOOL_LINK_LIBS "")
 set(TOOL_FOLDER ../${TOOL_NAME})
 
 set(BUILD_KEYPAIR ${TOOL_FOLDER}/cross_keypair)
 set(BUILD_SIGN ${TOOL_FOLDER}/cross_sign)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLS_FLAGS}")
+
 # == Benchmarks
-#option(RUN_BENCHMARKS "Run custom benchmarks" OFF)
-option(RUN_BENCHMARKS "Run custom benchmarks" ON)
+option(RUN_BENCHMARKS "Run custom benchmarks" OFF)
+#option(RUN_BENCHMARKS "Run custom benchmarks" ON)
 set(BENCHMARK_TESTS "benchmarks")
 set(BENCHMARKS_FOLDER ../${BENCHMARK_TESTS})
 set(SRC_BENCHMARK ${BENCHMARKS_FOLDER}/bench)
@@ -128,31 +129,31 @@ foreach(category RANGE 1 5 2)
             else()
                 set(OMIT_SEED_TREE "")
             endif()
-            # settings for benchmarking binary
-#            set(TARGET_BINARY_NAME CROSS_benchmark_cat_${category}_${RSDP_VARIANT}_${optimiz_target})
-#            add_executable(${TARGET_BINARY_NAME} ${HEADERS} ${SOURCES}
-#                    ./lib/CROSS_benchmark.c)
-#            target_include_directories(${TARGET_BINARY_NAME} PRIVATE
-#                    ${BASE_DIR}/include
-#                    ${COMMON_DIR}/include
-#                    ./include)
-#            target_link_libraries(${TARGET_BINARY_NAME} m ${SANITIZE} ${KECCAK_EXTERNAL_LIB})
-#            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./bin)
-#            set_property(TARGET ${TARGET_BINARY_NAME} APPEND PROPERTY
-#                    COMPILE_FLAGS "${OMIT_SEED_TREE} -DCATEGORY_${category}=1 -D${optimiz_target}=1 -D${RSDP_VARIANT}=1 ${KECCAK_EXTERNAL_ENABLE} ")
-#
-#            # settings for unit tests binary
-#            set(TARGET_BINARY_NAME CROSS_test_cat_${category}_${RSDP_VARIANT}_${optimiz_target})
-#            add_executable(${TARGET_BINARY_NAME} ${HEADERS} ${SOURCES} ./include/arith_unit_tests.h
-#                    ./lib/CROSS_test.c)
-#            target_include_directories(${TARGET_BINARY_NAME} PRIVATE
-#                    ${BASE_DIR}/include
-#                    ${COMMON_DIR}/include
-#                    ./include)
-#            target_link_libraries(${TARGET_BINARY_NAME} m ${SANITIZE} ${KECCAK_EXTERNAL_LIB})
-#            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./bin)
-#            set_property(TARGET ${TARGET_BINARY_NAME} APPEND PROPERTY
-#                    COMPILE_FLAGS "${OMIT_SEED_TREE} -DCATEGORY_${category} -D${optimiz_target}=1 -D${RSDP_VARIANT}=1 ${KECCAK_EXTERNAL_ENABLE} ")
+            #Constant-time and benchmarks
+            # === Constant-time tests
+            if (RUN_CT_TESTS)
+                set(TARGET_BINARY_NAME ${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair_${category}_${RSDP_VARIANT}_${optimiz_target})
+                add_executable(${TARGET_BINARY_NAME} ${HEADERS} ${SOURCES}
+                        ${TOOL_FOLDER}/cross_keypair/${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair.c)
+                target_include_directories(${TARGET_BINARY_NAME} PRIVATE ${BASE_DIR}/include ${COMMON_DIR}/include)
+                target_link_libraries(${TARGET_BINARY_NAME} ${SANITIZE} ${KECCAK_EXTERNAL_LIB} ${TOOL_LINK_LIBS})
+                set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_KEYPAIR})
+                set_property(TARGET ${TARGET_BINARY_NAME} APPEND PROPERTY
+                        COMPILE_FLAGS "${OMIT_SEED_TREE} -DCATEGORY_${category}=1 -D${optimiz_target}=1 -D${RSDP_VARIANT}=1 ${KECCAK_EXTERNAL_ENABLE} ")
+                #Test harness for crypto_sign
+
+                set(TARGET_BINARY_NAME ${TOOL_TEMPLATE_PATTERN}_crypto_sign_${category}_${RSDP_VARIANT}_${optimiz_target})
+                add_executable(${TARGET_BINARY_NAME} ${HEADERS} ${SOURCES}
+                        ${TOOL_FOLDER}/cross_sign/${TOOL_TEMPLATE_PATTERN}_crypto_sign.c)
+                target_include_directories(${TARGET_BINARY_NAME} PRIVATE ${BASE_DIR}/include ${COMMON_DIR}/include)
+                target_link_libraries(${TARGET_BINARY_NAME} ${SANITIZE} ${KECCAK_EXTERNAL_LIB} ${TOOL_LINK_LIBS})
+                set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_SIGN})
+                set_property(TARGET ${TARGET_BINARY_NAME} APPEND PROPERTY
+                        COMPILE_FLAGS "${OMIT_SEED_TREE} -DCATEGORY_${category}=1 -D${optimiz_target}=1 -D${RSDP_VARIANT}=1 ${KECCAK_EXTERNAL_ENABLE} ")
+            endif ()
+            # CT TESTS
+
+
             if (RUN_BENCHMARKS)
                 set(TEST_BENCH bench_${category}_${RSDP_VARIANT}_${optimiz_target})
                 add_executable(${TEST_BENCH} ${HEADERS} ${SOURCES} ${SRC_BENCHMARK}.c)

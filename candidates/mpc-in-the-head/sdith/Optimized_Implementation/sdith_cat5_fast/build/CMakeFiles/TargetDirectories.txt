@@ -1,0 +1,14 @@
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/CMakeFiles/vole.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/CMakeFiles/taint_crypto_sign_keypair.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/CMakeFiles/taint_crypto_sign.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/CMakeFiles/edit_cache.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/CMakeFiles/rebuild_cache.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/lib/sha3/CMakeFiles/sha3.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/lib/sha3/CMakeFiles/edit_cache.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/lib/sha3/CMakeFiles/rebuild_cache.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/lib/aes/CMakeFiles/aes.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/lib/aes/CMakeFiles/edit_cache.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/lib/aes/CMakeFiles/rebuild_cache.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/generator/CMakeFiles/PQCGenKat_sign.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/generator/CMakeFiles/edit_cache.dir
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat5_fast/build/generator/CMakeFiles/rebuild_cache.dir

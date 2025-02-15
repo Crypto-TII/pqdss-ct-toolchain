@@ -1,0 +1,10 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/bench/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat3_fast/lib/sha3/avx2/KeccakP-1600-AVX2.s
+

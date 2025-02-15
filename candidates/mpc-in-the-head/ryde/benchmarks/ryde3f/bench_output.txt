@@ -1,0 +1,48 @@
+Candidate: ryde
+Security Level: lvl3
+Instance: ryde3f
+Algorithm: Keygen:
+Average running time (million cycles): 	   0.070
+Standard deviation (million cycles): 	   0.148
+Minimum running time (million cycles): 	   0.057
+First quartile (million cycles): 	 	   0.058
+Median (million cycles):    	 	   0.062
+Third quartile (million cycles): 	   0.063
+Maximum running time (million cycles): 	   4.691
+Public key size (bytes): 	 101
+Signature size (bytes): 	 8264
+Signature size + PK Size (bytes): 	 8365
+Message size (bytes): 	 32
+
+Candidate: ryde
+Security Level: lvl3
+Instance: ryde3f
+Algorithm: Sign:
+Average running time (million cycles): 	  53.430
+Standard deviation (million cycles): 	   6.035
+Minimum running time (million cycles): 	  47.258
+First quartile (million cycles): 	  49.059
+Median (million cycles): 	  51.344
+Third quartile (million cycles): 	  56.467
+Maximum running time (million cycles): 	  89.917
+Public key size (bytes): 	 101
+Signature size (bytes): 	 8264
+Signature size + PK Size (bytes): 	 8365
+Message size (bytes): 	 32
+
+Candidate: ryde
+Security Level: lvl3
+Instance: ryde3f
+Algorithm: Verify:
+Average running time (million cycles): 	  52.404
+Standard deviation (million cycles): 	   6.607
+Minimum running time (million cycles): 	  45.508
+First quartile (million cycles): 	  47.640
+Median (million cycles): 	  49.758
+Third quartile (million cycles): 	  56.201
+Maximum running time (million cycles): 	  95.518
+Public key size (bytes): 	 101
+Signature size (bytes): 	 8264
+Signature size + PK Size (bytes): 	 8365
+Message size (bytes): 	 32
+

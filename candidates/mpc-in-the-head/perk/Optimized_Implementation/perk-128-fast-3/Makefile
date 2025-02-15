@@ -1,8 +1,12 @@
 CC = gcc
 
-TOOLS_FLAGS :=
-TOOL_LINK_LIBS :=
-CTTEST_LIB_CFLAGS :=
+
+TOOLS_FLAGS:=-Wall -g -Wextra
+TOOL_LINK_LIBS:=
+CTTEST_LIB_CFLAGS:=
+
+
+
 
 CFLAGS:= -std=c99 -pedantic -Wall -Wextra -O3 -funroll-loops -march=native -Wimplicit-function-declaration -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes -Wundef -Wshadow -Wno-newline-eof \
                   -mavx2 -mpclmul -msse4.2 -maes -fPIC $(TOOLS_FLAGS)
