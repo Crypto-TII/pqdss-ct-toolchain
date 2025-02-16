@@ -11,11 +11,83 @@ import textwrap
 import re
 import json
 from pathlib import Path
+from collections import OrderedDict
 
 from typing import Optional, Union, List
 
 import generics as gen
 import utils as util
+
+
+# Tools: object of type 'Tools' consists in:
+# 1. tool name
+# 2. tool's required flags and libraries for candidate compilation
+# 3. tool's test files patterns
+# class Tools(object):
+#     """Create an object, tool, encapsulating its flags
+#     and execution method"""
+#
+#     def __init__(self, tool_name):
+#         self.tool_flags = ""
+#         self.tool_libs = ""
+#         self.tool_test_file_name = ""
+#         self.tool_name = tool_name
+#
+#     def get_tool_flags_and_libs(self):
+#         if self.tool_name == 'binsec':
+#             self.tool_flags = "-g" # -static
+#             return self.tool_flags, self.tool_libs
+#         if self.tool_name == 'ctgrind':
+#             self.tool_flags = "-Wall -ggdb  -std=c99  -Wextra"
+#             self.tool_libs = "-lctgrind -lm"
+#             return self.tool_flags, self.tool_libs
+#         if self.tool_name.lower() == 'timecop':
+#             self.tool_flags = "-Wall -g -Wextra"
+#             return self.tool_flags, self.tool_libs
+#         if self.tool_name == 'dudect':
+#             self.tool_flags = "-std=c11"
+#             self.tool_libs = "-lm"
+#             return self.tool_flags, self.tool_libs
+#         if self.tool_name == 'flowtracker':
+#             self.tool_flags = "-emit-llvm -g"
+#             self.tool_libs = ""
+#             return self.tool_flags, self.tool_libs
+#         if self.tool_name == 'ctverif' or self.tool_name == 'ct-verif':
+#             self.tool_flags = "--unroll 1 --loop-limit 1"
+#             self.tool_libs = ""
+#             return self.tool_flags, self.tool_libs
+#
+#     def get_tool_test_file_name(self):
+#         if self.tool_name == 'binsec':
+#             self.tool_test_file_name = "test_harness"
+#             keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+#             sign = f'{self.tool_test_file_name}_crypto_sign'
+#             return keypair, sign
+#         if self.tool_name == 'ctgrind':
+#             self.tool_test_file_name = "taint"
+#             keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+#             sign = f'{self.tool_test_file_name}_crypto_sign'
+#             return keypair, sign
+#         if self.tool_name.lower() == 'timecop':
+#             self.tool_test_file_name = "taint"
+#             keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+#             sign = f'{self.tool_test_file_name}_crypto_sign'
+#             return keypair, sign
+#         if self.tool_name == 'dudect':
+#             self.tool_test_file_name = "dude"
+#             keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+#             sign = f'{self.tool_test_file_name}_crypto_sign'
+#             return keypair, sign
+#         if self.tool_name == 'flowtracker':
+#             self.tool_test_file_name = "rbc"
+#             keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
+#             sign = f'{self.tool_test_file_name}_crypto_sign'
+#             return keypair, sign
+#         if self.tool_name == 'ctverif' or self.tool_name == 'ct-verif':
+#             self.tool_test_file_name = "wrapper"
+#             keypair = f'crypto_sign_keypair_{self.tool_test_file_name}'
+#             sign = f'crypto_sign_{self.tool_test_file_name}'
+#             return keypair, sign
 
 
 def parse_json_to_dict_generic_tests(path_to_json_file: str):
@@ -67,7 +139,7 @@ def find_target_by_basename(target_basename: str, path_to_target_header_file: st
     return target
 
 
-def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
+def generic_compilation_16_fev(path_to_target_wrapper: str, path_to_target_binary: str,
                         path_to_test_library_directory: str, libraries_names: [Union[str, list]],
                         path_to_include_directories: Union[str, list], cflags: Union[list, str], compiler: str = 'gcc'):
     target_include_dir = path_to_include_directories
@@ -100,6 +172,66 @@ def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
     print(cmd)
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
+
+def generic_compilation(tool_name: str, path_to_target_wrapper: str, path_to_target_binary: str,
+                        path_to_test_library_directory: str, libraries_names: [Union[str, list]],
+                        path_to_include_directories: Union[str, list], cflags: Union[list, str], compiler: str = 'gcc'):
+    print("::::::generic_compilation")
+    print("----tool: ", tool_name)
+    print("----libraries_names: ", libraries_names)
+    print("----cflags: ", cflags)
+    tool = Tools(tool_name)
+    tool_cflags, tool_libs = tool.get_tool_flags_and_libs()
+    tool_link_libraries = []
+    print("----tool_cflags: ", tool_cflags)
+    print("----tool_libs: ", tool_libs)
+    if isinstance(tool_libs, str):
+        tool_link_libraries = tool_libs.split()
+    elif isinstance(tool_libs, list):
+        tool_link_libraries = tool_libs
+    target_include_dir = path_to_include_directories
+    # target_link_libraries = []
+    target_link_libraries = tool_link_libraries
+    if isinstance(libraries_names, str):
+        target_link_libraries.extend(libraries_names.split())
+    elif isinstance(libraries_names, list):
+        target_link_libraries.extend(libraries_names.copy())
+    # target_link_libraries = list(set(target_link_libraries))
+    print("---(1): target_link_libraries: ", target_link_libraries)
+    target_link_libraries = list(OrderedDict.fromkeys(target_link_libraries))
+    print("---(2): target_link_libraries: ", target_link_libraries)
+    target_link_libraries = list(map(lambda incs: f'{incs}' if '-l' in incs else f'-l{incs}', target_link_libraries))
+    target_link_libraries_str = " ".join(target_link_libraries)
+    print("----A: target_link_libraries_str: ", target_link_libraries_str)
+    target_link_libraries_str = target_link_libraries_str.replace('lib','')
+    print("----B: target_link_libraries_str: ", target_link_libraries_str)
+    all_flags_str = ''
+    if isinstance(cflags, list):
+        all_flags_str = " ".join(cflags)
+    elif isinstance(cflags, str):
+        all_flags_str = cflags
+
+    if isinstance(tool_cflags, list):
+        all_flags_str += f' {" ".join(tool_cflags)}'
+    elif isinstance(tool_cflags, str):
+        all_flags_str += f' {tool_cflags}'
+
+    cmd = f'{compiler} {all_flags_str} '
+    if target_include_dir:
+        if isinstance(target_include_dir, list):
+            include_directories = target_include_dir.copy()
+            include_directories = list(map(lambda incs: f'-I{incs}', include_directories))
+            cmd += f' {" ".join(target_include_dir)}'
+        else:
+            include_directories = list(map(lambda incs: f'-I {incs}', target_include_dir.split()))
+            cmd += f' {" ".join(include_directories)}'
+    if not path_to_target_wrapper.endswith('.c'):
+        path_to_target_wrapper = f'{path_to_target_wrapper}.c'
+    cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
+    cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
+    print("----------cmd: ")
+    print(cmd)
+    subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
 # ==================== EXECUTION =====================================
 # ====================================================================
@@ -968,7 +1100,7 @@ def parse_target_json_file(targets_dict: Optional[Union[list, dict]], target: st
             return None
 
 
-def generic_template(target_basename: str, tools: Union[str, list], targets_dict: dict,
+def generic_template_16_fev(target_basename: str, tools: Union[str, list], targets_dict: dict,
                      number_of_measurement: Optional[Union[str, int]] = '1e5', template_only: Optional[bool] = False,
                      compile_test_harness_and_run: Optional[bool] = True, run_test_only: Optional[bool] = False):
     target_dict = parse_target_json_file(targets_dict, target_basename)
@@ -1026,8 +1158,8 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
             libraries_names += f' {extended_library}'
             path_to_directory_link_library = os.path.dirname(path_to_link_library)
             compilation_flags.extend(cflags)
-            generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
-                                libraries_names, path_to_include_directory, cflags, compiler)
+            generic_compilation(tool, path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
+                                libraries_names, path_to_include_directory, compilation_flags, compiler)
             generic_run(tool, target_basename, depth, sse_timeout, timeout)
         if template_compilation_execution:
             cflags = ["-g"]
@@ -1049,9 +1181,127 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
             libraries_names = Path(path_to_link_library).stem
             libraries_names += f' {extended_library}'
             path_to_directory_link_library = os.path.dirname(path_to_link_library)
-            generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
-                                libraries_names, path_to_include_directory, cflags, compiler)
+            generic_compilation(tool, path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
+                                libraries_names, path_to_include_directory, compilation_flags, compiler)
             generic_run(tool, target_basename, depth, sse_timeout, timeout)
+
+
+
+def generic_template(target_basename: str, tools: Union[str, list], targets_dict: dict,
+                     number_of_measurement: Optional[Union[str, int]] = '1e5', template_only: Optional[bool] = False,
+                     compile_test_harness_and_run: Optional[bool] = True, run_test_only: Optional[bool] = False):
+    target_dict = parse_target_json_file(targets_dict, target_basename)
+    target_dict = target_dict[target_basename]
+    target_call = target_dict['target_call']
+    target_return_type = target_dict['target_return_type']
+    target_input_declaration = target_dict['target_input_declaration']
+    target_includes = target_dict['target_include_header']
+    target_secret_inputs = target_dict['secret_inputs']
+    target_macro = target_dict['macro']
+    random_data = target_dict['random_data']
+    path_to_link_library = target_dict['link_binary']
+    path_to_include_directory = target_dict['path_to_include_directory']
+    compiler = target_dict['compiler']
+    compilation_flags = target_dict['compilation_flags']
+    target_libraries_names = target_dict['libraries_names']
+    target_link_libraries = []
+    if target_libraries_names:
+        if isinstance(target_libraries_names, list):
+            target_link_libraries = target_libraries_names.copy()
+        elif isinstance(target_libraries_names, str):
+            target_link_libraries.extend(target_libraries_names.split())
+    libraries_names = []
+    path_to_link_library = path_to_link_library.strip()
+    if path_to_link_library.endswith('.so'):
+        if len(target_link_libraries) == 1:
+            libraries_names = Path(path_to_link_library).stem
+            libraries_names = libraries_names.split()
+        elif len(target_link_libraries) == 0:
+            libraries_names = Path(path_to_link_library).stem
+            libraries_names = libraries_names.split()
+        elif len(target_link_libraries) >= 2:
+            libraries_names = target_link_libraries.copy()
+    else:
+        libraries_names = target_link_libraries.copy()
+    libraries_names = list(map(lambda incs: f'{Path(incs).stem}', libraries_names))
+    if not compilation_flags:
+        compilation_flags = []
+    else:
+        if isinstance(compilation_flags, str):
+            compilation_flags = compilation_flags.split()
+    # To be set as input parameters
+    sse_timeout = '120'
+    timeout = '300'
+    depth = '1000000'
+    extended_library = ''
+    template_compilation_execution = True
+    # To be set as input parameters
+    for tool in tools:
+        path_to_target_wrapper = f'{tool}/{target_basename}/{target_basename}.c'
+        path_to_target_binary = f'{tool}/{target_basename}/{target_basename}'
+        if template_only:
+            template_compilation_execution = False
+            if tool.strip() == 'binsec':
+                binsec_test_harness_template(target_basename, target_call, target_return_type, target_includes,
+                                             target_input_declaration, target_secret_inputs,
+                                             None, target_macro, random_data)
+            if tool.strip() == 'timecop':
+                timecop_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
+                                              target_input_declaration, target_secret_inputs, random_data,
+                                              None, target_macro)
+            if tool.strip() == 'dudect':
+                dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
+                                             target_input_declaration, target_secret_inputs, random_data,
+                                             None, number_of_measurement, target_macro)
+        elif run_test_only:
+            template_compilation_execution = False
+            generic_run(tool, target_basename, depth, sse_timeout, timeout)
+        elif compile_test_harness_and_run:
+            template_compilation_execution = False
+            # cflags = ["-g"]
+            # if tool.strip() == 'dudect':
+            #     extended_library = "m"
+            #     cflags = ["-std=c11"]
+
+
+            # path_to_link_library = path_to_link_library.strip()
+            # if path_to_link_library.endswith('.so'):
+            #     pass
+            # libraries_names = Path(path_to_link_library).stem
+            # libraries_names += f' {extended_library}'
+
+
+            path_to_directory_link_library = os.path.dirname(path_to_link_library)
+            # compilation_flags.extend(cflags)
+            generic_compilation(tool, path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
+                                libraries_names, path_to_include_directory, compilation_flags, compiler)
+            generic_run(tool, target_basename, depth, sse_timeout, timeout)
+        if template_compilation_execution:
+            # cflags = ["-g"]
+            if tool.strip() == 'binsec':
+                binsec_test_harness_template(target_basename, target_call, target_return_type, target_includes,
+                                             target_input_declaration, target_secret_inputs,
+                                             None, target_macro, random_data)
+            if tool.strip() == 'timecop':
+                timecop_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
+                                              target_input_declaration, target_secret_inputs, random_data,
+                                              None, target_macro)
+            if tool.strip() == 'dudect':
+                dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
+                                             target_input_declaration, target_secret_inputs, random_data,
+                                             None, number_of_measurement, target_macro)
+            #     extended_library = "m"
+            #     cflags = ["-std=c11"]
+            # compilation_flags.extend(cflags)
+
+
+            # libraries_names = Path(path_to_link_library).stem
+            # libraries_names += f' {extended_library}'
+            path_to_directory_link_library = os.path.dirname(path_to_link_library)
+            generic_compilation(tool, path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
+                                libraries_names, path_to_include_directory, compilation_flags, compiler)
+            generic_run(tool, target_basename, depth, sse_timeout, timeout)
+
 
 
 def generic_run(tool: str, target_basename, depth: Optional[Union[str, int]] = '1000000',
