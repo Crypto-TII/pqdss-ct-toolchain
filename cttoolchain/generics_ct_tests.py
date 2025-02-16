@@ -19,77 +19,6 @@ import generics as gen
 import utils as util
 
 
-# Tools: object of type 'Tools' consists in:
-# 1. tool name
-# 2. tool's required flags and libraries for candidate compilation
-# 3. tool's test files patterns
-# class Tools(object):
-#     """Create an object, tool, encapsulating its flags
-#     and execution method"""
-#
-#     def __init__(self, tool_name):
-#         self.tool_flags = ""
-#         self.tool_libs = ""
-#         self.tool_test_file_name = ""
-#         self.tool_name = tool_name
-#
-#     def get_tool_flags_and_libs(self):
-#         if self.tool_name == 'binsec':
-#             self.tool_flags = "-g" # -static
-#             return self.tool_flags, self.tool_libs
-#         if self.tool_name == 'ctgrind':
-#             self.tool_flags = "-Wall -ggdb  -std=c99  -Wextra"
-#             self.tool_libs = "-lctgrind -lm"
-#             return self.tool_flags, self.tool_libs
-#         if self.tool_name.lower() == 'timecop':
-#             self.tool_flags = "-Wall -g -Wextra"
-#             return self.tool_flags, self.tool_libs
-#         if self.tool_name == 'dudect':
-#             self.tool_flags = "-std=c11"
-#             self.tool_libs = "-lm"
-#             return self.tool_flags, self.tool_libs
-#         if self.tool_name == 'flowtracker':
-#             self.tool_flags = "-emit-llvm -g"
-#             self.tool_libs = ""
-#             return self.tool_flags, self.tool_libs
-#         if self.tool_name == 'ctverif' or self.tool_name == 'ct-verif':
-#             self.tool_flags = "--unroll 1 --loop-limit 1"
-#             self.tool_libs = ""
-#             return self.tool_flags, self.tool_libs
-#
-#     def get_tool_test_file_name(self):
-#         if self.tool_name == 'binsec':
-#             self.tool_test_file_name = "test_harness"
-#             keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
-#             sign = f'{self.tool_test_file_name}_crypto_sign'
-#             return keypair, sign
-#         if self.tool_name == 'ctgrind':
-#             self.tool_test_file_name = "taint"
-#             keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
-#             sign = f'{self.tool_test_file_name}_crypto_sign'
-#             return keypair, sign
-#         if self.tool_name.lower() == 'timecop':
-#             self.tool_test_file_name = "taint"
-#             keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
-#             sign = f'{self.tool_test_file_name}_crypto_sign'
-#             return keypair, sign
-#         if self.tool_name == 'dudect':
-#             self.tool_test_file_name = "dude"
-#             keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
-#             sign = f'{self.tool_test_file_name}_crypto_sign'
-#             return keypair, sign
-#         if self.tool_name == 'flowtracker':
-#             self.tool_test_file_name = "rbc"
-#             keypair = f'{self.tool_test_file_name}_crypto_sign_keypair'
-#             sign = f'{self.tool_test_file_name}_crypto_sign'
-#             return keypair, sign
-#         if self.tool_name == 'ctverif' or self.tool_name == 'ct-verif':
-#             self.tool_test_file_name = "wrapper"
-#             keypair = f'crypto_sign_keypair_{self.tool_test_file_name}'
-#             sign = f'crypto_sign_{self.tool_test_file_name}'
-#             return keypair, sign
-
-
 def parse_json_to_dict_generic_tests(path_to_json_file: str):
     with open(path_to_json_file) as json_file:
         data = json.load(json_file)
@@ -139,52 +68,12 @@ def find_target_by_basename(target_basename: str, path_to_target_header_file: st
     return target
 
 
-def generic_compilation_16_fev(path_to_target_wrapper: str, path_to_target_binary: str,
-                        path_to_test_library_directory: str, libraries_names: [Union[str, list]],
-                        path_to_include_directories: Union[str, list], cflags: Union[list, str], compiler: str = 'gcc'):
-    target_include_dir = path_to_include_directories
-    target_link_libraries = []
-    if libraries_names:
-        if isinstance(libraries_names, str):
-            target_link_libraries.extend(libraries_names.split())
-        elif isinstance(libraries_names, list):
-            target_link_libraries.extend(libraries_names.copy())
-    target_link_libraries = list(set(target_link_libraries))
-    target_link_libraries = list(map(lambda incs: f'{incs}' if '-l' in incs else f'-l{incs}', target_link_libraries))
-    target_link_libraries = list(map(lambda incs: f'{incs}'.replace('lib', '') if '-llib' in incs
-                            else f'{incs}', target_link_libraries))
-    target_link_libraries_str = " ".join(target_link_libraries)
-    all_flags_str = " ".join(cflags)
-    cmd = f'{compiler} {all_flags_str} '
-    if target_include_dir:
-        if isinstance(target_include_dir, list):
-            include_directories = target_include_dir.copy()
-            include_directories = list(map(lambda incs: f'-I{incs}', include_directories))
-            cmd += f' {" ".join(target_include_dir)}'
-        else:
-            include_directories = list(map(lambda incs: f'-I {incs}', target_include_dir.split()))
-            cmd += f' {" ".join(include_directories)}'
-    if not path_to_target_wrapper.endswith('.c'):
-        path_to_target_wrapper = f'{path_to_target_wrapper}.c'
-    cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
-    cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
-    print("cmd: ")
-    print(cmd)
-    subprocess.call(cmd, stdin=sys.stdin, shell=True)
-
-
 def generic_compilation(tool_name: str, path_to_target_wrapper: str, path_to_target_binary: str,
                         path_to_test_library_directory: str, libraries_names: [Union[str, list]],
                         path_to_include_directories: Union[str, list], cflags: Union[list, str], compiler: str = 'gcc'):
-    print("::::::generic_compilation")
-    print("----tool: ", tool_name)
-    print("----libraries_names: ", libraries_names)
-    print("----cflags: ", cflags)
     tool = Tools(tool_name)
     tool_cflags, tool_libs = tool.get_tool_flags_and_libs()
     tool_link_libraries = []
-    print("----tool_cflags: ", tool_cflags)
-    print("----tool_libs: ", tool_libs)
     if isinstance(tool_libs, str):
         tool_link_libraries = tool_libs.split()
     elif isinstance(tool_libs, list):
@@ -196,15 +85,10 @@ def generic_compilation(tool_name: str, path_to_target_wrapper: str, path_to_tar
         target_link_libraries.extend(libraries_names.split())
     elif isinstance(libraries_names, list):
         target_link_libraries.extend(libraries_names.copy())
-    # target_link_libraries = list(set(target_link_libraries))
-    print("---(1): target_link_libraries: ", target_link_libraries)
     target_link_libraries = list(OrderedDict.fromkeys(target_link_libraries))
-    print("---(2): target_link_libraries: ", target_link_libraries)
     target_link_libraries = list(map(lambda incs: f'{incs}' if '-l' in incs else f'-l{incs}', target_link_libraries))
     target_link_libraries_str = " ".join(target_link_libraries)
-    print("----A: target_link_libraries_str: ", target_link_libraries_str)
     target_link_libraries_str = target_link_libraries_str.replace('lib','')
-    print("----B: target_link_libraries_str: ", target_link_libraries_str)
     all_flags_str = ''
     if isinstance(cflags, list):
         all_flags_str = " ".join(cflags)
@@ -319,54 +203,6 @@ def binsec_update_declaration_17_jan(target_call: str, target_input_declaration:
 
 
 
-def binsec_update_declaration_20(target_call: str, target_input_declaration: Union[list, str], random_data: dict):
-    parameters_info = get_target_type_of_inputs(target_call, target_input_declaration)
-    parameter_index = 0
-    if random_data:
-        for parameter, parameter_length in random_data.items():
-            parameters_info[parameter][-1] = parameter_length
-        parameter_index += 1
-    random_data_block = f''''''
-    deallocate_block = f''''''
-    updated_declaration = f''''''
-    print("------parameters_info: ", parameters_info)
-    print("------target_input_declaration: ", target_input_declaration)
-    print("------target_call: ", target_call)
-    print("------random_data: ", random_data)
-    for key_param, value_param in parameters_info.items():
-        print("---key_param: {0} --- value_param: {1}".format(key_param, value_param))
-        if random_data:
-            if key_param in random_data.keys():
-                key = key_param
-                value = parameters_info[key]
-                if value[0] == 'pointer' or value[0] == 'array':
-                    updated_declaration += f'''
-                    {value[1]} {key}[{value[2]}] = {{0}};'''
-                elif value[0] == 'default':
-                    updated_declaration += f'''
-                    {value[1]} {key} = {value[2]}'''
-        if random_data:
-            if key_param not in random_data.keys():
-                if value_param[0] == 'pointer' or value_param[0] == 'array':
-                    updated_declaration += f'''
-                    {value_param[1]} {key_param}[{value_param[2]}] = {{0}};
-                    '''
-                if value_param[0] == 'default':
-                    updated_declaration += f'''
-                    {value_param[1]} {key_param} = {value_param[2]} ;
-                    '''
-        else:
-            if value_param[0] == 'pointer' or value_param[0] == 'array':
-                updated_declaration += f'''
-                    {value_param[1]} {key_param}[{value_param[2]}] = {{0}};
-                    '''
-            if value_param[0] == 'default':
-                updated_declaration += f'''
-                    {value_param[1]} {key_param} = {value_param[2]} ;
-                    '''
-    return updated_declaration, random_data_block, deallocate_block
-
-
 def binsec_update_declaration(target_call: str, target_input_declaration: Union[list, str], random_data: dict):
     parameters_info = get_target_type_of_inputs(target_call, target_input_declaration)
     parameter_index = 0
@@ -408,7 +244,6 @@ def binsec_update_declaration(target_call: str, target_input_declaration: Union[
                     {value_param[1]} {key_param} = {value_param[2]} ;
                     '''
     return updated_declaration, random_data_block, deallocate_block
-
 
 
 # Run timecop
@@ -793,42 +628,6 @@ def timecop_get_type_of_inputs(target_function_call: str, target_input_declarati
 
 
 # output: {VAR_NAME: [VAR_CATEGORY, VAR_TYPE, VAR_SIZE]}
-def get_target_type_of_inputs_20(target_function_call: str, target_input_declaration: Union[str, list]):
-    target_call_custom = target_function_call.replace('&', '')
-    target_call_custom = target_call_custom.replace(',', '')
-    target_all_inputs = target_call_custom[target_call_custom.find("(")+1:target_call_custom.find(")")]
-    target_all_inputs = target_all_inputs.split()
-    print("------+++++++++target_all_inputs: ", target_all_inputs)
-    print("------+++++++++target_input_declaration: ", target_input_declaration)
-    target_inputs_type = {}
-    parameter_found = False
-    parameter_infos = []
-    for i in range(len(target_input_declaration)):
-        parameter_category = 'default'
-        length = '0'  # we set length = 0  for a variable of type pointer
-        decl = target_input_declaration[i].strip()
-        parameter = target_all_inputs[i]
-        if parameter in decl:
-            input_type = ''
-            if '[' not in decl and ']' not in decl:
-                if '*' in decl:
-                    input_type = decl.split('*')[0]
-                    parameter_category = 'pointer'
-                else:
-                    input_type = decl.split(parameter)[0]
-                    length = '0'
-                    if '=' in decl:
-                        length = decl.split('=')[-1]
-            else:
-                parameter_category = 'array'
-                input_type = decl.split(parameter)[0]
-                length = decl[decl.find("[")+1:decl.find("]")]
-            parameter_infos = [parameter_category, input_type.strip(), length]
-            target_inputs_type[parameter] = parameter_infos
-    return target_inputs_type
-
-
-
 def get_target_type_of_inputs(target_function_call: str, target_input_declaration: Union[str, list]):
     target_call_custom = target_function_call.replace('&', '')
     target_call_custom = target_call_custom.replace(',', '')
@@ -1100,93 +899,6 @@ def parse_target_json_file(targets_dict: Optional[Union[list, dict]], target: st
             return None
 
 
-def generic_template_16_fev(target_basename: str, tools: Union[str, list], targets_dict: dict,
-                     number_of_measurement: Optional[Union[str, int]] = '1e5', template_only: Optional[bool] = False,
-                     compile_test_harness_and_run: Optional[bool] = True, run_test_only: Optional[bool] = False):
-    target_dict = parse_target_json_file(targets_dict, target_basename)
-    target_dict = target_dict[target_basename]
-    target_call = target_dict['target_call']
-    target_return_type = target_dict['target_return_type']
-    target_input_declaration = target_dict['target_input_declaration']
-    target_includes = target_dict['target_include_header']
-    target_secret_inputs = target_dict['secret_inputs']
-    target_macro = target_dict['macro']
-    random_data = target_dict['random_data']
-    path_to_link_library = target_dict['link_binary']
-    path_to_include_directory = target_dict['path_to_include_directory']
-    compiler = target_dict['compiler']
-    compilation_flags = target_dict['compilation_flags']
-    if not compilation_flags:
-        compilation_flags = []
-    else:
-        if isinstance(compilation_flags, str):
-            compilation_flags = compilation_flags.split()
-    # To be set as input parameters
-    sse_timeout = '120'
-    timeout = '300'
-    depth = '1000000'
-    extended_library = ''
-    template_compilation_execution = True
-    # To be set as input parameters
-    for tool in tools:
-        path_to_target_wrapper = f'{tool}/{target_basename}/{target_basename}.c'
-        path_to_target_binary = f'{tool}/{target_basename}/{target_basename}'
-        if template_only:
-            template_compilation_execution = False
-            if tool.strip() == 'binsec':
-                binsec_test_harness_template(target_basename, target_call, target_return_type, target_includes,
-                                             target_input_declaration, target_secret_inputs,
-                                             None, target_macro, random_data)
-            if tool.strip() == 'timecop':
-                timecop_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
-                                              target_input_declaration, target_secret_inputs, random_data,
-                                              None, target_macro)
-            if tool.strip() == 'dudect':
-                dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
-                                             target_input_declaration, target_secret_inputs, random_data,
-                                             None, number_of_measurement, target_macro)
-        elif run_test_only:
-            template_compilation_execution = False
-            generic_run(tool, target_basename, depth, sse_timeout, timeout)
-        elif compile_test_harness_and_run:
-            template_compilation_execution = False
-            cflags = ["-g"]
-            if tool.strip() == 'dudect':
-                extended_library = "m"
-                cflags = ["-std=c11"]
-            libraries_names = Path(path_to_link_library).stem
-            libraries_names += f' {extended_library}'
-            path_to_directory_link_library = os.path.dirname(path_to_link_library)
-            compilation_flags.extend(cflags)
-            generic_compilation(tool, path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
-                                libraries_names, path_to_include_directory, compilation_flags, compiler)
-            generic_run(tool, target_basename, depth, sse_timeout, timeout)
-        if template_compilation_execution:
-            cflags = ["-g"]
-            if tool.strip() == 'binsec':
-                binsec_test_harness_template(target_basename, target_call, target_return_type, target_includes,
-                                             target_input_declaration, target_secret_inputs,
-                                             None, target_macro, random_data)
-            if tool.strip() == 'timecop':
-                timecop_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
-                                              target_input_declaration, target_secret_inputs, random_data,
-                                              None, target_macro)
-            if tool.strip() == 'dudect':
-                dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
-                                             target_input_declaration, target_secret_inputs, random_data,
-                                             None, number_of_measurement, target_macro)
-                extended_library = "m"
-                cflags = ["-std=c11"]
-            compilation_flags.extend(cflags)
-            libraries_names = Path(path_to_link_library).stem
-            libraries_names += f' {extended_library}'
-            path_to_directory_link_library = os.path.dirname(path_to_link_library)
-            generic_compilation(tool, path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
-                                libraries_names, path_to_include_directory, compilation_flags, compiler)
-            generic_run(tool, target_basename, depth, sse_timeout, timeout)
-
-
-
 def generic_template(target_basename: str, tools: Union[str, list], targets_dict: dict,
                      number_of_measurement: Optional[Union[str, int]] = '1e5', template_only: Optional[bool] = False,
                      compile_test_harness_and_run: Optional[bool] = True, run_test_only: Optional[bool] = False):
@@ -1233,7 +945,6 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
     sse_timeout = '120'
     timeout = '300'
     depth = '1000000'
-    extended_library = ''
     template_compilation_execution = True
     # To be set as input parameters
     for tool in tools:
@@ -1258,26 +969,11 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
             generic_run(tool, target_basename, depth, sse_timeout, timeout)
         elif compile_test_harness_and_run:
             template_compilation_execution = False
-            # cflags = ["-g"]
-            # if tool.strip() == 'dudect':
-            #     extended_library = "m"
-            #     cflags = ["-std=c11"]
-
-
-            # path_to_link_library = path_to_link_library.strip()
-            # if path_to_link_library.endswith('.so'):
-            #     pass
-            # libraries_names = Path(path_to_link_library).stem
-            # libraries_names += f' {extended_library}'
-
-
             path_to_directory_link_library = os.path.dirname(path_to_link_library)
-            # compilation_flags.extend(cflags)
             generic_compilation(tool, path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
                                 libraries_names, path_to_include_directory, compilation_flags, compiler)
             generic_run(tool, target_basename, depth, sse_timeout, timeout)
         if template_compilation_execution:
-            # cflags = ["-g"]
             if tool.strip() == 'binsec':
                 binsec_test_harness_template(target_basename, target_call, target_return_type, target_includes,
                                              target_input_declaration, target_secret_inputs,
@@ -1290,18 +986,10 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
                 dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
                                              target_input_declaration, target_secret_inputs, random_data,
                                              None, number_of_measurement, target_macro)
-            #     extended_library = "m"
-            #     cflags = ["-std=c11"]
-            # compilation_flags.extend(cflags)
-
-
-            # libraries_names = Path(path_to_link_library).stem
-            # libraries_names += f' {extended_library}'
             path_to_directory_link_library = os.path.dirname(path_to_link_library)
             generic_compilation(tool, path_to_target_wrapper, path_to_target_binary, path_to_directory_link_library,
                                 libraries_names, path_to_include_directory, compilation_flags, compiler)
             generic_run(tool, target_basename, depth, sse_timeout, timeout)
-
 
 
 def generic_run(tool: str, target_basename, depth: Optional[Union[str, int]] = '1000000',
