@@ -31,18 +31,38 @@
       }
     },
     {
-      "crypto_kem_dec": {
+      "crypto_kem_dec1": {
         "target_call": "crypto_kem_dec(ss, ct, sk)",
         "target_return_type": "int",
         "target_input_declaration": [ " unsigned char ss[CRYPTO_BYTES]", "unsigned char ct[CRYPTO_CIPHERTEXTBYTES]", "unsigned char sk[CRYPTO_SECRETKEYBYTES];"],
         "target_include_header": ["kem.h"],
-        "link_binary": "kyber/ref/libpqcrystals_kyber512_ref.so",
+        "link_binary1": "kyber/ref/libpqcrystals_kyber512_ref.so",
+        "link_binary": "kyber/ref/libpqcrystals_kyber512-90s_ref.so",
+        "libraries_names1": "libpqcrystals_kyber512-90s_ref.so libpqcrystals_aes256ctr_ref.so libpqcrystals_fips202_ref.so libpqcrystals_sha2_ref.so",
+        "libraries_names": ["libpqcrystals_kyber512-90s_ref.so", "libpqcrystals_aes256ctr_ref.so", "libpqcrystals_fips202_ref.so", "libpqcrystals_sha2_ref.so"],
         "path_to_include_directory": "kyber/ref",
         "secret_inputs": ["sk", "ss"],
         "compiler": "gcc",
         "macro": {"ARRAY_SIZE": 120},
         "random_data": null,
-        "compilation_flags": null
+        "compilation_flags": "-fPIC -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls -Wshadow -Wpointer-arith -Os -fomit-frame-pointer -DKYBER_K=2 -DKYBER_90S"
+      }
+    },
+    {
+      "crypto_kem_dec": {
+        "target_call": "crypto_kem_dec(ss, ct, sk)",
+        "target_return_type": "int",
+        "target_input_declaration": [ " unsigned char ss[CRYPTO_BYTES]", "unsigned char ct[CRYPTO_CIPHERTEXTBYTES]", "unsigned char sk[CRYPTO_SECRETKEYBYTES];"],
+        "target_include_header": ["kem.h"],
+        "link_binary1": "kyber/ref/libpqcrystals_kyber512_ref.so",
+        "link_binary": "kyber/ref/libct_test_kem512-90s.so",
+        "libraries_names": "libct_test_kem512-90s.so",
+        "path_to_include_directory": "kyber/ref",
+        "secret_inputs": ["sk", "ss"],
+        "compiler": "gcc",
+        "macro": {"ARRAY_SIZE": 120},
+        "random_data": null,
+        "compilation_flags": "-fPIC -Wall -Wextra -Wpedantic -Wmissing-prototypes -Wredundant-decls -Wshadow -Wpointer-arith -Os -fomit-frame-pointer -DKYBER_K=2 -DKYBER_90S"
       }
     }
 
