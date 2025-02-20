@@ -1,8 +1,9 @@
 PLATFORM=ref
 CC=gcc
 
-TOOLS_FLAGS :=
-TOOL_LINK_LIBS :=
+TOOLS_FLAGS:=
+TOOL_LINK_LIBS:=
+CTTEST_LIB_CFLAGS:=
 
 CFLAGS=-march=native -mtune=native -O3 -fomit-frame-pointer -fwrapv -fPIC -fPIE -fopenmp -Wno-deprecated-declarations -Wno-unused-result -fPIC $(TOOLS_FLAGS) # -ggdb3 # -DQRUOV_PRG_SHAKE
 LDFLAGS=-lcrypto -Wl,-Bstatic -lcrypto -Wl,-Bdynamic -lm
@@ -18,12 +19,14 @@ OBJS=Fql.o PQCgenKAT_sign.o qruov.o rng.o sign.o matrix.o mgf.o
 INSTANCE:=qruov1q7L10v740m100
 CTTEST_LIB = libcttest.so
 BUILD_CTLIB = ../../build/$(INSTANCE)
+CTTEST_LIB_CFLAGS := $(CFLAGS)
 
 all: qruov_config.h api.h PQCgenKAT_sign $(CTTEST_LIB)
 	#bash -c "time ./PQCgenKAT_sign"
 
 $(CTTEST_LIB): Makefile ${OBJS}
 	mkdir -p $(BUILD_CTLIB)
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) ${OBJS} ${CFLAGS} -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) ${LDFLAGS}
 
 

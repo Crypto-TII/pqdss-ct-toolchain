@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/PQCGenKat_sign.dir/PQCgenKAT_sign.c.o CMakeFiles/PQCGenKat_sign.dir/rng.c.o CMakeFiles/PQCGenKat_sign.dir/sign.c.o -o PQCGenKat_sign  ../libvole.a /usr/lib/x86_64-linux-gnu/libcrypto.so -lm ../lib/sha3/libsha3.a ../lib/aes/libaes.a 

@@ -1,9 +1,9 @@
 PLATFORM=avx2
 CC=gcc
 
-TOOLS_FLAGS :=
-TOOL_LINK_LIBS :=
-CTTEST_LIB_CFLAGS :=
+TOOLS_FLAGS:= $(TOOLS_FLAGS)
+TOOL_LINK_LIBS:= $(TOOL_LINK_LIBS)
+CTTEST_LIB_CFLAGS:= $(CTTEST_LIB_CFLAGS)
 
 CFLAGS=-march=native -mtune=native -O3 -fomit-frame-pointer -fwrapv -fPIC -fPIE -fopenmp -Wno-deprecated-declarations -Wno-unused-result -fPIC $(TOOLS_FLAGS) # -ggdb3 # -DQRUOV_PRG_SHAKE
 LDFLAGS=-lcrypto -Wl,-Bstatic -lcrypto -Wl,-Bdynamic -lm

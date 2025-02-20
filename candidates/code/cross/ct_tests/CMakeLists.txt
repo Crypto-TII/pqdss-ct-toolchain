@@ -99,9 +99,9 @@ set(SOURCES
 # Constant-time tests - Benchmarks
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
-set(TOOLS_FLAGS "-Wall -g -Wextra")
-set(TOOL_NAME "timecop")
-set(TOOL_TEMPLATE_PATTERN "taint")
+set(TOOLS_FLAGS "-g")
+set(TOOL_NAME "binsec")
+set(TOOL_TEMPLATE_PATTERN "test_harness")
 set(TOOL_LINK_LIBS "")
 set(TOOL_FOLDER ../${TOOL_NAME})
 

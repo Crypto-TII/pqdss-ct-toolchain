@@ -5,6 +5,10 @@ subdirs :=\
   qruov3q7L10v1100m140 qruov3q31L3v246m87  qruov3q31L10v890m100  qruov3q127L3v228m78  \
   qruov5q7L10v1490m190 qruov5q31L3v324m114 qruov5q31L10v1120m120 qruov5q127L3v306m105
 
+TOOLS_FLAGS:=-Wall -g -Wextra
+TOOL_LINK_LIBS:=
+CTTEST_LIB_CFLAGS:=
+
 .PHONY: all clean $(subdirs)
 
 all: $(subdirs)
@@ -15,6 +19,8 @@ $(subdirs): qruov_config.src
 	grep $@ qruov_config.src > $@/$(platform)a/qruov_config.txt
 	sh -c "cd $@/$(platform)a ; ln -s ../../$(platform)/* . || true"
 	sed -i 's/INSTANCE:=.*/INSTANCE:=$@/g' $@/$(platform)a/Makefile
+	sed -i 's/TOOL_LINK_LIBS:=.*/TOOL_LINK_LIBS:=$(TOOL_LINK_LIBS)/g' $@/$(platform)a/Makefile
+	sed -i 's/TOOLS_FLAGS:=.*/TOOLS_FLAGS:=$(TOOLS_FLAGS)/g' $@/$(platform)a/Makefile
 	$(MAKE) -C $@/$(platform)a
 	#$(MAKE) -C $@/$(platform)
 	# shake

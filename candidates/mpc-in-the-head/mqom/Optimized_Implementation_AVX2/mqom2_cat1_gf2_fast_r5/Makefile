@@ -141,10 +141,10 @@ BUILD_CTLIB = build
 CTTEST_LIB_CFLAGS = $(CFLAGS)
 
 CTTEST_LIB_CFLAGS = $(filter-out -Isha3 -Isha3/avx2 -Irijndael -Ifields,$(CFLAGS))
-CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat1_gf2_fast_r3/sha3
-CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat1_gf2_fast_r3/sha3/avx2
-CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat1_gf2_fast_r3/rijndael
-CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat1_gf2_fast_r3/fields
+CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat1_gf2_fast_r5/sha3
+CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat1_gf2_fast_r5/sha3/avx2
+CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat1_gf2_fast_r5/rijndael
+CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat1_gf2_fast_r5/fields
 
 
 #all: libhash $(OBJS)

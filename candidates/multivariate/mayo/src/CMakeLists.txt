@@ -45,19 +45,29 @@ endif()
 
 
 # Constant-time - benchmarks tests
+set(TOOLS_FLAGS "-std=c11")
+set(TOOL_NAME "dudect")
+set(TOOL_TEMPLATE_PATTERN "dude")
+set(TOOL_LINK_LIBS "-lm")
+set(TOOL_FOLDER ../${TOOL_NAME})
+
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLS_FLAGS}")
-set(TOOL_FOLDER ../${TOOL_NAME})
-set(TOOL_TEMPLATE_PATTERN "test_harness")
-set(BUILD_KEYPAIR ${TOOL_FOLDER}/sqisign_keypair)
-set(BUILD_SIGN ${TOOL_FOLDER}/sqisign_sign)
+#set(TOOL_FOLDER ../${TOOL_NAME})
+message("=======TOOL_FOLDER: ${TOOL_FOLDER}")
+set(TOOL_TEMPLATE_PATTERN "dude")
+set(TEST_HARNESS_KEYPAIR mayo_keypair/${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair.c)
+set(TEST_HARNESS_SIGN mayo_sign/${TOOL_TEMPLATE_PATTERN}_crypto_sign.c)
+
+set(BUILD_KEYPAIR ${TOOL_FOLDER}/mayo_keypair)
+set(BUILD_SIGN ${TOOL_FOLDER}/mayo_sign)
 # == Benchmarks
 option(RUN_BENCHMARKS "Run custom benchmarks" OFF)
 set(BENCHMARK_TESTS "benchmarks")
 set(BENCHMARKS_FOLDER ../${BENCHMARK_TESTS})
 set(SRC_BENCHMARK ${BENCHMARKS_FOLDER}/bench)
-set(TOOL_TEMPLATE_PATTERN ${BENCHMARKS_FOLDER}/bench)
+#set(TOOL_TEMPLATE_PATTERN "dude")
 # Constant-time - benchmarks tests
 
 set(BUILD_KEYPAIR ${TOOL_FOLDER}/mayo_keypair)
@@ -94,6 +104,7 @@ if (ENABLE_PARAMS_DYNAMIC)
         if (RUN_CT_TESTS)
             #Test harness for crypto_sign_keypair
             set(TARGET_BINARY_NAME ${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair_${MVARIANT_LOWER})
+
             add_executable(${TARGET_BINARY_NAME}  ${TOOL_FOLDER}/mayo_keypair/${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair.c)
             target_link_libraries(${TARGET_BINARY_NAME} ${MVARIANT_LOWER}_nistapi ${M_LIB} ${TOOL_LINK_LIBS})
             target_include_directories(${TARGET_BINARY_NAME} PRIVATE ../include ../src/${MVARIANT_LOWER})
@@ -146,16 +157,22 @@ else()
         if (RUN_CT_TESTS)
             #Test harness for crypto_sign_keypair
             set(TARGET_BINARY_NAME ${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair_${MVARIANT_LOWER})
-            add_executable(${TARGET_BINARY_NAME}  ${TOOL_FOLDER}/mayo_keypair/${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair.c)
+            message("=======TARGET_BINARY_NAME: ${TARGET_BINARY_NAME}")
+            message("=======TARGET_BINARY_NAME: ${TARGET_BINARY_NAME}")
+#            add_executable(${TARGET_BINARY_NAME}  ${TOOL_FOLDER}/mayo_keypair/${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair.c)
+            add_executable(${TARGET_BINARY_NAME}  ${TOOL_FOLDER}/src/${MVARIANT_LOWER}/${TEST_HARNESS_KEYPAIR})
             target_link_libraries(${TARGET_BINARY_NAME} ${MVARIANT_LOWER}_nistapi ${M_LIB} ${TOOL_LINK_LIBS})
             target_include_directories(${TARGET_BINARY_NAME} PRIVATE ../include ../src/${MVARIANT_LOWER})
-            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_KEYPAIR})
+#            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_KEYPAIR})
+            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${TOOL_FOLDER}/src/${MVARIANT_LOWER}/mayo_keypair)
             #Test harness for crypto_sign
             set(TARGET_BINARY_NAME ${TOOL_TEMPLATE_PATTERN}_crypto_sign_${MVARIANT_LOWER})
-            add_executable(${TARGET_BINARY_NAME}  ${TOOL_FOLDER}/mayo_sign/${TOOL_TEMPLATE_PATTERN}_crypto_sign.c)
+#            add_executable(${TARGET_BINARY_NAME}  ${TOOL_FOLDER}/mayo_sign/${TOOL_TEMPLATE_PATTERN}_crypto_sign.c)
+            add_executable(${TARGET_BINARY_NAME}  ${TOOL_FOLDER}/src/${MVARIANT_LOWER}/${TEST_HARNESS_SIGN})
             target_include_directories(${TARGET_BINARY_NAME} PRIVATE ../include ../src/${MVARIANT_LOWER})
             target_link_libraries(${TARGET_BINARY_NAME}  ${MVARIANT_LOWER}_nistapi ${M_LIB} ${TOOL_LINK_LIBS})
-            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_SIGN})
+#            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_SIGN})
+            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${TOOL_FOLDER}/src/${MVARIANT_LOWER}/mayo_sign)
         endif (RUN_CT_TESTS)
         # === Benchmark tests
         if (RUN_BENCHMARKS)

@@ -35,7 +35,8 @@ if(ENABLE_TESTS)
 endif()
 
 
-set(TOOLS_FLAGS )
-set(TOOL_NAME )
-set(TOOL_TEMPLATE_PATTERN "test_harness")
-set(TOOL_LINK_LIBS "")
+set(TOOLS_FLAGS "-std=c11")
+set(TOOL_NAME "dudect")
+set(TOOL_TEMPLATE_PATTERN "dude")
+set(TOOL_LINK_LIBS "m")
+set(TOOL_FOLDER ../${TOOL_NAME})

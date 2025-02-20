@@ -137,9 +137,9 @@ endif (BUILD_KATS)
 set(INSTANCE sdith_cat1_fast)
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
-set(TOOLS_FLAGS "-Wall -g -Wextra")
-set(TOOL_NAME "timecop")
-set(TOOL_TEMPLATE_PATTERN "taint")
+set(TOOLS_FLAGS "-g")
+set(TOOL_NAME "binsec")
+set(TOOL_TEMPLATE_PATTERN "test_harness")
 set(TOOL_LINK_LIBS "")
 set(TOOL_FOLDER ../../${TOOL_NAME})
 
@@ -148,7 +148,10 @@ set(BUILD_KEYPAIR ${TOOL_FOLDER}/${INSTANCE}/sdith_keypair)
 #set(BUILD_SIGN ${TOOL_FOLDER}/sdith_sign)
 set(BUILD_SIGN ${TOOL_FOLDER}/${INSTANCE}/sdith_sign)
 
+message("=====BEFORE: CMAKE_C_FLAGS:   ${CMAKE_C_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLS_FLAGS}")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${TOOLS_FLAGS}")
+message("=====AFTER: CMAKE_C_FLAGS_RELEASE:   ${CMAKE_C_FLAGS_RELEASE}")
 
 # == Benchmarks
 option(RUN_BENCHMARKS "Run custom benchmarks" OFF)
@@ -166,7 +169,7 @@ if (RUN_CT_TESTS)
     add_executable(${TARGET_BINARY_NAME}
             ${TOOL_FOLDER}/${INSTANCE}/sdith_keypair/${TOOL_TEMPLATE_PATTERN}_crypto_sign_keypair.c
             ${CMAKE_SOURCE_DIR}/generator/rng.c ${CMAKE_SOURCE_DIR}/generator/rng.h ${CMAKE_SOURCE_DIR}/generator/sign.c)
-    target_link_libraries(${TARGET_BINARY_NAME} vole ${kats_libs})
+    target_link_libraries(${TARGET_BINARY_NAME} vole ${kats_libs} ${TOOL_LINK_LIBS})
     target_include_directories(${TARGET_BINARY_NAME} PRIVATE ${kats_incs} ${CMAKE_SOURCE_DIR}/generator)
     set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_KEYPAIR})
 
@@ -174,7 +177,7 @@ if (RUN_CT_TESTS)
     set(TARGET_BINARY_NAME ${TOOL_TEMPLATE_PATTERN}_crypto_sign)
     add_executable(${TARGET_BINARY_NAME} ${TOOL_FOLDER}/${INSTANCE}/sdith_sign/${TOOL_TEMPLATE_PATTERN}_crypto_sign.c
             ${CMAKE_SOURCE_DIR}/generator/rng.c ${CMAKE_SOURCE_DIR}/generator/rng.h ${CMAKE_SOURCE_DIR}/generator/sign.c)
-    target_link_libraries(${TARGET_BINARY_NAME} vole ${kats_libs})
+    target_link_libraries(${TARGET_BINARY_NAME} vole ${kats_libs} ${TOOL_LINK_LIBS})
     target_include_directories(${TARGET_BINARY_NAME} PRIVATE ${kats_incs} ${CMAKE_SOURCE_DIR}/generator)
     set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_SIGN})
 endif (RUN_CT_TESTS)

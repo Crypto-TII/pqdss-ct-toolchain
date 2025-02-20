@@ -1,7 +1,7 @@
 CC = gcc
 
 
-TOOLS_FLAGS:=-Wall -g -Wextra
+TOOLS_FLAGS:=-g
 TOOL_LINK_LIBS:=
 CTTEST_LIB_CFLAGS:=
 
