@@ -1,8 +1,8 @@
 PLATFORM=avx512
 CC=gcc
 
-TOOLS_FLAGS :=
-TOOL_LINK_LIBS :=
+TOOLS_FLAGS:=
+TOOL_LINK_LIBS:=
 CTTEST_LIB_CFLAGS:=
 
 CFLAGS=-march=native -mtune=native -O3 -fomit-frame-pointer -fwrapv -fPIC -fPIE -fopenmp -Wno-deprecated-declarations -Wno-unused-result -fPIC $(TOOLS_FLAGS) # -ggdb3 # -DQRUOV_PRG_SHAKE
