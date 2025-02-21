@@ -760,185 +760,7 @@ def generic_init_compile_18_fev(tools, candidate, abs_path_to_api_or_sign, abs_p
                                            path_to_include_directories, tool, default_instance, instances,
                                            compiler, binary_patterns)
 
-
-def generic_init_compile_20_fev(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-                         default_instance: str, instances, additional_includes, path_to_candidate_makefile_cmake,
-                         direct_link_or_compile_target: bool = True, libraries_names: Union[str, list] = 'lcttest',
-                         path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
-                         additional_cmake_definitions=None, number_of_measurements='1e4', compiler: str = 'gcc',
-                         compile_test_harness: str = 'yes', binary_patterns: Optional[Union[str, list]] = None,
-                         *args, **kwargs):
-    print("----------________:::::.......====candidate: ", candidate)
-    print("----------________:::::instances: ", instances)
-    path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
-    path_to_include_directories_initial = path_to_include_directories
-    if candidate == 'qruov':
-        cwd = os.getcwd()
-        path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-        if path_candidate.endswith('/'):
-            path_candidate += candidate
-        else:
-            path_candidate += f'/{candidate}'
-        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-        os.chdir(path_to_candidate_makefile_cmake)
-        default_platform = 'portable64'
-        # default_platform = 'avx2'
-        # platform = default_platform
-        platform = 'avx2'
-        if 'platform' in kwargs.keys():
-            platform = kwargs['platform']
-        makefile = 'Makefile'
-        # chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
-        chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
-        subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
-        os.chdir(cwd)
-        if platform not in abs_path_to_api_or_sign:
-            abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
-            path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
-        abs_path_to_api_or_sign_initial = abs_path_to_api_or_sign
-        path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
-        path_to_include_directories_initial = path_to_include_directories
-        path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
-        for instance in instances:
-            os.chdir(path_to_candidate_makefile_cmake)
-            cmd_str = f'make {instance} platform={platform}'
-            subprocess.call(cmd_str.split(), stdin=sys.stdin)
-            os.chdir(cwd)
-            abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
-            abs_path_to_api_or_sign_split.insert(1, instance)
-            # abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
-            abs_path_to_api_or_sign_split[-1] = f'/{platform}a/api.h'
-            abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
-            generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
-                                              optimized_imp_folder, instances, additional_includes, 'yes',
-                                              number_of_measurements)
-
-            instance_format = ''
-            instance_updated = f'{instance}/{platform}'
-            path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
-            path_to_include_directories += f'a'
-            for tool in tools:
-                generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
-                                           path_to_include_directories, tool, default_instance, instance.split(),
-                                           compiler, binary_patterns)
-            path_to_include_directories = path_to_include_directories_initial
-            path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
-            abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
-        print("=======DONE WITH INSTANCE: ", instances)
-
-    elif candidate == 'qruov1':
-        cwd = os.getcwd()
-        os.chdir(path_to_candidate_makefile_cmake)
-        platform = 'portable64'
-        if args:
-            platform = args[0]
-        makefile = 'Makefile'
-        chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
-        subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
-        instances_str = ''
-        if isinstance(instances, str):
-            instances_str = instances.split()
-        elif isinstance(instances, list):
-            instances_str = " ".join(instances)
-        cmd_str = f'make {instances_str}'
-        subprocess.call(cmd_str.split(), stdin=sys.stdin)
-        os.chdir(cwd)
-
-        for instance in instances:
-            abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
-            abs_path_to_api_or_sign_split.insert(1, instance)
-            abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
-            abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
-            generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
-                                              optimized_imp_folder, instances, additional_includes, 'yes',
-                                              number_of_measurements)
-    else:
-        generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
-                                          optimized_imp_folder, instances, additional_includes, 'yes',
-                                          number_of_measurements)
-    path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-    if path_candidate.endswith('/'):
-        path_candidate += candidate
-    else:
-        path_candidate += f'/{candidate}'
-    if 'yes' in compile_test_harness.lower():
-        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-        for tool in tools:
-            if not direct_link_or_compile_target:
-                if not instances:
-                    print("----------NO INSTANCES")
-                    compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                             additional_cmake_definitions, tool, *args, **kwargs)
-                else:
-                    print("----------======= INSTANCES")
-                    if candidate == 'qruov':
-                        for instance in instances:
-                            platform = 'portable64'
-                            if args:
-                                platform = args[0]
-                            instance_updated = f'{instance}/{platform}'
-                            path_to_include_directories_split = path_to_include_directories.split(default_instance)
-                            path_to_include_directories_split.insert(1, instance_updated)
-                            path_to_include_directories = "".join(path_to_include_directories_split[:-1])
-                    else:
-                        if candidate == 'sdith':
-                            print(":::::::::candidate:", candidate)
-                            expanded_kwargs_list = []
-                            if kwargs:
-                                for k, value in kwargs.items():
-                                    expanded_kwargs_list.append(f'{k}={value}')
-                            expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
-                            expanded_kwargs['BUILD_TESTING'] = 'OFF'
-                            expanded_kwargs['BUILD_KATS'] = 'ON'
-                            expanded_kwargs['CMAKE_BUILD_TYPE'] = 'Release'
-                            print("-------=====list of instances: ", instances)
-                            for instance in instances:
-                                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
-                                compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                                         additional_cmake_definitions, tool, *args, **expanded_kwargs)
-                                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
-                        elif candidate == 'mayo':
-                            pass
-                            expanded_kwargs_list = []
-                            expanded_kwargs = {}
-                            if kwargs:
-                                for k, value in kwargs.items():
-                                    expanded_kwargs_list.append(f'{k}={value}')
-                            expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
-                            if candidate == 'mayo':
-                                if 'MAYO_BUILD_TYPE' not in expanded_kwargs:
-                                    expanded_kwargs['MAYO_BUILD_TYPE'] = 'avx2'
-                                if 'ENABLE_AESNI' not in expanded_kwargs:
-                                    expanded_kwargs['ENABLE_AESNI'] = 'ON'
-                                tool_type = ct_tool.Tools(tool)
-                                tool_cflags, tool_libs = tool_type.get_tool_flags_and_libs()
-                                tool_type.get_tool_test_file_name()
-                                tool_template_pattern = tool_type.tool_test_file_name
-                                cmakelist = f'{path_to_candidate_makefile_cmake}/src/CMakeLists.txt'
-                                set_tool_flags = [f"sed -i -E 's/(TOOLS_FLAGS .+)/TOOLS_FLAGS "f'"{tool_cflags}"'")/g'" + f" {cmakelist}"]
-                                subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-                                set_tool_name = [f"sed -i -E 's/(TOOL_NAME .+)/TOOL_NAME "f'"{tool}"'")/g'" + f" {cmakelist}"]
-                                subprocess.call(set_tool_name, stdin=sys.stdin, shell=True)
-                                set_tool_flags = [f"sed -i -E 's/(TOOL_TEMPLATE_PATTERN .+)/TOOL_TEMPLATE_PATTERN "f'"{tool_template_pattern}"'")/g'" + f" {cmakelist}"]
-                                subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-                                set_tool_flags = [f"sed -i -E 's/(TOOL_LINK_LIBS .+)/TOOL_LINK_LIBS "f'"{tool_libs}"'")/g'" + f" {cmakelist}"]
-                                subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-                                compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                                         additional_cmake_definitions, tool, *args, **expanded_kwargs)
-                        else:
-                            if build_with_make:
-                                for instance in instances:
-                                    path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
-                                    compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-                                                             additional_cmake_definitions, tool, *args, **kwargs)
-            if build_with_make:
-                generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
-                                           path_to_include_directories, tool, default_instance, instances,
-                                           compiler, binary_patterns)
-
-
-
-def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+def generic_init_compile_fev_21(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
                                 default_instance: str, instances, additional_includes, path_to_candidate_makefile_cmake,
                                 direct_link_or_compile_target: bool = True, libraries_names: Union[str, list] = 'lcttest',
                                 path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
@@ -1091,33 +913,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                 path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
                 abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
         print("=======DONE WITH INSTANCE: ", instances)
-
-    elif candidate == 'qruov1':
-        cwd = os.getcwd()
-        os.chdir(path_to_candidate_makefile_cmake)
-        platform = 'portable64'
-        if args:
-            platform = args[0]
-        makefile = 'Makefile'
-        chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
-        subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
-        instances_str = ''
-        if isinstance(instances, str):
-            instances_str = instances.split()
-        elif isinstance(instances, list):
-            instances_str = " ".join(instances)
-        cmd_str = f'make {instances_str}'
-        subprocess.call(cmd_str.split(), stdin=sys.stdin)
-        os.chdir(cwd)
-
-        for instance in instances:
-            abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
-            abs_path_to_api_or_sign_split.insert(1, instance)
-            abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
-            abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
-            generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
-                                              optimized_imp_folder, instances, additional_includes, 'yes',
-                                              number_of_measurements)
     else:
         generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                           optimized_imp_folder, instances, additional_includes, 'yes',
@@ -1191,6 +986,254 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                                                path_to_include_directories, tool, default_instance, instances,
                                                compiler, binary_patterns)
 
+
+
+def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
+                         default_instance: str, instances, additional_includes, path_to_candidate_makefile_cmake,
+                         direct_link_or_compile_target: bool = True, libraries_names: Union[str, list] = 'lcttest',
+                         path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
+                         additional_cmake_definitions=None, number_of_measurements='1e4', compiler: str = 'gcc',
+                         compile_test_harness: str = 'yes', binary_patterns: Optional[Union[str, list]] = None,
+                         *args, **kwargs):
+    print("----------________:::::.......====candidate: ", candidate)
+    print("----------________:::::instances: ", instances)
+    path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
+    path_to_include_directories_initial = path_to_include_directories
+    if candidate == 'qruov':
+        cwd = os.getcwd()
+        path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+        if path_candidate.endswith('/'):
+            path_candidate += candidate
+        else:
+            path_candidate += f'/{candidate}'
+        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+        os.chdir(path_to_candidate_makefile_cmake)
+        default_platform = 'portable64'
+        # default_platform = 'avx2'
+        # platform = default_platform
+        platform = 'avx2'
+        if 'platform' in kwargs.keys():
+            platform = kwargs['platform']
+        os.chdir(cwd)
+        if platform not in abs_path_to_api_or_sign:
+            abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
+            path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
+        abs_path_to_api_or_sign_initial = abs_path_to_api_or_sign
+        path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
+        path_to_include_directories_initial = path_to_include_directories
+        path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
+        # os.chdir(path_to_candidate_makefile_cmake)
+        for tool in tools:
+            tool_type = ct_tool.Tools(tool)
+            tool_type.get_tool_flags_and_libs()
+            tool_cflags = tool_type.tool_flags
+            tool_link_libs = tool_type.tool_libs
+            makefile = 'Makefile'
+            chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
+            subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
+            set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS:=.*$/TOOLS_FLAGS:={tool_cflags}/g' {makefile}"]
+            subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+            set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS:=.*$/TOOL_LINK_LIBS:={tool_link_libs}/g' {makefile}"]
+            subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+            for instance in instances:
+                os.chdir(path_to_candidate_makefile_cmake)
+                cmd_str = f'make {instance} platform={platform}'
+                subprocess.call(cmd_str.split(), stdin=sys.stdin)
+                os.chdir(cwd)
+                abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
+                abs_path_to_api_or_sign_split.insert(1, instance)
+                # abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
+                abs_path_to_api_or_sign_split[-1] = f'/{platform}a/api.h'
+                abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
+                generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
+                                                  optimized_imp_folder, instances, additional_includes, 'yes',
+                                                  number_of_measurements)
+
+                instance_format = ''
+                instance_updated = f'{instance}/{platform}'
+                path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
+                path_to_include_directories += f'a'
+                # for tool in tools:
+                generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                           path_to_include_directories, tool, default_instance, instance.split(),
+                                           compiler, binary_patterns)
+                path_to_include_directories = path_to_include_directories_initial
+                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+                abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
+        print("=======DONE WITH INSTANCE: ", instances)
+
+    elif candidate == 'snova':
+        cwd = os.getcwd()
+        path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+        if path_candidate.endswith('/'):
+            path_candidate += candidate
+        else:
+            path_candidate += f'/{candidate}'
+        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+        os.chdir(path_to_candidate_makefile_cmake)
+        # default_platform = 'ref'
+        default_platform = 'avx2'
+        # platform = default_platform
+        platform = 'avx2'
+        if 'platform' in kwargs.keys():
+            platform = kwargs['platform']
+        optimisation = '2'
+        if 'OPTIMISATION' in kwargs.keys():
+            optimisation = kwargs['OPTIMISATION']
+        os.chdir(cwd)
+        print("======A: abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
+        print("======platform: ", platform)
+        print("======default_platform: ", default_platform)
+        # if platform not in abs_path_to_api_or_sign:
+        #     if platform != default_platform:
+        #         print("=========B: platforn not in abs_path_to_api_or_sign")
+        #         abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
+        #         print("======C: abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
+        #         path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
+
+        abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
+        print("======C: abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
+        path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
+        abs_path_to_api_or_sign_initial = abs_path_to_api_or_sign
+        print("======D:abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
+        path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
+        path_to_include_directories_initial = path_to_include_directories
+        path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
+        # os.chdir(path_to_candidate_makefile_cmake)
+        for tool in tools:
+            tool_type = ct_tool.Tools(tool)
+            tool_type.get_tool_flags_and_libs()
+            tool_cflags = tool_type.tool_flags
+            tool_link_libs = tool_type.tool_libs
+            os.chdir(path_to_candidate_makefile_cmake)
+            print("======== current working directory: ", os.getcwd())
+            makefile = 'Makefile'
+            chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
+            subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
+            set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS:=.*$/TOOLS_FLAGS:={tool_cflags}/g' {makefile}"]
+            subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+            set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS:=.*$/TOOL_LINK_LIBS:={tool_link_libs}/g' {makefile}"]
+            subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+            for instance in instances:
+                # os.chdir(path_to_candidate_makefile_cmake)
+                cmd_str = f'make {instance} platform={platform} OPTIMISATION={optimisation}'
+                print("::::::===========cmd_str: ", cmd_str)
+                subprocess.call(cmd_str.split(), stdin=sys.stdin)
+                os.chdir(cwd)
+                abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
+                abs_path_to_api_or_sign_split.insert(1, instance)
+                # abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
+                abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
+                abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
+                generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
+                                                  optimized_imp_folder, instances, additional_includes, 'yes',
+                                                  number_of_measurements)
+
+                instance_format = ''
+                instance_updated = f'{instance}/{platform}'
+                path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
+                # path_to_include_directories += f'a'
+                # for tool in tools:
+                generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                           path_to_include_directories, tool, default_instance, instance.split(),
+                                           compiler, binary_patterns)
+                path_to_include_directories = path_to_include_directories_initial
+                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+                abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
+        print("=======DONE WITH INSTANCE: ", instances)
+    else:
+        generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
+                                          optimized_imp_folder, instances, additional_includes, 'yes',
+                                          number_of_measurements)
+        path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
+        if path_candidate.endswith('/'):
+            path_candidate += candidate
+        else:
+            path_candidate += f'/{candidate}'
+        if 'yes' in compile_test_harness.lower():
+            path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
+            for tool in tools:
+                if not direct_link_or_compile_target:
+                    if not instances:
+                        print("----------NO INSTANCES")
+                        expanded_kwargs_list = []
+                        expanded_kwargs = {}
+                        if kwargs:
+                            for k, value in kwargs.items():
+                                expanded_kwargs_list.append(f'{k}={value}')
+                        expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
+                        compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                 additional_cmake_definitions, tool, *args, **expanded_kwargs)
+                    else:
+                        if candidate == 'sdith':
+                            print(":::::::::candidate:", candidate)
+                            expanded_kwargs_list = []
+                            if kwargs:
+                                for k, value in kwargs.items():
+                                    expanded_kwargs_list.append(f'{k}={value}')
+                            expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
+                            expanded_kwargs['BUILD_TESTING'] = 'OFF'
+                            expanded_kwargs['BUILD_KATS'] = 'ON'
+                            expanded_kwargs['CMAKE_BUILD_TYPE'] = 'Release'
+                            print("-------=====list of instances: ", instances)
+                            for instance in instances:
+                                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
+                                compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                         additional_cmake_definitions, tool, *args, **expanded_kwargs)
+                                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+                        elif candidate == 'mayo':
+                            pass
+                            expanded_kwargs_list = []
+                            expanded_kwargs = {}
+                            if kwargs:
+                                for k, value in kwargs.items():
+                                    expanded_kwargs_list.append(f'{k}={value}')
+                            expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
+                            if candidate == 'mayo':
+                                if 'MAYO_BUILD_TYPE' not in expanded_kwargs:
+                                    expanded_kwargs['MAYO_BUILD_TYPE'] = 'avx2'
+                                if 'ENABLE_AESNI' not in expanded_kwargs:
+                                    expanded_kwargs['ENABLE_AESNI'] = 'ON'
+                                tool_type = ct_tool.Tools(tool)
+                                tool_cflags, tool_libs = tool_type.get_tool_flags_and_libs()
+                                tool_type.get_tool_test_file_name()
+                                tool_template_pattern = tool_type.tool_test_file_name
+                                cmakelist = f'{path_to_candidate_makefile_cmake}/src/CMakeLists.txt'
+                                set_tool_flags = [f"sed -i -E 's/(TOOLS_FLAGS .+)/TOOLS_FLAGS "f'"{tool_cflags}"'")/g'" + f" {cmakelist}"]
+                                subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+                                set_tool_name = [f"sed -i -E 's/(TOOL_NAME .+)/TOOL_NAME "f'"{tool}"'")/g'" + f" {cmakelist}"]
+                                subprocess.call(set_tool_name, stdin=sys.stdin, shell=True)
+                                set_tool_flags = [f"sed -i -E 's/(TOOL_TEMPLATE_PATTERN .+)/TOOL_TEMPLATE_PATTERN "f'"{tool_template_pattern}"'")/g'" + f" {cmakelist}"]
+                                subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+                                set_tool_flags = [f"sed -i -E 's/(TOOL_LINK_LIBS .+)/TOOL_LINK_LIBS "f'"{tool_libs}"'")/g'" + f" {cmakelist}"]
+                                subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
+                                compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                         additional_cmake_definitions, tool, *args, **expanded_kwargs)
+                        elif candidate == 'uov':
+                            expanded_kwargs_list = []
+                            default_platform = 'avx2'
+                            if kwargs:
+                                for k, value in kwargs.items():
+                                    expanded_kwargs_list.append(f'{k}={value}')
+                            expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
+                            for instance in instances:
+                                platform, instance_basename = instance.split('/')
+                                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
+                                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_platform, platform)
+                                expanded_kwargs['PROJ'] = instance_basename
+                                gen.compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                             additional_cmake_definitions, *args, **expanded_kwargs)
+
+                        else:
+                            if build_with_make:
+                                for instance in instances:
+                                    path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
+                                    compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                             additional_cmake_definitions, tool, *args, **kwargs)
+                if build_with_make:
+                    generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
+                                               path_to_include_directories, tool, default_instance, instances,
+                                               compiler, binary_patterns)
 
 
 

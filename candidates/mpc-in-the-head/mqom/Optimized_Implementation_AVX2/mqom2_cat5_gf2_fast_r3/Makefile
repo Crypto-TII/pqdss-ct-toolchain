@@ -2,6 +2,10 @@ KECCAK_AVX2=1
 RIJNDAEL_AES_NI=1
 FIELDS_AVX2=1
 
+TOOLS_FLAGS:=-g
+TOOL_LINK_LIBS:=
+CTTEST_LIB_CFLAGS:=
+
 # Compiler detection
 # Detect if we are using clang or gcc
 CLANG :=  $(shell $(CC) -v 2>&1 | grep clang)
@@ -67,7 +71,7 @@ AR ?= ar
 RANLIB ?= ranlib
 
 # Basic CFLAGS
-CFLAGS ?= -g -O3 -march=native -mtune=native -Wall -Wextra -Werror -DNDEBUG
+CFLAGS ?= -g -O3 -march=native -mtune=native -Wall -Wextra -Werror -DNDEBUG -fPIC $(TOOLS_FLAGS)
 # Include the necessary headers
 CFLAGS += $(foreach DIR, $(LIB_HASH_INCLUDES), -I$(DIR))
 CFLAGS += $(foreach DIR, $(RIJNDAEL_INCLUDES), -I$(DIR))
@@ -130,8 +134,22 @@ ifneq ($(PARAM_SECURITY),)
   CFLAGS += -DMQOM2_PARAM_SECURITY=$(PARAM_SECURITY)
 endif
 
+RNG_OBJ=generator/rng.o
 
-all: libhash $(OBJS)
+CTTEST_LIB = libcttest.so
+BUILD_CTLIB = build
+CTTEST_LIB_CFLAGS = $(CFLAGS)
+
+
+CTTEST_LIB_CFLAGS = $(filter-out -Isha3 -Isha3/avx2 -Irijndael -Ifields,$(CFLAGS))
+CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat5_gf2_fast_r3/sha3
+CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat5_gf2_fast_r3/sha3/avx2
+CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat5_gf2_fast_r3/rijndael
+CTTEST_LIB_CFLAGS += -I candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat5_gf2_fast_r3/fields
+
+
+#all: libhash $(OBJS)
+all: $(CTTEST_LIB)
 
 libhash:
 	@echo "[+] Compiling libhash"
@@ -145,6 +163,12 @@ libhash:
 
 .S.o:
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(CTTEST_LIB): libhash $(OBJS) $(RNG_OBJ)
+	mkdir -p $(BUILD_CTLIB)
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
+	$(CC) $(CFLAGS) $(OBJS) $(RNG_OBJ) $(LIB_HASH) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -lcrypto #generator/rng.c
+
 
 sign: libhash $(OBJS)
 	$(CC) $(CFLAGS) generator/PQCgenKAT_sign.c generator/rng.c $(OBJS) $(LIB_HASH) -lcrypto -o sign
@@ -162,3 +186,4 @@ clean:
 	@cd $(LIB_HASH_DIR) && make clean
 	@find . -name "*.o" -type f -delete
 	@rm -f kat_gen kat_check bench
+	@rm -rf $(BUILD_CTLIB)

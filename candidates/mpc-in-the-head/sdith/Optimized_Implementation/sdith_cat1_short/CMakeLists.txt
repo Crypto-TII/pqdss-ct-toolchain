@@ -148,13 +148,10 @@ set(BUILD_KEYPAIR ${TOOL_FOLDER}/${INSTANCE}/sdith_keypair)
 #set(BUILD_SIGN ${TOOL_FOLDER}/sdith_sign)
 set(BUILD_SIGN ${TOOL_FOLDER}/${INSTANCE}/sdith_sign)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLS_FLAGS}")
-
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${TOOLS_FLAGS}")
 # == Benchmarks
 option(RUN_BENCHMARKS "Run custom benchmarks" OFF)
-#option(RUN_BENCHMARKS "Run custom benchmarks" ON)
 set(BENCHMARK_TESTS "benchmarks")
-#set(BENCHMARKS_FOLDER ../../${BENCHMARK_TESTS})
 set(BENCHMARKS_FOLDER ../../${BENCHMARK_TESTS}/${INSTANCE})
 set(SRC_BENCHMARK ${BENCHMARKS_FOLDER}/bench)
 # Constant-time - benchmarks tests
@@ -180,8 +177,6 @@ if (RUN_CT_TESTS)
 endif (RUN_CT_TESTS)
 
 if (RUN_BENCHMARKS)
-    #    add_subdirectory(generator)
-    #Test harness for crypto_sign
     set(TEST_BENCH bench)
     add_executable(${TEST_BENCH} ${SRC_BENCHMARK}.c ${CMAKE_SOURCE_DIR}/generator/rng.c
             ${CMAKE_SOURCE_DIR}/generator/rng.h ${CMAKE_SOURCE_DIR}/generator/sign.c)

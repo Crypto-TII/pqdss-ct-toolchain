@@ -1,0 +1,10 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/test_kyber/candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat1_fast/lib/aes/aes128_ctrle_special_avx2_unix.s
+

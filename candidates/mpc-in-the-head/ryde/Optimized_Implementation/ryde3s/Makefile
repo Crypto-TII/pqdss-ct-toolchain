@@ -2,9 +2,9 @@
 SCRIPT_VERSION=v2.0
 SCRIPT_AUTHOR=RYDE team
 
-TOOLS_FLAGS :=
-TOOL_LINK_LIBS :=
-CTTEST_LIB_CFLAGS :=
+TOOLS_FLAGS:=
+TOOL_LINK_LIBS:=
+CTTEST_LIB_CFLAGS:=
 
 CC=gcc
 C_FLAGS:=-O3 -flto -Wall -Wextra -Wno-unused-function -mpclmul -msse2 -mavx -mavx2 -maes -DOPT_AVX -fPIC $(TOOLS_FLAGS)
