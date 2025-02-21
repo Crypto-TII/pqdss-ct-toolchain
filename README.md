@@ -225,10 +225,33 @@ mpc-in-the-head
 - qruov
 
 ```shell
-python3 cttoolchain/ct_toolchain.py pqdss-benchmarks --candidate qruov --additional_options platform=PLATFORM
+python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --tools TOOL --candidate qruov --instances INSTANCE --additional_options platform=PLATFORM
 ```
 
 where PLATFORM = avx2/avx512/portable64
+
+ `avx2` is the default platform
+
+- snova
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --tools TOOL --candidate snova --instances INSTANCE --additional_options platform=PLATFORM OPTIMISATION=OPTIMISATION_LEVEL
+
+```
+
+where PLATFORM = ref/opt/avx2 and OPTIMISATION_LEVEL=0/1/2
+By default: PLATFORM=avx2 -  OPTIMISATION_LEVEL=2
+
+
+- sqisign
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --tools TOOL --candidate sqisign  --additional_options SQISIGN_BUILD_TYPE=broadwell  CMAKE_BUILD_TYPE=Release
+
+```
+
+where PLATFORM = ref/opt/avx2 and OPTIMISATION_LEVEL=0/1/2
+By default: PLATFORM=avx2 -  OPTIMISATION_LEVEL=2
 
 ### Feature: pqdss-benchmarks
 
