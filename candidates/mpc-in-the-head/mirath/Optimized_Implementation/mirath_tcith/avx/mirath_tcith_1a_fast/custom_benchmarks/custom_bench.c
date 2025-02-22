@@ -145,6 +145,8 @@ int main(void)
 		//mlen = min_msg_len + i*(max_msg_len - min_msg_len)/(iterations);
 		mlen = default_mlen;
 		//smlen = mlen + CRYPTO_BYTES;
+        DoNotOptimize(pk);
+        DoNotOptimize(skk);
 		cc0 = cpucycles();
 		pass = crypto_sign(&sm[(CRYPTO_BYTES + mlen) * i], &smlen[i], &m[mlen*i], mlen, &sk[i*CRYPTO_SECRETKEYBYTES]);
 		cc1 = cpucycles();
