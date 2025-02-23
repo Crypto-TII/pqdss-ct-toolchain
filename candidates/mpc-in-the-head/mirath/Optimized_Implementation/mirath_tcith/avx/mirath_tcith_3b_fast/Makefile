@@ -1,7 +1,16 @@
+TOOLS_FLAGS:=-std=c11
+TOOL_LINK_LIBS:=-lm
+CTTEST_LIB_CFLAGS:=
 
-TOOLS_FLAGS :=
-TOOL_LINK_LIBS :=
-CTTEST_LIB_CFLAGS :=
+TOOL_NAME:=dudect
+TEMPLATE_PATTERN:=dude
+
+CT_TEST_DIR:=ct_tests
+KEYPAIR:=crypto_sign_keypair
+SIGN:=crypto_sign
+KEYPAIR_TARGET:=$(TEMPLATE_PATTERN)_$(KEYPAIR)
+SIGN_TARGET:=$(TEMPLATE_PATTERN)_$(SIGN)
+CTTEST_FOLDER = ../../../../$(TOOL_NAME)
 
 INSTANCE = mirath_tcith_3b_fast
 BENCHMARK_FOLDER = ../../../../benchmarks
@@ -40,9 +49,11 @@ CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
 CTTEST_LIB_CFLAGS = $(CFLAGS)
 
+OBJECT_CT_TESTS = $(filter-out PQCgenKAT_sign.o main.o custom_bench.o $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o, $(OBJ))
+
 
 #all: PQCgenKAT_sign mirath_3b_f
-all: custom_bench
+all: crypto_sign_keypair crypto_sign #custom_bench
 
 %.o: %.c
 	$(CC) -D_SHA3_ $(INCLUDES) -c -o $@ $< $(CFLAGS)
@@ -60,6 +71,14 @@ custom_bench: custom_bench.o sign.o $(OBJ_CUSTOM_BENCH)
 	mkdir -p $(BENCHMARK_FOLDER)/$(INSTANCE)
 	$(CC) $(CFLAGS) -o $(BENCHMARK_FOLDER)/$(INSTANCE)/bench $^ $(LIBS) -lm -lcpucycles
 
+crypto_sign_keypair: $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o sign.o $(OBJECT_CT_TESTS)
+	mkdir -p $(CTTEST_FOLDER)/$(INSTANCE)/mirath_keypair
+	$(CC) $(CFLAGS) -o $(CTTEST_FOLDER)/$(INSTANCE)/mirath_keypair/$(KEYPAIR_TARGET) $^ $(LIBS) $(TOOL_LINK_LIBS)
+
+crypto_sign: $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o sign.o $(OBJECT_CT_TESTS)
+	mkdir -p $(CTTEST_FOLDER)/$(INSTANCE)/mirath_sign
+	$(CC) $(CFLAGS) -o $(CTTEST_FOLDER)/$(INSTANCE)/mirath_sign/$(SIGN_TARGET) $^ $(LIBS) $(TOOL_LINK_LIBS)
+
 
 run: PQCgenKAT_sign
 	./PQCgenKAT_sign
@@ -74,3 +93,8 @@ clean:
 	rm -f PQCsignKAT_*.req
 	rm -f PQCsignKAT_*.rsp
 	rm -rf $(BENCHMARK_FOLDER)/$(INSTANCE)/bench
+	rm -rf $(CTTEST_FOLDER)/$(INSTANCE)/taint_crypto_sign
+	rm $(CTTEST_FOLDER)/$(INSTANCE)/mirath_keypair/taint_crypto_sign_keypair
+	rm $(CTTEST_FOLDER)/$(INSTANCE)/mirath_sign/taint_crypto_sign
+	rm $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o
+	rm $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o

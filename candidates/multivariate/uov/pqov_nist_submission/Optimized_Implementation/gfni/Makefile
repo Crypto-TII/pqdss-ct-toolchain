@@ -10,8 +10,10 @@ endif
 
 SRC_DIR  := $(PROJ)
 
-TOOLS_FLAGS :=
-TOOL_LINK_LIBS :=
+
+TOOLS_FLAGS:=-std=c11
+TOOL_LINK_LIBS:=-lm
+CTTEST_LIB_CFLAGS:=
 
 CFLAGS   := -O3 $(CFLAGS) -std=c99 -Wall -Wextra -Wpedantic -Werror -fno-omit-frame-pointer -fPIC $(TOOLS_FLAGS)
 INCPATH  := -I/usr/local/include -I/opt/local/include -I/usr/include -I$(SRC_DIR)
@@ -44,7 +46,8 @@ CTTEST_LIB_CFLAGS := $(filter-out -Werror,$(CFLAGS))
 .INTERMEDIATE:  $(OBJ)
 .PHONY: all clean
 
-all: $(CTTEST_LIB) #$(EXE)
+#all: $(EXE)
+all: $(CTTEST_LIB)
 
 $(CTTEST_LIB): $(OBJ)
 	mkdir -p $(BUILD_CTLIB)/$(SRC_DIR)
