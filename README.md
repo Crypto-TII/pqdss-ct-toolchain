@@ -253,6 +253,17 @@ python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --tools TOOL --candidate sqis
 where PLATFORM = ref/opt/avx2 and OPTIMISATION_LEVEL=0/1/2
 By default: PLATFORM=avx2 -  OPTIMISATION_LEVEL=2
 
+
+- uov
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --tools TOOL --candidate uov  --instance PLATFORM/INSTANCE 
+
+```
+
+where PLATFORM = amd64/avx2/gfni/neon and INSTANCE=I/II/III/I_pk/...
+By default: PLATFORM=avx2
+
 ### Feature: pqdss-benchmarks
 
 #### List of instances
