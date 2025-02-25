@@ -33,14 +33,6 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, tool_flags: 
     if optional_flags is None:
         optional_flags = []
     cwd = os.getcwd()
-    print("-------cwd: ", cwd)
-    # if os.path.isdir(build_folder_full_path):
-    #     print("---A: Removing build directory")
-    #     if build_folder_full_path.endswith('build'):
-    #         print("---B: Removing build directory")
-    #         cmd = ["rm", "-f", build_folder_full_path]
-    #         print("-----cmd: ", cmd)
-    #         subprocess.call(cmd, stdin=sys.stdin, shell=True)
     gen.create_directory(build_folder_full_path)
     os.chdir(build_folder_full_path)
     # Set the tool's flags in the CMakeLists.txt
@@ -48,10 +40,7 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, tool_flags: 
     tool_cflags = tool_flags[1]
     tool_link_libs = tool_flags[2]
     tool_link_libs = tool_link_libs.replace('-l', '')
-    print("-------tool_link_libs: ", tool_link_libs)
     tool_template_pattern = tool_flags[-1]
-    print("::::::::tool_template_pattern: ", tool_template_pattern)
-    # if tool_flags is not None:
     cmakelist = '../CMakeLists.txt'
     set_tool_flags = [f"sed -i -E 's/(TOOLS_FLAGS .+)/TOOLS_FLAGS "f'"{tool_cflags}"'")/g'" + f" {cmakelist}"]
     subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
@@ -60,10 +49,7 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, tool_flags: 
     set_tool_flags = [f"sed -i -E 's/(TOOL_TEMPLATE_PATTERN .+)/TOOL_TEMPLATE_PATTERN "f'"{tool_template_pattern}"'")/g'" + f" {cmakelist}"]
     subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
     set_tool_flags = [f"sed -i -E 's/(TOOL_LINK_LIBS .+)/TOOL_LINK_LIBS "f'"{tool_link_libs}"'")/g'" + f" {cmakelist}"]
-    print("===========set_tool_flags: ", set_tool_flags)
     subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-    # os.chdir(build_folder_full_path) # 14-Dec
-
     additional_options = list(args)
     for key, val in kwargs.items():
         additional_options.append(f'-D{key}={val}')
@@ -88,10 +74,8 @@ def compile_with_makefile(path_to_makefile, default=None,
     tool_cflags = tool_flags[1]
     tool_link_libs = tool_flags[2]
     makefile = 'Makefile'
-    # set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS:= .*$/TOOLS_FLAGS:= {tool_cflags}/g' {makefile}"]
     set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS:=.*$/TOOLS_FLAGS:={tool_cflags}/g' {makefile}"]
     subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-    # set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS := .*$/TOOL_LINK_LIBS := {tool_link_libs}/g' {makefile}"]
     set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS:=.*$/TOOL_LINK_LIBS:={tool_link_libs}/g' {makefile}"]
     subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
     # Run make clean first in case objects files have already been obtained with the flags of a different tool.
@@ -100,14 +84,14 @@ def compile_with_makefile(path_to_makefile, default=None,
     additional_options = list(args)
     for key, val in kwargs.items():
         additional_options.append(f'{key}={val}')
-    # cmd = ["make"]
     cmd = ["make", "all"]
     if not additional_options:
         cmd.append('all')
     cmd.extend(additional_options)
     if default:
         cmd.append(default)
-    print("++++++++++++cmd++++++++++++: ", cmd)
+    print("::::::::Compilation invocation for instance: ")
+    print(cmd)
     subprocess.call(cmd, stdin=sys.stdin)
     os.chdir(cwd)
 
@@ -123,7 +107,6 @@ def generic_compilation(tool_name: str, path_to_target_wrapper: str, path_to_tar
     elif isinstance(tool_libs, list):
         tool_link_libraries = tool_libs
     target_include_dir = path_to_include_directories
-    # target_link_libraries = []
     target_link_libraries = tool_link_libraries
     if isinstance(libraries_names, str):
         target_link_libraries.extend(libraries_names.split())
@@ -156,7 +139,7 @@ def generic_compilation(tool_name: str, path_to_target_wrapper: str, path_to_tar
         path_to_target_wrapper = f'{path_to_target_wrapper}.c'
     cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
     cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
-    print("----------cmd: ")
+    print("::::::::Compilation invocation for test harness: ")
     print(cmd)
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
@@ -204,7 +187,6 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
                 cflags_custom = cflags_custom.strip()
 
         cflags_custom = cflags_custom.split()
-        print("::::::::::-------cflags_custom: ", cflags_custom)
         for bin_pattern in binary_patterns:
             target_folder_basename = f'{candidate}_{bin_pattern}'
             path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_sign_basename}'
@@ -220,7 +202,6 @@ def compile_target_candidate(path_to_candidate_makefile_cmake: str,
                              tool_name: Optional[str] = None, *args, **kwargs):
     tool_cflags = ''
     tool_libs = ''
-    # tool_template_pattern = ()
     tool_template_pattern = ''
     tool_flags = []
     if tool_name is not None:
@@ -234,7 +215,6 @@ def compile_target_candidate(path_to_candidate_makefile_cmake: str,
     if not build_with_make:
         path_to_build_folder = f'{path_to_candidate_makefile_cmake}/build'
         compile_with_cmake(path_to_build_folder, additional_options, tool_flags, *args, **kwargs)
-
 
 
 # tool_initialize_candidate: given  tool, instances, keypair and sign folders and also api.h - sign.h - rng.h paths,
@@ -275,19 +255,16 @@ def tool_initialize_candidate(abs_path_to_api_or_sign,
     ret_sign = gen.sign_find_args_types_and_names(abs_path_to_api_or_sign)
     return_type_s, f_basename_s, args_types_s, args_names_s = ret_sign
     if tool_name == 'ctgrind':
-        ct_tool.ctgrind_keypair_taint_content(test_keypair, api_or_sign,
-                                          add_includes, return_type_kp,
-                                          f_basename_kp, args_types_kp, args_names_kp)
+        ct_tool.ctgrind_keypair_taint_content(test_keypair, api_or_sign, add_includes, return_type_kp,
+                                              f_basename_kp, args_types_kp, args_names_kp)
         ct_tool.ctgrind_sign_taint_content(test_sign, api_or_sign, rng,
                                        add_includes, return_type_s,
                                        f_basename_s, args_types_s, args_names_s)
     if tool_name == 'timecop':
-        ct_tool.timecop_keypair_taint_content(test_keypair, api_or_sign,
-                                            add_includes, return_type_kp,
-                                            f_basename_kp, args_types_kp, args_names_kp)
-        ct_tool.timecop_sign_taint_content(test_sign, api_or_sign, rng,
-                                         add_includes, return_type_s,
-                                         f_basename_s, args_types_s, args_names_s)
+        ct_tool.timecop_keypair_taint_content(test_keypair, api_or_sign, add_includes, return_type_kp,
+                                              f_basename_kp, args_types_kp, args_names_kp)
+        ct_tool.timecop_sign_taint_content(test_sign, api_or_sign, rng, add_includes, return_type_s,
+                                           f_basename_s, args_types_s, args_names_s)
 
     if tool_name == 'binsec':
         cfg_file_kp, cfg_file_sign = tool_type.binsec_configuration_files()
@@ -295,8 +272,7 @@ def tool_initialize_candidate(abs_path_to_api_or_sign,
         if 'yes' in with_core_dump.lower():
             cfg_file_keypair = f'{path_to_tool_keypair_folder}/{cfg_file_kp}.ini'
         ct_tool.cfg_content_keypair(cfg_file_keypair, with_core_dump)
-        ct_tool.test_harness_content_keypair(test_keypair, api_or_sign, add_includes, return_type_kp,
-                                         f_basename_kp)
+        ct_tool.test_harness_content_keypair(test_keypair, api_or_sign, add_includes, return_type_kp, f_basename_kp)
         crypto_sign_args_names = args_names_s
 
         if 'yes' in with_core_dump.lower():
@@ -304,17 +280,13 @@ def tool_initialize_candidate(abs_path_to_api_or_sign,
         else:
             cfg_file_sign = f'{path_to_tool_sign_folder}/{cfg_file_sign}.cfg'
         ct_tool.sign_configuration_file_content(cfg_file_sign, crypto_sign_args_names, with_core_dump)
-        ct_tool.sign_test_harness_content(test_sign, api_or_sign, add_includes, return_type_s, f_basename_s,
-                                      args_types_s, args_names_s)
-
+        ct_tool.sign_test_harness_content(test_sign, api_or_sign, add_includes, return_type_s,
+                                          f_basename_s, args_types_s, args_names_s)
     if tool_name == 'dudect':
-        ct_tool.dudect_keypair_dude_content(test_keypair, api_or_sign,
-                                        add_includes, return_type_kp,
-                                        f_basename_kp, args_types_kp, args_names_kp)
-        ct_tool.dudect_sign_dude_content(test_sign, api_or_sign,
-                                     add_includes, return_type_s,
-                                     f_basename_s, args_types_s,
-                                     args_names_s, number_of_measurements)
+        ct_tool.dudect_keypair_dude_content(test_keypair, api_or_sign, add_includes, return_type_kp,
+                                            f_basename_kp, args_types_kp, args_names_kp)
+        ct_tool.dudect_sign_dude_content(test_sign, api_or_sign, add_includes, return_type_s,
+                                         f_basename_s, args_types_s, args_names_s, number_of_measurements)
     if tool_name == 'flowtracker':
         sign_function = [f_basename_s, args_names_s]
         ct_tool.flowtracker_keypair_xml_content(test_keypair, api_or_sign,
@@ -382,7 +354,7 @@ def compile_target_from_library(path_to_candidate_makefile_cmake,
                                 additional_optional=None, *args, **kwargs):
 
     path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-    # Compile candidate and generate the library 'libcttest.a' for the tests
+    # Compile candidate and generate the shared library 'libcttest.so' for the tests
     compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
                              additional_optional, *args, **kwargs)
     # Compile target function
@@ -410,8 +382,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
         path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
         os.chdir(path_to_candidate_makefile_cmake)
         default_platform = 'portable64'
-        # default_platform = 'avx2'
-        # platform = default_platform
         platform = 'avx2'
         if 'platform' in kwargs.keys():
             platform = kwargs['platform']
@@ -423,7 +393,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
         path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
         path_to_include_directories_initial = path_to_include_directories
         path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
-        # os.chdir(path_to_candidate_makefile_cmake)
         for tool in tools:
             tool_type = ct_tool.Tools(tool)
             tool_type.get_tool_flags_and_libs()
@@ -443,18 +412,15 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                 os.chdir(cwd)
                 abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
                 abs_path_to_api_or_sign_split.insert(1, instance)
-                # abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
                 abs_path_to_api_or_sign_split[-1] = f'/{platform}a/api.h'
                 abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
                 generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                                   optimized_imp_folder, instances, additional_includes, 'yes',
                                                   number_of_measurements)
-
                 instance_format = ''
                 instance_updated = f'{instance}/{platform}'
                 path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
                 path_to_include_directories += f'a'
-                # for tool in tools:
                 generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                            path_to_include_directories, tool, default_instance, instance.split(),
                                            compiler, binary_patterns)
@@ -506,9 +472,7 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
             path_candidate += f'/{candidate}'
         path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
         os.chdir(path_to_candidate_makefile_cmake)
-        # default_platform = 'ref'
         default_platform = 'avx2'
-        # platform = default_platform
         platform = 'avx2'
         if 'platform' in kwargs.keys():
             platform = kwargs['platform']
@@ -516,32 +480,18 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
         if 'OPTIMISATION' in kwargs.keys():
             optimisation = kwargs['OPTIMISATION']
         os.chdir(cwd)
-        print("======A: abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
-        print("======platform: ", platform)
-        print("======default_platform: ", default_platform)
-        # if platform not in abs_path_to_api_or_sign:
-        #     if platform != default_platform:
-        #         print("=========B: platforn not in abs_path_to_api_or_sign")
-        #         abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
-        #         print("======C: abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
-        #         path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
-
         abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
-        print("======C: abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
         path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
         abs_path_to_api_or_sign_initial = abs_path_to_api_or_sign
-        print("======D:abs_path_to_api_or_sign: ", abs_path_to_api_or_sign)
         path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
         path_to_include_directories_initial = path_to_include_directories
         path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
-        # os.chdir(path_to_candidate_makefile_cmake)
         for tool in tools:
             tool_type = ct_tool.Tools(tool)
             tool_type.get_tool_flags_and_libs()
             tool_cflags = tool_type.tool_flags
             tool_link_libs = tool_type.tool_libs
             os.chdir(path_to_candidate_makefile_cmake)
-            print("======== current working directory: ", os.getcwd())
             makefile = 'Makefile'
             chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
             subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
@@ -550,13 +500,11 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
             set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS:=.*$/TOOL_LINK_LIBS:={tool_link_libs}/g' {makefile}"]
             subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
             for instance in instances:
-                # os.chdir(path_to_candidate_makefile_cmake)
                 cmd_str = f'make {instance} platform={platform} OPTIMISATION={optimisation}'
                 subprocess.call(cmd_str.split(), stdin=sys.stdin)
                 os.chdir(cwd)
                 abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
                 abs_path_to_api_or_sign_split.insert(1, instance)
-                # abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
                 abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
                 abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
                 generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
@@ -566,8 +514,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                 instance_format = ''
                 instance_updated = f'{instance}/{platform}'
                 path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
-                # path_to_include_directories += f'a'
-                # for tool in tools:
                 generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                            path_to_include_directories, tool, default_instance, instance.split(),
                                            compiler, binary_patterns)
@@ -589,7 +535,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                 if not direct_link_or_compile_target:
                     if not instances:
                         expanded_kwargs_list = []
-                        expanded_kwargs = {}
                         if kwargs:
                             for k, value in kwargs.items():
                                 expanded_kwargs_list.append(f'{k}={value}')
@@ -614,7 +559,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                         elif candidate == 'mayo':
                             pass
                             expanded_kwargs_list = []
-                            expanded_kwargs = {}
                             if kwargs:
                                 for k, value in kwargs.items():
                                     expanded_kwargs_list.append(f'{k}={value}')
@@ -662,7 +606,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                                                              additional_cmake_definitions, tool, *args, **kwargs)
                 if build_with_make:
                     if candidate == 'uov':
-                        # platform, instance_basename = default_instance.split('/')
                         default_platform = 'avx2'
                         platform, instance_basename = instances[0].split('/')
                         path_to_test_library_directory = path_to_test_library_directory.replace(default_platform, platform)
@@ -670,9 +613,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                     generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                                path_to_include_directories, tool, default_instance, instances,
                                                compiler, binary_patterns)
-
-
-
 
 
 # instance/scr folder of the given candidate with respect to optimized_imp_folder
@@ -711,7 +651,7 @@ def binsec_generic_run(path_to_candidate, instances, depth, binary_patterns):
                 output_file = f'{path_to_instance_target_folder}/{bin_basename}_output.txt'
                 stats_file = f'{path_to_instance_target_folder}/{bin_pattern}.toml'
                 cfg_file = gen.find_ending_pattern(path_to_instance_target_folder, cfg_pattern)
-                print("::::Running:", abs_path_to_executable)
+                print(":::::::::Executing: ", abs_path_to_executable)
                 ct_tool.run_binsec(abs_path_to_executable, cfg_file, stats_file, output_file, depth)
 
 
@@ -743,7 +683,7 @@ def timecop_generic_run(path_to_candidate, instances, binary_patterns):
                 path_to_executable_file = f'{path_to_instance_target_folder}/{binary}'
                 bin_basename = binary.split('taint_')[-1]
                 output_file = f'{path_to_instance_target_folder}/{bin_basename}_output.txt'
-                print("::::Running:", path_to_executable_file)
+                print(":::::::::Executing: ", path_to_executable_file)
                 ct_tool.run_timecop(path_to_executable_file, output_file)
 
 
@@ -773,11 +713,15 @@ def dudect_generic_run(path_to_candidate, instances, binary_patterns, timeout='2
                 bin_basename = binary.split('dude_')[-1]
                 bin_basename = bin_basename.split('.o')[0]
                 output_file = f'{path_to_instance_target_folder}/{bin_basename}_output.txt'
-                print("::::Running:", path_to_executable_file)
-                ct_tool.run_dudect(path_to_executable_file,output_file,timeout)
+                print(":::::::::Executing: ", path_to_executable_file)
+                ct_tool.run_dudect(path_to_executable_file, output_file, timeout)
 
 
-def generic_execution(tools, path_to_candidate, instances, depth, binary_patterns, timeout='86400'):
+def generic_execution(tools: Union[str, list], path_to_candidate: str,
+                      instances: Optional[Union[str, list]] = None,
+                      depth: Union[str, list] = '1000000',
+                      binary_patterns: Union[str, list] = ('keypair', 'sign'),
+                      timeout: Union[str, int] = '86400'):
     for tool_name in tools:
         path_to_binsec_folder = f'{path_to_candidate}/{tool_name}'
         candidate = os.path.basename(path_to_candidate)
@@ -809,7 +753,9 @@ def generic_execution(tools, path_to_candidate, instances, depth, binary_pattern
             timecop_generic_run(path_to_candidate, instances, binary_patterns)
 
 
-def generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout='86400'):
+def generic_run(tools: Union[str, list], path_to_candidate: str, instances: Optional[Union[str, list]] = None,
+                depth: Union[str, list] = '1000000', binary_patterns: Union[str, list] = ('keypair', 'sign'),
+                timeout: Union[str, int] = '86400'):
     for tool_name in tools:
         if tool_name.lower() == 'binsec':
             binsec_generic_run(path_to_candidate, instances, depth, binary_patterns)
@@ -908,46 +854,4 @@ def run_tests(user_entry_point: str, tools: Union[str, list], candidate: str, in
                                   additional_cmake_definitions, number_of_measurements, compiler,
                                   compile, run, binary_patterns, depth, timeout, implementation_type, security_level,
                                   *args, **kwargs)
-
-# def generic_compile_target_candidate(candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
-#                                      default_instance: str, instances, additional_includes,
-#                                      path_to_candidate_makefile_cmake, direct_link_or_compile_target: bool = True,
-#                                      libraries_names: Union[str, list] = 'lcttest',
-#                                      path_to_include_directories: Union[str, list] = '', build_with_make: bool = True,
-#                                      additional_cmake_definitions=None,
-#                                      compiler: str = 'gcc', compile_test_harness: str = 'yes',
-#                                      binary_patterns: Optional[Union[str, list]] = None, *args, **kwargs):
-#
-#     path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-#     if path_candidate.endswith('/'):
-#         path_candidate += candidate
-#     else:
-#         path_candidate += f'/{candidate}'
-#     if 'yes' in compile_test_harness.lower():
-#         path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-#         if not direct_link_or_compile_target:
-#             if not instances:
-#                 compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-#                                          additional_cmake_definitions, None, *args, **kwargs)
-#             else:
-#                 for instance in instances:
-#                     path_to_candidate_makefile_cmake_split = path_to_candidate_makefile_cmake.split(default_instance)
-#                     path_to_candidate_makefile_cmake_split.insert(1, instance)
-#                     path_to_candidate_makefile_cmake = "".join(path_to_candidate_makefile_cmake_split)
-#                     compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
-#                                              additional_cmake_definitions, None, *args, **kwargs)
-#
-#
-
-
-
-
-    # generic_compile_run_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
-    #                               optimized_imp_folder, default_instance, instances, additional_includes,
-    #                               path_to_candidate_makefile_cmake, direct_link_or_compile_target, libraries_names,
-    #                               path_to_include_directories, build_with_make,
-    #                               additional_cmake_definitions, number_of_measurements, compiler,
-    #                               compile, run, binary_patterns, depth, timeout, implementation_type, security_level,
-    #                               *args, **kwargs)
-
 

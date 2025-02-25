@@ -82,11 +82,11 @@ fi
 cd ..
 
 cd $BINSEC_DIR || exit
-if ! git apply < div.patch
-then
-  echo 'div.patch could not be applied.'
-  exit 1
-fi
+#if ! git apply < div.patch
+#then
+#  echo 'div.patch could not be applied.'
+#  exit 1
+#fi
 
 if ! opam install dune
 then
@@ -100,42 +100,53 @@ then
   exit 1
 fi
 
-cd ..
+#cd ..
 
-cd $UNISIM_ARCHISEC_DIR || exit
-if ! git apply < diff.patch
-then
-  echo 'diff.patch could not be applied.'
-  exit 1
-fi
 
-if ! dune build @install
-then
-  echo 'unisim_archisec could not be build.'
-  exit 1
-fi
 
-if ! dune install
-then
-  echo 'unisim_archisec could not be installed.'
-  exit 1
-fi
+#cd $UNISIM_ARCHISEC_DIR || exit
+#if ! git apply < diff.patch
+#then
+#  echo 'diff.patch could not be applied.'
+#  exit 1
+#fi
 
-cd ..
+#if ! dune build @install
+#then
+#  echo 'unisim_archisec could not be build.'
+#  exit 1
+#fi
+#
+#if ! dune install
+#then
+#  echo 'unisim_archisec could not be installed.'
+#  exit 1
+#fi
 
-cd $BINSEC_DIR || exit
-if ! opam install menhir grain_dypgen ocamlgraph zarith toml bitwuzla-cxx
+#cd ..
+
+#cd $BINSEC_DIR || exit
+if ! opam install dune-site menhir grain_dypgen ocamlgraph zarith toml
 then
   echo 'menhir grain_dypgen ocamlgraph zarith toml could not be installed.'
   exit 1
 fi
 
 
-if ! opam install bitwuzla dune-site
+if ! opam install bitwuzla bitwuzla-cxx z3
 then
-  echo 'bitwuzla dune-site could not be installed.'
+  echo 'bitwuzla z3 could not be installed.'
   exit 1
 fi
+
+
+if ! opam install unisim_archisec
+then
+  echo 'unisim_archisec could not be installed.'
+  exit 1
+fi
+
+
 
 
 # opam install curses
