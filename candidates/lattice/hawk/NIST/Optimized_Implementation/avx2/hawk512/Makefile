@@ -1,7 +1,7 @@
 #CC = c99
 
 CC = gcc
-TOOLS_FLAGS:=
+TOOLS_FLAGS:=-Wall -g -Wextra
 TOOL_LINK_LIBS:=
 CTTEST_LIB_CFLAGS:=
 

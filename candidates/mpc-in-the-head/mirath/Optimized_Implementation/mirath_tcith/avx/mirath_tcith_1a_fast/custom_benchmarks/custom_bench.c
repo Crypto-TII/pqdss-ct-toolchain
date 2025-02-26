@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 #include <cpucycles.h>
-#include "api.h"
+#include "../api.h"
 
 //#include "rng.h"
 #include "toolchain_randombytes.h"
