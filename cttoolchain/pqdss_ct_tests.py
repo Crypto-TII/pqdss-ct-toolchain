@@ -617,7 +617,7 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
 
 # instance/scr folder of the given candidate with respect to optimized_imp_folder
 # binary_patterns: sign/keypair, referring to crypto_sign_keypair and crypto_sign algorithms respectively
-def binsec_generic_run(path_to_candidate, instances, depth, binary_patterns):
+def binsec_generic_run_27_fev(path_to_candidate, instances, depth, binary_patterns):
     path_to_binsec_folder = f'{path_to_candidate}/binsec'
     candidate = os.path.basename(path_to_candidate)
     cfg_pattern = ".ini"
@@ -653,6 +653,44 @@ def binsec_generic_run(path_to_candidate, instances, depth, binary_patterns):
                 cfg_file = gen.find_ending_pattern(path_to_instance_target_folder, cfg_pattern)
                 print(":::::::::Executing: ", abs_path_to_executable)
                 ct_tool.run_binsec(abs_path_to_executable, cfg_file, stats_file, output_file, depth)
+
+
+def binsec_generic_run(path_to_candidate, instances, depth, binary_patterns, **kwargs):
+    path_to_binsec_folder = f'{path_to_candidate}/binsec'
+    candidate = os.path.basename(path_to_candidate)
+    cfg_pattern = ".ini"
+    list_of_instances = []
+    if binary_patterns is None:
+        binary_patterns = ['keypair', 'sign']
+    if not instances:
+        path_to_instance = path_to_binsec_folder
+        list_of_instances.append(path_to_instance)
+    else:
+        for instance in instances:
+            path_to_instance = f'{path_to_binsec_folder}/{instance}'
+            list_of_instances.append(path_to_instance)
+    for p_instance in list_of_instances:
+        for bin_pattern in binary_patterns:
+            target_function = f'crypto_sign'
+            if bin_pattern == 'keypair':
+                target_function = f'{target_function}_keypair'
+            path_to_instance_target_folder = f'{p_instance}/{candidate}_{bin_pattern}'
+            bin_files = os.listdir(path_to_instance_target_folder)
+            bin_files = [exe for exe in bin_files if not '.' in exe]
+            for executable in bin_files:
+                binary = os.path.basename(executable)
+                abs_path_to_executable = f'{path_to_instance_target_folder}/{binary}.snapshot'
+                path_to_gdb_script = f'{path_to_instance_target_folder}/{binary}.gdb'
+                if not os.path.isfile(path_to_gdb_script):
+                    ct_tool.binsec_generate_gdb_script(path_to_gdb_script, abs_path_to_executable, target_function)
+                path_to_executable_file = f'{path_to_instance_target_folder}/{binary}'
+                ct_tool.binsec_generate_core_dump(path_to_executable_file, path_to_gdb_script)
+                bin_basename = binary.split('test_harness_')[-1]
+                output_file = f'{path_to_instance_target_folder}/{bin_basename}_output.txt'
+                stats_file = f'{path_to_instance_target_folder}/{bin_pattern}.toml'
+                cfg_file = gen.find_ending_pattern(path_to_instance_target_folder, cfg_pattern)
+                print(":::::::::Executing: ", abs_path_to_executable)
+                ct_tool.run_binsec(abs_path_to_executable, cfg_file, stats_file, output_file, depth, **kwargs)
 
 
 # instance/scr folder of the given candidate with respect to optimized_imp_folder
@@ -753,12 +791,24 @@ def generic_execution(tools: Union[str, list], path_to_candidate: str,
             timecop_generic_run(path_to_candidate, instances, binary_patterns)
 
 
-def generic_run(tools: Union[str, list], path_to_candidate: str, instances: Optional[Union[str, list]] = None,
+def generic_run_27_fev(tools: Union[str, list], path_to_candidate: str, instances: Optional[Union[str, list]] = None,
                 depth: Union[str, list] = '1000000', binary_patterns: Union[str, list] = ('keypair', 'sign'),
                 timeout: Union[str, int] = '86400'):
     for tool_name in tools:
         if tool_name.lower() == 'binsec':
             binsec_generic_run(path_to_candidate, instances, depth, binary_patterns)
+        if tool_name.lower() == 'timecop':
+            timecop_generic_run(path_to_candidate, instances, binary_patterns)
+        if tool_name.lower() == 'dudect':
+            dudect_generic_run(path_to_candidate, instances, binary_patterns, timeout)
+
+
+def generic_run(tools: Union[str, list], path_to_candidate: str, instances: Optional[Union[str, list]] = None,
+                depth: Union[str, list] = '1000000', binary_patterns: Union[str, list] = ('keypair', 'sign'),
+                timeout: Union[str, int] = '86400', **kwargs):
+    for tool_name in tools:
+        if tool_name.lower() == 'binsec':
+            binsec_generic_run(path_to_candidate, instances, depth, binary_patterns, **kwargs)
         if tool_name.lower() == 'timecop':
             timecop_generic_run(path_to_candidate, instances, binary_patterns)
         if tool_name.lower() == 'dudect':
@@ -788,7 +838,8 @@ def generic_compile_run_candidate(tools, candidate, abs_path_to_api_or_sign, abs
                              direct_link_or_compile_target, libraries_names,
                              path_to_include_directories, build_with_make, additional_cmake_definitions,
                              number_of_measurements, compiler, compile, binary_patterns, *args, **kwargs)
-        generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout)
+        # generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout)
+        generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout, **kwargs)
     elif 'yes' in compile.lower() and 'no' in run.lower():
         generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
                              default_instance, instances, additional_includes, path_to_candidate_makefile_cmake,
@@ -797,7 +848,8 @@ def generic_compile_run_candidate(tools, candidate, abs_path_to_api_or_sign, abs
                              number_of_measurements, compiler, compile, binary_patterns, *args, **kwargs)
 
     if 'no' in compile.lower() and 'yes' in run.lower():
-        generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout)
+        # generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout)
+        generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout, **kwargs)
 
 
 def parse_candidates_json_file(candidates_dict: dict, candidate: str):

@@ -1013,7 +1013,7 @@ def generic_create_tests_folders(list_of_path_to_folders):
 # ====================================================================
 
 # Run Binsec
-def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
+def run_binsec_v_0_9_1(executable_file, cfg_file, stats_files, output_file, depth):
     command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth} -sse-self-written-enum 1
           '''
     command += f'{executable_file}'
@@ -1048,6 +1048,22 @@ def run_binsec(executable_file, cfg_file, stats_files, output_file, depth):
                 print("---The target program is secure.")
             else:
                 print("---Binsec cannot prove that the target program is secure or insecure.")
+
+
+def run_binsec(executable_file, cfg_file, stats_files, output_file, depth, **kwargs):
+    command = f'''binsec -sse -checkct -checkct-features memory-access,control-flow,divisor,dividend,multiplication
+     -sse-script {cfg_file} -sse-depth  {depth} -sse-self-written-enum 1 -checkct-stats-file {stats_files}'''
+    if kwargs:
+        for k, value in kwargs.items():
+            if 'sse_timeout' in k:
+                command += f' -sse-timeout {value}'
+            elif 'solver_timeout' in k:
+                command += f' -fml-solver-timeout {value}'
+    command += f' {executable_file}'
+    cmd_args_lst = command.split()
+    with open(output_file, "w") as file:
+        execution = Popen(cmd_args_lst, universal_newlines=True, stdout=file, stderr=file)
+        execution.communicate()
 
 
 # Generate gdb script
