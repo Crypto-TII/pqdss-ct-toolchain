@@ -19,3 +19,8 @@ where:
 ```
 cd toolchain && docker build -t repo.private.crypto.tii.ae/docker-public/binsec/toolchain:v1.0.0 .
 ```
+
+
+```shell
+docker build -t  pqdss_cttoolchain:v1.0 -f toolchain-from-binsec-dockerfile/Dockerfile .
+```
