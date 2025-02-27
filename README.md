@@ -48,22 +48,23 @@ For Docker Desktop installation, please visit:  https://docs.docker.com/install/
 
 ### Build locally Docker image
 
+#### Base image: binsec/binsec:latest 
+
 ```shell
-cd pqdss-toochain
-docker build -t DOCKER_IMAGE_NAME:VERSION .
+cd pqdss-toochain && docker build -t DOCKER_IMAGE_NAME:TAG -f toolchain-from-binsec-dockerfile/Dockerfile .
 ```
 
 #### Example
 
 ```shell
-cd pqdss-toolchain
-docker build -t my_image:0.1.0 .
+cd pqdss-toolchain && docker build -t  my_image:0.1.0 -f toolchain-from-binsec-dockerfile/Dockerfile .
 ```
+
 
 ### Create a docker container mounted on the local directory
 
 ```shell
-docker run -it -v $PWD:/home/CONTAINER_NAME DOCKER_IMAGE_NAME:VERSION /bin/bash
+docker run -it -v $PWD:/home/CONTAINER_NAME DOCKER_IMAGE_NAME:TAG /bin/bash
 ```
 
 #### Example
@@ -121,7 +122,7 @@ Here are some options
 - `depth`: this flag is meant for the use of binsec tool. The default value in our implementation is ***1000000***. But the default value
     set by the authors of binsec tool is ***1000***.
 - `build`: the default name of build folder is *build*.
-- `algorithms_patterns`: the patterns of the algorithm to be tested. default value: ***keypair***, ***sign***
+- `algorithms`: the patterns of the algorithm to be tested. default value: ***keypair***, ***sign***
 - `cmake_addtional_definitions`: additional CMakeLists.txt definitions to compile the target candidate
 - `additional_options`: additional build/compilation options with CMakeList.txt/Makefile
 - `security_level`: candidate instance security level. This flag is specially for vox. The default value is ***256***
@@ -134,7 +135,6 @@ Here are some options
 
 The list of the options are not exhaustive and depends on the feature (pqdss ct tests/benchmarks and generic ct tests).
 
-pqdss_cttoolchain:v0.2
 
 ### Feature: pqdss-ct-tests
 
@@ -262,6 +262,7 @@ python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --tools TOOL --candidate uov 
 ```
 
 where PLATFORM = amd64/avx2/gfni/neon and INSTANCE=I/II/III/I_pk/...
+
 By default: PLATFORM=avx2
 
 ### Feature: pqdss-benchmarks
