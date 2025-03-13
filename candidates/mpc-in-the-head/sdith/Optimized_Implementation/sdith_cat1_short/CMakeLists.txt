@@ -137,18 +137,26 @@ endif (BUILD_KATS)
 set(INSTANCE sdith_cat1_short)
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
-set(TOOLS_FLAGS "-Wall -g -Wextra")
-set(TOOL_NAME "timecop")
-set(TOOL_TEMPLATE_PATTERN "taint")
-set(TOOL_LINK_LIBS "")
+set(TOOLS_FLAGS "-std=c11")
+set(TOOLS_CFLAGS ${TOOLS_FLAGS})
+#set(TOOLS_FLAGSS "-Wall -g -Wextra")
+set(TOOL_NAME "dudect")
+set(TOOL_TEMPLATE_PATTERN "dude")
+set(TOOL_LINK_LIBS "m")
 set(TOOL_FOLDER ../../${TOOL_NAME})
+
+if (${TOOL_NAME} MATCHES "dudect")
+    set(TOOLS_CFLAGS "")
+endif()
+
+message("tool flags: ${TOOLS_CFLAGS}")
 
 #set(BUILD_KEYPAIR ${TOOL_FOLDER}/sdith_keypair)
 set(BUILD_KEYPAIR ${TOOL_FOLDER}/${INSTANCE}/sdith_keypair)
 #set(BUILD_SIGN ${TOOL_FOLDER}/sdith_sign)
 set(BUILD_SIGN ${TOOL_FOLDER}/${INSTANCE}/sdith_sign)
 
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${TOOLS_FLAGS}")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${TOOLS_CFLAGS}")
 # == Benchmarks
 option(RUN_BENCHMARKS "Run custom benchmarks" OFF)
 set(BENCHMARK_TESTS "benchmarks")

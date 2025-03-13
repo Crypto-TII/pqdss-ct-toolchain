@@ -137,18 +137,22 @@ endif (BUILD_KATS)
 set(INSTANCE sdith_cat1_fast)
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
-set(TOOLS_FLAGS "-g")
-set(TOOL_NAME "binsec")
-set(TOOL_TEMPLATE_PATTERN "test_harness")
-set(TOOL_LINK_LIBS "")
+set(TOOLS_FLAGSS "-Wall -g -Wextra")
+set(TOOLS_CFLAGS ${TOOLS_FLAGS})
+set(TOOL_NAME "dudect")
+set(TOOL_TEMPLATE_PATTERN "dude")
+set(TOOL_LINK_LIBS "m")
 set(TOOL_FOLDER ../../${TOOL_NAME})
 
 
 set(BUILD_KEYPAIR ${TOOL_FOLDER}/${INSTANCE}/sdith_keypair)
 set(BUILD_SIGN ${TOOL_FOLDER}/${INSTANCE}/sdith_sign)
 
+if (${TOOL_NAME} MATCHES "dudect")
+    set(TOOLS_CFLAGS "")
+endif()
 
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${TOOLS_FLAGS}")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${TOOLS_CFLAGS}")
 
 
 # == Benchmarks

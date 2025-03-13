@@ -138,6 +138,7 @@ set(INSTANCE sdith_cat5_short)
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
 set(TOOLS_FLAGS "-Wall -g -Wextra")
+set(TOOLS_CFLAGS ${TOOLS_FLAGS})
 set(TOOL_NAME "timecop")
 set(TOOL_TEMPLATE_PATTERN "taint")
 set(TOOL_LINK_LIBS "")
@@ -148,7 +149,12 @@ set(BUILD_KEYPAIR ${TOOL_FOLDER}/${INSTANCE}/sdith_keypair)
 set(BUILD_SIGN ${TOOL_FOLDER}/${INSTANCE}/sdith_sign)
 
 
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${TOOLS_FLAGS}")
+if (${TOOL_NAME} MATCHES "dudect")
+    set(TOOLS_CFLAGS "")
+endif()
+
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${TOOLS_CFLAGS}")
+
 
 # == Benchmarks
 option(RUN_BENCHMARKS "Run custom benchmarks" OFF)
