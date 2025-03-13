@@ -1,25 +1,5 @@
 {
   "candidates":{
-    "perk_v1": {
-      "path_to_api": "candidates/mpc-in-the-head/perk/Optimized_Implementation/perk-128-fast-3/src/api.h",
-      "path_to_rng": "candidates/mpc-in-the-head/perk/Optimized_Implementation/perk-128-fast-3/lib/randombytes/rng.h",
-      "path_to_makefile_folder": "candidates/mpc-in-the-head/perk/Optimized_Implementation/perk-128-fast-3",
-      "path_to_include_directory": "src",
-      "default_instance": "perk-128-fast-3",
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level1": {"128":  ["-128-"], "192":  ["-192-"], "256":  ["-256-"]},
-      "security_level": {"lvl1":  ["-128-"], "lvl3":  ["-192-"], "lvl5":  ["-256-"]},
-      "path_to_bench_binary": null,
-      "instances": ["perk-192-short-5", "perk-192-fast-5", "perk-192-fast-3", "perk-192-short-3", "perk-128-fast-5",
-        "perk-256-fast-3", "perk-128-fast-3", "perk-256-fast-5", "perk-128-short-3", "perk-128-short-5", "perk-256-short-3", "perk-256-short-5"],
-      "instance_format": null,
-      "cflags": null
-    },
     "perk": {
       "path_to_api": "candidates/mpc-in-the-head/perk/Optimized_Implementation/perk-128-fast-3/src/api.h",
       "path_to_rng": "candidates/mpc-in-the-head/perk/Optimized_Implementation/perk-128-fast-3/lib/randombytes/rng.h",
@@ -38,54 +18,8 @@
       "instances": ["perk-192-short-5", "perk-192-fast-5", "perk-192-fast-3", "perk-192-short-3", "perk-128-fast-5",
         "perk-256-fast-3", "perk-128-fast-3", "perk-256-fast-5", "perk-128-short-3", "perk-128-short-5", "perk-256-short-3", "perk-256-short-5"],
       "instance_format": null,
-      "cflags": null
-    },
-    "mirith": {
-      "path_to_api": "candidates/mpc-in-the-head/mirith/Optimized_Implementation/mirith_avx2_Ia_fast/sign.h",
-      "path_to_rng": "candidates/mpc-in-the-head/mirith/Optimized_Implementation/mirith_avx2_Ia_fast/random.h",
-      "path_to_makefile_folder": "candidates/mpc-in-the-head/mirith/Optimized_Implementation/mirith_avx2_Ia_fast",
-      "path_to_include_directory": ".",
-      "default_instance": "mirith_avx2_Ia_fast",
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": "Additional_Implementation/avx2",
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"lvl1":  ["_Ia_", "_Ib_"], "lvl3":  ["_IIIa_", "_IIIb_"], "lvl5":  ["_Va_", "_Vb_"]},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "path_to_bench_binary": null,
-      "instances": ["mirith_hypercube_avx2_IIIa_shortest", "mirith_hypercube_avx2_IIIb_shorter", "mirith_hypercube_avx2_Ib_fast",
-        "mirith_hypercube_avx2_Va_short", "mirith_avx2_IIIa_short", "mirith_avx2_Vb_short",
-        "mirith_hypercube_avx2_Ib_shortest", "mirith_hypercube_avx2_Vb_fast", "mirith_hypercube_avx2_Vb_shortest",
-        "mirith_avx2_IIIb_short", "mirith_hypercube_avx2_Vb_short", "mirith_avx2_Ia_fast", "mirith_avx2_IIIb_fast",
-        "mirith_hypercube_avx2_IIIa_shorter", "mirith_avx2_Va_fast", "mirith_hypercube_avx2_IIIb_fast",
-        "mirith_avx2_Va_short", "mirith_avx2_Vb_fast", "mirith_hypercube_avx2_IIIa_fast", "mirith_hypercube_avx2_Ib_shorter",
-        "mirith_hypercube_avx2_Ia_shortest", "mirith_hypercube_avx2_Ib_short", "mirith_hypercube_avx2_IIIb_short",
-        "mirith_avx2_Ia_short", "mirith_avx2_Ib_fast", "mirith_avx2_IIIa_fast", "mirith_hypercube_avx2_Vb_shorter",
-        "mirith_hypercube_avx2_IIIb_shortest", "mirith_hypercube_avx2_Ia_shorter",
-        "mirith_hypercube_avx2_IIIa_short", "mirith_hypercube_avx2_Ia_short", "mirith_hypercube_avx2_Va_fast",
-        "mirith_hypercube_avx2_Va_shortest", "mirith_hypercube_avx2_Ia_fast", "mirith_avx2_Ib_short",
-        "mirith_hypercube_avx2_Va_shorter"],
-      "instance_format": null,
-      "cflags": null
-    },
-    "mira": {
-      "path_to_api": "candidates/mpc-in-the-head/mira/Optimized_Implementation/MIRA-128f/src/api.h",
-      "path_to_rng": "candidates/mpc-in-the-head/mira/Optimized_Implementation/MIRA-128f/lib/randombytes/randombytes.h",
-      "path_to_makefile_folder": "candidates/mpc-in-the-head/mira/Optimized_Implementation/MIRA-128f",
-      "path_to_include_directory": "src",
-      "default_instance": "MIRA-128f",
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"lvl1":  ["128"], "lvl3":  ["192"], "lvl5":  ["256"]},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "path_to_bench_binary": null,
-      "instances": ["MIRA-128f", "MIRA-128s", "MIRA-192f", "MIRA-192s", "MIRA-256f", "MIRA-256s"],
-      "instance_format": null,
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["sign.c"]
     },
     "mirath": {
       "path_to_api": "candidates/mpc-in-the-head/mirath/Optimized_Implementation/mirath_tcith/avx/mirath_tcith_1a_fast/api.h",
@@ -106,28 +40,8 @@
         "mirath_tcith_3a_fast", "mirath_tcith_3a_short", "mirath_tcith_3b_fast", "mirath_tcith_3b_short",
         "mirath_tcith_5a_fast", "mirath_tcith_5a_short", "mirath_tcith_5b_fast", "mirath_tcith_5b_short"],
       "instance_format": null,
-      "cflags": null
-    },
-    "mqom_v1": {
-      "path_to_api": "candidates/mpc-in-the-head/mqom/Optimized_Implementation/mqom_cat1_gf31_fast/api.h",
-      "path_to_rng": "candidates/mpc-in-the-head/mqom/Optimized_Implementation/mqom_cat1_gf31_fast/rnd.h",
-      "path_to_makefile_folder": "candidates/mpc-in-the-head/mqom/Optimized_Implementation/mqom_cat1_gf31_fast",
-      "path_to_include_directory": ".",
-      "default_instance": "mqom_cat1_gf31_fast",
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"lvl1":  ["_cat1_"], "lvl3":  ["_cat3_"], "lvl5":  ["_cat5_"]},
-      "path_to_bench_binary":null,
-      "instances": ["mqom_cat5_gf251_short", "mqom_cat5_gf31_short", "mqom_cat3_gf31_fast", "mqom_cat3_gf251_short",
-        "mqom_cat5_gf31_fast", "mqom_cat5_gf251_fast", "mqom_cat1_gf251_short", "mqom_cat1_gf31_short",
-        "mqom_cat3_gf251_fast", "mqom_cat1_gf31_fast", "mqom_cat3_gf31_short", "mqom_cat1_gf251_fast"],
-      "instance_format": null,
-      "cflags1": "-W -Wall -O3 -fPIC -DNDEBUG -DCAT_3",
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["sign.c"]
     },
     "mqom": {
       "path_to_api": "candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat1_gf2_fast_r3/api.h",
@@ -149,25 +63,8 @@
         "mqom2_cat1_gf256_short_r5", "mqom2_cat1_gf2_short_r5", "mqom2_cat3_gf256_short_r5", "mqom2_cat3_gf2_short_r5", "mqom2_cat5_gf256_short_r5", "mqom2_cat5_gf2_short_r5"],
       "instance_format": null,
       "cflags1": "-W -Wall -O3 -fPIC -DNDEBUG -DCAT_3",
-      "cflags": null
-    },
-    "ryde_v1": {
-      "path_to_api": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde128f/src/api.h",
-      "path_to_rng": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde128f/lib/randombytes/randombytes.h",
-      "path_to_makefile_folder": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde128f",
-      "path_to_include_directory": ".",
-      "default_instance": "ryde128f",
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"lvl1":  ["128"], "lvl3":  ["192"], "lvl5":  ["256"]},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "path_to_bench_binary": null,
-      "instances": ["ryde192s", "ryde256s", "ryde192f", "ryde256f", "ryde128f", "ryde128s"],
-      "instance_format": null,
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["sign.c"]
     },
     "ryde": {
       "path_to_api": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde1f/src/api.h",
@@ -185,28 +82,8 @@
       "path_to_bench_binary": null,
       "instances": ["ryde1f", "ryde1s", "ryde3f", "ryde3s", "ryde5f", "ryde5s"],
       "instance_format": null,
-      "cflags": null
-    },
-    "sdith_v1": {
-      "path_to_api": "candidates/mpc-in-the-head/sdith/Optimized_Implementation/Hypercube_Variant/sdith_hypercube_cat1_gf256/api.h",
-      "path_to_rng": "candidates/mpc-in-the-head/sdith/Optimized_Implementation/Hypercube_Variant/sdith_hypercube_cat1_gf256/rng.h",
-      "path_to_makefile_folder": "candidates/mpc-in-the-head/sdith/Optimized_Implementation/Hypercube_Variant/sdith_hypercube_cat1_gf256",
-      "path_to_include_directory": ".",
-      "default_instance": "Hypercube_Variant/sdith_hypercube_cat1_gf256",
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "instances": ["Hypercube_Variant/sdith_hypercube_cat1_p251", "Hypercube_Variant/sdith_hypercube_cat3_p251", "Hypercube_Variant/sdith_hypercube_cat3_gf256",
-        "Hypercube_Variant/sdith_hypercube_cat1_gf256", "Hypercube_Variant/sdith_hypercube_cat5_p251", "Hypercube_Variant/sdith_hypercube_cat5_gf256",
-        "Threshold_Variant/sdith_threshold_cat5_p251", "Threshold_Variant/sdith_threshold_cat3_p251", "Threshold_Variant/sdith_threshold_cat5_gf256",
-        "Threshold_Variant/sdith_threshold_cat1_gf256", "Threshold_Variant/sdith_threshold_cat1_p251", "Threshold_Variant/sdith_threshold_cat3_gf256"],
-      "path_to_bench_binary": null,
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"lvl1":  ["_cat1_"], "lvl3":  ["_cat3_"], "lvl5":  ["_cat5_"]},
-      "instance_format": null,
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["sign.c"]
     },
     "sdith": {
       "path_to_api": "candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat1_fast/generator/api.h",
@@ -224,26 +101,8 @@
       "path_to_bench_binary": null,
       "instances": ["sdith_cat1_fast", "sdith_cat1_short", "sdith_cat3_fast", "sdith_cat3_short", "sdith_cat5_fast", "sdith_cat5_short"],
       "instance_format": null,
-      "cflags": null
-    },
-    "less1": {
-      "path_to_api": "candidates/code/less/Reference_Implementation/include/api.h",
-      "path_to_rng": "candidates/code/less/Reference_Implementation/include/rng.h",
-      "path_to_makefile_folder": "candidates/code/less/ct_tests",
-      "path_to_include_directory": ".",
-      "default_instance": null,
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "path_to_bench_binary": null,
-      "build_with_makefile": false,
-      "compiler": "gcc",
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level1": {"128":  ["1_"], "192":  ["3_"], "256":  ["5_"]},
-      "security_level": {"lvl1":  ["1_"], "lvl3":  ["3_"], "lvl5":  ["5_"]},
-      "instances": null,
-      "instance_format": null,
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["generator/sign.c"]
     },
     "less": {
       "path_to_api": "candidates/code/less/Reference_Implementation/include/api.h",
@@ -262,7 +121,8 @@
       "security_level": {"lvl1":  ["252_"], "lvl3":  ["400_"], "lvl5":  ["548_"]},
       "instances": null,
       "instance_format": null,
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["lib/sign.c"]
     },
     "cross": {
       "path_to_api": "candidates/code/cross/Reference_Implementation/include/api.h",
@@ -280,44 +140,8 @@
       "instances": null,
       "path_to_bench_binary": null,
       "instance_format": null,
-      "cflags": null
-    },
-    "snova1": {
-      "path_to_api": "candidates/multivariate/snova/api.h",
-      "path_to_rng": "candidates/multivariate/snova/rng.h",
-      "path_to_makefile_folder": "candidates/multivariate/snova",
-      "path_to_include_directory": ".",
-      "default_instance": null,
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"128":  ["_37_17_2", "_25_8_3", "_24_5_4"], "192":  ["_56_25_2", "_49_11_3", "_37_8_4"], "256":  ["_75_33_2", "_66_15_3", "_60_10_4"]},
-      "instances": null,
-      "path_to_bench_binary": null,
-      "instance_format": {"CRYPTO_ALGNAME":  "SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)"},
-      "cflags": null
-    },
-    "snova_v1": {
-      "path_to_api": "candidates/multivariate/snova/api.h",
-      "path_to_rng": "candidates/multivariate/snova/rng.h",
-      "path_to_makefile_folder": "candidates/multivariate/snova",
-      "path_to_include_directory": ".",
-      "default_instance": null,
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level1": {"128":  ["_37_17_2", "_25_8_3", "_24_5_4"], "192":  ["_56_25_2", "_49_11_3", "_37_8_4"], "256":  ["_75_33_2", "_66_15_3", "_60_10_4"]},
-      "security_level": {"lvl1":  ["_37_17_2", "_25_8_3", "_24_5_4"], "lvl3":  ["_56_25_2", "_49_11_3", "_37_8_4"], "lvl5":  ["_75_33_2", "_66_15_3", "_60_10_4"]},
-      "instances": ["SNOVA_37_17_2",  "SNOVA_25_8_3", "SNOVA_24_5_4", "SNOVA_56_25_2", "SNOVA_49_11_3", "SNOVA_37_8_4", "SNOVA_75_33_2", "SNOVA_66_15_3", "SNOVA_60_10_4"],
-      "path_to_bench_binary": null,
-      "instance_format": {"CRYPTO_ALGNAME":  "SNOVA_$(SNOVA_V)_$(SNOVA_O)_$(SNOVA_L)"},
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["sign.c"]
     },
     "snova": {
       "path_to_api": "candidates/multivariate/snova/SNOVA_37_17_16_2_ESK/avx2/api.h",
@@ -346,60 +170,8 @@
         "SNOVA_29_6_16_5_ESK", "SNOVA_29_6_16_5_SSK", "SNOVA_29_6_16_5_SHAKE_ESK", "SNOVA_29_6_16_5_SHAKE_SSK"],
       "path_to_bench_binary": null,
       "instance_format": null,
-      "cflags": null
-    },
-    "pqov1": {
-      "path_to_api": "candidates/multivariate/pqov/src/api.h",
-      "path_to_rng": "candidates/multivariate/pqov/utils/nistkat/rng.h",
-      "path_to_makefile_folder": "candidates/multivariate/pqov",
-      "path_to_include_directory": ".",
-      "default_instance": null,
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm"},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "instances": null,
-      "security_level": null,
-      "path_to_bench_binary": null,
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "instance_format": {"BINARY_FORMAT":  "PROJ_$(PROJ)_VARIANT_$(VARIANT)_PARAM_$(PARAM)"}
-    },
-    "pqov2": {
-      "path_to_api": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2/III/api.h",
-      "path_to_rng": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2/nistkat/rng.h",
-      "path_to_makefile_folder": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2",
-      "path_to_include_directory": ".",
-      "default_instance": "avx2/III",
-      "optimized_implementation": "pqov_nist_submission/Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "instances": null,
-      "security_level": {"128":  ["Is", "Ip"], "192":  ["III"], "256":  ["V"]},
-      "path_to_bench_binary": null,
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "instance_format": {"BINARY_FORMAT":  "$(PROJ)"},
-      "cflags": null
-    },
-    "pqov": {
-      "path_to_api": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2/III/api.h",
-      "path_to_rng": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2/nistkat/rng.h",
-      "path_to_makefile_folder": "candidates/multivariate/pqov/pqov_nist_submission/Optimized_Implementation/avx2",
-      "path_to_include_directory": ".",
-      "default_instance": "avx2/III",
-      "optimized_implementation": "pqov_nist_submission/Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "instances": ["avx2/III", "avx2/III_pkc", "avx2/III_pkc_skc", "avx2/Ip_pkc", "avx2/Ip_pkc_skc", "avx2/Is" ,  "avx2/Is_pkc", "avx2/Is_pkc_skc", "avx2/V", "avx2/V_pkc", "avx2/V_pkc_skc", "avx2/Ip"],
-      "security_level": {"lvl1":  ["Is", "Ip"], "lvl3":  ["III"], "lvl5":  ["V"]},
-      "path_to_bench_binary": null,
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "instance_format": null,
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["src/sign.c"]
     },
     "uov": {
       "path_to_api": "candidates/multivariate/uov/pqov_nist_submission/Optimized_Implementation/avx2/III/api.h",
@@ -419,27 +191,8 @@
       "path_to_bench_binary": null,
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "instance_format": null,
-      "cflags": null
-    },
-    "qruov1": {
-      "path_to_api": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/api.h",
-      "path_to_rng": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/rng.h",
-      "path_to_makefile_folder": "candidates/multivariate/qruov/src",
-      "path_to_include_directory": ".",
-      "default_instance": "qruov1q7L10v740m100",
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "build_with_makefile": true,
-      "compiler": "gcc",
-      "instances": ["qruov1q7L10v740m100", "qruov1q31L3v165m60", "qruov1q31L10v600m70", "qruov1q127L3v156m54",
-        "qruov3q7L10v1100m140", "qruov3q31L3v246m87", "qruov3q31L10v890m100", "qruov3q127L3v228m78",
-        "qruov5q7L10v1490m190", "qruov5q31L3v324m114", "qruov5q31L10v1120m120", "qruov5q127L3v306m105"],
-      "path_to_bench_binary": null,
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"128":  ["v1"], "192":  ["v3"], "256":  ["v5"]},
-      "instance_format": null,
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["sign.c"]
     },
     "qruov": {
       "path_to_api": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/api.h",
@@ -459,25 +212,8 @@
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "security_level": {"lvl1":  ["qruov1"], "lvl3":  ["qruov3"], "lvl5":  ["qruov5"]},
       "instance_format": null,
-      "cflags": null
-    },
-    "mayo_v1": {
-      "path_to_api": "candidates/multivariate/mayo/src/mayo_1/api.h",
-      "path_to_rng": "candidates/multivariate/mayo/include/rng.h",
-      "path_to_makefile_folder": "candidates/multivariate/mayo",
-      "path_to_include_directory": ".",
-      "default_instance": "src/mayo_1",
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "build_with_makefile": false,
-      "compiler": "gcc",
-      "path_to_bench_binary": null,
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"lvl1":  ["_1", "_2"], "lvl3":  ["_3"], "lvl5":  ["_5"]},
-      "instances": ["src/mayo_1", "src/mayo_2", "src/mayo_3", "src/mayo_5"],
-      "instance_format": null,
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["axv2/sign.c"]
     },
     "mayo": {
       "path_to_api": "candidates/multivariate/mayo/src/mayo_1/api.h",
@@ -495,7 +231,8 @@
       "security_level": {"lvl1":  ["_1", "_2"], "lvl3":  ["_3"], "lvl5":  ["_5"]},
       "instances": ["src/mayo_1", "src/mayo_2", "src/mayo_3", "src/mayo_5"],
       "instance_format": null,
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["api.c"]
     },
     "hawk": {
       "path_to_api": "candidates/lattice/hawk/NIST/Optimized_Implementation/avx2/hawk256/api.h",
@@ -515,25 +252,8 @@
       "path_to_bench_binary": null,
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "instance_format": null,
-      "cflags": null
-    },
-    "sqisign1": {
-      "path_to_api": "candidates/isogeny/sqisign/src/nistapi/lvl1/api.h",
-      "path_to_rng": "candidates/isogeny/sqisign/include/rng.h",
-      "path_to_makefile_folder": "candidates/isogeny/sqisign",
-      "path_to_include_directory": ".",
-      "default_instance": null,
-      "optimized_implementation": "Optimized_Implementation",
-      "additional_implementation": null,
-      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
-      "build_with_makefile": false,
-      "compiler": "gcc",
-      "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
-      "security_level": {"lvl1":  ["-128-"], "lvl3":  ["-192-"], "lvl5":  ["-256-"]},
-      "path_to_bench_binary": null,
-      "instances": null,
-      "instance_format": null,
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["api.c"]
     },
     "sqisign": {
       "path_to_api": "candidates/isogeny/sqisign/broadwell/src/nistapi/lvl1/api.h",
@@ -551,7 +271,8 @@
       "path_to_bench_binary": null,
       "instances": null,
       "instance_format": null,
-      "cflags": null
+      "cflags": null,
+      "keygen_sign_src": ["sqisign.c"]
     }
   },
   "tools": ["binsec", "dudect", "timecop"],

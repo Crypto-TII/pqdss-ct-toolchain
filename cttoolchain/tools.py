@@ -4,6 +4,7 @@
 @author: Technical Validation Team
 """
 import os
+import stat
 import textwrap
 import re
 import shutil
@@ -998,6 +999,7 @@ def cfg_content_keypair(cfg_file_keypair, with_core_dump="yes"):
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
 
+
 # ======================CREATE folders ==================================
 # =======================================================================
 
@@ -1192,7 +1194,7 @@ def run_dudect(executable_file: str, output_file: str, timeout: Optional[Union[s
             file.write(line + '\n')
 
 # Run FLOWTRACKER
-def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
+def run_flowtracker_12_march(rbc_file, xml_file, output_file, sh_file_folder):
     sh_command = f'''
     #!/bin/sh
     opt -basicaa -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2\
@@ -1212,6 +1214,28 @@ def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
         makefile_to_run_candidate.write(textwrap.dedent(makefile_content))
     command = ["make"]
     subprocess.call(command, stdin=sys.stdin)
+
+
+def run_flowtracker(rbc_file, xml_file, output_file):
+    cwd = os.getcwd()
+    rbc_file_folder = os.path.dirname(rbc_file)
+    xml_file_basename = os.path.basename(xml_file)
+    output_file_basename = os.path.basename(output_file)
+    rbc_file_basename = os.path.basename(rbc_file)
+    os.chdir(rbc_file_folder)
+    sh_command = f'''
+    #!/bin/sh
+    opt -basicaa -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2\
+    -xmlfile {xml_file_basename} {rbc_file_basename} 2>{output_file_basename}
+    '''
+    shell_file = 'run_candidate.sh'
+    with open(shell_file, 'w') as sh_file:
+        sh_file.write(textwrap.dedent(sh_command))
+    st = os.stat('run_candidate.sh')
+    os.chmod('run_candidate.sh', st.st_mode | stat.S_IEXEC)
+    cmd = ["./run_candidate.sh"]
+    subprocess.call(cmd, stdin=sys.stdin, shell=True)
+    os.chdir(cwd)
 
 
 def flowtracker_compile_target_src_file(target_src_file, target_include_directory, xml_file):

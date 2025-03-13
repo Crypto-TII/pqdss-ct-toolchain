@@ -5,6 +5,7 @@
 """
 
 import os
+import stat
 import subprocess
 import sys
 import textwrap
@@ -68,7 +69,7 @@ def find_target_by_basename(target_basename: str, path_to_target_header_file: st
     return target
 
 
-def generic_compilation(tool_name: str, path_to_target_wrapper: str, path_to_target_binary: str,
+def generic_compilation_12_march(tool_name: str, path_to_target_wrapper: str, path_to_target_binary: str,
                         path_to_test_library_directory: str, libraries_names: [Union[str, list]],
                         path_to_include_directories: Union[str, list], cflags: Union[list, str], compiler: str = 'gcc'):
     tool = Tools(tool_name)
@@ -116,6 +117,91 @@ def generic_compilation(tool_name: str, path_to_target_wrapper: str, path_to_tar
     print("----------cmd: ")
     print(cmd)
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
+
+
+def generic_compilation(tool_name: str, path_to_target_wrapper: str, path_to_target_binary: str,
+                        path_to_test_library_directory: str, libraries_names: [Union[str, list]],
+                        path_to_include_directories: Union[str, list], cflags: Union[list, str], compiler: str = 'gcc'):
+    tool = Tools(tool_name)
+    tool_cflags, tool_libs = tool.get_tool_flags_and_libs()
+    tool_link_libraries = []
+    if isinstance(tool_libs, str):
+        tool_link_libraries = tool_libs.split()
+    elif isinstance(tool_libs, list):
+        tool_link_libraries = tool_libs
+    target_include_dir = path_to_include_directories
+    # target_link_libraries = []
+    target_link_libraries = tool_link_libraries
+    if isinstance(libraries_names, str):
+        target_link_libraries.extend(libraries_names.split())
+    elif isinstance(libraries_names, list):
+        target_link_libraries.extend(libraries_names.copy())
+    target_link_libraries = list(OrderedDict.fromkeys(target_link_libraries))
+    target_link_libraries = list(map(lambda incs: f'{incs}' if '-l' in incs else f'-l{incs}', target_link_libraries))
+    target_link_libraries_str = " ".join(target_link_libraries)
+    target_link_libraries_str = target_link_libraries_str.replace('lib', '')
+    all_flags_str = ''
+    if isinstance(cflags, list):
+        all_flags_str = " ".join(cflags)
+    elif isinstance(cflags, str):
+        all_flags_str = cflags
+
+    if isinstance(tool_cflags, list):
+        all_flags_str += f' {" ".join(tool_cflags)}'
+    elif isinstance(tool_cflags, str):
+        all_flags_str += f' {tool_cflags}'
+
+    cmd = f'{compiler} {all_flags_str} '
+    if target_include_dir:
+        if isinstance(target_include_dir, list):
+            include_directories = target_include_dir.copy()
+            include_directories = list(map(lambda incs: f'-I{incs}', include_directories))
+            cmd += f' {" ".join(target_include_dir)}'
+        else:
+            include_directories = list(map(lambda incs: f'-I {incs}', target_include_dir.split()))
+            cmd += f' {" ".join(include_directories)}'
+
+    if tool_name.strip() == 'flowtracker':
+        print("-----------path_to_target_binary: ", path_to_target_binary)
+        print("++++++++++++-----------=====all_flags_str: ", all_flags_str)
+        path_to_bc_file = path_to_target_binary.split('.')[0]
+        print("-----------+++++++++path_to_bc_file: ", path_to_bc_file)
+        path_to_bc_file += '.bc'
+        path_to_rbc_file = path_to_target_binary.split('.')[0]
+        path_to_rbc_file += '.rbc'
+        print("-----------+++++++++path_to_target_wrapper: ", path_to_target_wrapper)
+        if not path_to_target_wrapper.endswith('.c'):
+            path_to_target_wrapper = f'{path_to_target_wrapper}.c'
+        compiler_updated = 'clang'
+        all_flags_str += ' '
+        print("=====Compilation of Flowtracker")
+        cmd_bc = f"clang -emit-llvm -c -g  {all_flags_str} "
+        if target_include_dir:
+            if isinstance(target_include_dir, list):
+                include_directories = target_include_dir.copy()
+                include_directories = list(map(lambda incs: f'-I{incs}', include_directories))
+                cmd_bc += f' {" ".join(target_include_dir)}'
+            else:
+                include_directories = list(map(lambda incs: f'-I {incs}', target_include_dir.split()))
+                cmd_bc += f' {" ".join(include_directories)}'
+        # cmd += f' -o {path_to_bc_file}'
+        cmd_bc = f' {cmd_bc} {path_to_target_wrapper} -o {path_to_bc_file}'
+        print("::::::::Compilation invocation for test harness (bc): ")
+        print(cmd_bc)
+        subprocess.call(cmd_bc, stdin=sys.stdin, shell=True)
+        cmd_rbc = f"opt -instnamer -mem2reg {path_to_bc_file} > {path_to_rbc_file}"
+        print("::::::::Compilation invocation for test harness (rbc): ")
+        print(cmd_rbc)
+        subprocess.call(cmd_rbc, stdin=sys.stdin, shell=True)
+    else:
+        if not path_to_target_wrapper.endswith('.c'):
+            path_to_target_wrapper = f'{path_to_target_wrapper}.c'
+        cmd += f' {path_to_target_wrapper} -o {path_to_target_binary}'
+        cmd += f' -L{path_to_test_library_directory} -Wl,-rpath,{path_to_test_library_directory}/ {target_link_libraries_str}'
+        print("----------cmd: ")
+        print(cmd)
+        subprocess.call(cmd, stdin=sys.stdin, shell=True)
+
 
 # ==================== EXECUTION =====================================
 # ====================================================================
@@ -273,7 +359,7 @@ def run_dudect(executable_file, output_file, timeout='86400'):
 
 
 # Run FLOWTRACKER
-def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
+def run_flowtracker_12_march(rbc_file, xml_file, output_file, sh_file_folder):
     sh_command = f'''
     #!/bin/sh
     opt -basicaa -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2\
@@ -294,6 +380,27 @@ def run_flowtracker(rbc_file, xml_file, output_file, sh_file_folder):
     command = ["make"]
     subprocess.call(command, stdin=sys.stdin)
 
+
+def run_flowtracker(rbc_file, xml_file, output_file):
+    cwd = os.getcwd()
+    rbc_file_folder = os.path.dirname(rbc_file)
+    xml_file_basename = os.path.basename(xml_file)
+    output_file_basename = os.path.basename(output_file)
+    rbc_file_basename = os.path.basename(rbc_file)
+    os.chdir(rbc_file_folder)
+    sh_command = f'''
+    #!/bin/sh
+    opt -basicaa -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2\
+    -xmlfile {xml_file_basename} {rbc_file_basename} 2>{output_file_basename}
+    '''
+    shell_file = 'run_candidate.sh'
+    with open(shell_file, 'w') as sh_file:
+        sh_file.write(textwrap.dedent(sh_command))
+    st = os.stat('run_candidate.sh')
+    os.chmod('run_candidate.sh', st.st_mode | stat.S_IEXEC)
+    cmd = ["./run_candidate.sh"]
+    subprocess.call(cmd, stdin=sys.stdin, shell=True)
+    os.chdir(cwd)
 
 def configuration_file(cfg_file_sign, secret_arguments: Union[str, list], public_arguments: Optional[Union[str, list]],
                        assumption: Optional[str] = None):
@@ -964,6 +1071,11 @@ def generic_template(target_basename: str, tools: Union[str, list], targets_dict
                 dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
                                              target_input_declaration, target_secret_inputs, random_data,
                                              None, number_of_measurement, target_macro)
+            if tool.strip() == 'flowtracker':
+                dudect_test_harness_template(target_basename, target_call,  target_return_type, target_includes,
+                                             target_input_declaration, target_secret_inputs, random_data,
+                                             None, number_of_measurement, target_macro)
+
         elif run_test_only:
             template_compilation_execution = False
             generic_run(tool, target_basename, depth, sse_timeout, timeout)

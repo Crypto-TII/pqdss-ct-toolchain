@@ -1,10 +1,10 @@
 CC = gcc
 
 
-TOOLS_FLAGS:=-g
+TOOLS_FLAGS:=-emit-llvm -g
 TOOL_LINK_LIBS:=
 CTTEST_LIB_CFLAGS:=
-
+TOOL_NAME:=flowtracker
 
 
 
@@ -53,8 +53,31 @@ CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
 CTTEST_LIB_CFLAGS = $(CFLAGS)
 
+#CURRENT_DIR = $(notdir $(shell pwd))
+CURRENT_DIR = candidates/mpc-in-the-head/perk/Optimized_Implementation/$(notdir $(shell pwd))
+
+current_dir1 = $(shell pwd)
+
+$(info "current_dir1: " $(current_dir1))
+$(info "CURRENT_DIR: " $(CURRENT_DIR))
+
+
+ifeq ($(TOOL_NAME), flowtracker)
+    $(info "Hello World")
+    CTTEST_LIB_CFLAGS = -I $(CURRENT_DIR)/lib/cryptocode -I $(CURRENT_DIR)/lib/djbsort -I $(CURRENT_DIR)/lib/XKCP -I $(CURRENT_DIR)/lib/randombytes
+#	mdir = $(shell mkdir -p $(BUILD_CTLIB))
+#	custom_cflags = $(shell echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt)
+endif
+
+$(info "ALL FALGS" $(CTTEST_LIB_CFLAGS))
+
 .PHONY: all
-all: perk-128-fast-3 perk-128-fast-3-verbose perk-128-fast-3-kat $(CTTEST_LIB)
+#all: perk-128-fast-3 perk-128-fast-3-verbose perk-128-fast-3-kat $(CTTEST_LIB)
+all: $(CTTEST_LIB)
+
+flowtracker_target:
+	mkdir -p $(BUILD_CTLIB)
+	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 
 
 $(CTTEST_LIB): $(PERK_OBJS) $(LIB_OBJS)

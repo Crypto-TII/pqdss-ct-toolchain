@@ -11,7 +11,8 @@ set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} ${SANITIZE}")
 message("Compilation flags:" ${CMAKE_C_FLAGS})
 
 # by default, employ optimized implementation
-set(REFERENCE 0)
+#set(REFERENCE 0)
+option(REFERENCE 0)
 
 
 find_library(KECCAK_LIB keccak)
@@ -99,9 +100,9 @@ set(SOURCES
 # Constant-time tests - Benchmarks
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
-set(TOOLS_FLAGS "-g")
-set(TOOL_NAME "binsec")
-set(TOOL_TEMPLATE_PATTERN "test_harness")
+set(TOOLS_FLAGS "-Wall -g -Wextra")
+set(TOOL_NAME "timecop")
+set(TOOL_TEMPLATE_PATTERN "taint")
 set(TOOL_LINK_LIBS "")
 set(TOOL_FOLDER ../${TOOL_NAME})
 
