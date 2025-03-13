@@ -137,11 +137,11 @@ endif (BUILD_KATS)
 set(INSTANCE sdith_cat5_short)
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
-set(TOOLS_FLAGS "-Wall -g -Wextra")
+set(TOOLS_FLAGS "-std=c11")
 set(TOOLS_CFLAGS ${TOOLS_FLAGS})
-set(TOOL_NAME "timecop")
-set(TOOL_TEMPLATE_PATTERN "taint")
-set(TOOL_LINK_LIBS "")
+set(TOOL_NAME "dudect")
+set(TOOL_TEMPLATE_PATTERN "dude")
+set(TOOL_LINK_LIBS "m")
 set(TOOL_FOLDER ../../${TOOL_NAME})
 
 
