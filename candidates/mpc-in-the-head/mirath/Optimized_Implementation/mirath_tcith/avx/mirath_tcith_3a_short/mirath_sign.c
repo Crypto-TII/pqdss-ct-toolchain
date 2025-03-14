@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <string.h>
-#include <printf.h>
+//#include <printf.h>
+#include <stdio.h>
 
 #include "prng.h"
 #include "random.h"
