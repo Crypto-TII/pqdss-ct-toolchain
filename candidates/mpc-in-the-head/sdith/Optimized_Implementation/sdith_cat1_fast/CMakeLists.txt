@@ -154,7 +154,7 @@ endif()
 
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${TOOLS_CFLAGS}")
 
-add_compile_options(-D__always_inline=inline)
+add_compile_options(__always_inline=inline)
 
 option(FORCE_INLINE "FORCE INLINE ASM" OFF)
 if (${FORCE_INLINE})
