@@ -22,7 +22,7 @@ def add_cli_arguments(subparser,
                       additional_cmake_definitions=None,
                       link_to_library: bool = True,
                       number_of_measurements='1e4',
-                      timeout='86400',
+                      timeout='900',
                       implementation_type='opt'):
     # Default algorithms pattern to test
     default_algorithms = ["keypair", "sign"]
