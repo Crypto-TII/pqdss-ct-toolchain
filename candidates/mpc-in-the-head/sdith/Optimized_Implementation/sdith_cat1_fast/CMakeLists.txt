@@ -154,6 +154,13 @@ endif()
 
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${TOOLS_CFLAGS}")
 
+add_compile_options(-D__always_inline=inline)
+
+option(FORCE_INLINE "FORCE INLINE ASM" OFF)
+if (${FORCE_INLINE})
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -D__always_inline=inline")
+endif ()
+
 
 # == Benchmarks
 option(RUN_BENCHMARKS "Run custom benchmarks" OFF)
