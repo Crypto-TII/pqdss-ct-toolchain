@@ -230,7 +230,7 @@ def generic_compilation(tool_name: str, path_to_target_wrapper: str, path_to_tar
         subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
 
-def generic_target_compilation_17_march(path_candidate: str, path_to_test_library_directory: str,
+def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
                                libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
                                tool_name: str, default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
                                binary_patterns: Optional[Union[str, list]] = None, keygen_sign_src: Optional[Union[str, list, dict]] = None):
@@ -320,7 +320,7 @@ def generic_target_compilation_17_march(path_candidate: str, path_to_test_librar
                                     libraries_names, path_to_include_directories, cflags_custom, compiler)
 
 
-def generic_target_compilation(path_candidate: str, path_to_test_library_directory: str,
+def generic_target_compilation_for_uov(path_candidate: str, path_to_test_library_directory: str,
                                libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
                                tool_name: str, default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
                                binary_patterns: Optional[Union[str, list]] = None, keygen_sign_src: Optional[Union[str, list, dict]] = None):
