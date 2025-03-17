@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	dudect_init(&ctx, &config);
 
 FILE *distributions;
-distributions = fopen("candidates/mpc-in-the-head//mirath/dudect/mirath_tcith_1a_fast/mirath_sign/measurements.txt", "w");
+distributions = fopen("candidates/mpc-in-the-head//mirath/dudect/mirath_tcith_5a_short/mirath_sign/measurements_mirath_tcith_5a_short.txt", "w");
 fprintf(distributions, "%s", "Static and Random distribution measurements\n");
 
 

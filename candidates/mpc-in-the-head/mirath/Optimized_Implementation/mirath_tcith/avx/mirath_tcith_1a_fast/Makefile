@@ -1,9 +1,9 @@
 
-TOOLS_FLAGS:=-g
-TOOL_LINK_LIBS:=
+TOOLS_FLAGS:=-std=c11
+TOOL_LINK_LIBS:=-lm
 CTTEST_LIB_CFLAGS:=
-TOOL_NAME:=binsec
-TEMPLATE_PATTERN:=test_harness
+TOOL_NAME:=dudect
+TEMPLATE_PATTERN:=dude
 
 CT_TEST_DIR:=ct_tests
 KEYPAIR:=crypto_sign_keypair
@@ -117,10 +117,8 @@ clean:
 	rm -f PQCsignKAT_*.rsp
 	rm -rf $(BUILD_CTLIB)
 	rm -rf $(BENCHMARK_FOLDER)/$(INSTANCE)/bench
-	rm -rf $(CTTEST_FOLDER)/$(INSTANCE)/taint_crypto_sign
-	rm $(CTTEST_FOLDER)/$(INSTANCE)/mirath_keypair/taint_crypto_sign_keypair
-	rm $(CTTEST_FOLDER)/$(INSTANCE)/mirath_sign/taint_crypto_sign
-	rm $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o
-	rm $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o
-	rm ct_tests/taint_crypto_sign_link
-	rm ct_tests/taint_crypto_sign.o
+	rm -rf $(CTTEST_FOLDER)/$(INSTANCE)/$(TEMPLATE_PATTERN)_crypto_sign
+	rm -f $(CTTEST_FOLDER)/$(INSTANCE)/mirath_keypair/$(TEMPLATE_PATTERN)_crypto_sign_keypair
+	rm -f $(CTTEST_FOLDER)/$(INSTANCE)/mirath_sign/$(TEMPLATE_PATTERN)_crypto_sign
+	rm -f $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o
+	rm -f $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o

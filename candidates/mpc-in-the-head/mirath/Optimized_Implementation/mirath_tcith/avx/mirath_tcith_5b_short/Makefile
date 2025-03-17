@@ -13,6 +13,9 @@ SIGN_TARGET:=$(TEMPLATE_PATTERN)_$(SIGN)
 CTTEST_FOLDER = ../../../../$(TOOL_NAME)
 
 
+$(info "======$(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o")
+
+
 INSTANCE = mirath_tcith_5b_short
 BENCHMARK_FOLDER = ../../../../benchmarks
 
@@ -93,9 +96,10 @@ clean:
 	rm -f PQCgenKAT_sign
 	rm -f PQCsignKAT_*.req
 	rm -f PQCsignKAT_*.rsp
-	rm -rf $(BENCHMARK_FOLDER)/$(INSTANCE)/bench
-	rm -rf $(CTTEST_FOLDER)/$(INSTANCE)/taint_crypto_sign
-	rm $(CTTEST_FOLDER)/$(INSTANCE)/mirath_keypair/taint_crypto_sign_keypair
-	rm $(CTTEST_FOLDER)/$(INSTANCE)/mirath_sign/taint_crypto_sign
-	rm $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o
-	rm $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o
+	rm -f $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o
+	rm -f $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o
+	rm -rf $(CTTEST_FOLDER)/$(INSTANCE)/$(TEMPLATE_PATTERN)_crypto_sign
+	rm -f $(CTTEST_FOLDER)/$(INSTANCE)/mirath_keypair/$(TEMPLATE_PATTERN)_crypto_sign_keypair
+	rm -f $(CTTEST_FOLDER)/$(INSTANCE)/mirath_sign/$(TEMPLATE_PATTERN)_crypto_sign
+	rm -f $(BENCHMARK_FOLDER)/$(INSTANCE)/bench
+

@@ -68,8 +68,8 @@ int main(int argc, char **argv)
 	dudect_init(&ctx, &config);
 
 FILE *distributions;
-distributions = fopen("candidates/mpc-in-the-head//mirath/dudect/mirath_tcith_1a_fast/mirath_sign/measurements.txt", "w");
-fprintf(distributions, "%s", "Static and Random distribution measurements\n");
+distributions = fopen("candidates/mpc-in-the-head//mirath/dudect/mirath_tcith_3b_short/mirath_sign/measurements_mirath_tcith_3b_short.txt", "w");
+//fprintf(distributions, "%s", "Static and Random distribution measurements\n");
 
 
 	dudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;

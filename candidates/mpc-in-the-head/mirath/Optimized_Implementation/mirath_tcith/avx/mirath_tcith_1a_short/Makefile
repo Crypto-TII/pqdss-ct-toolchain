@@ -90,13 +90,13 @@ run: PQCgenKAT_sign
 clean:
 	rm -f *.o *.su
 	rm -f common/*.o
-	rm -r mirath_1a_s
+	rm -f mirath_1a_s
 	rm -f PQCgenKAT_sign
 	rm -f PQCsignKAT_*.req
 	rm -f PQCsignKAT_*.rsp
 	rm -rf $(BENCHMARK_FOLDER)/$(INSTANCE)/bench
-	rm -rf $(CTTEST_FOLDER)/$(INSTANCE)/taint_crypto_sign
-	rm $(CTTEST_FOLDER)/$(INSTANCE)/mirath_keypair/taint_crypto_sign_keypair
-	rm $(CTTEST_FOLDER)/$(INSTANCE)/mirath_sign/taint_crypto_sign
-	rm $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o
-	rm $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o
+	rm -rf $(CTTEST_FOLDER)/$(INSTANCE)/$(TEMPLATE_PATTERN)_crypto_sign
+	rm -f $(CTTEST_FOLDER)/$(INSTANCE)/mirath_keypair/$(TEMPLATE_PATTERN)_crypto_sign_keypair
+	rm -f $(CTTEST_FOLDER)/$(INSTANCE)/mirath_sign/$(TEMPLATE_PATTERN)_crypto_sign
+	rm -f $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o
+	rm -f $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o
