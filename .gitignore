@@ -67,3 +67,6 @@ binsec/
 dudect/
 ctgrind/
 flowtracker/
+
+# venv
+venv
