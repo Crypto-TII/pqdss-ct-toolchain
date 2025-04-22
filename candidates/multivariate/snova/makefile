@@ -26,8 +26,8 @@ OPTIMISATION = 2
 valid_platform = avx2
 endif
 
-TOOLS_FLAGS:=-Wall -g -Wextra
-TOOL_LINK_LIBS:=
+TOOLS_FLAGS:=-std=c11
+TOOL_LINK_LIBS:=-lm
 CTTEST_LIB_CFLAGS:=
 
 .PHONY: all clean $(subdirs)
