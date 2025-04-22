@@ -10,8 +10,8 @@ endif
 
 SRC_DIR  := $(PROJ)
 
-TOOLS_FLAGS:=-g
-TOOL_LINK_LIBS:=
+TOOLS_FLAGS:=-std=c11
+TOOL_LINK_LIBS:=-lm
 CTTEST_LIB_CFLAGS:=
 
 CFLAGS   := -O3 $(CFLAGS) -std=c99 -Wall -Wextra -Wpedantic -Werror -fno-omit-frame-pointer -fPIC $(TOOLS_FLAGS)

@@ -1,7 +1,7 @@
 CC = c99
 
-TOOLS_FLAGS:=-g
-TOOL_LINK_LIBS:=
+TOOLS_FLAGS:=-std=c11
+TOOL_LINK_LIBS:=-lm
 CTTEST_LIB_CFLAGS:=
 
 CFLAGS = -Wall -Wextra -Wshadow -Wundef -O2 -fPIC $(TOOLS_FLAGS)

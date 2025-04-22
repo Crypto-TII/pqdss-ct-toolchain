@@ -1,1 +1,0 @@
--O3 -flto -Wall -Wextra -Wno-unused-function -mpclmul -msse2 -mavx -mavx2 -maes -DOPT_AVX -fPIC -g
