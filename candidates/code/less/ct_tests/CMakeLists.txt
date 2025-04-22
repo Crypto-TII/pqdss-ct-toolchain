@@ -171,10 +171,10 @@ endif()
 # Constant-time tests - Benchmarks
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
-set(TOOLS_FLAGS "-Wall -g -Wextra")
-set(TOOL_NAME "timecop")
-set(TOOL_TEMPLATE_PATTERN "taint")
-set(TOOL_LINK_LIBS "")
+set(TOOLS_FLAGS "-std=c11")
+set(TOOL_NAME "dudect")
+set(TOOL_TEMPLATE_PATTERN "dude")
+set(TOOL_LINK_LIBS "m")
 set(TOOL_FOLDER ../${TOOL_NAME})
 
 set(BUILD_KEYPAIR ${TOOL_FOLDER}/less_keypair)
@@ -212,7 +212,8 @@ foreach(category "252" "400" "548")
             target_include_directories(${TARGET_BINARY_NAME} PRIVATE
                     ${BASE_DIR}/include ${OPENSSL_INCLUDE_DIR}
                     ./include)
-            target_link_libraries(${TARGET_BINARY_NAME}  ${CTGRIND_LIB} ${M_LIB} ${SANITIZE} ${KECCAK_EXTERNAL_LIB})
+#            target_link_libraries(${TARGET_BINARY_NAME}  ${CTGRIND_LIB} ${M_LIB} ${SANITIZE} ${KECCAK_EXTERNAL_LIB})
+            target_link_libraries(${TARGET_BINARY_NAME}  ${TOOL_LINK_LIBS} ${M_LIB} ${SANITIZE} ${KECCAK_EXTERNAL_LIB})
             set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_KEYPAIR})
             set_property(TARGET ${TARGET_BINARY_NAME} APPEND PROPERTY
                     COMPILE_FLAGS "-DCATEGORY=${category} -DTARGET=${optimize_target} ${KECCAK_EXTERNAL_ENABLE} ")
@@ -224,7 +225,8 @@ foreach(category "252" "400" "548")
             target_include_directories(${TARGET_BINARY_NAME} PRIVATE
                     ${BASE_DIR}/include ${OPENSSL_INCLUDE_DIR}
                     ./include)
-            target_link_libraries(${TARGET_BINARY_NAME}  ${CTGRIND_LIB} ${M_LIB} ${SANITIZE} ${KECCAK_EXTERNAL_LIB})
+#            target_link_libraries(${TARGET_BINARY_NAME}  ${CTGRIND_LIB} ${M_LIB} ${SANITIZE} ${KECCAK_EXTERNAL_LIB})
+            target_link_libraries(${TARGET_BINARY_NAME}  ${TOOL_LINK_LIBS} ${M_LIB} ${SANITIZE} ${KECCAK_EXTERNAL_LIB})
             set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_SIGN})
             set_property(TARGET ${TARGET_BINARY_NAME} APPEND PROPERTY
                     COMPILE_FLAGS "-DCATEGORY=${category} -DTARGET=${optimize_target} ${KECCAK_EXTERNAL_ENABLE} ")
