@@ -256,6 +256,8 @@ By default: PLATFORM=avx2 -  OPTIMISATION_LEVEL=2
 
 - uov
 
+`Remark`: Tests for uov must be done one instance at a time.
+
 ```shell
 python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --tools TOOL --candidate uov  --instance PLATFORM/INSTANCE 
 
