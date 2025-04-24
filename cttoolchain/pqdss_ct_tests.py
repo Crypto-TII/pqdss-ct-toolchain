@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-@author: Technical Validation Team
-"""
 
 import os
 import sys
 import json
 import subprocess
-import shutil
 
-from typing import Optional, Union, List
+
+from typing import Optional, Union
 
 import tools as ct_tool
 import generics as gen
@@ -173,12 +170,13 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
                                libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
                                tool_name: str, default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
                                binary_patterns: Optional[Union[str, list]] = None, keygen_sign_src: Optional[Union[str, list, dict]] = None):
+    path_to_include_directories_initial = path_to_include_directories
+    path_to_test_library_directory_initial = path_to_test_library_directory
     cflags_custom = ''
     tool_type = ct_tool.Tools(tool_name)
     test_keypair_basename, test_sign_basename = tool_type.get_tool_test_file_name()
     keypair_sign = []
     path_to_tool_folder = f'{path_candidate}/{tool_name}'
-    path_to_instances = [path_to_tool_folder]
     candidate = os.path.basename(path_candidate)
     instances_list = []
     if instances:
@@ -249,6 +247,8 @@ def generic_target_compilation(path_candidate: str, path_to_test_library_directo
                 path_to_target_binary = path_to_target_wrapper.split('.c')[0]
                 generic_compilation(tool_name, path_to_target_wrapper, path_to_target_binary, path_to_test_library_directory,
                                     libraries_names, path_to_include_directories, cflags_custom, compiler)
+        path_to_test_library_directory = path_to_test_library_directory_initial
+        path_to_include_directories = path_to_include_directories_initial
 
 
 def compile_target_candidate(path_to_candidate_makefile_cmake: str,
@@ -417,6 +417,7 @@ def generic_initialize_nist_candidate(tools_list, candidate, abs_path_to_api_or_
         initialization(tools_list, abs_path_to_api_or_sign, abs_path_to_rng,
                        candidate, optimized_imp_folder, instance, add_includes,
                        with_core_dump, number_of_measurements)
+
 
 def compile_target_from_library(path_to_candidate_makefile_cmake,
                                 libraries_names: Union[str, list] = 'lcttest',
@@ -696,6 +697,7 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                                     path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
                                     compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
                                                              additional_cmake_definitions, tool, *args, **kwargs)
+                                    path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
                 if build_with_make:
                     if candidate == 'uov':
                         pass
@@ -748,17 +750,17 @@ def binsec_generic_run(path_to_candidate, instances, depth, binary_patterns, **k
 # instance/scr folder of the given candidate with respect to optimized_imp_folder
 # binary_patterns: sign/keypair, referring to crypto_sign_keypair and crypto_sign algorithms respectively
 def timecop_generic_run(path_to_candidate, instances, binary_patterns):
-    path_to_binsec_folder = f'{path_to_candidate}/timecop'
+    path_to_timecop_folder = f'{path_to_candidate}/timecop'
     candidate = os.path.basename(path_to_candidate)
     list_of_instances = []
     if binary_patterns is None:
         binary_patterns = ['keypair', 'sign']
     if not instances:
-        path_to_instance = path_to_binsec_folder
+        path_to_instance = path_to_timecop_folder
         list_of_instances.append(path_to_instance)
     else:
         for instance in instances:
-            path_to_instance = f'{path_to_binsec_folder}/{instance}'
+            path_to_instance = f'{path_to_timecop_folder}/{instance}'
             list_of_instances.append(path_to_instance)
     for p_instance in list_of_instances:
         for bin_pattern in binary_patterns:
@@ -780,17 +782,17 @@ def timecop_generic_run(path_to_candidate, instances, binary_patterns):
 # instance/scr folder of the given candidate with respect to optimized_imp_folder
 # binary_patterns: sign/keypair, referring to crypto_sign_keypair and crypto_sign algorithms respectively
 def dudect_generic_run(path_to_candidate, instances, binary_patterns, timeout='2h'):
-    path_to_binsec_folder = f'{path_to_candidate}/dudect'
+    path_to_dudect_folder = f'{path_to_candidate}/dudect'
     candidate = os.path.basename(path_to_candidate)
     list_of_instances = []
     if binary_patterns is None:
         binary_patterns = ['keypair', 'sign']
     if not instances:
-        path_to_instance = path_to_binsec_folder
+        path_to_instance = path_to_dudect_folder
         list_of_instances.append(path_to_instance)
     else:
         for instance in instances:
-            path_to_instance = f'{path_to_binsec_folder}/{instance}'
+            path_to_instance = f'{path_to_dudect_folder}/{instance}'
             list_of_instances.append(path_to_instance)
     for p_instance in list_of_instances:
         for bin_pattern in binary_patterns:
@@ -808,7 +810,7 @@ def dudect_generic_run(path_to_candidate, instances, binary_patterns, timeout='2
 
 
 def flowtracker_generic_run(path_to_candidate, instances, binary_patterns):
-    path_to_binsec_folder = f'{path_to_candidate}/flowtracker'
+    path_to_flowtracker_folder = f'{path_to_candidate}/flowtracker'
     xml_pattern = ".xml"
     rbc_pattern = '.rbc'
     candidate = os.path.basename(path_to_candidate)
@@ -816,11 +818,11 @@ def flowtracker_generic_run(path_to_candidate, instances, binary_patterns):
     if binary_patterns is None:
         binary_patterns = ['keypair', 'sign']
     if not instances:
-        path_to_instance = path_to_binsec_folder
+        path_to_instance = path_to_flowtracker_folder
         list_of_instances.append(path_to_instance)
     else:
         for instance in instances:
-            path_to_instance = f'{path_to_binsec_folder}/{instance}'
+            path_to_instance = f'{path_to_flowtracker_folder}/{instance}'
             list_of_instances.append(path_to_instance)
     for p_instance in list_of_instances:
         for bin_pattern in binary_patterns:
@@ -878,18 +880,6 @@ def generic_execution(tools: Union[str, list], path_to_candidate: str,
             timecop_generic_run(path_to_candidate, instances, binary_patterns)
 
 
-def generic_run_27_fev(tools: Union[str, list], path_to_candidate: str, instances: Optional[Union[str, list]] = None,
-                depth: Union[str, list] = '1000000', binary_patterns: Union[str, list] = ('keypair', 'sign'),
-                timeout: Union[str, int] = '86400'):
-    for tool_name in tools:
-        if tool_name.lower() == 'binsec':
-            binsec_generic_run(path_to_candidate, instances, depth, binary_patterns)
-        if tool_name.lower() == 'timecop':
-            timecop_generic_run(path_to_candidate, instances, binary_patterns)
-        if tool_name.lower() == 'dudect':
-            dudect_generic_run(path_to_candidate, instances, binary_patterns, timeout)
-
-
 def generic_run(tools: Union[str, list], path_to_candidate: str, instances: Optional[Union[str, list]] = None,
                 depth: Union[str, list] = '1000000', binary_patterns: Union[str, list] = ('keypair', 'sign'),
                 timeout: Union[str, int] = '86400', **kwargs):
@@ -915,7 +905,7 @@ def generic_compile_run_candidate(tools, candidate, abs_path_to_api_or_sign, abs
                                   keygen_sign_src: Optional[Union[str, list, dict]] = None, build_with_make: bool = True,
                                   additional_cmake_definitions=None, number_of_measurements='1e4', compiler: str = 'gcc',
                                   compile: str = 'yes', run: str = 'yes', binary_patterns: Optional[Union[str, list]] = None,
-                                  depth: str = '1000000', timeout='86400', implementation_type='opt', security_level=None,
+                                  depth: str = '1000000', timeout='86400', implementation_type='opt', security_level = None,
                                   *args, **kwargs):
 
     path_to_candidate = abs_path_to_api_or_sign.split(candidate)[0]
@@ -929,7 +919,6 @@ def generic_compile_run_candidate(tools, candidate, abs_path_to_api_or_sign, abs
                              direct_link_or_compile_target, libraries_names,
                              path_to_include_directories, build_with_make, additional_cmake_definitions,
                              number_of_measurements, compiler, compile, binary_patterns, keygen_sign_src, *args, **kwargs)
-        # generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout)
         generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout, **kwargs)
     elif 'yes' in compile.lower() and 'no' in run.lower():
         generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
@@ -939,7 +928,6 @@ def generic_compile_run_candidate(tools, candidate, abs_path_to_api_or_sign, abs
                              number_of_measurements, compiler, compile, binary_patterns, keygen_sign_src, *args, **kwargs)
 
     if 'no' in compile.lower() and 'yes' in run.lower():
-        # generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout)
         generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout, **kwargs)
 
 
