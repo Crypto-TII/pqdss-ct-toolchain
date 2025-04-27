@@ -62,11 +62,15 @@ Thumbs.db
 # Text files
 *.txt
 
-# binsec - dudect - ctgrind - flowtracker
+# binsec - dudect - ctgrind - flowtracker - timecop
 binsec/
 dudect/
 ctgrind/
 flowtracker/
+timecop/
 
 # venv
 venv
+
+# build
+build/
