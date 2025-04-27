@@ -537,65 +537,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                     generic_initialize_nist_candidate(tool.split(), candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                                       optimized_imp_folder, instance.split(), additional_includes, 'yes',
                                                       number_of_measurements)
-
-    elif candidate == 'snova':
-        cwd = os.getcwd()
-        path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
-        if path_candidate.endswith('/'):
-            path_candidate += candidate
-        else:
-            path_candidate += f'/{candidate}'
-        path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build'
-        default_platform = 'avx2'
-        platform = 'avx2'
-        if 'platform' in kwargs.keys():
-            platform = kwargs['platform']
-        optimisation = '2'
-        if 'OPTIMISATION' in kwargs.keys():
-            optimisation = kwargs['OPTIMISATION']
-        abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
-        path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
-        abs_path_to_api_or_sign_initial = abs_path_to_api_or_sign
-        path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
-        path_to_include_directories_initial = path_to_include_directories
-        path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
-        for tool in tools:
-            tool_type = ct_tool.Tools(tool)
-            tool_type.get_tool_flags_and_libs()
-            tool_cflags = tool_type.tool_flags
-            tool_link_libs = tool_type.tool_libs
-            os.chdir(path_to_candidate_makefile_cmake)
-            makefile = 'Makefile'
-            chosen_platform = [f"sed -i 's/^platform := .*$/platform :=  {platform}/g' {makefile}"]
-            subprocess.call(chosen_platform, stdin=sys.stdin, shell=True)
-            set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS:=.*$/TOOLS_FLAGS:={tool_cflags}/g' {makefile}"]
-            subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-            set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS:=.*$/TOOL_LINK_LIBS:={tool_link_libs}/g' {makefile}"]
-            subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-            for instance in instances:
-                cmd_str = f'make {instance} platform={platform} OPTIMISATION={optimisation}'
-                subprocess.call(cmd_str.split(), stdin=sys.stdin)
-                os.chdir(cwd)
-                abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
-                abs_path_to_api_or_sign_split.insert(1, instance)
-                abs_path_to_api_or_sign_split[-1] = f'/{platform}/api.h'
-                abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
-                os.chdir(cwd)
-                generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
-                                                  optimized_imp_folder, instances, additional_includes, 'yes',
-                                                  number_of_measurements)
-                instance_format = ''
-                instance_updated = f'{instance}/{platform}'
-                path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
-                generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
-                                           path_to_include_directories, tool, default_instance, instance.split(),
-                                           compiler, binary_patterns, keygen_sign_src)
-                path_to_include_directories = path_to_include_directories_initial
-                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
-                abs_path_to_api_or_sign = abs_path_to_api_or_sign_initial
-                os.chdir(path_to_candidate_makefile_cmake)
-            os.chdir(cwd)
-        os.chdir(cwd)
     else:
         generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                           optimized_imp_folder, instances, additional_includes, 'yes',
