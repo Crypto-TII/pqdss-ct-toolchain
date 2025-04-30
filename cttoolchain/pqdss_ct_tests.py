@@ -341,6 +341,11 @@ def tool_initialize_candidate(abs_path_to_api_or_sign,
                                               f_basename_kp, args_types_kp, args_names_kp)
         ct_tool.timecop_sign_taint_content(test_sign, api_or_sign, rng, add_includes, return_type_s,
                                            f_basename_s, args_types_s, args_names_s)
+    if tool_name == 'ctgrind':
+        ct_tool.ctgrind_keypair_taint_content(test_keypair, api_or_sign, add_includes, return_type_kp,
+                                              f_basename_kp, args_types_kp, args_names_kp)
+        ct_tool.ctgrind_sign_taint_content(test_sign, api_or_sign, rng, add_includes, return_type_s,
+                                           f_basename_s, args_types_s, args_names_s)
 
     if tool_name == 'binsec':
         cfg_file_kp, cfg_file_sign = tool_type.binsec_configuration_files()
@@ -719,6 +724,35 @@ def timecop_generic_run(path_to_candidate, instances, binary_patterns):
                 print(":::::::::Executing: ", path_to_executable_file)
                 ct_tool.run_timecop(path_to_executable_file, output_file)
 
+def ctgrind_generic_run(path_to_candidate, instances, binary_patterns):
+    path_to_ctgrind_folder = f'{path_to_candidate}/ctgrind'
+    candidate = os.path.basename(path_to_candidate)
+    list_of_instances = []
+    if binary_patterns is None:
+        binary_patterns = ['keypair', 'sign']
+    if not instances:
+        path_to_instance = path_to_ctgrind_folder
+        list_of_instances.append(path_to_instance)
+    else:
+        for instance in instances:
+            path_to_instance = f'{path_to_ctgrind_folder}/{instance}'
+            list_of_instances.append(path_to_instance)
+    for p_instance in list_of_instances:
+        for bin_pattern in binary_patterns:
+            target_function = f'crypto_sign'
+            if bin_pattern == 'keypair':
+                target_function = f'{target_function}_keypair'
+            path_to_instance_target_folder = f'{p_instance}/{candidate}_{bin_pattern}'
+            bin_files = os.listdir(path_to_instance_target_folder)
+            bin_files = [exe for exe in bin_files if not '.' in exe]
+            for executable in bin_files:
+                binary = os.path.basename(executable)
+                path_to_executable_file = f'{path_to_instance_target_folder}/{binary}'
+                bin_basename = binary.split('taint_')[-1]
+                output_file = f'{path_to_instance_target_folder}/{bin_basename}_output.txt'
+                print(":::::::::Executing: ", path_to_executable_file)
+                ct_tool.run_ctgrind(path_to_executable_file, output_file)
+
 
 # instance/scr folder of the given candidate with respect to optimized_imp_folder
 # binary_patterns: sign/keypair, referring to crypto_sign_keypair and crypto_sign algorithms respectively
@@ -819,6 +853,8 @@ def generic_execution(tools: Union[str, list], path_to_candidate: str,
             binsec_generic_run(path_to_candidate, instances, depth, binary_patterns)
         if tool_name.lower() == 'timecop':
             timecop_generic_run(path_to_candidate, instances, binary_patterns)
+        if tool_name.lower() == 'ctgrind':
+            ctgrind_generic_run(path_to_candidate, instances, binary_patterns)
 
 
 def generic_run(tools: Union[str, list], path_to_candidate: str, instances: Optional[Union[str, list]] = None,
@@ -829,6 +865,8 @@ def generic_run(tools: Union[str, list], path_to_candidate: str, instances: Opti
             binsec_generic_run(path_to_candidate, instances, depth, binary_patterns, **kwargs)
         if tool_name.lower() == 'timecop':
             timecop_generic_run(path_to_candidate, instances, binary_patterns)
+        if tool_name.lower() == 'ctgrind':
+            ctgrind_generic_run(path_to_candidate, instances, binary_patterns)
         if tool_name.lower() == 'dudect':
             dudect_generic_run(path_to_candidate, instances, binary_patterns, timeout)
         if tool_name.lower() == 'flowtracker':

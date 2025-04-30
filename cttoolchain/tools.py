@@ -214,7 +214,7 @@ def ctgrind_keypair_taint_content(taint_file, api_or_sign, add_includes,
 
 
 # CTGRIND: taint for crypto_sign
-def ctgrind_sign_taint_content(taint_file, api_or_sign,
+def ctgrind_sign_taint_content1(taint_file, api_or_sign,
                                rng, add_includes,
                                function_return_type,
                                function_name, args_types,
@@ -231,6 +231,80 @@ def ctgrind_sign_taint_content(taint_file, api_or_sign,
     toolchain_rand = 'candidates/toolchain_randombytes.h'
     toolchain_rand_cpy = f'{taint_file_folder}/toolchain_randombytes.h'
     shutil.copyfile(toolchain_rand, toolchain_rand_cpy)
+    taint_file_content_block_include = f'''
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    #include <string.h>
+    #include <stdlib.h>
+    #include <ctgrind.h>
+    '''
+    taint_file_content_block_main = f'''
+    #define CTGRIND_SAMPLE_SIZE 1
+    #define max_message_length 3300
+    
+    {args_types[0]} *{args_names[0]};
+    {args_types[1]} {args_names[1]} = 0;
+    //{args_types[1]} *{args_names[1]};
+    {args_types[2]} *{args_names[2]};
+    {args_types[3]} {args_names[3]} = 0;
+    {args_types[4]} {secret_key}[CRYPTO_SECRETKEYBYTES] = {{0}};
+    
+    void generate_test_vectors() {{
+    \t//Fill randombytes
+    \trandombytes({args_names[2]}, {args_names[3]});
+    \t//randombytes({args_names[4]}, CRYPTO_SECRETKEYBYTES);
+    \t{type_sk_with_no_const} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
+    \t(void)crypto_sign_keypair(public_key, {secret_key});
+    }} 
+    
+    int main() {{
+    \t{function_return_type} result = 2 ; 
+    \tfor (int i = 0; i < CTGRIND_SAMPLE_SIZE; i++) {{
+    \t\t{args_names[3]} = 33*(i+1);
+    \t\t{args_names[2]} = ({args_types[2]} *)calloc({args_names[3]}, sizeof({args_types[2]}));
+    \t\t{args_names[0]} = ({args_types[0]} *)calloc({args_names[3]}+CRYPTO_BYTES, sizeof({args_types[0]}));
+    
+    \t\tgenerate_test_vectors(); 
+    \t\tct_poison({secret_key}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
+    \t\tresult = {function_name}({args_names[0]}, &{args_names[1]}, {args_names[2]}, {args_names[3]}, {secret_key}); 
+    \t\t result += (int)sk[0];
+    \t\tct_unpoison({secret_key}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
+    \t\tfree({args_names[0]});
+    \t\tfree({args_names[2]});
+    \t}}
+    \treturn result;
+    }}
+    '''
+    with open(taint_file, "w") as t_file:
+        t_file.write(textwrap.dedent(taint_file_content_block_include))
+        if not add_includes == []:
+            for include in add_includes:
+                t_file.write(f'#include {include}\n')
+        t_file.write(f'#include {api_or_sign}\n')
+        t_file.write(f'#include {rng}\n')
+        t_file.write(textwrap.dedent(taint_file_content_block_main))
+
+
+def ctgrind_sign_taint_content(taint_file, api_or_sign,
+                               rng, add_includes,
+                               function_return_type,
+                               function_name, args_types,
+                               args_names):
+    args_types[2] = re.sub("const ", "", args_types[2])
+    args_types[4] = re.sub("const ", "", args_types[4])
+    type_sk_with_no_const = args_types[4]
+    secret_key = args_names[4]
+
+    # if rng == '""' or rng == '':
+    #     rng = '"../toolchain_randombytes.h"'
+    # taint_file_folder_split = taint_file.split('/')[0:-2]
+    # taint_file_folder = "/".join(taint_file_folder_split)
+    # toolchain_rand = 'candidates/toolchain_randombytes.h'
+    # toolchain_rand_cpy = f'{taint_file_folder}/toolchain_randombytes.h'
+    # shutil.copyfile(toolchain_rand, toolchain_rand_cpy)
+
+    rng = '"toolchain_randombytes.h"'
     taint_file_content_block_include = f'''
     #include <stdio.h>
     #include <sys/types.h>
@@ -1150,7 +1224,7 @@ def run_ctgrind(binary_file, output_file):
 
 # Run TIMECOP
 def run_timecop(binary_file, output_file):
-    command = f'''valgrind -s --track-origins=yes --leak-check=full 
+    command = f'''timeout 60 valgrind -s --track-origins=yes --leak-check=full 
                 --show-leak-kinds=all --verbose --log-file={output_file} ./{binary_file}'''
     cmd_args_lst = command.split()
     subprocess.call(cmd_args_lst, stdin=sys.stdin)
