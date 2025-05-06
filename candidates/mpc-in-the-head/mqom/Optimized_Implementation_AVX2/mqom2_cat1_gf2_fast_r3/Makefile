@@ -2,8 +2,8 @@ KECCAK_AVX2=1
 RIJNDAEL_AES_NI=1
 FIELDS_AVX2=1
 
-TOOLS_FLAGS:=-g
-TOOL_LINK_LIBS:=
+TOOLS_FLAGS:=-std=c11
+TOOL_LINK_LIBS:=-lm
 CTTEST_LIB_CFLAGS:=
 
 # Compiler detection
@@ -71,13 +71,15 @@ AR ?= ar
 RANLIB ?= ranlib
 
 # Basic CFLAGS
-CFLAGS ?= -g -O3 -march=native -mtune=native -Wall -Wextra -Werror -DNDEBUG -fPIC $(TOOLS_FLAGS)
+#CFLAGS ?= -g -O3 -march=native -mtune=native -Wall -Wextra  -DNDEBUG -fPIC $(TOOLS_FLAGS)
+CFLAGS ?= -g -O3 -march=native -mtune=native -Wall -Wextra -DNDEBUG -fPIC $(TOOLS_FLAGS)
 # Include the necessary headers
 CFLAGS += $(foreach DIR, $(LIB_HASH_INCLUDES), -I$(DIR))
 CFLAGS += $(foreach DIR, $(RIJNDAEL_INCLUDES), -I$(DIR))
 CFLAGS += $(foreach DIR, $(FIELDS_INCLUDES), -I$(DIR))
 CFLAGS += $(foreach DIR, $(MQOM2_INCLUDES), -I$(DIR))
-CFLAGS += -Wall -Wextra -Werror
+#CFLAGS += -Wall -Wextra 
+CFLAGS += -Wall -Wextra
 # Possibly append user provided extra CFLAGS
 CFLAGS += $(EXTRA_CFLAGS)
 
@@ -126,8 +128,8 @@ ifeq ($(USE_SANITIZERS),1)
 CFLAGS += -fsanitize=undefined -fsanitize=address -fsanitize=leak
 endif
 ifeq ($(WNOERROR), 1)
-  # Sometimes "-Werror" might be too much, this can be overriden
-  CFLAGS := $(subst -Werror,,$(CFLAGS))
+  # Sometimes "" might be too much, this can be overriden
+  CFLAGS := $(subst ,,$(CFLAGS))
 endif
 ifneq ($(PARAM_SECURITY),)
   # Adjust the security parameters as asked to
@@ -168,7 +170,13 @@ libhash:
 $(CTTEST_LIB): libhash $(OBJS) $(RNG_OBJ)
 	mkdir -p $(BUILD_CTLIB)
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
+expanded_secret_key: libhash $(OBJS)
+	mkdir -p $(BUILD_CTLIB)
+	$(CC) $(CFLAGS) get_expanded_secret_key.c generator/rng.c $(OBJS) $(LIB_HASH) -lcrypto -o $(BUILD_CTLIB)/get_expanded_secret_key
 	$(CC) $(CFLAGS) $(OBJS) $(RNG_OBJ) $(LIB_HASH) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -lcrypto #generator/rng.c
+
+expanded_secret_key: libhash $(OBJS)
+	$(CC) $(CFLAGS) get_expanded_secret_key.c generator/rng.c $(OBJS) $(LIB_HASH) -lcrypto -o get_expanded_secret_key
 
 
 sign: libhash $(OBJS)
@@ -188,3 +196,4 @@ clean:
 	@find . -name "*.o" -type f -delete
 	@rm -f kat_gen kat_check bench
 	@rm -rf $(BUILD_CTLIB)
+	@rm -f get_expanded_secret_key

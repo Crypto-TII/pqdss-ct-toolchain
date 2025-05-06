@@ -676,9 +676,22 @@ def dudect_sign_dude_content(taint_file, api_or_sign, add_includes,
     taint_file_split = taint_file.split('/')
     taint_file_folder = "/".join(taint_file_split[0:-1])
     execution_times = f'{taint_file_folder}/measurements.txt'
-    # random_class_execution_times = f'{taint_file_folder}/random.txt'
-
+    random_keys = f'{taint_file_folder}/keys.txt'
     taint_file_content_block_main = f'''
+    
+    void store_buffer(const void* buffer, size_t length, FILE* file, const char* variable_name) {{
+    \tfprintf(file, "%s=", variable_name);
+    \tif (!file) {{
+    \t\tperror("Error while opening file");
+    \t\treturn;
+    \t}}
+    \tconst unsigned char* bytes = (const unsigned char*) buffer;
+    \tfor (size_t i = 0; i < length; ++i) {{
+    \t\tfprintf(file, "%02X", bytes[i]);  // Hexadecimal format
+    \t}}
+    \tfprintf(file, "\\n");
+    }}
+    
     uint8_t do_one_computation(uint8_t *data) {{
     
     \t{args_types[1]} {sig_msg_len} = SIGNATURE_MESSAGE_BYTE_LENGTH; //the signature length could be initialized to 0.
@@ -694,27 +707,23 @@ def dudect_sign_dude_content(taint_file, api_or_sign, add_includes,
     }}
     
     void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
+    \tFILE *keys;
+    \tkeys = fopen("{random_keys}", "a");
     \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
-    \t{type_sk_with_no_const} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
-    \t{type_sk_with_no_const} fixed_secret_key[CRYPTO_SECRETKEYBYTES] = {{0}};
-    \t(void)crypto_sign_keypair(public_key, fixed_secret_key);
     \tfor (size_t i = 0; i < c->number_measurements; i++) {{
-    \t\tclasses[i] = randombit();
-    \t\t\tif (classes[i] == 0) {{
-     \t\t\t\t//Uncomment this line if you want to have a fixed message in this class.
-    \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
-    \t\t\t\tmemcpy(input_data + (size_t)i * c->chunk_size+MESSAGE_LENGTH*sizeof({type_msg}), 
-    \t\t\t\t        fixed_secret_key, SECRET_KEY_BYTE_LENGTH*sizeof({type_sk}));
-    \t\t\t}} else {{
-    \t\t\t\t//Uncomment this line if you want to have a fixed message in this class.
-    \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
-    \t\t\t\tconst size_t offset = (size_t)i * c->chunk_size;
-    \t\t\t\t{type_sk_with_no_const} pk[CRYPTO_PUBLICKEYBYTES] = {{0}};
-    \t\t\t\t{type_sk_with_no_const} *sk = ({type_sk_with_no_const} *)input_data + offset + MESSAGE_LENGTH*sizeof({type_msg});
-    \t\t\t\t(void)crypto_sign_keypair(pk, sk);
-    \t\t\t}}
+    \t\tmemset(input_data + (size_t)i * c->chunk_size, 0xF7, MESSAGE_LENGTH*sizeof({type_msg}));
+    \t\tconst size_t offset = (size_t)i * c->chunk_size;
+    \t\t{type_sk_with_no_const} pk[CRYPTO_PUBLICKEYBYTES] = {{0}};
+    \t\t//{type_sk_with_no_const} store_sk[SECRET_KEY_BYTE_LENGTH] = {{0}};
+    \t\t{type_sk_with_no_const} *sk = ({type_sk_with_no_const} *)input_data + offset + MESSAGE_LENGTH*sizeof({type_msg});
+    \t\t(void)crypto_sign_keypair(pk, sk);
+    \t\t//store_buffer(sk, SECRET_KEY_BYTE_LENGTH, "{random_keys}", "sk");
+    \t\tstore_buffer(sk, SECRET_KEY_BYTE_LENGTH, keys, "sk");
+    \t\t//store_buffer(sk, SECRET_KEY_BYTE_LENGTH, random_keys_file);
+    \t\t//store_buffer(pk, CRYPTO_PUBLICKEYBYTES, random_keys_file);
     \t\t}}
-    \t}}
+    \tfclose(keys);
+    }}
     
     int main(int argc, char **argv)
     {{
@@ -731,21 +740,21 @@ def dudect_sign_dude_content(taint_file, api_or_sign, add_includes,
 
     \tdudect_init(&ctx, &config);
     
-    FILE *distributions;
-    distributions = fopen("{execution_times}", "w");
-    fprintf(distributions, "%s", "Static and Random distribution measurements\\n");
-    
+    \tFILE *distributions;
+    \tdistributions = fopen("{execution_times}", "w");
+    \t//fprintf(distributions, "%s", "Static and Random distribution measurements\\n");
     
     \tdudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
+    \t//while ((state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) && (remaining_number_of_measurements > 0)) {{
     \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
     \t\tstate = dudect_main(&ctx);
     \t\tfor(int i=0;i<{number_of_measurements};i++){{
-    \t\t\tif (ctx.classes[i] == 0){{
-    \t\t\t\tfprintf(distributions, "static;%ld\\n", ctx.exec_times[i]);
-    \t\t\t}}
-    \t\t\telse{{
-    \t\t\t\tfprintf(distributions, "random;%ld\\n", ctx.exec_times[i]);
-    \t\t\t}}
+    \t\t\t//if (ctx.classes[i] == 0){{
+    \t\t\tfprintf(distributions, "cycles;%ld\\n", ctx.exec_times[i]);
+    \t\t\t//}}
+    \t\t\t//else{{
+    \t\t\t\t//fprintf(distributions, "random;%ld\\n", ctx.exec_times[i]);
+    \t\t\t//}}
     \t\t}}
     \t}}
     \tfclose(distributions);

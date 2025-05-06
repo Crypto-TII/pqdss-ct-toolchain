@@ -7,7 +7,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Intstall packages
 RUN apt-get update   && \
-    apt-get install -y --no-install-recommends opam graphviz sudo  \
+    apt-get install -y --no-install-recommends opam graphviz sudo gmp  \
         bzip2 libc6-dbg gcc g++ texinfo m4 wget xz-utils  python3  \
         git make wget build-essential libssl-dev gpg-agent  \
         libffi-dev python3-pip cmake flex bison software-properties-common \

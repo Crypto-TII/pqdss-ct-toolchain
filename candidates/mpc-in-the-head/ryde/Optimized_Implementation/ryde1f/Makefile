@@ -2,8 +2,8 @@
 SCRIPT_VERSION=v2.0
 SCRIPT_AUTHOR=RYDE team
 
-TOOLS_FLAGS:=-g
-TOOL_LINK_LIBS:=
+TOOLS_FLAGS:=-std=c11
+TOOL_LINK_LIBS:=-lm
 CTTEST_LIB_CFLAGS:=
 
 CC=gcc
@@ -43,6 +43,7 @@ CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
 CTTEST_LIB_CFLAGS = $(C_FLAGS)
 TEST_LIB = ct_test
+EXP_SK:=src/get_expanded_secret_key.c
 
 folders:
 	@echo -e "\n### Creating build folders\n"
@@ -93,6 +94,10 @@ $(CTTEST_LIB): $(RYDE_OBJS) tcith-rijndael.o $(LIB_OBJS) | xkcp
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) $(C_FLAGS) $(addprefix $(BUILD)/, $^) $(INCLUDE) $(XKCP_LINKER) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(TOOL_LINK_LIBS)
 
+.PHONY: ryde1f-rijndael-get-expanded-sk
+ryde1f-rijndael-get-expanded-sk: $(RYDE_OBJS) tcith-rijndael.o $(LIB_OBJS) | xkcp folders ##@Build A single example using Rijndael-based commits
+	@echo -e "\n### Compiling ryde1f-rijndael-get-expanded-sk using Rijndael-based commits\n"
+	$(CC) $(C_FLAGS) $(EXP_SK) $(addprefix $(BUILD)/, $^) $(INCLUDE) $(XKCP_LINKER) -o $(BIN)/$@
 
 .PHONY: ryde1f-rijndael-main
 ryde1f-rijndael-main: $(RYDE_OBJS) tcith-rijndael.o $(LIB_OBJS) | xkcp folders ##@Build A single example using Rijndael-based commits

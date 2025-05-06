@@ -27,14 +27,16 @@ EXCL_SRC:=! -name $(notdir $(MAIN_PERK_SRC)) \
           ! -name $(notdir $(MAIN_KAT_SRC))
 
 # PERK sources
-PERK_SRC:= $(shell find $(SRC_DIR) -name "*.c" $(EXCL_SRC))
+#PERK_SRC:= $(shell find $(SRC_DIR) -name "*.c" $(EXCL_SRC))
+PERK_SRC:= $(filter-out $(SRC_DIR)/get_expanded_secret_key.c, $(shell find $(SRC_DIR) -name "*.c" $(EXCL_SRC)))
 # Lib sources
 LIB_CSRC := $(shell find $(LIB_DIR) -name "*.c" ! -path  "lib/djbsort/*")
 SORT_CSRC := $(shell find $(LIB_DIR)/djbsort -name "*.c")
 LIB_SSRC := $(shell find $(LIB_DIR) -name "*.s")
 
 # PERK objects
-PERK_OBJS:=$(PERK_SRC:%.c=$(BUILD_DIR)/%$(EXT).o)
+#PERK_OBJS:=$(PERK_SRC:%.c=$(BUILD_DIR)/%$(EXT).o)
+PERK_OBJS = $(filter-out $(BUILD_DIR)/get_expanded_secret_key.o, $(PERK_SRC:%.c=$(BUILD_DIR)/%$(EXT).o))
 # Lib objects
 LIB_COBJS:=$(LIB_CSRC:%.c=$(BUILD_DIR)/%.o)
 SORT_COBJS:=$(SORT_CSRC:%.c=$(BUILD_DIR)/%.o)
@@ -49,6 +51,9 @@ CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
 CTTEST_LIB_CFLAGS = $(CFLAGS)
 
+EXPANDED_KEY_SRC:=$(SRC_DIR)/get_expanded_secret_key.c
+EXPANDED_KEY_EXEC:=$(BIN_DIR)/get_expanded_secret_key
+
 .PHONY: all
 all: perk-192-short-5 perk-192-short-5-verbose perk-192-short-5-kat $(CTTEST_LIB)
 
@@ -57,6 +62,13 @@ $(CTTEST_LIB): $(PERK_OBJS) $(LIB_OBJS)
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) $(PERK_OBJS) $(LIB_OBJS) $(CFLAGS) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LDFLAGS)
 
+$(EXPANDED_KEY_EXEC): $(EXPANDED_KEY_SRC)  $(PERK_OBJS) $(LIB_OBJS)
+	@echo -e "\n### Compiling PERK get_expanded_secret_key\n"
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wno-strict-prototypes -Wno-unused-result $^ $(PERK_INCLUDE) -o $@ $(LDFLAGS)
+
+.PHONY: expanded_secret_key
+expanded_secret_key: $(EXPANDED_KEY_EXEC)
 
 # build rules
 $(LIB_COBJS): $(BUILD_DIR)/%.o: %.c

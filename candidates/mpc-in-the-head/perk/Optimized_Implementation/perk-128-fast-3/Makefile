@@ -1,8 +1,8 @@
 CC = gcc
 
 
-TOOLS_FLAGS:=-emit-llvm -g
-TOOL_LINK_LIBS:=
+TOOLS_FLAGS:=-std=c11
+TOOL_LINK_LIBS:=-lm
 CTTEST_LIB_CFLAGS:=
 TOOL_NAME:=flowtracker
 
@@ -26,19 +26,22 @@ MAIN_KAT_SRC:=$(SRC_DIR)/PQCgenKAT_sign.c
 MAIN_PERK_EXEC:=$(BIN_DIR)/perk-128-fast-3$(EXT)
 MAIN_KAT_EXEC:=$(BIN_DIR)/perk-128-fast-3-PQCgenKAT_sign
 
+
 # exclude sources from "find"
 EXCL_SRC:=! -name $(notdir $(MAIN_PERK_SRC)) \
           ! -name $(notdir $(MAIN_KAT_SRC))
 
 # PERK sources
-PERK_SRC:= $(shell find $(SRC_DIR) -name "*.c" $(EXCL_SRC))
+#PERK_SRC:= $(shell find $(SRC_DIR) -name "*.c" $(EXCL_SRC))
+PERK_SRC:= $(filter-out $(SRC_DIR)/get_expanded_secret_key.c, $(shell find $(SRC_DIR) -name "*.c" $(EXCL_SRC)))
 # Lib sources
 LIB_CSRC := $(shell find $(LIB_DIR) -name "*.c" ! -path  "lib/djbsort/*")
 SORT_CSRC := $(shell find $(LIB_DIR)/djbsort -name "*.c")
 LIB_SSRC := $(shell find $(LIB_DIR) -name "*.s")
 
 # PERK objects
-PERK_OBJS:=$(PERK_SRC:%.c=$(BUILD_DIR)/%$(EXT).o)
+#PERK_OBJS:=$(PERK_SRC:%.c=$(BUILD_DIR)/%$(EXT).o)
+PERK_OBJS = $(filter-out $(BUILD_DIR)/get_expanded_secret_key.o, $(PERK_SRC:%.c=$(BUILD_DIR)/%$(EXT).o))
 # Lib objects
 LIB_COBJS:=$(LIB_CSRC:%.c=$(BUILD_DIR)/%.o)
 SORT_COBJS:=$(SORT_CSRC:%.c=$(BUILD_DIR)/%.o)
@@ -61,15 +64,16 @@ current_dir1 = $(shell pwd)
 $(info "current_dir1: " $(current_dir1))
 $(info "CURRENT_DIR: " $(CURRENT_DIR))
 
+EXPANDED_KEY_SRC:=$(SRC_DIR)/get_expanded_secret_key.c
+EXPANDED_KEY_EXEC:=$(BIN_DIR)/get_expanded_secret_key
+
 
 ifeq ($(TOOL_NAME), flowtracker)
-    $(info "Hello World")
     CTTEST_LIB_CFLAGS = -I $(CURRENT_DIR)/lib/cryptocode -I $(CURRENT_DIR)/lib/djbsort -I $(CURRENT_DIR)/lib/XKCP -I $(CURRENT_DIR)/lib/randombytes
 #	mdir = $(shell mkdir -p $(BUILD_CTLIB))
 #	custom_cflags = $(shell echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt)
 endif
 
-$(info "ALL FALGS" $(CTTEST_LIB_CFLAGS))
 
 .PHONY: all
 #all: perk-128-fast-3 perk-128-fast-3-verbose perk-128-fast-3-kat $(CTTEST_LIB)
@@ -84,6 +88,14 @@ $(CTTEST_LIB): $(PERK_OBJS) $(LIB_OBJS)
 	mkdir -p $(BUILD_CTLIB)
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) $(PERK_OBJS) $(LIB_OBJS) $(CFLAGS) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LDFLAGS) $(TOOL_LINK_LIBS)
+
+$(EXPANDED_KEY_EXEC): $(EXPANDED_KEY_SRC)  $(PERK_OBJS) $(LIB_OBJS)
+	@echo -e "\n### Compiling PERK get_expanded_secret_key\n"
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -Wno-strict-prototypes -Wno-unused-result $^ $(PERK_INCLUDE) -o $@ $(LDFLAGS)
+
+.PHONY: expanded_secret_key
+expanded_secret_key: $(EXPANDED_KEY_EXEC)
 
 # build rules
 $(LIB_COBJS): $(BUILD_DIR)/%.o: %.c

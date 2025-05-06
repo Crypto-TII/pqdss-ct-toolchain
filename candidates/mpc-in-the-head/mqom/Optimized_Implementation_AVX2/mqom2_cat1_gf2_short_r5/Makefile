@@ -71,13 +71,13 @@ AR ?= ar
 RANLIB ?= ranlib
 
 # Basic CFLAGS
-CFLAGS ?= -g -O3 -march=native -mtune=native -Wall -Wextra -Werror -DNDEBUG -fPIC $(TOOLS_FLAGS)
+CFLAGS ?= -g -O3 -march=native -mtune=native -Wall -Wextra  -DNDEBUG -fPIC $(TOOLS_FLAGS)
 # Include the necessary headers
 CFLAGS += $(foreach DIR, $(LIB_HASH_INCLUDES), -I$(DIR))
 CFLAGS += $(foreach DIR, $(RIJNDAEL_INCLUDES), -I$(DIR))
 CFLAGS += $(foreach DIR, $(FIELDS_INCLUDES), -I$(DIR))
 CFLAGS += $(foreach DIR, $(MQOM2_INCLUDES), -I$(DIR))
-CFLAGS += -Wall -Wextra -Werror
+CFLAGS += -Wall -Wextra 
 # Possibly append user provided extra CFLAGS
 CFLAGS += $(EXTRA_CFLAGS)
 
@@ -126,8 +126,8 @@ ifeq ($(USE_SANITIZERS),1)
 CFLAGS += -fsanitize=undefined -fsanitize=address -fsanitize=leak
 endif
 ifeq ($(WNOERROR), 1)
-  # Sometimes "-Werror" might be too much, this can be overriden
-  CFLAGS := $(subst -Werror,,$(CFLAGS))
+  # Sometimes "" might be too much, this can be overriden
+  CFLAGS := $(subst ,,$(CFLAGS))
 endif
 ifneq ($(PARAM_SECURITY),)
   # Adjust the security parameters as asked to
@@ -167,6 +167,14 @@ $(CTTEST_LIB): libhash $(OBJS) $(RNG_OBJ)
 	mkdir -p $(BUILD_CTLIB)
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) $(CFLAGS) $(OBJS) $(RNG_OBJ) $(LIB_HASH) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -lcrypto
+
+
+
+expanded_secret_key: libhash $(OBJS)
+	mkdir -p $(BUILD_CTLIB)
+	$(CC) $(CFLAGS) get_expanded_secret_key.c generator/rng.c $(OBJS) $(LIB_HASH) -lcrypto -o $(BUILD_CTLIB)/get_expanded_secret_key
+
+
 
 sign: libhash $(OBJS)
 	$(CC) $(CFLAGS) generator/PQCgenKAT_sign.c generator/rng.c $(OBJS) $(LIB_HASH) -lcrypto -o sign
