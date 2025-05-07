@@ -19,7 +19,7 @@ void get_expanded_sk(perm_t p, const uint8_t secret_key[SEED_BYTES]) {
 
 void print_permutation(FILE *file, perm_t p) {
     for (int i=0; i<PARAM_N1-1; i++){
-        fprintf(file, "%02X ", p[i]);
+        fprintf(file, "%02X", p[i]);
     }
     fprintf(file, "%02X", p[PARAM_N1-1]);
 }
@@ -75,7 +75,7 @@ void create_expanded_secrets() {
         sig_perk_private_key_from_bytes(&private_key, tp_buff);
         get_expanded_sk(private_key.pi,tp_buff);
         // Write to output file
-        fprintf(out_file, "pi;");
+        
         print_permutation(out_file, private_key.pi);
         fprintf(out_file, "\n");
     }
