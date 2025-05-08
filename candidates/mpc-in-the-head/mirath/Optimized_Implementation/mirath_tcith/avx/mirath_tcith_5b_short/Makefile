@@ -12,10 +12,6 @@ KEYPAIR_TARGET:=$(TEMPLATE_PATTERN)_$(KEYPAIR)
 SIGN_TARGET:=$(TEMPLATE_PATTERN)_$(SIGN)
 CTTEST_FOLDER = ../../../../$(TOOL_NAME)
 
-
-$(info "======$(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o")
-
-
 INSTANCE = mirath_tcith_5b_short
 BENCHMARK_FOLDER = ../../../../benchmarks
 
@@ -53,17 +49,32 @@ CTTEST_LIB = libcttest.so
 BUILD_CTLIB = build
 CTTEST_LIB_CFLAGS = $(CFLAGS)
 
+
 OBJECT_CT_TESTS = $(filter-out PQCgenKAT_sign.o main.o custom_bench.o $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o, $(OBJ))
+OBJECT_EXPAND_KEY = $(filter-out PQCgenKAT_sign.o main.o custom_bench.o $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o get_expanded_secret_key.o, $(OBJ))
+OBJECT_EXPAND_KEY = $(filter-out PQCgenKAT_sign.o main.o custom_bench.o $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o get_expanded_secret_key.o, $(OBJ))
+
 
 
 #all: PQCgenKAT_sign mirath_5b_s
+
 all: crypto_sign_keypair crypto_sign #custom_bench
 
 %.o: %.c
 	$(CC) -D_SHA3_ $(INCLUDES) -c -o $@ $< $(CFLAGS)
 
 rng.o: rng.c
+expanded_secret_key: get_expanded_secret_key.o sign.o $(OBJECT_EXPAND_KEY)
+	mkdir -p $(BUILD_CTLIB)
+	$(CC) -o $(BUILD_CTLIB)/get_expanded_secret_key $^ $(LIBS)
 	$(CC) -c $(CFLAGS) -o $@ $<
+expanded_secret_key: get_expanded_secret_key.o sign.o $(OBJECT_EXPAND_KEY)
+	mkdir -p $(BUILD_CTLIB)
+	$(CC) -o $(BUILD_CTLIB)/get_expanded_secret_key $^ $(LIBS)
+
+
+
+
 
 mirath_5b_s: main.o sign.o $(OBJ_MAIN)
 	$(CC) -o $@ $^ $(LIBS)
