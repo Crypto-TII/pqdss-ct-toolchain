@@ -34,6 +34,11 @@ if(ENABLE_TESTS)
 	add_subdirectory(test)
 endif()
 
+#set(EXPANDED_KEYS "Get expanded keys" ON)
+#if (EXPANDED_KEYS)
+#	message("=======Get expanded keys =========")
+#	add_subdirectory(expanded_keys)
+#endif (EXPANDED_KEYS)
 
 set(TOOLS_FLAGS "-std=c11")
 set(TOOL_NAME "dudect")

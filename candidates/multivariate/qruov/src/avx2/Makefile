@@ -11,6 +11,8 @@ LDFLAGS=-lcrypto -Wl,-Bstatic -lcrypto -Wl,-Bdynamic -lm
 # LDFLAGS=-lcrypto -Wl,-Bstatic -lcrypto -Wl,-Bdynamic -lm -pg -g
 OBJS=Fql.o PQCgenKAT_sign.o qruov.o rng.o sign.o matrix.o mgf.o
 
+EXPANDED_KEYS_OBJS=Fql.o get_expanded_secret_key.o qruov.o rng.o sign.o matrix.o mgf.o
+
 .SUFFIXES:
 .SUFFIXES: .rsp .req .diff .c .o .h
 
@@ -30,6 +32,9 @@ $(CTTEST_LIB): Makefile ${OBJS}
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) ${OBJS} ${CFLAGS} -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) ${LDFLAGS}
 
+expanded_secret_key: Makefile ${EXPANDED_KEYS_OBJS}
+	${CC} ${EXPANDED_KEYS_OBJS} ${CFLAGS} ${LDFLAGS} -o get_expanded_secret_key
+	#${CC} ${EXPANDED_KEYS_OBJS} ${CFLAGS} ${LDFLAGS} -o ${BUILD_CTLIB}/get_expanded_secret_key
 
 PQCgenKAT_sign: Makefile ${OBJS}
 	${CC} ${OBJS} ${CFLAGS} ${LDFLAGS} -o $@
@@ -47,3 +52,4 @@ api.h: api_h_gen.c
 clean:
 	rm -f PQCgenKAT_sign PQCsignKAT_*.req PQCsignKAT_*.rsp ${OBJS}
 	rm $(BUILD_CTLIB)/$(CTTEST_LIB)
+	rm get_expanded_secret_key

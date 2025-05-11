@@ -73,6 +73,9 @@ set(SRC_BENCHMARK ${BENCHMARKS_FOLDER}/bench)
 set(BUILD_KEYPAIR ${TOOL_FOLDER}/mayo_keypair)
 set(BUILD_SIGN ${TOOL_FOLDER}/mayo_sign)
 
+option(EXPANDED_KEYS "Get expanded keys" ON)
+set(EXPANDED_KEYS_FOLDER "expanded_keys")
+set(EXPANDED_KEYS_DIR "${EXPANDED_KEYS_FOLDER}/mayo_1")
 
 if (ENABLE_PARAMS_DYNAMIC)
     # mayo and mayo_test libraries
@@ -85,6 +88,19 @@ if (ENABLE_PARAMS_DYNAMIC)
 
     target_compile_definitions(mayo PUBLIC ENABLE_PARAMS_DYNAMIC)
     target_compile_definitions(mayo_test PUBLIC ENABLE_PARAMS_DYNAMIC)
+
+
+    if (EXPANDED_KEYS)
+        message(":::::::::::: Get expanded keys =========")
+#        set(EXPANDED_KEY_NAME ../expanded_keys/mayo_1/get_expanded_secret_key_${MVARIANT_LOWER})
+        set(EXPANDED_KEY_NAME ../expanded_keys/mayo_1/get_expanded_secret_key_mayo_1)
+        add_executable(${EXPANDED_KEY_NAME}  ../expanded_keys/mayo_1/get_expanded_secret_key.c)
+#        target_link_libraries(${EXPANDED_KEY_NAME} ${MVARIANT_LOWER}_nistapi)
+        target_link_libraries(${EXPANDED_KEY_NAME} mayo_1)
+#        target_include_directories(${EXPANDED_KEY_NAME} PRIVATE ../include ../src/${MVARIANT_LOWER})
+        target_include_directories(${EXPANDED_KEY_NAME} PRIVATE ../include ../src/mayo_1)
+        set_target_properties(${EXPANDED_KEY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../expanded_keys/mayo_1)
+    endif (EXPANDED_KEYS)
 
     # mayo_<x>_nistapi libraries
     foreach(MVARIANT ${MVARIANT_S})
@@ -183,6 +199,23 @@ else()
             #            set_target_properties(${TEST_BENCH} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BENCHMARKS_FOLDER})
             set_target_properties(${TEST_BENCH} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../../${BENCHMARK_TESTS}/src/${MVARIANT_LOWER})
         endif (RUN_BENCHMARKS)
+
+        if (EXPANDED_KEYS)
+            set(EXPANDED_KEY_NAME get_expanded_secret_key_${MVARIANT_LOWER})
+            add_executable(${EXPANDED_KEY_NAME}  ../expanded_keys/${MVARIANT_LOWER}/get_expanded_secret_key.c)
+            target_link_libraries(${EXPANDED_KEY_NAME} ${MVARIANT_LOWER}_nistapi)
+            target_include_directories(${EXPANDED_KEY_NAME} PRIVATE ../include ../src/${MVARIANT_LOWER})
+            set_target_properties(${EXPANDED_KEY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./../${EXPANDED_KEYS_FOLDER}/${MVARIANT_LOWER})
+        endif (EXPANDED_KEYS)
+
     endforeach()
+#    if (EXPANDED_KEYS)
+#        set(EXPANDED_KEY_NAME get_expanded_secret_key_mayo_1)
+#        add_executable(${EXPANDED_KEY_NAME}  ../expanded_keys/mayo_1/get_expanded_secret_key.c)
+##        target_link_libraries(${EXPANDED_KEY_NAME} mayo_1)
+#        target_link_libraries(${EXPANDED_KEY_NAME} mayo_1_nistapi)
+#        target_include_directories(${EXPANDED_KEY_NAME} PRIVATE ../include ../src/mayo_1)
+#        set_target_properties(${EXPANDED_KEY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./../${EXPANDED_KEYS_DIR})
+#    endif (EXPANDED_KEYS)
 endif()
 
