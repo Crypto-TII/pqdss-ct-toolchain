@@ -15,6 +15,19 @@
 
 #include "api.h"
 
+void store_buffer(const void* buffer, size_t length, FILE* file, const char* variable_name) {
+    fprintf(file, "%s=", variable_name);
+    if (!file) {
+        perror("Error while opening file");
+        return;
+    }
+    const unsigned char* bytes = (const unsigned char*) buffer;
+    for (size_t i = 0; i < length; ++i) {
+        fprintf(file, "%02X", bytes[i]);  // Hexadecimal format
+    }
+    fprintf(file, "\n");
+}
+
 uint8_t do_one_computation(uint8_t *data) {
 
 	unsigned long long smlen = SIGNATURE_MESSAGE_BYTE_LENGTH; //the signature length could be initialized to 0.
@@ -30,27 +43,19 @@ uint8_t do_one_computation(uint8_t *data) {
 }
 
 void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {
-	randombytes_dudect(input_data, c->number_measurements * c->chunk_size);
-	unsigned char public_key[CRYPTO_PUBLICKEYBYTES] = {0};
-	unsigned char fixed_secret_key[CRYPTO_SECRETKEYBYTES] = {0};
-	(void)crypto_sign_keypair(public_key, fixed_secret_key);
-	for (size_t i = 0; i < c->number_measurements; i++) {
-		classes[i] = randombit();
-			if (classes[i] == 0) {
- 				//Uncomment this line if you want to have a fixed message in this class.
-				//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof(const unsigned char));
-				memcpy(input_data + (size_t)i * c->chunk_size+MESSAGE_LENGTH*sizeof(const unsigned char), 
-				        fixed_secret_key, SECRET_KEY_BYTE_LENGTH*sizeof(const unsigned char));
-			} else {
-				//Uncomment this line if you want to have a fixed message in this class.
-				//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof(const unsigned char));
-				const size_t offset = (size_t)i * c->chunk_size;
-				unsigned char pk[CRYPTO_PUBLICKEYBYTES] = {0};
-				unsigned char *sk = (unsigned char *)input_data + offset + MESSAGE_LENGTH*sizeof(const unsigned char);
-				(void)crypto_sign_keypair(pk, sk);
-			}
-		}
-	}
+    FILE *keys;
+    keys = fopen("candidates/mpc-in-the-head/mirath/dudect/mirath_tcith_1a_fast/mirath_sign/keys.txt", "a");
+    randombytes_dudect(input_data, c->number_measurements * c->chunk_size);
+    for (size_t i = 0; i < c->number_measurements; i++) {
+        memset(input_data + (size_t)i * c->chunk_size, 0xF7, MESSAGE_LENGTH*sizeof(const unsigned char));
+        const size_t offset = (size_t)i * c->chunk_size;
+        unsigned char pk[CRYPTO_PUBLICKEYBYTES] = {0};
+        unsigned char *sk = (unsigned char *)input_data + offset + MESSAGE_LENGTH*sizeof(const unsigned char);
+        (void)crypto_sign_keypair(pk, sk);
+        store_buffer(sk, SECRET_KEY_BYTE_LENGTH, keys, "sk");
+    }
+    fclose(keys);
+}
 
 int main(int argc, char **argv)
 {
@@ -67,20 +72,14 @@ int main(int argc, char **argv)
 
 	dudect_init(&ctx, &config);
 
-FILE *distributions;
-distributions = fopen("candidates/mpc-in-the-head//mirath/dudect/mirath_tcith_1a_fast/mirath_sign/measurements_mirath_tcith_1a_fast.txt", "w");
-fprintf(distributions, "%s", "Static and Random distribution measurements\n");
-
+    FILE *distributions;
+    distributions = fopen("candidates/mpc-in-the-head/mirath/dudect/mirath_tcith_1a_fast/mirath_sign/measurements_mirath_tcith_1a_fast.txt", "w");
 
 	dudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
 	while (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {
 		state = dudect_main(&ctx);
 		for(int i=0;i<10000.0;i++){
-			if (ctx.classes[i] == 0){
-				fprintf(distributions, "static;%ld\n", ctx.exec_times[i]);
-			}
-			else{
-				fprintf(distributions, "random;%ld\n", ctx.exec_times[i]);
+            fprintf(distributions, "%ld\n", ctx.exec_times[i]);
 			}
 		}
 	}

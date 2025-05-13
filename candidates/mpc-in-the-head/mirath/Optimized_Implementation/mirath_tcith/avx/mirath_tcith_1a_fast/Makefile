@@ -40,7 +40,8 @@ OBJ=$(subst common/KeccakP-1600-times4-SIMD256.o, ,$(TMP))
 OBJ+=$(patsubst %.c,%.o,$(wildcard *.c))
 #OBJ+=$(patsubst %.c,%.o, $(filter-out custom_bench.c, $(wildcard *.c)))
 
-OBJ+= $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o
+OBJ+ = $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o
+OBJ+ = get_expanded_secret_key.o
 
 
 OBJ_MAIN = $(filter-out PQCgenKAT_sign.o, $(OBJ))
@@ -61,6 +62,7 @@ BUILD_CTLIB = build
 CTTEST_LIB_CFLAGS = $(CFLAGS)
 OBJ_CUSTOM_BENCH = $(filter-out PQCgenKAT_sign.o main.o, $(OBJ))
 OBJECT_CT_TESTS = $(filter-out PQCgenKAT_sign.o main.o custom_bench.o $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o, $(OBJ))
+OBJECT_EXPAND_KEY = $(filter-out PQCgenKAT_sign.o main.o custom_bench.o $(CT_TEST_DIR)/$(TOOL_NAME)/$(KEYPAIR_TARGET).o $(CT_TEST_DIR)/$(TOOL_NAME)/$(SIGN_TARGET).o get_expanded_secret_key.o, $(OBJ))
 
 
 #all:  $(CTTEST_LIB) # TO BE FIXED: custom_bench
@@ -77,6 +79,14 @@ $(CTTEST_LIB): $(OBJ_CT_TESTS)
 	mkdir -p $(BUILD_CTLIB)
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) -D_SHA3_ $(CFLAGS) $(INCLUDES) $(OBJ_CT_TESTS) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LIBS) $(TOOL_LINK_LIBS)
+
+expanded_secret_key: get_expanded_secret_key.o sign.o $(OBJECT_EXPAND_KEY)
+	mkdir -p $(BUILD_CTLIB)
+	$(CC) -o $(BUILD_CTLIB)/get_expanded_secret_key $^ $(LIBS)
+	#$(CC) -o $@ $^ $(LIBS)
+
+
+
 
 ct_test: rng.o $(OBJ_CT_TESTS)
 	mkdir -p $(BUILD_CTLIB)

@@ -3,25 +3,34 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "data_structures.h"
-#include "parameters.h"
+#include "mirath_matrix_ff.h"
+#include "mirath_parsing.h"
+#include "mirath_ggm_tree.h"
+#include "mirath_tcith.h"
 #include "api.h"
-#include "parsing.h"
+#include "mirath_parameters.h"
 
-
-
-void get_expanded_sk(perm_t p, const uint8_t secret_key[SEED_BYTES]) {
-    sig_perk_perm_set_random(p, secret_key);
-}
 
 // Replace with your actual type definitions
 #define SECRET_KEY_LENGTH CRYPTO_SECRETKEYBYTES
 
-void print_permutation(FILE *file, perm_t p) {
-    for (int i=0; i<PARAM_N1-1; i++){
-        fprintf(file, "%02X", p[i]);
+
+void get_expanded_sk(ff_t S[MIRATH_VAR_FF_S_BYTES], ff_t C[MIRATH_VAR_FF_C_BYTES], const uint8_t *secret_key) {
+    seed_t seed_sk = {0};
+    memcpy(seed_sk, secret_key, MIRATH_SECURITY_BYTES);
+    mirath_matrix_expand_seed_secret_matrix(S, C, seed_sk);
+}
+
+
+void print_s_and_p(FILE *file, ff_t S[MIRATH_VAR_FF_S_BYTES], ff_t C[MIRATH_VAR_FF_C_BYTES]) {
+    // print S
+    for (int i=0; i<MIRATH_VAR_FF_S_BYTES; i++){
+        fprintf(file, "%02X", S[i]);
     }
-    fprintf(file, "%02X", p[PARAM_N1-1]);
+    // print C
+    for (int i=0; i<MIRATH_VAR_FF_C_BYTES; i++){
+        fprintf(file, "%02X", C[i]);
+    }
 }
 
 
@@ -36,13 +45,13 @@ int hexstr_to_bytes(const char *hexstr, uint8_t *buffer, size_t bufsize) {
 }
 
 void create_expanded_secrets() {
-    FILE *key_file = fopen("src/keys.txt", "r");
+    FILE *key_file = fopen("keys.txt", "r");
     if (!key_file) {
         perror("Failed to open keys.txt");
         return;
     }
 
-    FILE *out_file = fopen("src/expanded_secrets.txt", "a");
+    FILE *out_file = fopen("expanded_secrets.txt", "a");
     if (!out_file) {
         perror("Failed to open expanded_secrets.txt");
         fclose(key_file);
@@ -51,9 +60,6 @@ void create_expanded_secrets() {
 
     char line[2* (CRYPTO_SECRETKEYBYTES+2)];
     uint8_t tp_buff[SECRET_KEY_LENGTH];
-
-    perk_private_key_t private_key = {0};
-
     while (fgets(line, sizeof(line), key_file)) {
         // Remove newline and leading 'sk=' if present
         char *key_start = strstr(line, "sk=");
@@ -72,11 +78,11 @@ void create_expanded_secrets() {
             continue;
         }
         // Get expanded secret
-        sig_perk_private_key_from_bytes(&private_key, tp_buff);
-        get_expanded_sk(private_key.pi,tp_buff);
+        ff_t S[MIRATH_VAR_FF_S_BYTES] = {0};
+        ff_t C[MIRATH_VAR_FF_C_BYTES] = {0};
+        get_expanded_sk(S, C, tp_buff);
         // Write to output file
-        
-        print_permutation(out_file, private_key.pi);
+        print_s_and_p(out_file, S, C);
         fprintf(out_file, "\n");
     }
     fclose(key_file);
