@@ -82,7 +82,6 @@ int main(int argc, char **argv)
             fprintf(distributions, "%ld\n", ctx.exec_times[i]);
 			}
 		}
-	}
 	fclose(distributions);
 	dudect_free(&ctx);
 	return (int)state;
