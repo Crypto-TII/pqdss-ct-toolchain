@@ -190,6 +190,9 @@ set(SRC_BENCHMARK ${BENCHMARKS_FOLDER}/bench)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TOOLS_FLAGS}")
 
+option(EXPANDED_KEYS "Get expanded keys" OFF)
+set(EXPANDED_KEYS_FOLDER "expanded_keys")
+
 
 include_directories(${BASE_DIR}/include)
 
@@ -231,6 +234,21 @@ foreach(category "252" "400" "548")
             set_property(TARGET ${TARGET_BINARY_NAME} APPEND PROPERTY
                     COMPILE_FLAGS "-DCATEGORY=${category} -DTARGET=${optimize_target} ${KECCAK_EXTERNAL_ENABLE} ")
         endif ()
+
+        if (EXPANDED_KEYS)
+            set(TARGET_BINARY_NAME get_expanded_secret_key_${category}_${optimize_target})
+            add_executable(${TARGET_BINARY_NAME} ${HEADERS} ${SOURCES}
+                    ../${EXPANDED_KEYS_FOLDER}/get_expanded_secret_key.c)
+            target_include_directories(${TARGET_BINARY_NAME} PRIVATE
+                    ${BASE_DIR}/include ${OPENSSL_INCLUDE_DIR}
+                    ./include)
+            target_link_libraries(${TARGET_BINARY_NAME} ${SANITIZE} ${KECCAK_EXTERNAL_LIB})
+            set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${EXPANDED_KEYS_FOLDER})
+            set_property(TARGET ${TARGET_BINARY_NAME} APPEND PROPERTY
+                    COMPILE_FLAGS "-DCATEGORY=${category} -DTARGET=${optimize_target} ${KECCAK_EXTERNAL_ENABLE} ")
+
+        endif (EXPANDED_KEYS)
+
         # === Benchmark tests
         if (RUN_BENCHMARKS)
             set(TEST_BENCH bench_${category}_${optimize_target})
