@@ -632,6 +632,21 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                                 compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
                                                          additional_cmake_definitions, tool, *args, **expanded_kwargs)
                                 path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+                        if candidate == 'submission':
+                            expanded_kwargs_list = []
+                            if kwargs:
+                                for k, value in kwargs.items():
+                                    expanded_kwargs_list.append(f'{k}={value}')
+                            expanded_kwargs = dict([n for n in pair.split('=')] for pair in expanded_kwargs_list)
+                            # expanded_kwargs['BUILD_TESTING'] = 'OFF'
+                            expanded_kwargs['CMAKE_BUILD_TYPE'] = 'Release'
+                            expanded_kwargs['OPT_IMPL'] = 'avx'
+                            for instance in instances:
+                                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
+                                compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
+                                                         additional_cmake_definitions, tool, *args, **expanded_kwargs)
+                                path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+
                         elif candidate == 'mayo':
                             pass
                             expanded_kwargs_list = []
@@ -673,8 +688,14 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                                 platform, instance_basename = instance.split('/')
                                 path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
                                 path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_platform, platform)
-                                path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
-                                path_to_include_directories = path_to_include_directories.replace(default_instance, instance)
+                                # path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
+                                path_to_include_directories_split = path_to_include_directories.split(default_platform)
+                                path_to_include_directories_split.insert(1, platform)
+                                path_to_include_directories = "".join(path_to_include_directories_split)
+                                # path_to_include_directories = path_to_include_directories.replace(default_instance, instance)
+                                path_to_include_directories_split = path_to_include_directories.split(default_platform)
+                                path_to_include_directories_split.insert(1, platform)
+                                path_to_include_directories = "".join(path_to_include_directories_split)
                                 path_to_test_library_directory = path_to_test_library_directory.replace(default_platform, platform)
                                 path_to_test_library_directory = path_to_test_library_directory.replace(default_instance, instance)
                                 path_to_test_library_directory = f'{path_to_test_library_directory}/{instance_basename}'

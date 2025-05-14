@@ -22,11 +22,14 @@ LIBS     = -lcrypto
 
 CFLAGS += -mavx2 -maes
 
-SRCS           :=  $(wildcard $(SRC_DIR)/*.c)
+#SRCS           :=  $(wildcard $(SRC_DIR)/*.c)
+SRCS           :=  $(filter-out $(SRC_DIR)/get_expanded_secret_key.c ,$(wildcard $(SRC_DIR)/*.c))
 SRCS_O         :=  $(SRCS:.c=.o)
 SRCS_O_NOTDIR  :=  $(notdir $(SRCS_O))
 
-OBJ = $(SRCS_O_NOTDIR)
+
+#OBJ = $(SRCS_O_NOTDIR)
+OBJ = $(filter-out get_expanded_secret_key ,$(SRCS_O_NOTDIR))
 
 EXE= sign_api-test
 
@@ -53,6 +56,21 @@ $(CTTEST_LIB): $(OBJ)
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/$(SRC_DIR)/cflags.txt
 	$(LD) $(LDFLAGS) $(LIBPATH) $(OBJ) -shared -o $(BUILD_CTLIB)/$(SRC_DIR)/$(CTTEST_LIB) $(LIBS)
 
+#expanded_secret_key: Makefile ${EXPANDED_KEYS_OBJS}
+#	${CC} ${EXPANDED_KEYS_OBJS} ${CFLAGS} ${LDFLAGS} -o get_expanded_secret_key
+
+expanded_secret_key: $(OBJ) get_expanded_secret_key.o
+	$(LD) $(LDFLAGS) $(LIBPATH) -o $(SRC_DIR)/get_expanded_secret_key $^ $(LIBS)
+	#$(LD) $(LDFLAGS) $(LIBPATH) -o $@ $^ $(LIBS)
+
+get_expanded_secret_key.o: $(SRC_DIR)/get_expanded_secret_key.c
+	$(CC) $(CFLAGS) $(INCPATH) -c $<
+
+#$(SRC_DIR)/get_expanded_secret_key.o: $(SRC_DIR)/get_expanded_secret_key.c
+#	$(CC) $(CFLAGS) $(INCPATH) -c $<
+
+#get_expanded_secret_key.o: $(SRC_DIR)/get_expanded_secret_key.c
+#	$(CC) $(CFLAGS) $(INCPATH) -c $< -o $(SRC_DIR)/get_expanded_secret_key.o
 
 sign_api-test: $(OBJ) sign_api-test.c
 	$(CC) $(CFLAGS) $(INCPATH) $(LDFLAGS) $(LIBPATH) $^ -o $@ $(LIBS)
