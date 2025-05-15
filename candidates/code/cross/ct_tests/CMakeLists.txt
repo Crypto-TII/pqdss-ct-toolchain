@@ -100,10 +100,10 @@ set(SOURCES
 # Constant-time tests - Benchmarks
 # == Constant-time tests
 option(RUN_CT_TESTS "Run constant time tests" OFF)
-set(TOOLS_FLAGS "-Wall -g -Wextra")
-set(TOOL_NAME "timecop")
-set(TOOL_TEMPLATE_PATTERN "taint")
-set(TOOL_LINK_LIBS "")
+set(TOOLS_FLAGS "-std=c11")
+set(TOOL_NAME "dudect")
+set(TOOL_TEMPLATE_PATTERN "dude")
+set(TOOL_LINK_LIBS "m")
 set(TOOL_FOLDER ../${TOOL_NAME})
 
 set(BUILD_KEYPAIR ${TOOL_FOLDER}/cross_keypair)
@@ -118,6 +118,10 @@ set(BENCHMARK_TESTS "benchmarks")
 set(BENCHMARKS_FOLDER ../${BENCHMARK_TESTS})
 set(SRC_BENCHMARK ${BENCHMARKS_FOLDER}/bench)
 # Constant-time - benchmarks tests
+
+# EXPANDED KEYS
+option(EXPANDED_KEYS "Get expanded keys" OFF)
+set(EXPANDED_KEYS_FOLDER "expanded_keys")
 
 
 foreach(category RANGE 1 5 2)
@@ -153,6 +157,18 @@ foreach(category RANGE 1 5 2)
                         COMPILE_FLAGS "${OMIT_SEED_TREE} -DCATEGORY_${category}=1 -D${optimiz_target}=1 -D${RSDP_VARIANT}=1 ${KECCAK_EXTERNAL_ENABLE} ")
             endif ()
             # CT TESTS
+
+            if (EXPANDED_KEYS)
+                set(TARGET_BINARY_NAME get_expanded_secret_key_${category}_${RSDP_VARIANT}_${optimiz_target})
+                add_executable(${TARGET_BINARY_NAME} ${HEADERS} ${SOURCES}
+                        ../${EXPANDED_KEYS_FOLDER}/get_expanded_secret_key.c)
+                target_include_directories(${TARGET_BINARY_NAME} PRIVATE ${BASE_DIR}/include ${COMMON_DIR}/include)
+                target_link_libraries(${TARGET_BINARY_NAME} ${SANITIZE} ${KECCAK_EXTERNAL_LIB})
+                set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${EXPANDED_KEYS_FOLDER})
+                set_property(TARGET ${TARGET_BINARY_NAME} APPEND PROPERTY
+                        COMPILE_FLAGS "${OMIT_SEED_TREE} -DCATEGORY_${category}=1 -D${optimiz_target}=1 -D${RSDP_VARIANT}=1 ${KECCAK_EXTERNAL_ENABLE} ")
+
+            endif (EXPANDED_KEYS)
 
 
             if (RUN_BENCHMARKS)
