@@ -574,6 +574,8 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
             subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
             for instance in instances:
                 cmd_str = f'make {instance} platform={platform} OPTIMISATION={optimisation}'
+                if "SSK" in instance:
+                    cmd_str = f'make {instance} platform={platform} OPTIMISATION={optimisation} SK_IS_SEED=1'
                 subprocess.call(cmd_str.split(), stdin=sys.stdin)
                 os.chdir(cwd)
                 abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
