@@ -135,10 +135,12 @@ clean: clean_kat
 	rm -rf ./build_libo/* 2>/dev/null
 	#rm $(BUILD_CTLIB)/$(CTTEST_LIB)
 	rm -rf $(BUILD_CTLIB)
+	rm -f get_expanded_secret_key
 
 clean_all: clean
 	rm -f *.log
 	rm -rf $(BUILD_CTLIB)
+	rm -f get_expanded_secret_key
 
 clean_without_libsnovasym:
 	rm -f *.wasm *.js
@@ -195,3 +197,8 @@ $(CTTEST_LIB): init info build/sign.o build/ct_functions.o $(STATICLIB)
 	rm -rf $(BUILD_CTLIB)/*
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
 	$(CC) -shared $(SNOVA_PARAMS) $(OLIST) build/rng.o build/sign.o -o $(BUILD_CTLIB)/$(CTTEST_LIB) $(LIBS)
+
+
+expanded_secret_key: init info build/sign.o build/ct_functions.o $(STATICLIB)
+	$(CC) $(CTTEST_LIB_CFLAGS) $(SNOVA_PARAMS) $(OLIST) build/rng.o build/sign.o get_expanded_secret_key.c -o get_expanded_secret_key $(LIBS)
+
