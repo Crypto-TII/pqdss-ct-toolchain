@@ -170,6 +170,7 @@ libhash:
 $(CTTEST_LIB): libhash $(OBJS) $(RNG_OBJ)
 	mkdir -p $(BUILD_CTLIB)
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
+	$(CC) $(CFLAGS) $(OBJS) $(RNG_OBJ) $(LIB_HASH) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -lcrypto
 
 
 expanded_secret_key: libhash $(OBJS)
