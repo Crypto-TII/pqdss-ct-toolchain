@@ -173,9 +173,7 @@ $(CTTEST_LIB): libhash $(OBJS) $(RNG_OBJ)
 expanded_secret_key: libhash $(OBJS)
 	mkdir -p $(BUILD_CTLIB)
 	$(CC) $(CFLAGS) get_expanded_secret_key.c generator/rng.c $(OBJS) $(LIB_HASH) -lcrypto -o $(BUILD_CTLIB)/get_expanded_secret_key
-expanded_secret_key: libhash $(OBJS)
-	mkdir -p $(BUILD_CTLIB)
-	$(CC) $(CFLAGS) get_expanded_secret_key.c generator/rng.c $(OBJS) $(LIB_HASH) -lcrypto -o $(BUILD_CTLIB)/get_expanded_secret_key
+
 
 
 sign: libhash $(OBJS)

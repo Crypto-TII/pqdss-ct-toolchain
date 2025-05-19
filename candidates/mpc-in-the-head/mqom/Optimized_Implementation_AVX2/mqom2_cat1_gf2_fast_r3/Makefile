@@ -170,13 +170,13 @@ libhash:
 $(CTTEST_LIB): libhash $(OBJS) $(RNG_OBJ)
 	mkdir -p $(BUILD_CTLIB)
 	echo $(CTTEST_LIB_CFLAGS) > $(BUILD_CTLIB)/cflags.txt
+
+
 expanded_secret_key: libhash $(OBJS)
 	mkdir -p $(BUILD_CTLIB)
 	$(CC) $(CFLAGS) get_expanded_secret_key.c generator/rng.c $(OBJS) $(LIB_HASH) -lcrypto -o $(BUILD_CTLIB)/get_expanded_secret_key
-	$(CC) $(CFLAGS) $(OBJS) $(RNG_OBJ) $(LIB_HASH) -shared -o $(BUILD_CTLIB)/$(CTTEST_LIB) -lcrypto #generator/rng.c
 
-expanded_secret_key: libhash $(OBJS)
-	$(CC) $(CFLAGS) get_expanded_secret_key.c generator/rng.c $(OBJS) $(LIB_HASH) -lcrypto -o get_expanded_secret_key
+
 
 
 sign: libhash $(OBJS)
