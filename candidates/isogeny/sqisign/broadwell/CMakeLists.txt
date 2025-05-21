@@ -48,13 +48,14 @@ set(SELECT_SQISIGN_VARIANT ${PROJECT_SOURCE_DIR}/.cmake/sqisign_variant.cmake)
 set(INC_PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 
-set(TOOLS_FLAGS "-Wall -g -Wextra")
-set(TOOL_NAME "timecop")
-set(TOOL_TEMPLATE_PATTERN "taint")
-set(TOOL_LINK_LIBS "")
+set(TOOLS_FLAGS "-std=c11")
+set(TOOL_NAME "dudect")
+set(TOOL_TEMPLATE_PATTERN "dude")
+set(TOOL_LINK_LIBS "m")
 
+option(EXPANDED_KEYS "Get expanded keys" OFF)
+set(EXPANDED_KEYS_FOLDER "expanded_keys")
 
-message(":::::::root:------TOOL_TEMPLATE_PATTERN: ${TOOL_TEMPLATE_PATTERN}")
 
 add_subdirectory(src)
 add_subdirectory(apps)

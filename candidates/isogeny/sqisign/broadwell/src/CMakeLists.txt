@@ -115,6 +115,17 @@ FOREACH(SVARIANT ${SVARIANT_S})
         target_link_libraries(${TARGET_BINARY_NAME} PRIVATE sqisign_${SVARIANT_LOWER}_nistapi ${TOOL_LINK_LIBS})
         set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../${BUILD_SIGN})
     endif ()
+
+
+    if (EXPANDED_KEYS)
+        set(TARGET_BINARY_NAME get_expanded_secret_key_${SVARIANT_LOWER})
+        add_executable(${TARGET_BINARY_NAME}  ../${EXPANDED_KEYS_FOLDER}/get_expanded_secret_key.c)
+        target_include_directories(${TARGET_BINARY_NAME} PUBLIC nistapi/${SVARIANT_LOWER})
+        target_link_libraries(${TARGET_BINARY_NAME} PRIVATE sqisign_${SVARIANT_LOWER}_nistapi ${TOOL_LINK_LIBS})
+        set_target_properties(${TARGET_BINARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ./${EXPANDED_KEYS_FOLDER})
+    endif (EXPANDED_KEYS)
+
+
     # === Benchmark tests
     if (RUN_BENCHMARKS)
         set(TEST_BENCH bench_${SVARIANT_LOWER})
