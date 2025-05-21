@@ -38,17 +38,34 @@ sqisign_sign(unsigned char *sm,
     signature_t sigt;
     secret_key_init(&skt);
     secret_key_from_bytes(&skt, &pkt, sk);
-
-    memmove(sm + SIGNATURE_BYTES, m, mlen);
-
-    ret = !protocols_sign(&sigt, &pkt, &skt, sm + SIGNATURE_BYTES, mlen);
-    if (ret != 0) {
-        *smlen = 0;
-        goto err;
+    // store: mat_BAcan_to_BA0_two
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            gmp_printf ("%s%#Zx", "", skt.mat_BAcan_to_BA0_two[i][j]);
+        }
     }
+    // store: secret_ideal.lattice
+    gmp_printf ("%s%#Zx", "", skt.secret_ideal.norm);
+    // store: secret_ideal.lattice.denom
+    gmp_printf ("%s%#Zx", "", skt.secret_ideal.lattice.denom);
+    // store: secret_ideal.lattice.basis
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            gmp_printf ("%s%#Zx", "", skt.secret_ideal.lattice.basis[i][j]);
+        }
+    }
+     printf("\n");
 
-    signature_to_bytes(sm, &sigt);
-    *smlen = SIGNATURE_BYTES + mlen;
+//    memmove(sm + SIGNATURE_BYTES, m, mlen);
+//
+//    ret = !protocols_sign(&sigt, &pkt, &skt, sm + SIGNATURE_BYTES, mlen);
+//    if (ret != 0) {
+//        *smlen = 0;
+//        goto err;
+//    }
+//
+//    signature_to_bytes(sm, &sigt);
+//    *smlen = SIGNATURE_BYTES + mlen;
 
 err:
     secret_key_finalize(&skt);
