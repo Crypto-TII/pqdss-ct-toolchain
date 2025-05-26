@@ -22,9 +22,9 @@
 
 
 void print_expanded_key(FILE *file, sk_t *sk_struct) {
-    for (int i=0; i < LEN_SKSEED; i++){
-        fprintf(file, "%02X", sk_struct->sk_seed[i]);
-    }
+//    for (int i=0; i < LEN_SKSEED; i++){
+//        fprintf(file, "%02X", sk_struct->sk_seed[i]);
+//    }
     for (int i=0; i < (_V_BYTE * _O); i++){
         fprintf(file, "%02X", sk_struct->O[i]);
     }
