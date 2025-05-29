@@ -118,6 +118,7 @@ int ryde_5s_sign(uint8_t* signature, const uint8_t* message, size_t message_size
 
   // Parse secret key and public key
   ryde_5s_secret_key_from_string(y, H, s, C, sk);
+
   ryde_5s_public_key_to_string(pk, &sk[RYDE_5S_SECURITY_BYTES], y);
 
   rbc_67_mat_fq_mul_by_vec_left(sC, (rbc_67_mat_fq)&(C[1]), (rbc_67_vec)&s[1], RYDE_5S_PARAM_R - 1, RYDE_5S_PARAM_N - RYDE_5S_PARAM_R);
