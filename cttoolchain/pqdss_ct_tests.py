@@ -5,7 +5,7 @@ import os
 import sys
 import json
 import subprocess
-
+import shutil
 
 from typing import Optional, Union
 
@@ -30,6 +30,13 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, tool_flags: 
     if optional_flags is None:
         optional_flags = []
     cwd = os.getcwd()
+    if os.path.isdir(build_folder_full_path):
+        try:
+            shutil.rmtree(build_folder_full_path)
+            print("Directory {} and its contents deleted successfully.".format(build_folder_full_path))
+        except OSError as e:
+            print(f"Error: {e.filename} - {e.strerror}.")
+
     gen.create_directory(build_folder_full_path)
     os.chdir(build_folder_full_path)
     # Set the tool's flags in the CMakeLists.txt
@@ -574,6 +581,8 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
             subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
             for instance in instances:
                 cmd_str = f'make {instance} platform={platform} OPTIMISATION={optimisation}'
+                if "SSK" in instance:
+                    cmd_str = f'make {instance} platform={platform} OPTIMISATION={optimisation} SK_IS_SEED=1'
                 subprocess.call(cmd_str.split(), stdin=sys.stdin)
                 os.chdir(cwd)
                 abs_path_to_api_or_sign_split = abs_path_to_api_or_sign.split(default_instance)
@@ -673,8 +682,10 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                                 platform, instance_basename = instance.split('/')
                                 path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
                                 path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_platform, platform)
-                                path_to_include_directories = path_to_include_directories.replace(default_platform, platform)
-                                path_to_include_directories = path_to_include_directories.replace(default_instance, instance)
+
+                                path_to_include_directories_split = path_to_include_directories.split(default_platform)
+                                path_to_include_directories_split.insert(1, platform)
+                                path_to_include_directories = "".join(path_to_include_directories_split)
                                 path_to_test_library_directory = path_to_test_library_directory.replace(default_platform, platform)
                                 path_to_test_library_directory = path_to_test_library_directory.replace(default_instance, instance)
                                 path_to_test_library_directory = f'{path_to_test_library_directory}/{instance_basename}'

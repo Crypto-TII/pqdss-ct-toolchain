@@ -1,4 +1,5 @@
-CC = c99
+#CC = c99
+CC = gcc
 
 TOOLS_FLAGS:=-std=c11
 TOOL_LINK_LIBS:=-lm

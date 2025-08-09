@@ -1015,43 +1015,6 @@ def generic_create_tests_folders(list_of_path_to_folders):
 # ====================================================================
 
 # Run Binsec
-def run_binsec_v_0_9_1(executable_file, cfg_file, stats_files, output_file, depth):
-    command = f'''binsec -sse -checkct -sse-script {cfg_file} -sse-depth  {depth} -sse-self-written-enum 1
-          '''
-    command += f'{executable_file}'
-    cmd_args_lst = command.split()
-    with open(output_file, "w") as file:
-        execution = Popen(cmd_args_lst, universal_newlines=True, stdout=file, stderr=file)
-        execution.communicate()
-
-    with open(output_file, "r") as file:
-        output_lines = file.readlines()
-        if output_lines:
-            program_status_filter = list(filter(lambda line: 'Program status is' in line, output_lines))
-            prog_status_search = re.search(r'Program status is : \w*', program_status_filter[0])
-            program_status = prog_status_search.group(0)
-            program_need_for_stubs_filter = list(filter(lambda line: 'Cut path ' in line, output_lines))
-            required_stubs = []
-            if program_need_for_stubs_filter:
-                for sse_error in program_need_for_stubs_filter:
-                    prog_stub_search = re.search(r'Cut path \w*', sse_error)
-                    if prog_stub_search:
-                        address = re.search(r'@\s \w*', sse_error)
-                        print("++++++address: ", address)
-                    program_stub = prog_stub_search.group()
-                    print("++++++sse_error: ", sse_error)
-                    print("++++++program_stub: ", program_stub)
-            program_exploration_filter = list(filter(lambda line: 'Exploration is incomplete' in line, output_lines))
-            if program_exploration_filter:
-                print("---Exploration is incomplete")
-            if program_status.strip() == 'insecure':
-                print("---The target program is insecure. Please refer to the README.md to check the insecure instructions")
-            if program_status.strip() == 'secure':
-                print("---The target program is secure.")
-            else:
-                print("---Binsec cannot prove that the target program is secure or insecure.")
-
-
 def run_binsec(executable_file, cfg_file, stats_files, output_file, depth, **kwargs):
     command = f'''binsec -sse -checkct -checkct-features memory-access,control-flow,divisor,dividend,multiplication
      -sse-script {cfg_file} -sse-depth  {depth} -sse-self-written-enum 1 -checkct-stats-file {stats_files}'''
