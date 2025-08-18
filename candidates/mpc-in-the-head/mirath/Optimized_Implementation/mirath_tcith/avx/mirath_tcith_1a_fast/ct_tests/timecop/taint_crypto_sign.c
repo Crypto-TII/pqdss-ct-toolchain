@@ -29,9 +29,9 @@ int main() {
 		unsigned char public_key[CRYPTO_PUBLICKEYBYTES] = {0};
 		(void)crypto_sign_keypair(public_key, sk);
 
-		poison(sk, CRYPTO_SECRETKEYBYTES * sizeof(unsigned char));
+		poison(sk, (CRYPTO_SECRETKEYBYTES / 2) * sizeof(unsigned char));
 		result = crypto_sign(sm, &smlen, m, mlen, sk); 
-		unpoison(sk, CRYPTO_SECRETKEYBYTES * sizeof(unsigned char));
+		unpoison(sk, (CRYPTO_SECRETKEYBYTES / 2) * sizeof(unsigned char));
 		free(sm);
 		free(m);
 	}

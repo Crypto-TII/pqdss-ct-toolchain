@@ -10,6 +10,7 @@ import re
 import shutil
 import sys
 import subprocess
+import json
 from subprocess import Popen
 
 from typing import Optional, Union, List
@@ -389,7 +390,7 @@ def timecop_sign_taint_content1(taint_file, api_or_sign, rng, add_includes,
 
 
 # TIMECOP: taint for crypto_sign
-def timecop_sign_taint_content(taint_file, api_or_sign, rng, add_includes,
+def timecop_sign_taint_content1(taint_file, api_or_sign, rng, add_includes,
                                function_return_type, function_name, args_types, args_names):
     args_types[2] = re.sub("const ", "", args_types[2])
     args_types[4] = re.sub("const ", "", args_types[4])
@@ -429,6 +430,63 @@ def timecop_sign_taint_content(taint_file, api_or_sign, rng, add_includes,
     \t\tpoison({secret_key}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
     \t\tresult = {function_name}({args_names[0]}, &{args_names[1]}, {args_names[2]}, {args_names[3]}, {secret_key}); 
     \t\tunpoison({secret_key}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
+    \t\tfree({args_names[0]});
+    \t\tfree({args_names[2]});
+    \t}}
+    \treturn result;
+    }}
+    '''
+    with open(taint_file, "w") as t_file:
+        t_file.write(textwrap.dedent(taint_file_content_block_include))
+        if not add_includes == []:
+            for include in add_includes:
+                t_file.write(f'#include {include}\n')
+        t_file.write(f'#include {api_or_sign}\n')
+        t_file.write(f'#include {rng}\n')
+        t_file.write(textwrap.dedent(taint_file_content_block_main))
+
+
+def timecop_sign_taint_content(taint_file, api_or_sign, rng, add_includes,
+                               function_return_type, function_name, args_types, args_names,
+                               secret_block_offset, secret_block_size):
+    args_types[2] = re.sub("const ", "", args_types[2])
+    args_types[4] = re.sub("const ", "", args_types[4])
+    type_sk_with_no_const = args_types[4]
+    secret_key = args_names[4]
+    rng = '"toolchain_randombytes.h"'
+    taint_file_content_block_include = f'''
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <unistd.h>
+    #include <string.h>
+    #include <stdlib.h>
+    
+    #include "poison.h"
+    '''
+    taint_file_content_block_main = f'''
+    #define TIMECOP_NUMBER_OF_EXECUTION 1
+    #define max_message_length 3300
+    
+    int main() {{
+    \t{args_types[0]} *{args_names[0]};
+    \t{args_types[1]} {args_names[1]} = 0;
+    \t//{args_types[1]} *{args_names[1]};
+    \t{args_types[2]} *{args_names[2]};
+    \t{args_types[3]} {args_names[3]} = 0;
+    \t{args_types[4]} {secret_key}[CRYPTO_SECRETKEYBYTES] = {{0}};
+    \t{function_return_type} result = 2 ; 
+    \tfor (int i = 0; i < TIMECOP_NUMBER_OF_EXECUTION; i++) {{
+    \t\t{args_names[3]} = 33*(i+1);
+    \t\t{args_names[2]} = ({args_types[2]} *)calloc({args_names[3]}, sizeof({args_types[2]}));
+    \t\t{args_names[0]} = ({args_types[0]} *)calloc({args_names[3]}+CRYPTO_BYTES, sizeof({args_types[0]}));
+    
+    \t\tct_randombytes({args_names[2]}, {args_names[3]});
+    \t\t{type_sk_with_no_const} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
+    \t\t(void)crypto_sign_keypair(public_key, {secret_key});
+    
+    \t\tpoison({secret_key} + {secret_block_offset}, {secret_block_size} * sizeof({args_types[4]}));
+    \t\tresult = {function_name}({args_names[0]}, &{args_names[1]}, {args_names[2]}, {args_names[3]}, {secret_key}); 
+    \t\tunpoison({secret_key} + {secret_block_offset}, {secret_block_size} * sizeof({args_types[4]}));
     \t\tfree({args_names[0]});
     \t\tfree({args_names[2]});
     \t}}
@@ -1112,11 +1170,130 @@ def run_ctgrind(binary_file, output_file):
 
 
 # Run TIMECOP
-def run_timecop(binary_file, output_file):
-    command = f'''valgrind -s --track-origins=yes --leak-check=full 
+def run_timecop_with_suppression(binary_file, output_file):
+    command = f''' time valgrind -s --track-origins=yes --leak-check=full --gen-suppressions=all --num-callers=1
                 --show-leak-kinds=all --verbose --log-file={output_file} ./{binary_file}'''
     cmd_args_lst = command.split()
     subprocess.call(cmd_args_lst, stdin=sys.stdin)
+
+
+def extract_suppression_blocks(log_file_content: str):
+    """
+    Finds all instances of { … } blocks in the log_text.
+    """
+    return re.findall(r'\{[^}]*\}', log_file_content, flags=re.DOTALL)
+
+
+def timecop_get_ct_issues(log_file: str, parsed_log_file: str, parsed_into_json_file: str):
+    with open(log_file, 'r') as f:
+        log = f.read()
+    ct_issues = []
+    ct_issues_struct = []
+    ct_issues_block_supp = []
+    block_2 = extract_suppression_blocks(log)
+    updated_log = log
+    for idx, blk in enumerate(block_2, 0):
+        ct_issue, updated_log = updated_log.split(blk.strip(), 1)
+        if blk.strip() not in ct_issues_block_supp:
+            ct_issues_block_supp.append(blk.strip())
+            ct_issues.append(ct_issue.strip())
+
+    pattern = r"([0-9.]+)user\s+([0-9.]+)system\s+(\d+:\d{2}\.\d+)elapsed"
+    match = re.search(pattern, ct_issues[0])
+    user_time = 0
+    system_time = 0
+    elapsed_time = 0
+    if match:
+        user_time = match.group(1)
+        system_time = match.group(2)
+        elapsed_time = match.group(3)
+        print(user_time, system_time, elapsed_time)
+    number_of_issues = len(ct_issues)
+
+    re_sep_regex = r'==[0-9]+==\s\n'
+    re_sep = re.compile(re_sep_regex)
+    pattern_function_file = r'(at|by) [^:]+:\s*(?P<func>[^(]+)\s*\((?P<file>[^)]+)\)'
+    with open(parsed_log_file, 'w') as parsed_file:
+        parsed_file.write("================ TIMECOP REPORT ================\n\n")
+        parsed_file.write(f"Execution Time (seconds) : {user_time}\n")
+        parsed_file.write(f"Number of issues         : {number_of_issues}\n\n")
+        parent_pid_regex = r"==[0-9]+==\s*Parent PID:\s*[0-9]+\n"
+        current_issue = {}
+        type_ct = None
+        trace_ct = []
+        origin_ct = None
+        if ct_issues:
+            issue_index = 1
+            for issue in ct_issues:
+                trace_ct = []
+                issue_updated = issue
+                if issue_index == 1:
+                    issue_updated = re.split(parent_pid_regex, ct_issues[0], flags=re.MULTILINE)
+                    issue_updated_file = re.split(re_sep, issue_updated[-1])
+                    issue_updated_file = [ct_element for ct_element in issue_updated_file if ct_element.strip() != '']
+                    issue_updated = issue_updated_file[0]
+
+                ct_issue_trace_match = list(map(lambda block: [re.search(pattern_function_file, block)], issue_updated.split('\n')))
+                ct_issue_trace_match = [trace_match for trace_match in ct_issue_trace_match if trace_match[0]]
+                origin_match = ct_issue_trace_match[0][0]
+                origin_ct = {'function': origin_match.group('func').strip(), 'file': origin_match.group('file').strip()}
+                if 'Conditional jump or move depends' in issue_updated:
+                    type_ct = 'Conditional branching flow'
+                elif 'Use of uninitialised value of size' in issue_updated:
+                    type_ct = 'Memory access flow'
+
+                for match in ct_issue_trace_match[1:]:
+                    trace_match = match[0]
+                    current_trace_ct = {'function': trace_match.group('func').strip(), 'file': trace_match.group('file').strip()}
+                    trace_ct.append(current_trace_ct)
+
+                current_issue = {'type': type_ct, 'origin': origin_ct, 'trace': trace_ct}
+                ct_issues_struct.append(current_issue)
+
+                parsed_file.write(f"Issue {issue_index}:\n")
+                parsed_file.write(issue_updated)
+                parsed_file.write("\n\n")
+                issue_index += 1
+    all_ct_issues = {'number_of_issues': number_of_issues, 'execution_time_seconds': f'{user_time}s',
+                     'issues': ct_issues_struct}
+    with open(parsed_into_json_file, 'w') as f:
+        json.dump(all_ct_issues, f, indent=2)
+
+
+def run_timecop(binary_file, output_file):
+    # --num-callers=12
+    command = f'''time valgrind -s --track-origins=yes --leak-check=full --gen-suppressions=all  --show-leak-kinds=all --log-file={output_file}  ./{binary_file}'''
+    cmd_args_lst = command.split()
+    # print("---command: \n", command)
+    # print("---cmd_args_lst: \n", cmd_args_lst)
+    # subprocess.call(cmd_args_lst, stdin=sys.stdin, shell=True)
+    # subprocess.call(command, stdin=sys.stdin, shell=True)
+    # subprocess.run(cmd_args_lst, stdin=subprocess.PIPE, input="Hello", capture_output=True, text=True)
+
+    # res = subprocess.run(command, stdin=sys.stdin, stdout=sys.stdout, shell=True)
+
+    with open(output_file, "w") as file:
+        execution = Popen(cmd_args_lst, universal_newlines=True, stdout=file, stderr=file)
+        execution.communicate()
+    parsed_log = f'{output_file}'
+    parsed_log = parsed_log.split('.')[0]
+    parsed_json = f'{parsed_log}_report.json'
+    parsed_log = f'{parsed_log}_summary.log'
+    print("--------parsed_json: ", parsed_json)
+    print("--------parsed_log: ", parsed_log)
+    try:
+        print("-----::::: generating report and summary")
+        timecop_get_ct_issues(output_file, parsed_log, parsed_json)
+    except Exception as e:
+        print(f"----- An error happened when attemting to generate the summary and json report: {e}")
+
+
+
+
+
+    # res = subprocess.run(cmd_args_lst, capture_output=True, text=True)
+    # print("----res :=  ", res.stdout)
+    # print("----res :=  ", res)
 
 
 # Run DUDECT

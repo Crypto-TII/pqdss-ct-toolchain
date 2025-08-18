@@ -319,7 +319,8 @@ def tool_initialize_candidate(abs_path_to_api_or_sign,
                               path_to_tool_sign_folder,
                               add_includes,
                               with_core_dump="yes",
-                              number_of_measurements='1e4'):
+                              number_of_measurements='1e4',
+                              secret_block_offset: int = 0, secret_block_size: str = "CRYPTO_SECRETKEYBYTES"):
     list_of_path_to_folders = [path_to_tool_folder,
                                path_to_tool_keypair_folder,
                                path_to_tool_sign_folder]
@@ -347,7 +348,8 @@ def tool_initialize_candidate(abs_path_to_api_or_sign,
         ct_tool.timecop_keypair_taint_content(test_keypair, api_or_sign, add_includes, return_type_kp,
                                               f_basename_kp, args_types_kp, args_names_kp)
         ct_tool.timecop_sign_taint_content(test_sign, api_or_sign, rng, add_includes, return_type_s,
-                                           f_basename_s, args_types_s, args_names_s)
+                                           f_basename_s, args_types_s, args_names_s,
+                                           secret_block_offset, secret_block_size)
 
     if tool_name == 'binsec':
         cfg_file_kp, cfg_file_sign = tool_type.binsec_configuration_files()
@@ -386,7 +388,8 @@ def initialization(tools_list, abs_path_to_api_or_sign,
                    candidate, optimized_imp_folder,
                    instance_folder,
                    add_includes, with_core_dump="yes",
-                   number_of_measurements='1e4'):
+                   number_of_measurements='1e4',
+                   secret_block_offset: int = 0, secret_block_size: str = "CRYPTO_SECRETKEYBYTES"):
     signature_type = abs_path_to_api_or_sign.split('/')[1]
     path_candidate = f'{abs_path_to_api_or_sign.split(candidate)[0]}/{candidate}'
     tools_list_lowercase = [tool_name.lower() for tool_name in tools_list]
@@ -406,14 +409,16 @@ def initialization(tools_list, abs_path_to_api_or_sign,
                                   path_to_tool_keypair_folder,
                                   path_to_tool_sign_folder,
                                   add_includes,
-                                  with_core_dump, number_of_measurements)
+                                  with_core_dump, number_of_measurements,
+                                  secret_block_offset, secret_block_size)
 
 
 # generic_initialize_nist_candidate: generalisation of the function 'initialization', taking into account the fact
 # that some candidates have only 'one' instance
 def generic_initialize_nist_candidate(tools_list, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                       optimized_imp_folder, instances_list, add_includes,
-                                      with_core_dump="yes", number_of_measurements='1e4'):
+                                      with_core_dump="yes", number_of_measurements='1e4',
+                                      secret_block_offset: int = 0, secret_block_size: str = "CRYPTO_SECRETKEYBYTES"):
     list_of_instances = []
     if not instances_list:
         list_of_instances = [""]
@@ -423,7 +428,8 @@ def generic_initialize_nist_candidate(tools_list, candidate, abs_path_to_api_or_
     for instance in list_of_instances:
         initialization(tools_list, abs_path_to_api_or_sign, abs_path_to_rng,
                        candidate, optimized_imp_folder, instance, add_includes,
-                       with_core_dump, number_of_measurements)
+                       with_core_dump, number_of_measurements,
+                       secret_block_offset, secret_block_size)
 
 
 def compile_target_from_library(path_to_candidate_makefile_cmake,
@@ -450,6 +456,7 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                          additional_cmake_definitions=None, number_of_measurements='1e4', compiler: str = 'gcc',
                          compile_test_harness: str = 'yes', binary_patterns: Optional[Union[str, list]] = None,
                          keygen_sign_src: Optional[Union[str, list, dict]] = None,
+                         secret_block_offset: int = 0, secret_block_size: str = "CRYPTO_SECRETKEYBYTES",
                          *args, **kwargs):
     path_to_candidate_makefile_cmake_initial = path_to_candidate_makefile_cmake
     path_to_include_directories_initial = path_to_include_directories
@@ -498,7 +505,7 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                 abs_path_to_api_or_sign = "".join(abs_path_to_api_or_sign_split)
                 generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                                   optimized_imp_folder, instances, additional_includes, 'yes',
-                                                  number_of_measurements)
+                                                  number_of_measurements, secret_block_offset, secret_block_size)
                 instance_format = ''
                 instance_updated = f'{instance}/{platform}'
                 path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
@@ -543,7 +550,7 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                     os.chdir(cwd)
                     generic_initialize_nist_candidate(tool.split(), candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                                       optimized_imp_folder, instance.split(), additional_includes, 'yes',
-                                                      number_of_measurements)
+                                                      number_of_measurements, secret_block_offset, secret_block_size)
 
     elif candidate == 'snova':
         cwd = os.getcwd()
@@ -592,7 +599,7 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                 os.chdir(cwd)
                 generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                                   optimized_imp_folder, instances, additional_includes, 'yes',
-                                                  number_of_measurements)
+                                                  number_of_measurements, secret_block_offset, secret_block_size)
                 instance_format = ''
                 instance_updated = f'{instance}/{platform}'
                 path_to_test_library_directory = f'{path_to_candidate_makefile_cmake}/build/{instance}'
@@ -608,7 +615,7 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
     else:
         generic_initialize_nist_candidate(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                           optimized_imp_folder, instances, additional_includes, 'yes',
-                                          number_of_measurements)
+                                          number_of_measurements, secret_block_offset, secret_block_size)
         path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
         if path_candidate.endswith('/'):
             path_candidate += candidate
@@ -917,6 +924,7 @@ def generic_compile_run_candidate(tools, candidate, abs_path_to_api_or_sign, abs
                                   additional_cmake_definitions=None, number_of_measurements='1e4', compiler: str = 'gcc',
                                   compile: str = 'yes', run: str = 'yes', binary_patterns: Optional[Union[str, list]] = None,
                                   depth: str = '1000000', timeout='86400', implementation_type='opt', security_level = None,
+                                  secret_block_offset: int = 0, secret_block_size: str = "CRYPTO_SECRETKEYBYTES",
                                   *args, **kwargs):
 
     path_to_candidate = abs_path_to_api_or_sign.split(candidate)[0]
@@ -929,14 +937,16 @@ def generic_compile_run_candidate(tools, candidate, abs_path_to_api_or_sign, abs
                              default_instance, instances, additional_includes, path_to_candidate_makefile_cmake,
                              direct_link_or_compile_target, libraries_names,
                              path_to_include_directories, build_with_make, additional_cmake_definitions,
-                             number_of_measurements, compiler, compile, binary_patterns, keygen_sign_src, *args, **kwargs)
+                             number_of_measurements, compiler, compile, binary_patterns, keygen_sign_src,
+                             secret_block_offset, secret_block_size, *args, **kwargs)
         generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout, **kwargs)
     elif 'yes' in compile.lower() and 'no' in run.lower():
         generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_rng, optimized_imp_folder,
                              default_instance, instances, additional_includes, path_to_candidate_makefile_cmake,
                              direct_link_or_compile_target, libraries_names,
                              path_to_include_directories, build_with_make, additional_cmake_definitions,
-                             number_of_measurements, compiler, compile, binary_patterns, keygen_sign_src, *args, **kwargs)
+                             number_of_measurements, compiler, compile, binary_patterns, keygen_sign_src,
+                             secret_block_offset, secret_block_size, *args, **kwargs)
 
     if 'no' in compile.lower() and 'yes' in run.lower():
         generic_run(tools, path_to_candidate, instances, depth, binary_patterns, timeout, **kwargs)
@@ -972,6 +982,15 @@ def run_tests(user_entry_point: str, tools: Union[str, list], candidate: str, in
     compiler = candidates_dict['compiler']
     default_instance = candidates_dict['default_instance']
     keygen_sign = candidates_dict['keygen_sign_src']
+
+    private_key_block_block = candidates_dict['private_key_block_block']
+    secret_block_offset = private_key_block_block['secret_block_offset']
+    secret_block_size = private_key_block_block['secret_block_size']
+    print("----private_key_block_block: ", private_key_block_block)
+    print("----secret_block_offset: ", secret_block_offset)
+    print("----secret_block_size: ", secret_block_size)
+
+    keygen_sign = candidates_dict['keygen_sign_src']
     print("--------keygen_sign: ", keygen_sign)
     if not instances or instances is None:
         instances = candidates_dict['instances']
@@ -997,5 +1016,5 @@ def run_tests(user_entry_point: str, tools: Union[str, list], candidate: str, in
                                   path_to_include_directories, keygen_sign, build_with_make,
                                   additional_cmake_definitions, number_of_measurements, compiler,
                                   compile, run, binary_patterns, depth, timeout, implementation_type, security_level,
-                                  *args, **kwargs)
+                                  secret_block_offset, secret_block_size,*args, **kwargs)
 

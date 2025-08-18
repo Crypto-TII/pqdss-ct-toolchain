@@ -18,7 +18,8 @@
         "perk-256-fast-3", "perk-128-fast-3", "perk-256-fast-5", "perk-128-short-3", "perk-128-short-5", "perk-256-short-3", "perk-256-short-5"],
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["sign.c"]
+      "keygen_sign_src": ["sign.c"],
+      "private_key_block_block": {"secret_block_offset": 0, "secret_block_size": "SEED_BYTES"}
     },
     "mirath": {
       "path_to_api": "candidates/mpc-in-the-head/mirath/Optimized_Implementation/mirath_tcith/avx/mirath_tcith_1a_fast/api.h",
@@ -39,7 +40,8 @@
         "mirath_tcith_5a_fast", "mirath_tcith_5a_short", "mirath_tcith_5b_fast", "mirath_tcith_5b_short"],
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["sign.c"]
+      "keygen_sign_src": ["sign.c"],
+      "private_key_block_block": {"secret_block_offset": 0, "secret_block_size": "(CRYPTO_SECRETKEYBYTES / 2)"}
     },
     "mqom": {
       "path_to_api": "candidates/mpc-in-the-head/mqom/Optimized_Implementation_AVX2/mqom2_cat1_gf2_fast_r3/api.h",
@@ -61,7 +63,8 @@
         "mqom2_cat1_gf256_short_r5", "mqom2_cat1_gf2_short_r5", "mqom2_cat3_gf256_short_r5", "mqom2_cat3_gf2_short_r5", "mqom2_cat5_gf256_short_r5", "mqom2_cat5_gf2_short_r5"],
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["sign.c"]
+      "keygen_sign_src": ["sign.c"],
+      "private_key_block_block": {"secret_block_offset": "(CRYPTO_SECRETKEYBYTES - MQOM2_PARAM_MQ_N)", "secret_block_size": "MQOM2_PARAM_MQ_N"}
     },
     "ryde": {
       "path_to_api": "candidates/mpc-in-the-head/ryde/Optimized_Implementation/ryde1f/src/api.h",
@@ -80,7 +83,8 @@
       "instances": ["ryde1f", "ryde1s", "ryde3f", "ryde3s", "ryde5f", "ryde5s"],
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["sign.c"]
+      "keygen_sign_src": ["sign.c"],
+      "private_key_block_block": {"secret_block_offset": 0, "secret_block_size": "(CRYPTO_SECRETKEYBYTES / 2)"}
     },
     "sdith": {
       "path_to_api": "candidates/mpc-in-the-head/sdith/Optimized_Implementation/sdith_cat1_fast/generator/api.h",
@@ -99,7 +103,8 @@
       "instances": ["sdith_cat1_fast", "sdith_cat1_short", "sdith_cat3_fast", "sdith_cat3_short", "sdith_cat5_fast", "sdith_cat5_short"],
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["generator/sign.c"]
+      "keygen_sign_src": ["generator/sign.c"],
+      "private_key_block_block": {"secret_block_offset": 0, "secret_block_size": "CRYPTO_SECRETKEYBYTES"}
     },
     "less": {
       "path_to_api": "candidates/code/less/Reference_Implementation/include/api.h",
@@ -118,7 +123,8 @@
       "instances": null,
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["lib/sign.c"]
+      "keygen_sign_src": ["lib/sign.c"],
+      "private_key_block_block": {"secret_block_offset": 0, "secret_block_size": "CRYPTO_SECRETKEYBYTES"}
     },
     "cross": {
       "path_to_api": "candidates/code/cross/Reference_Implementation/include/api.h",
@@ -166,7 +172,8 @@
       "path_to_bench_binary": null,
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["src/sign.c"]
+      "keygen_sign_src": ["src/sign.c"],
+      "private_key_block_block": {"secret_block_offset": "(CRYPTO_SECRETKEYBYTES - seed_length_private)", "secret_block_size": "seed_length_private"}
     },
     "uov": {
       "path_to_api": "candidates/multivariate/uov/pqov_nist_submission/Optimized_Implementation/avx2/III/api.h",
@@ -186,7 +193,8 @@
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["sign.c"]
+      "keygen_sign_src": ["sign.c"],
+      "private_key_block_block": {"secret_block_offset": 0, "secret_block_size": "CRYPTO_SECRETKEYBYTES"}
     },
     "qruov": {
       "path_to_api": "candidates/multivariate/qruov/src/qruov1q7L10v740m100/portable64/api.h",
@@ -207,7 +215,8 @@
       "security_level": {"lvl1":  ["qruov1"], "lvl3":  ["qruov3"], "lvl5":  ["qruov5"]},
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["axv2/sign.c"]
+      "keygen_sign_src": ["axv2/sign.c"],
+      "private_key_block_block": {"secret_block_offset": 0, "secret_block_size": "(CRYPTO_SECRETKEYBYTES / 2)"}
     },
     "mayo": {
       "path_to_api": "candidates/multivariate/mayo/src/mayo_1/api.h",
@@ -226,7 +235,8 @@
       "instances": ["src/mayo_1", "src/mayo_2", "src/mayo_3", "src/mayo_5"],
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["api.c"]
+      "keygen_sign_src": ["api.c"],
+      "private_key_block_block": {"secret_block_offset": 0, "secret_block_size": "CRYPTO_SECRETKEYBYTES"}
     },
     "hawk": {
       "path_to_api": "candidates/lattice/hawk/NIST/Optimized_Implementation/avx2/hawk256/api.h",
@@ -245,7 +255,8 @@
       "benchmark_keywords": {"mean": "", "median": "", "bench":  "bench"},
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["api.c"]
+      "keygen_sign_src": ["api.c"],
+      "private_key_block_block": {"secret_block_offset": 0, "secret_block_size": "SECRET_BLOCK_SIZE"}
     },
     "sqisign": {
       "path_to_api": "candidates/isogeny/sqisign/broadwell/src/nistapi/lvl1/api.h",
@@ -264,7 +275,8 @@
       "instances": null,
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["sqisign.c"]
+      "keygen_sign_src": ["sqisign.c"],
+      "private_key_block_block": {"secret_block_offset": "CRYPTO_PUBLICKEYBYTES", "secret_block_size": "(CRYPTO_SECRETKEYBYTES - CRYPTO_PUBLICKEYBYTES)"}
     }
   },
   "tools": ["binsec", "dudect", "timecop"],
