@@ -212,12 +212,39 @@ mpc-in-the-head
 
 ```
 
+**NOTE**
+
+For the specific case of `Timecop`, our toolchain generates two additional files: a `summary` of the finds and its
+corresponding `json file`.
+
+
+```
+python3 toolchain-scripts/toolchain_script.py --candidate ryde --tools timecop --instances ryde1f
+```
+
+```
+mpc-in-the-head
+└── ryde
+        ├── Optimized_Implementation
+            ├── binsec
+                └── ryde1f
+                    └── ryde_sign
+                        ├── crypto_sign_output.txt
+                        ├── crypto_sign_output_report.json
+                        ├── crypto_sign_output_summary.log
+                        ├── test_harness_crypto_sign
+                        └── test_harness_crypto_sign.c
+
+```
+
+
+
 #### Specific cases
 
 
-- ryde:
+- ryde - mirath:
 
-For the instances `ryde3s - ryde5f -  ryde5s`, the stack size must be increased:
+For the instances `ryde3s - ryde5f -  ryde5s` and for `mirath_tcith_3*_short - mirath_tcith_5*_* - `, the stack size must be increased:
 
 ```yaml
 ulimit -s 16384 
@@ -268,6 +295,15 @@ where PLATFORM = amd64/avx2/gfni/neon and INSTANCE=I/II/III/I_pk/...
 
 By default: PLATFORM=avx2
 
+
+- less - cross
+
+For the previous candidates, all the instances are compiled and run sequentially. 
+The script invocation has no option `--instances`
+
+```shell
+python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --tools TOOL --candidate less
+```
 
 ### Feature: generic-ct-tests
 
