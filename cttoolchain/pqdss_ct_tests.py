@@ -986,12 +986,7 @@ def run_tests(user_entry_point: str, tools: Union[str, list], candidate: str, in
     private_key_block_block = candidates_dict['private_key_block_block']
     secret_block_offset = private_key_block_block['secret_block_offset']
     secret_block_size = private_key_block_block['secret_block_size']
-    print("----private_key_block_block: ", private_key_block_block)
-    print("----secret_block_offset: ", secret_block_offset)
-    print("----secret_block_size: ", secret_block_size)
-
     keygen_sign = candidates_dict['keygen_sign_src']
-    print("--------keygen_sign: ", keygen_sign)
     if not instances or instances is None:
         instances = candidates_dict['instances']
     if implementation_type == 'add':

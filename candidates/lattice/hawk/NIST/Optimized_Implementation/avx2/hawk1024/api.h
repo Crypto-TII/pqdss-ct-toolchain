@@ -13,6 +13,8 @@
 /* Algorithm name */
 #define CRYPTO_ALGNAME          "Hawk-1024"
 
+#define SECRET_BLOCK_SIZE (8 + (1 << (10 - 5)))
+
 /*
  * Generate a new key pair. The public and private key have sizes
  * CRYPTO_PUBLICKEYBYTES and CRYPTO_SECRETKEYBYTES, respectively,

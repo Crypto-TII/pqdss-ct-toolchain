@@ -1177,6 +1177,18 @@ def run_timecop_with_suppression(binary_file, output_file):
     subprocess.call(cmd_args_lst, stdin=sys.stdin)
 
 
+def extract_src_filenames(log_path):
+    pattern = re.compile(r'\b(\S+\.[ch]):(\d+)\b')
+    filenames = list()
+    file = log_path.splitlines()
+    for line in file:
+        match = pattern.search(line)
+        if match:
+            filenames.append(match.group())
+    filenames = list(dict.fromkeys(filenames))
+    return filenames
+
+
 def extract_suppression_blocks(log_file_content: str):
     """
     Finds all instances of { … } blocks in the log_text.
@@ -1192,11 +1204,17 @@ def timecop_get_ct_issues(log_file: str, parsed_log_file: str, parsed_into_json_
     ct_issues_block_supp = []
     block_2 = extract_suppression_blocks(log)
     updated_log = log
+    list_of_files = []
     for idx, blk in enumerate(block_2, 0):
         ct_issue, updated_log = updated_log.split(blk.strip(), 1)
+        filenames = extract_src_filenames(ct_issue)
         if blk.strip() not in ct_issues_block_supp:
             ct_issues_block_supp.append(blk.strip())
             ct_issues.append(ct_issue.strip())
+        else:
+            if filenames not in list_of_files:
+                ct_issues.append(ct_issue.strip())
+        list_of_files.append(filenames)
 
     pattern = r"([0-9.]+)user\s+([0-9.]+)system\s+(\d+:\d{2}\.\d+)elapsed"
     match = re.search(pattern, ct_issues[0])
@@ -1279,41 +1297,14 @@ def run_timecop(binary_file, output_file):
     parsed_log = parsed_log.split('.')[0]
     parsed_json = f'{parsed_log}_report.json'
     parsed_log = f'{parsed_log}_summary.log'
-    print("--------parsed_json: ", parsed_json)
-    print("--------parsed_log: ", parsed_log)
     try:
         print("-----::::: generating report and summary")
         timecop_get_ct_issues(output_file, parsed_log, parsed_json)
     except Exception as e:
-        print(f"----- An error happened when attemting to generate the summary and json report: {e}")
-
-
-
-
-
-    # res = subprocess.run(cmd_args_lst, capture_output=True, text=True)
-    # print("----res :=  ", res.stdout)
-    # print("----res :=  ", res)
+        print(f"----- An error happened when attempting to generate the summary and json report: {e}")
 
 
 # Run DUDECT
-def run_dudect_18_fev(executable_file: str, output_file: str, timeout='86400'):
-    command = ""
-    if timeout and timeout.lower() == 'no':
-        command += f'./{executable_file}'
-    elif timeout and timeout.lower() != 'no':
-        command = f'timeout {timeout} ./{executable_file}'
-    else:
-        command = f'timeout 86400 ./{executable_file}'
-    cmd_args_lst = command.split()
-    execution = subprocess.Popen(cmd_args_lst, stdout=subprocess.PIPE)
-    output, error = execution.communicate()
-    output_decode = output.decode('utf-8')
-    with open(output_file, "w") as file:
-        for line in output_decode.split('\n'):
-            file.write(line + '\n')
-
-
 def run_dudect(executable_file: str, output_file: str, timeout: Optional[Union[str, int]] = None):
     command = ""
     if timeout is None:
@@ -1332,28 +1323,6 @@ def run_dudect(executable_file: str, output_file: str, timeout: Optional[Union[s
     with open(output_file, "w") as file:
         for line in output_decode.split('\n'):
             file.write(line + '\n')
-
-# Run FLOWTRACKER
-def run_flowtracker_12_march(rbc_file, xml_file, output_file, sh_file_folder):
-    sh_command = f'''
-    #!/bin/sh
-    opt -basicaa -load AliasSets.so -load DepGraph.so -load bSSA2.so -bssa2\
-    -xmlfile {xml_file} {rbc_file} 2>{output_file}
-    '''
-    shell_file = 'run_candidate.sh'
-    with open(shell_file, 'w') as sh_file:
-        sh_file.write(textwrap.dedent(sh_command))
-    makefile_folder = sh_file_folder
-    makefile_content = f'''
-    RUN_CANDIDATE := (/bin/bash './run_candidate.sh')
-
-    run:
-    \t$(RUN_CANDIDATE)
-    '''
-    with open('Makefile', 'w') as makefile_to_run_candidate:
-        makefile_to_run_candidate.write(textwrap.dedent(makefile_content))
-    command = ["make"]
-    subprocess.call(command, stdin=sys.stdin)
 
 
 def run_flowtracker(rbc_file, xml_file, output_file):
@@ -1412,7 +1381,6 @@ def flowtracker_compile_target_src_file(target_src_file, target_include_director
                f' {xml_file_basename} {rbc_file_basename} 2> {output_file}')
     subprocess.call(cmd_str, stdin=sys.stdin, shell=True)
     os.chdir(cwd)
-
 
 
 def ctgrind_generic_run(ctgrind_folder, signature_type,

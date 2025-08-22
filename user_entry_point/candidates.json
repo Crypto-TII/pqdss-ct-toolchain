@@ -143,7 +143,8 @@
       "path_to_bench_binary": null,
       "instance_format": null,
       "cflags": null,
-      "keygen_sign_src": ["sign.c"]
+      "keygen_sign_src": ["sign.c"],
+      "private_key_block_block": {"secret_block_offset": 0, "secret_block_size": "CRYPTO_SECRETKEYBYTES"}
     },
     "snova": {
       "path_to_api": "candidates/multivariate/snova/SNOVA_37_17_16_2_ESK/avx2/api.h",
