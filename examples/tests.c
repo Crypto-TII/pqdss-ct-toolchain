@@ -1,7 +1,3 @@
-//
-// Created by Gilbert Ndollane Dione on 24/08/2024.
-//
-
 #include <string.h>
 #include "tests.h"
 
