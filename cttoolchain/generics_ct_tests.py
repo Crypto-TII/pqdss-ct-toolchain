@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-@author: Technical Validation Team
-"""
+
 
 import os
 import stat

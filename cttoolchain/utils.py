@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-@author: Technical Validation Team
-"""
+
 
 import os
 import subprocess
 import sys
-import textwrap
 import re
 import json
-from typing import Optional, Union, List
+from typing import Optional, Union
 
 import generics as gen
 
@@ -57,14 +54,19 @@ def from_json_to_python_dict1(path_to_json_file: str):
         list_of_libraries = data['libraries']
         return targets_list, chosen_tools, path_to_libraries, list_of_libraries
 
+
 def from_json_to_python_dict(path_to_json_file: str):
     with open(path_to_json_file) as json_file:
         data = json.load(json_file)
         candidates_list = data['candidates']
-        chosen_tools = data['tools']
-        libraries = data['libraries']
-        benchmark_libraries = data['benchmark_libraries']
-        return candidates_list, chosen_tools, libraries, benchmark_libraries
+        chosen_tools = []
+        libraries = []
+        if 'tools' in data:
+            chosen_tools = data['tools']
+        if 'libraries' in data:
+            libraries = data['libraries']
+        return candidates_list, chosen_tools, libraries
+
 
 def parse_json_to_dict_generic_tests(path_to_json_file: str):
     with open(path_to_json_file) as json_file:
@@ -72,7 +74,6 @@ def parse_json_to_dict_generic_tests(path_to_json_file: str):
         targets = data['targets']
         tools = data['tools']
         return targets, tools
-
 
 
 def tokenize_input_declaration(input_declaration: str):
@@ -557,14 +558,3 @@ def run_tests(user_entry_point: str, tools: Union[str, list], candidate: str, in
                                   path_to_include_directories, build_with_make,
                                   additional_cmake_definitions, number_of_measurements, compiler,
                                   compile, run, binary_patterns, depth, timeout, implementation_type, security_level)
-
-
-#
-# package = 'cttool-draft/candidates.json'
-#
-# cand, tools, lib, benchmark = from_json_to_python_dict(package)
-# candidate = "hufu"
-# instances = ["HuFu_NIST1"]
-# tools_test = ['binsec']
-# run_tests(package, tools_test, candidate, instances, cand)
-

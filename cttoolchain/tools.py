@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-@author: Technical Validation Team
-"""
+
 import os
 import stat
 import textwrap
@@ -12,8 +10,7 @@ import sys
 import subprocess
 import json
 from subprocess import Popen
-
-from typing import Optional, Union, List
+from typing import Optional, Union
 
 import generics as gen
 
@@ -94,9 +91,9 @@ class Tools(object):
         sign_cfg = "cfg_sign"
         return kp_cfg, sign_cfg
 
+
 # ======================TEST HARNESS =================================
 # ====================================================================
-
 # BINSEC: Test harness for crypto_sign_keypair
 def test_harness_content_keypair(test_harness_file,
                                  api_or_sign, add_includes,
@@ -390,62 +387,6 @@ def timecop_sign_taint_content1(taint_file, api_or_sign, rng, add_includes,
 
 
 # TIMECOP: taint for crypto_sign
-def timecop_sign_taint_content1(taint_file, api_or_sign, rng, add_includes,
-                               function_return_type, function_name, args_types, args_names):
-    args_types[2] = re.sub("const ", "", args_types[2])
-    args_types[4] = re.sub("const ", "", args_types[4])
-    type_sk_with_no_const = args_types[4]
-    secret_key = args_names[4]
-    rng = '"toolchain_randombytes.h"'
-    taint_file_content_block_include = f'''
-    #include <stdio.h>
-    #include <sys/types.h>
-    #include <unistd.h>
-    #include <string.h>
-    #include <stdlib.h>
-    
-    #include "poison.h"
-    '''
-    taint_file_content_block_main = f'''
-    #define TIMECOP_NUMBER_OF_EXECUTION 1
-    #define max_message_length 3300
-    
-    int main() {{
-    \t{args_types[0]} *{args_names[0]};
-    \t{args_types[1]} {args_names[1]} = 0;
-    \t//{args_types[1]} *{args_names[1]};
-    \t{args_types[2]} *{args_names[2]};
-    \t{args_types[3]} {args_names[3]} = 0;
-    \t{args_types[4]} {secret_key}[CRYPTO_SECRETKEYBYTES] = {{0}};
-    \t{function_return_type} result = 2 ; 
-    \tfor (int i = 0; i < TIMECOP_NUMBER_OF_EXECUTION; i++) {{
-    \t\t{args_names[3]} = 33*(i+1);
-    \t\t{args_names[2]} = ({args_types[2]} *)calloc({args_names[3]}, sizeof({args_types[2]}));
-    \t\t{args_names[0]} = ({args_types[0]} *)calloc({args_names[3]}+CRYPTO_BYTES, sizeof({args_types[0]}));
-    
-    \t\tct_randombytes({args_names[2]}, {args_names[3]});
-    \t\t{type_sk_with_no_const} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
-    \t\t(void)crypto_sign_keypair(public_key, {secret_key});
-    
-    \t\tpoison({secret_key}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
-    \t\tresult = {function_name}({args_names[0]}, &{args_names[1]}, {args_names[2]}, {args_names[3]}, {secret_key}); 
-    \t\tunpoison({secret_key}, CRYPTO_SECRETKEYBYTES * sizeof({args_types[4]}));
-    \t\tfree({args_names[0]});
-    \t\tfree({args_names[2]});
-    \t}}
-    \treturn result;
-    }}
-    '''
-    with open(taint_file, "w") as t_file:
-        t_file.write(textwrap.dedent(taint_file_content_block_include))
-        if not add_includes == []:
-            for include in add_includes:
-                t_file.write(f'#include {include}\n')
-        t_file.write(f'#include {api_or_sign}\n')
-        t_file.write(f'#include {rng}\n')
-        t_file.write(textwrap.dedent(taint_file_content_block_main))
-
-
 def timecop_sign_taint_content(taint_file, api_or_sign, rng, add_includes,
                                function_return_type, function_name, args_types, args_names,
                                secret_block_offset, secret_block_size):
@@ -572,131 +513,6 @@ def dudect_keypair_dude_content(taint_file, api_or_sign, add_includes,
 
 
 # DUDECT: for crypto_sign
-def dudect_sign_dude_content_18_fev(taint_file, api_or_sign, add_includes,
-                             function_return_type,
-                             function_name,
-                             args_types,
-                             args_names, number_of_measurements='1e4'):
-    taint_file_content_block_include = f'''
-    #include <stdio.h>
-    #include <sys/types.h>
-    #include <unistd.h>
-    #include <string.h>
-    #include <stdlib.h>
-    
-    #define DUDECT_IMPLEMENTATION
-    #include <dudect.h>
-    
-    #define MESSAGE_LENGTH 3300
-    
-    #define SECRET_KEY_BYTE_LENGTH CRYPTO_SECRETKEYBYTES
-    #define SIGNATURE_MESSAGE_BYTE_LENGTH (MESSAGE_LENGTH + CRYPTO_BYTES)
-    
-    '''
-    type_msg = args_types[2]
-    type_sk = args_types[4]
-
-    type_sk_with_no_const = type_sk.replace('const', '')
-    type_sk_with_no_const = type_sk_with_no_const.strip()
-
-    sig_msg = args_names[0]
-    sig_msg_len = args_names[1]
-    msg = args_names[2]
-    msg_len = args_names[3]
-    sk = args_names[4]
-    ret_type = function_return_type
-
-    taint_file_split = taint_file.split('/')
-    taint_file_folder = "/".join(taint_file_split[0:-1])
-    static_class_execution_times = f'{taint_file_folder}/static.txt'
-    random_class_execution_times = f'{taint_file_folder}/random.txt'
-
-    taint_file_content_block_main = f'''
-    uint8_t do_one_computation(uint8_t *data) {{
-    
-    \t{args_types[1]} {sig_msg_len} = SIGNATURE_MESSAGE_BYTE_LENGTH; //the signature length could be initialized to 0.
-    \t{args_types[0]} {sig_msg}[SIGNATURE_MESSAGE_BYTE_LENGTH] = {{0}};
-    \t{args_types[3]} {msg_len} = MESSAGE_LENGTH; //  the message length could be also randomly generated.
-    \t{type_msg} *{msg} = ({type_msg}*)data + 0; 
-    \t{type_sk} *{sk} = ({type_sk}*)data + MESSAGE_LENGTH*sizeof({type_msg}) ; 
-    
-    \tuint8_t ret_val = 0;
-    \tconst {ret_type} result = {function_name}({sig_msg}, &{sig_msg_len}, {msg}, {msg_len}, {sk});
-    \tret_val ^= (uint8_t) result ^ {sig_msg}[0] ^ {sig_msg}[SIGNATURE_MESSAGE_BYTE_LENGTH - 1];
-    \treturn ret_val;
-    }}
-    
-    void prepare_inputs(dudect_config_t *c, uint8_t *input_data, uint8_t *classes) {{
-    \trandombytes_dudect(input_data, c->number_measurements * c->chunk_size);
-    \t{type_sk_with_no_const} public_key[CRYPTO_PUBLICKEYBYTES] = {{0}};
-    \t{type_sk_with_no_const} fixed_secret_key[CRYPTO_SECRETKEYBYTES] = {{0}};
-    \t(void)crypto_sign_keypair(public_key, fixed_secret_key);
-    \tfor (size_t i = 0; i < c->number_measurements; i++) {{
-    \t\tclasses[i] = randombit();
-    \t\t\tif (classes[i] == 0) {{
-     \t\t\t\t//Uncomment this line if you want to have a fixed message in this class.
-    \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
-    \t\t\t\tmemcpy(input_data + (size_t)i * c->chunk_size+MESSAGE_LENGTH*sizeof({type_msg}), 
-    \t\t\t\t        fixed_secret_key, SECRET_KEY_BYTE_LENGTH*sizeof({type_sk}));
-    \t\t\t}} else {{
-    \t\t\t\t//Uncomment this line if you want to have a fixed message in this class.
-    \t\t\t\t//memset(input_data + (size_t)i * c->chunk_size, 0x01, MESSAGE_LENGTH*sizeof({type_msg}));
-    \t\t\t\tconst size_t offset = (size_t)i * c->chunk_size;
-    \t\t\t\t{type_sk_with_no_const} pk[CRYPTO_PUBLICKEYBYTES] = {{0}};
-    \t\t\t\t{type_sk_with_no_const} *sk = ({type_sk_with_no_const} *)input_data + offset + MESSAGE_LENGTH*sizeof({type_msg});
-    \t\t\t\t(void)crypto_sign_keypair(pk, sk);
-    \t\t\t}}
-    \t\t}}
-    \t}}
-    
-    int main(int argc, char **argv)
-    {{
-    \t(void)argc;
-    \t(void)argv;
-    
-    \tconst size_t chunk_size = sizeof({type_msg})*MESSAGE_LENGTH + SECRET_KEY_BYTE_LENGTH*sizeof({type_sk}); 
-
-    \tdudect_config_t config = {{
-    \t\t.chunk_size = chunk_size,
-    \t\t.number_measurements = {number_of_measurements},
-    \t}};
-    \tdudect_ctx_t ctx;
-
-    \tdudect_init(&ctx, &config);
-    
-    FILE *static_distribution, *random_distribution;
-    static_distribution = fopen("{static_class_execution_times}", "w");
-    random_distribution = fopen("{random_class_execution_times}", "w");
-    fprintf(static_distribution, "%s", "Static distribution measurements\\n");
-    fprintf(random_distribution, "%s", "Random distribution measurements\\n");
-
-    \tdudect_state_t state = DUDECT_NO_LEAKAGE_EVIDENCE_YET;
-    \twhile (state == DUDECT_NO_LEAKAGE_EVIDENCE_YET) {{
-    \t\tstate = dudect_main(&ctx);
-    \t\tfor(int i=0;i<{number_of_measurements};i++){{
-    \t\t\tif (ctx.classes[i] == 0){{
-    \t\t\t\tfprintf(static_distribution, "%ld\\n", ctx.exec_times[i]);
-    \t\t\t}}
-    \t\t\telse{{
-    \t\t\t\tfprintf(random_distribution, "%ld\\n", ctx.exec_times[i]);
-    \t\t\t}}
-    \t\t}}
-    \t}}
-    \tfclose(static_distribution);
-    \tfclose(random_distribution);
-    \tdudect_free(&ctx);
-    \treturn (int)state;
-    }}
-    '''
-    with open(taint_file, "w") as t_file:
-        t_file.write(textwrap.dedent(taint_file_content_block_include))
-        if not add_includes == []:
-            for include in add_includes:
-                t_file.write(f'#include {include}\n')
-        t_file.write(f'#include {api_or_sign}\n')
-        t_file.write(textwrap.dedent(taint_file_content_block_main))
-
-
 def dudect_sign_dude_content(taint_file, api_or_sign, add_includes,
                              function_return_type,
                              function_name,
@@ -1057,7 +873,6 @@ def cfg_content_keypair(cfg_file_keypair, with_core_dump="yes"):
         cfg_file.write(textwrap.dedent(cfg_file_content))
 
 
-
 # ======================CREATE folders ==================================
 # =======================================================================
 
@@ -1090,29 +905,6 @@ def run_binsec(executable_file, cfg_file, stats_files, output_file, depth, **kwa
 
 
 # Generate gdb script
-def binsec_generate_gdb_script1(path_to_gdb_script: str, path_to_snapshot_file: str, function_name='crypto_sign'):
-    snapshot_file = path_to_snapshot_file
-    gdb_script = path_to_gdb_script
-    if not snapshot_file.endswith('.snapshot'):
-        snapshot_file = f'{snapshot_file}.snapshot'
-    if not gdb_script.endswith('.gdb'):
-        gdb_script = f'{gdb_script}.gdb'
-    snapshot = f'''
-    set pagination off
-    set env LD_BIND_NOW=1
-    set env GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2_Usable
-    break main
-    run
-    finish
-    generate-core-file {snapshot_file}
-    kill
-    quit
-    '''
-    with open(gdb_script, "w+") as gdb_file:
-        gdb_file.write(textwrap.dedent(snapshot))
-
-
-# Generate gdb script
 def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: str, function_name='crypto_sign'):
     snapshot_file = path_to_snapshot_file
     gdb_script = path_to_gdb_script
@@ -1132,26 +924,6 @@ def binsec_generate_gdb_script(path_to_gdb_script: str, path_to_snapshot_file: s
     '''
     with open(gdb_script, "w+") as gdb_file:
         gdb_file.write(textwrap.dedent(snapshot))
-
-
-# Given an executable, generate a core file (.snapshot) with a given gdb script
-def binsec_generate_core_dump1(path_to_executable_file: str, path_to_gdb_script: str):
-    cwd = os.getcwd()
-    path_to_executable_file_split = path_to_executable_file.split('/')
-    executable_basename = os.path.basename(path_to_executable_file)
-    gdb_script_basename = os.path.basename(path_to_gdb_script)
-    if len(path_to_executable_file_split) == 1:
-        executable_folder = "."
-    else:
-        executable_folder = '/'.join(path_to_executable_file_split[0:-1])
-
-    os.chdir(executable_folder)
-    cmd = f'gdb -x {gdb_script_basename} ./{executable_basename}'
-    print("-------cmd: ")
-    print(cmd)
-    cmd_list = cmd.split()
-    subprocess.call(cmd_list, stdin=sys.stdin)
-    os.chdir(cwd)
 
 
 # Given an executable, generate a core file (.snapshot) with a given gdb script
@@ -1279,17 +1051,8 @@ def timecop_get_ct_issues(log_file: str, parsed_log_file: str, parsed_into_json_
 
 
 def run_timecop(binary_file, output_file):
-    # --num-callers=12
     command = f'''time valgrind -s --track-origins=yes --leak-check=full --gen-suppressions=all  --show-leak-kinds=all --log-file={output_file}  ./{binary_file}'''
     cmd_args_lst = command.split()
-    # print("---command: \n", command)
-    # print("---cmd_args_lst: \n", cmd_args_lst)
-    # subprocess.call(cmd_args_lst, stdin=sys.stdin, shell=True)
-    # subprocess.call(command, stdin=sys.stdin, shell=True)
-    # subprocess.run(cmd_args_lst, stdin=subprocess.PIPE, input="Hello", capture_output=True, text=True)
-
-    # res = subprocess.run(command, stdin=sys.stdin, stdout=sys.stdout, shell=True)
-
     with open(output_file, "w") as file:
         execution = Popen(cmd_args_lst, universal_newlines=True, stdout=file, stderr=file)
         execution.communicate()

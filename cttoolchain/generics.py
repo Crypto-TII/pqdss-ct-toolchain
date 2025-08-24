@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-@author: Technical Validation Team
-"""
+
 
 import os
 import glob
@@ -430,40 +428,7 @@ def generic_create_tests_folders(list_of_path_to_folders):
             subprocess.call(cmd, stdin=sys.stdin)
 
 
-def compile_with_makefile_27_jan(path_to_makefile, default=None, *args, **kwargs):
-    print(":::::::compile_with_makefile:::::::")
-    print(".....path_to_makefile: ", path_to_makefile)
-    cwd = os.getcwd()
-    os.chdir(path_to_makefile)
-    # Set the tool's flags in the Makefile
-    makefile = 'Makefile'
-    set_tool_flags = [f"sed -i 's/^TOOLS_FLAGS := .*$/TOOLS_FLAGS := /g' {makefile}"]
-    subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-    # For now for benchmark. But this should be generic
-    set_tool_flags = [f"sed -i 's/^TOOL_LINK_LIBS := .*$/TOOL_LINK_LIBS := /g' {makefile}"]
-    subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
-    # Run make clean first in case objects files have already been obtained with the flags of a different tool.
-    cmd_clean = ["make", "clean"]
-    subprocess.call(cmd_clean, stdin=sys.stdin)
-    additional_options = list(args)
-    for key, val in kwargs.items():
-        additional_options.append(f'{key}={val}')
-    # cmd = ["make", "all"]
-    cmd = ["make"]
-    if not additional_options:
-        cmd.append('all')
-    cmd.extend(additional_options)
-    if default:
-        cmd.append(default)
-    cmd.append('all')
-    print("++++++++++++cmd++++++++++++: ", cmd)
-    subprocess.call(cmd, stdin=sys.stdin)
-    os.chdir(cwd)
-
-
 def compile_with_makefile(path_to_makefile, default=None, *args, **kwargs):
-    print(":::::::compile_with_makefile:::::::")
-    print(".....path_to_makefile: ", path_to_makefile)
     cwd = os.getcwd()
     os.chdir(path_to_makefile)
     # Set the tool's flags in the Makefile
@@ -476,17 +441,13 @@ def compile_with_makefile(path_to_makefile, default=None, *args, **kwargs):
     # Run make clean first in case objects files have already been obtained with the flags of a different tool.
     additional_options = list(args)
     no_make_clean = 'no-make-clean'
-    print(">>>>>>>>>>additional_options: ", additional_options)
     if no_make_clean not in additional_options:
-        print("--------+++++++========performing make clean")
         cmd_clean = ["make", "clean"]
         subprocess.call(cmd_clean, stdin=sys.stdin)
     else:
         additional_options.remove(no_make_clean)
-    # additional_options = list(args)
     for key, val in kwargs.items():
         additional_options.append(f'{key}={val}')
-    # cmd = ["make", "all"]
     cmd = ["make"]
     if not additional_options:
         cmd.append('all')

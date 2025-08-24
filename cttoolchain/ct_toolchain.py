@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-@author: Technical Validation Team
-"""
+
 
 import argparse
 
 import cli as cli
 import pqdss_ct_tests as signature
-import pqdss_benchmarks as bench
 import generics_ct_tests as gen_tests
 
 
 # path to user entry-point
 path_to_user_entry_point = 'user_entry_point/candidates.json'
 ret = signature.from_json_to_python_dict(path_to_user_entry_point)
-candidates_dict, chosen_tools, libraries, benchmark_libraries = ret
+candidates_dict, chosen_tools, libraries = ret
 
 
 # GENERICS TESTS: path to user entry-point
@@ -27,7 +24,7 @@ targets, generic_tests_chosen_tools = ret_gen_tests
 # run_cli_candidate: Run candidate with CLI
 def run_cli_candidate(args_parse):
     """ Function: run_cli_candidate"""
-    test_mode = args.tii_ct_toolchain
+    test_mode = args.ct_toolchain
     candidate = args_parse.candidate
     instances = args_parse.instances
     user_entry_point = args_parse.entry_point
@@ -46,9 +43,9 @@ def run_cli_candidate(args_parse):
     add_args = list(filter(lambda element: '=' not in element, add_options))
     add_kwargs_list = list(filter(lambda element: '=' in element, add_options))
     additional_options = {}
+    security_level = None
     if add_kwargs_list:
         additional_options = dict([n for n in pair.split('=')] for pair in add_kwargs_list)
-    security_level = args_parse.security_level
     if test_mode == 'pqdss-ct-tests':
         print(":::::::Running constant time tests")
         tools = args_parse.tools
@@ -60,26 +57,6 @@ def run_cli_candidate(args_parse):
         signature.run_tests(user_entry_point, tools, candidate, instances, all_candidates_dict, direct_link_to_library,
                             number_measurements, compilation, run, algorithms, depth, timeout, implementation_type,
                             security_level, additional_cmake_definitions, *add_args, **additional_options)
-    elif test_mode == 'pqdss-benchmarks':
-        print(":::::::Running Benchmarks")
-        number_of_iterations = args_parse.iterations
-        min_msg_length = args_parse.min_msg_len
-        max_msg_length = args_parse.max_msg_len
-        custom_benchmark = args_parse.custom_benchmark
-        candidate_benchmark = args_parse.candidate_benchmark
-        if custom_benchmark.strip() == 'yes':
-            custom_benchmark = True
-        if candidate_benchmark is None or candidate_benchmark.strip() == 'no':
-            candidate_benchmark = False
-        elif candidate_benchmark.strip() == 'yes':
-            candidate_benchmark = True
-        additional_options['RUN_BENCHMARKS'] = "ON"
-        additional_options['RUN_CT_TESTS'] = "OFF"
-        bench.run_benchmarks(candidate, instances, candidates_dict, direct_link_or_compile_target,
-                             implementation_type, security_level, number_of_iterations,
-                             min_msg_length, max_msg_length, cpu_cores_isolated, compilation, run, custom_benchmark,
-                             candidate_benchmark, *add_args, **additional_options)
-
     elif test_mode == 'generic-ct-tests':
         print("------Running: generic-ct-tests")
         targets_basename = args_parse.target
@@ -110,29 +87,31 @@ def run_cli_candidate(args_parse):
 # Define a new class action for the flag -a (--all).
 class RunAllCandidates(argparse.Action):
     def __init__(self, option_strings,  dest, **kwargs):
-        return super().__init__(option_strings , dest, nargs='+', default=argparse.SUPPRESS, **kwargs)
+        super().__init__(option_strings, dest, default=argparse.SUPPRESS, **kwargs)
 
-    def __call__(self, parser, namespace, values, option_string, **kwargs):
-        tools_list = [val for val in values if '=' not in val]
-        list_of_options = [opt for opt in values if opt not in tools_list]
-        bench.benchmarks_single_run_nist_candidates(candidates_dict, tools_list)
-        parser.exit()
+    def __call__(self, custom_parser, namespace, values, option_string=None):
+        add_kwargs_list = list(filter(lambda element: '=' in element, values))
+        additional_options = {}
+        if add_kwargs_list:
+            additional_options = dict([n for n in pair.split('=', 1)] for pair in add_kwargs_list)
+        signature.run_ct_tests_all_candidates(path_to_user_entry_point, **additional_options)
+        custom_parser.exit()
 
 
 # Create a parser
-parser = argparse.ArgumentParser(prog="tii-constant-time-toolchain",
+parser = argparse.ArgumentParser(prog="constant-time-toolchain",
                                  description="Constant time check with Binsec, Timecop, Dudect",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 
-subparser = parser.add_subparsers(help="", dest='tii_ct_toolchain')
+subparser = parser.add_subparsers(help="", dest='ct_toolchain')
 
 cli.add_cli_arguments(subparser, 'pqdss-ct-tests', path_to_user_entry_point, '')
-cli.add_cli_arguments(subparser, 'pqdss-benchmarks', path_to_user_entry_point, '')
 cli.add_cli_arguments(subparser, 'generic-ct-tests', path_to_user_entry_point_generic_tests, '')
 
 
 parser.add_argument('-a', '--all',
+                    nargs='+',
                     action=RunAllCandidates,
                     help='Run a given tool on all instances of all candidates',
                     )

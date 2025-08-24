@@ -6,7 +6,6 @@ import sys
 import json
 import subprocess
 import shutil
-
 from typing import Optional, Union
 
 import tools as ct_tool
@@ -17,10 +16,13 @@ def from_json_to_python_dict(path_to_json_file: str):
     with open(path_to_json_file) as json_file:
         data = json.load(json_file)
         candidates_list = data['candidates']
-        chosen_tools = data['tools']
-        libraries = data['libraries']
-        benchmark_libraries = data['benchmark_libraries']
-        return candidates_list, chosen_tools, libraries, benchmark_libraries
+        libraries = []
+        chosen_tools = []
+        if 'tools' in data:
+            chosen_tools = data['tools']
+        if 'libraries' in data:
+            libraries = data['libraries']
+        return candidates_list, chosen_tools, libraries
 
 
 # ======================== COMPILATION ====================================
@@ -55,10 +57,12 @@ def compile_with_cmake(build_folder_full_path, optional_flags=None, tool_flags: 
     set_tool_flags = [f"sed -i -E 's/(TOOL_LINK_LIBS .+)/TOOL_LINK_LIBS "f'"{tool_link_libs}"'")/g'" + f" {cmakelist}"]
     subprocess.call(set_tool_flags, stdin=sys.stdin, shell=True)
     additional_options = list(args)
+    additional_options = list(filter(lambda item: item is not None, additional_options))
     for key, val in kwargs.items():
         additional_options.append(f'-D{key}={val}')
     cmd = ["cmake"]
-    cmd.extend(additional_options)
+    if additional_options:
+        cmd.extend(additional_options)
     if not optional_flags == []:
         cmd.extend(optional_flags)
     cmd_ext = ["../"]
@@ -87,12 +91,13 @@ def compile_with_makefile(path_to_makefile, default=None,
     cmd_clean = ["make", "clean"]
     subprocess.call(cmd_clean, stdin=sys.stdin)
     additional_options = list(args)
+    if additional_options == [None]:
+        additional_options = []
     for key, val in kwargs.items():
         additional_options.append(f'{key}={val}')
     cmd = ["make", "all"]
-    if not additional_options:
-        cmd.append('all')
-    cmd.extend(additional_options)
+    if additional_options:
+        cmd.extend(additional_options)
     if default:
         cmd.append(default)
     print("::::::::Compilation invocation for instance: ")
@@ -473,7 +478,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
         platform = 'avx2'
         if 'platform' in kwargs.keys():
             platform = kwargs['platform']
-        print("-------platform: ", platform)
         os.chdir(cwd)
         if platform not in abs_path_to_api_or_sign:
             abs_path_to_api_or_sign = abs_path_to_api_or_sign.replace(default_platform, platform)
@@ -551,7 +555,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                     generic_initialize_nist_candidate(tool.split(), candidate, abs_path_to_api_or_sign, abs_path_to_rng,
                                                       optimized_imp_folder, instance.split(), additional_includes, 'yes',
                                                       number_of_measurements, secret_block_offset, secret_block_size)
-
     elif candidate == 'snova':
         cwd = os.getcwd()
         path_candidate = abs_path_to_api_or_sign.split(candidate)[0]
@@ -725,8 +728,6 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                                                    compiler, binary_patterns, keygen_sign_src)
 
 
-# instance/scr folder of the given candidate with respect to optimized_imp_folder
-# binary_patterns: sign/keypair, referring to crypto_sign_keypair and crypto_sign algorithms respectively
 def binsec_generic_run(path_to_candidate, instances, depth, binary_patterns, **kwargs):
     path_to_binsec_folder = f'{path_to_candidate}/binsec'
     candidate = os.path.basename(path_to_candidate)
@@ -765,8 +766,6 @@ def binsec_generic_run(path_to_candidate, instances, depth, binary_patterns, **k
                 ct_tool.run_binsec(abs_path_to_executable, cfg_file, stats_file, output_file, depth, **kwargs)
 
 
-# instance/scr folder of the given candidate with respect to optimized_imp_folder
-# binary_patterns: sign/keypair, referring to crypto_sign_keypair and crypto_sign algorithms respectively
 def timecop_generic_run(path_to_candidate, instances, binary_patterns):
     path_to_timecop_folder = f'{path_to_candidate}/timecop'
     candidate = os.path.basename(path_to_candidate)
@@ -797,8 +796,6 @@ def timecop_generic_run(path_to_candidate, instances, binary_patterns):
                 ct_tool.run_timecop(path_to_executable_file, output_file)
 
 
-# instance/scr folder of the given candidate with respect to optimized_imp_folder
-# binary_patterns: sign/keypair, referring to crypto_sign_keypair and crypto_sign algorithms respectively
 def dudect_generic_run(path_to_candidate, instances, binary_patterns, timeout='2h'):
     path_to_dudect_folder = f'{path_to_candidate}/dudect'
     candidate = os.path.basename(path_to_candidate)
@@ -1013,3 +1010,61 @@ def run_tests(user_entry_point: str, tools: Union[str, list], candidate: str, in
                                   compile, run, binary_patterns, depth, timeout, implementation_type, security_level,
                                   secret_block_offset, secret_block_size,*args, **kwargs)
 
+
+def run_ct_tests_all_candidates(user_entry_point: str, **kwargs):
+    path_to_user_entry_point = user_entry_point
+    ret = from_json_to_python_dict(path_to_user_entry_point)
+    all_candidates_dict, chosen_tools, libraries = ret
+    direct_link_to_library = False
+    compilation = 'yes'
+    run = 'yes'
+    security_level = None
+    additional_cmake_definitions = None
+    implementation_type = 'opt'
+    list_of_candidates = list(all_candidates_dict.keys())
+    expanded_kwargs = {}
+    number_measurements = '1e4'
+    algorithms = ["sign"]
+    depth = 1000000
+    timeout = '900'
+    tools = chosen_tools
+    if kwargs:
+        for k, value in kwargs.items():
+            if 'number_measurements' in k:
+                number_measurements = value
+            elif 'algorithms' in k:
+                algorithms = value.split(',')
+            elif 'depth' in k:
+                depth = value
+            elif 'timeout' in k:
+                timeout = value
+            elif 'tools' in k:
+                tools = value.split(',')
+    for candidate in list_of_candidates:
+        print("---:::: Running candidate: {} ========:::::::".format(candidate))
+        if 'mirath' in candidate or 'ryde' in candidate:
+            print("-----Increase stack usage")
+            cmd = 'ulimit -s 16384'
+            subprocess.call(cmd.split(), stdin=sys.stdin, shell=True)
+        if candidate in ['sqisign', 'less', 'cross', 'sdith', 'mayo']:
+            expanded_kwargs['RUN_BENCHMARKS'] = "OFF"
+            expanded_kwargs['RUN_CT_TESTS'] = "ON"
+        if candidate == 'sqisign':
+            expanded_kwargs['SQISIGN_BUILD_TYPE'] = 'broadwell'
+            expanded_kwargs['CMAKE_BUILD_TYPE'] = 'Release'
+        instances = None
+        security_level = None
+        try:
+            run_tests(user_entry_point, tools, candidate, instances, all_candidates_dict, direct_link_to_library,
+                      number_measurements, compilation, run, algorithms, depth, timeout, implementation_type,
+                      security_level, additional_cmake_definitions, None, **expanded_kwargs)
+        except KeyboardInterrupt:
+            print(f"---- Candidate: {candidate.upper()} - Execution has been interrupted")
+        except Exception as e:
+            print(f"---Candidate: {candidate.upper()} - An unexpected error occurred: {e}")
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            filename = exc_tb.tb_frame.f_code.co_filename
+            line_number = exc_tb.tb_lineno
+            print("---File: {} -- Line: {}".format(filename, line_number))
+        finally:
+            print(f'--- Candidate: {candidate.upper()} - End of tests with tools {",".join(tools)}')

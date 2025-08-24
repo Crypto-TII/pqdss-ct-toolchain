@@ -1,29 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-@author: Technical Validation Team
-"""
 
-import os
+
 import argparse
-import subprocess
-import sys
-from typing import Optional, Union, List
+from typing import Optional, Union
 
 
 # add_cli_arguments: create a parser for a given candidate
 def add_cli_arguments(subparser,
-                      test_mode,
+                      test_mode: str,
                       path_to_user_entry_point: str,
-                      candidate,
-                      candidate_default_instances=None,
+                      candidate: Union[str, list],
+                      candidate_default_instances: Optional[str] = None,
                       optimized_imp_folder: str = 'opt',
-                      additional_required_includes=None,
-                      additional_cmake_definitions=None,
+                      additional_required_includes: Optional[Union[str, list]] = None,
+                      additional_cmake_definitions: Optional[Union[str, list, dict]] = None,
                       link_to_library: bool = True,
-                      number_of_measurements='1e4',
-                      timeout='900',
-                      implementation_type='opt'):
+                      number_of_measurements: str = '1e4',
+                      timeout: str ='900',
+                      implementation_type: str ='opt'):
     # Default algorithms pattern to test
     default_algorithms = ["keypair", "sign"]
     if candidate_default_instances is None:
@@ -33,7 +28,6 @@ def add_cli_arguments(subparser,
                                             formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     cpu_cores_isolated = ["1", "2", "3"]
     security_level = None
-    benchmark = None
     # Default tools list
     default_tools_list = ["binsec", "timecop", "dudect"]
     arguments = f"'--entry_point', '-entry-point',dest='entry_point',type=str,default=f'{path_to_user_entry_point}', \
@@ -87,10 +81,6 @@ def add_cli_arguments(subparser,
     default={additional_cmake_definitions},help = 'List of CMake additional definitions if any'"
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
-    arguments = (f"'--security_level','-security_level', dest='security_level', default={security_level},\
-    help = 'Instance security level'")
-    add_args_commdand = f"candidate_parser.add_argument({arguments})"
-    exec(add_args_commdand)
     arguments = (f"'--ref_opt_add_implementation','-ref_opt_add', dest='ref_opt_add_implementation',\
      default=f'{implementation_type}', help = 'Opt., Add. or Ref. implementation'")
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
@@ -99,12 +89,10 @@ def add_cli_arguments(subparser,
                  f" help = 'Additional options'")
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
-
     arguments = (f"'--cpu_cores_isolated', '-cpu_cores', dest='cpu_cores', nargs='+',"
                  f"default={cpu_cores_isolated}, help = 'cpu cores isolated'")
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
-
     if test_mode == 'pqdss-ct-tests':
         arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = 'tools'"
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
@@ -118,30 +106,6 @@ def add_cli_arguments(subparser,
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
         arguments = f"'--depth', '-depth', dest='depth',default='1000000',help = 'depth'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-    if test_mode == 'pqdss-benchmarks':
-        default_algorithms.append('verify')
-        arguments = (f"'--benchmark_keyword', '-bench_keywords', dest='bench_keywords', nargs='+',"
-                     f"default='', help = 'Benchmarks average, mean, quartile'")
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = f"'--iterations', '-iterations', dest='iterations', default='1000', help = 'number of iterations'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = f"'--min_msg_size', '-min_msg_len', dest='min_msg_len', default='1', help = 'minimum message size'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = (f"'--max_msg_size', '-max_msg_len', dest='max_msg_len', default='3300',"
-                     f"help = 'maximum message size'")
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = (f"'--custom_benchmark', '-custom_benchmark', dest='custom_benchmark',  default='yes', "
-                     f"help= 'Custom benchmark'")
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = (f"'--candidate_benchmark', '-candidate_benchmark', dest='candidate_benchmark', "
-                     f"help = 'Candidates benchmark'")
         add_args_commdand = f"candidate_parser.add_argument({arguments})"
         exec(add_args_commdand)
     if test_mode == 'generic-ct-tests':

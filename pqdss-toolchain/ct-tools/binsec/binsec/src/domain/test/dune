@@ -1,8 +1,0 @@
-(library
- (optional)
- (name t_insterval)
- (modules :standard)
- (inline_tests)
- (preprocess
-  (pps ppx_inline_test))
- (libraries binsec domains))

@@ -15,7 +15,7 @@ This repository contains the following folders:
     * `tools.py`: contains functions for custom templates and execution for the constant-time tests on pqdss implementations;
     * `utils.py`: contains common used functions
 * `examples`: contains examples for generics constant-time tests
-* `pqdss-toolchain`: contains required files (*Dockerfile*, *.sh* files) and additional libraries source files, namely gmp-6.1.2 and valgrind,
+* `pqdss-toolchain`: contains required files (*Dockerfile*, *.sh* files) and additional libraries source files, namely valgrind,
     to build a Docker image consisting of the required packages and requirements to compile and run constant-time tests on the implementations
     with the following constant-time check tools: binsec, timecop, dudect.
 * `user_entry_point`: contains files on the user entry point for the different tests.
@@ -148,6 +148,20 @@ python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --candidate CANDIDATE --tools
 
 ```shell
 python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --candidate perk --tools binsec
+```
+
+#### All instances of all candidates
+
+```shell
+python3 cttoolchain/ct_toolchain.py --all tools=TOOL OPTION1=VALUE1  OPTION2=VALUE2 ...
+```
+
+##### Example
+
+Run tests with Timecop for all the candidates.
+
+```shell
+python3 cttoolchain/ct_toolchain.py --all tools=timecop  
 ```
 
 #### Structure of the folders created with the scripts
