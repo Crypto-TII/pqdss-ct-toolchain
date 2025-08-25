@@ -169,8 +169,6 @@ CANDIDATE
 - `candidate`: ryde
 - `Instance`: ryde1f
 
-Note: For each candidate, the Optimized implementation folder has a
-default value: the one proposed by bidders.
 
 ```
 python3 toolchain-scripts/toolchain_script.py --candidate ryde --tools binsec --instances ryde1f
@@ -193,7 +191,11 @@ mpc-in-the-head
 
 **NOTE**
 
-For the specific case of `Timecop`, our toolchain generates two additional files: a `summary` of the finds and its
+There some other specific cases, but for all the candidates, the common path to the generated files is:
+
+`CANDIDATE/TOOL`.
+
+For the specific case of `Timecop`, our toolchain generates two additional files: a `summary` of the findings and its
 corresponding `json file`.
 
 
