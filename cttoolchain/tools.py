@@ -1071,7 +1071,7 @@ def run_timecop(binary_file, output_file):
 def run_dudect(executable_file: str, output_file: str, timeout: Optional[Union[str, int]] = None):
     command = ""
     if timeout is None:
-        command = f'timeout 86400 ./{executable_file}'
+        command = f'timeout 900 ./{executable_file}'
     else:
         if isinstance(timeout, str) and timeout.lower() == 'no':
             command += f'./{executable_file}'
@@ -1180,7 +1180,7 @@ def ctgrind_generic_run(ctgrind_folder, signature_type,
 def dudect_generic_run(dudect_folder, signature_type,
                        candidate, optimized_imp_folder,
                        opt_src_folder_list_dir,
-                       build_folder, binary_patterns, timeout='86400'):
+                       build_folder, binary_patterns, timeout='900'):
     optimized_imp_folder_full_path = f'{signature_type}/{candidate}/{optimized_imp_folder}'
     dudect_folder_full_path = f'{optimized_imp_folder_full_path}/{dudect_folder}'
     list_of_instances = []

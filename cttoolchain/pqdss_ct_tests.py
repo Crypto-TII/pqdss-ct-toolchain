@@ -796,7 +796,8 @@ def timecop_generic_run(path_to_candidate, instances, binary_patterns):
                 ct_tool.run_timecop(path_to_executable_file, output_file)
 
 
-def dudect_generic_run(path_to_candidate, instances, binary_patterns, timeout='2h'):
+def dudect_generic_run(path_to_candidate, instances, binary_patterns, timeout='900'):
+    print("------timeout: ", timeout)
     path_to_dudect_folder = f'{path_to_candidate}/dudect'
     candidate = os.path.basename(path_to_candidate)
     list_of_instances = []
@@ -863,7 +864,7 @@ def generic_execution(tools: Union[str, list], path_to_candidate: str,
                       instances: Optional[Union[str, list]] = None,
                       depth: Union[str, list] = '1000000',
                       binary_patterns: Union[str, list] = ('keypair', 'sign'),
-                      timeout: Union[str, int] = '86400'):
+                      timeout: Union[str, int] = '900'):
     for tool_name in tools:
         path_to_binsec_folder = f'{path_to_candidate}/{tool_name}'
         candidate = os.path.basename(path_to_candidate)
@@ -897,7 +898,7 @@ def generic_execution(tools: Union[str, list], path_to_candidate: str,
 
 def generic_run(tools: Union[str, list], path_to_candidate: str, instances: Optional[Union[str, list]] = None,
                 depth: Union[str, list] = '1000000', binary_patterns: Union[str, list] = ('keypair', 'sign'),
-                timeout: Union[str, int] = '86400', **kwargs):
+                timeout: Union[str, int] = '900', **kwargs):
     for tool_name in tools:
         if tool_name.lower() == 'binsec':
             binsec_generic_run(path_to_candidate, instances, depth, binary_patterns, **kwargs)
@@ -920,7 +921,7 @@ def generic_compile_run_candidate(tools, candidate, abs_path_to_api_or_sign, abs
                                   keygen_sign_src: Optional[Union[str, list, dict]] = None, build_with_make: bool = True,
                                   additional_cmake_definitions=None, number_of_measurements='1e4', compiler: str = 'gcc',
                                   compile: str = 'yes', run: str = 'yes', binary_patterns: Optional[Union[str, list]] = None,
-                                  depth: str = '1000000', timeout='86400', implementation_type='opt', security_level = None,
+                                  depth: str = '1000000', timeout='900', implementation_type='opt', security_level = None,
                                   secret_block_offset: int = 0, secret_block_size: str = "CRYPTO_SECRETKEYBYTES",
                                   *args, **kwargs):
 
@@ -963,7 +964,7 @@ def run_tests(user_entry_point: str, tools: Union[str, list], candidate: str, in
               direct_link_or_compile_target: bool = True,
               number_of_measurements='1e4', compile: str = 'yes', run: str = 'yes',
               binary_patterns: Optional[Union[str, list]] = None, depth: str = '1000000',
-              timeout='86400', implementation_type='opt', security_level=None,
+              timeout='900', implementation_type='opt', security_level=None,
               additional_cmake_definitions: Optional[Union[list, str]] = None, *args, **kwargs):
     candidates_dict = parse_candidates_json_file(candidates_dict, candidate)
     abs_path_to_api_or_sign = candidates_dict['path_to_api']

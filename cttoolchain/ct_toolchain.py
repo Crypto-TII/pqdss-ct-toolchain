@@ -6,8 +6,6 @@ import argparse
 
 import cli as cli
 import pqdss_ct_tests as signature
-import generics_ct_tests as gen_tests
-
 
 # path to user entry-point
 path_to_user_entry_point = 'user_entry_point/candidates.json'
@@ -15,16 +13,10 @@ ret = signature.from_json_to_python_dict(path_to_user_entry_point)
 candidates_dict, chosen_tools, libraries = ret
 
 
-# GENERICS TESTS: path to user entry-point
-path_to_user_entry_point_generic_tests = 'user_entry_point/generics_tests.json'
-ret_gen_tests = gen_tests.parse_json_to_dict_generic_tests(path_to_user_entry_point_generic_tests)
-targets, generic_tests_chosen_tools = ret_gen_tests
-
-
 # run_cli_candidate: Run candidate with CLI
 def run_cli_candidate(args_parse):
     """ Function: run_cli_candidate"""
-    test_mode = args.ct_toolchain
+    # test_mode = args.ct_toolchain
     candidate = args_parse.candidate
     instances = args_parse.instances
     user_entry_point = args_parse.entry_point
@@ -46,42 +38,15 @@ def run_cli_candidate(args_parse):
     security_level = None
     if add_kwargs_list:
         additional_options = dict([n for n in pair.split('=')] for pair in add_kwargs_list)
-    if test_mode == 'pqdss-ct-tests':
-        print(":::::::Running constant time tests")
-        tools = args_parse.tools
-        number_measurements = args_parse.number_measurements
-        depth = args_parse.depth
-        timeout = args_parse.timeout
-        additional_options['RUN_CT_TESTS'] = "ON"
-        additional_options['RUN_BENCHMARKS'] = "OFF"
-        signature.run_tests(user_entry_point, tools, candidate, instances, all_candidates_dict, direct_link_to_library,
-                            number_measurements, compilation, run, algorithms, depth, timeout, implementation_type,
-                            security_level, additional_cmake_definitions, *add_args, **additional_options)
-    elif test_mode == 'generic-ct-tests':
-        print("------Running: generic-ct-tests")
-        targets_basename = args_parse.target
-        tools = args_parse.tools
-        number_measurements = args_parse.number_measurements
-        depth = args_parse.depth
-        timeout = args_parse.timeout
-
-        template_only = args_parse.template_only
-        compile_test_harness_and_run = args_parse.compile_run
-        run_test_only = args_parse.run_test_only
-        if 'y' in template_only.lower():
-            template_only = True
-        else:
-            template_only = False
-        if 'y' in compile_test_harness_and_run.lower():
-            compile_test_harness_and_run = True
-        else:
-            compile_test_harness_and_run = False
-        if 'y' in run_test_only.lower():
-            run_test_only = True
-        else:
-            run_test_only = False
-        gen_tests.generic_tests_templates(user_entry_point, targets_basename, tools, number_measurements,
-                                          template_only, compile_test_harness_and_run, run_test_only)
+    tools = args_parse.tools
+    number_measurements = args_parse.number_measurements
+    depth = args_parse.depth
+    timeout = args_parse.timeout
+    additional_options['RUN_CT_TESTS'] = "ON"
+    additional_options['RUN_BENCHMARKS'] = "OFF"
+    signature.run_tests(user_entry_point, tools, candidate, instances, all_candidates_dict, direct_link_to_library,
+                        number_measurements, compilation, run, algorithms, depth, timeout, implementation_type,
+                        security_level, additional_cmake_definitions, *add_args, **additional_options)
 
 
 # Define a new class action for the flag -a (--all).
@@ -107,7 +72,6 @@ parser = argparse.ArgumentParser(prog="constant-time-toolchain",
 subparser = parser.add_subparsers(help="", dest='ct_toolchain')
 
 cli.add_cli_arguments(subparser, 'pqdss-ct-tests', path_to_user_entry_point, '')
-cli.add_cli_arguments(subparser, 'generic-ct-tests', path_to_user_entry_point_generic_tests, '')
 
 
 parser.add_argument('-a', '--all',

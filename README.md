@@ -9,18 +9,16 @@ This repository contains the following folders:
   are the different folders: `code`, `lattice`, `mpc-in-the-head`, `symmetric`, `isogeny`, `mutlivariate`.
 *  `cttoolchain`: consist of the following files:
     * `cli.py`: Command-Line-Interface to run the tests (ct tests on pqdss implementations - generic tests);
-    * `generics_ct_tests.py`: script to run generic constant-time tests given a binary (shared library of the target) to be linked to;
     * `ct_toolchain.py`: main script to use the toolchain;
     * `pqdss_ct_tests.py`: script to run constant-time tests on pqdss implementations;
     * `tools.py`: contains functions for custom templates and execution for the constant-time tests on pqdss implementations;
     * `utils.py`: contains common used functions
-* `examples`: contains examples for generics constant-time tests
 * `pqdss-toolchain`: contains required files (*Dockerfile*, *.sh* files) and additional libraries source files, namely valgrind,
     to build a Docker image consisting of the required packages and requirements to compile and run constant-time tests on the implementations
     with the following constant-time check tools: binsec, timecop, dudect.
 * `user_entry_point`: contains files on the user entry point for the different tests.
   * `candidates.json`: pqdss candidates information
-  * `generics_tests.json`: contains information on targets to be tested (generic constant-time tests);
+ 
     
 
 ## Benefits of using our toolchain
@@ -35,7 +33,6 @@ Those requirements are also taken into account by our scripts.
 - Test many instances of a (many) candidate(s):  generating required files, compiling and running tests for a given candidate and for all tools
  could take a non-negligible amount of time, especially when the tests must be performed on 
 many instances of many candidates. Our scripts allow to gain a significant amount of time to achieve that goal.
-- With our scripts, one can generate templates, improve them manually, compile and run tests. 
 
 
 ## Docker
@@ -71,12 +68,11 @@ docker run -it -v $PWD:/home/CONTAINER_NAME DOCKER_IMAGE_NAME:TAG /bin/bash
 docker run -it -v $PWD:/home/pqdss_ct_tests my_image:0.1.0 /bin/bash
 ```
 
-## Features supported 
+## Feature supported 
 
-Our toolchain supports the following features:
+Our toolchain supports the following feature:
 
 - `pqdss-ct-tests`: constant-time tests on pqdss implementations
-- `generic-ct-tests`: generic constant-time tests
 
 
 To see the list of features supported by our toolchain, type:
@@ -90,23 +86,8 @@ Or
 python3 cttoolchain/ct_toolchain.py -h 
 ```
 
-
-## List of options for each feature
-
-To see the list of all options for a supported feature, type:
-
-```
-python3 cttoolchain/ct_toolchain.py FEATURE -h
-```
-
-### Example
-```
-python3 cttoolchain/ct_toolchain.py pqdss-ct-tests -h
-```
-
 Here are some options
 ### Command-Line-Interface (CLI) Flags
-- `entry_point`: path to the user entry point, i.e. .json file containing the information on the targets under tests.
 - `tools`: list of tools that a given candidate will be tested with, i.e. binsec, timecop and dudect. The tools are white space-separated
 - `candidate`: NIST candidate. Ex: mirath, perk, ryde, sqisign etc.
 - `instances`: the list of the different parameters set based folders. 
@@ -116,12 +97,11 @@ Here are some options
 - `run`: by default, its value is ***yes***. If we just want to compile, then set this option to ***no***.
 - `depth`: this flag is meant for the use of binsec tool. The default value in our implementation is ***1000000***. The default value
     set by the authors of binsec tool is ***1000000***.
-- `algorithms`: the patterns of the algorithm to be tested. default value: ***keypair***, ***sign***
+- `algorithms`: the patterns of the algorithm to be tested. default value: ***sign***
 - `additional_options`: additional build/compilation options with CMakeList.txt/Makefile
 - `number_measurements`: number of measurements for Dudect. The default value is ***1e4***.
 - `timeout`: timeout in seconds for dudect execution. The default value is ***900***. To run dudect without *timeout*, set the value of this
   option to ***no***
-- `cpu_cores_isolated`: list of cpu cores isolated, especially for tests with dudect.
 
 The list of the options are not exhaustive and depends on the feature (pqdss ct tests and generic ct tests).
 
@@ -169,14 +149,10 @@ python3 cttoolchain/ct_toolchain.py --all tools=timecop
 Here's the structure of the generated files:
 
 ```
-OPTIMISATION FOLDER
+CANDIDATE
 └── TOOL
-    └── INSTANCE
-        ├── CANDIDATE_keypair
-        │   ├── required files for tests (.c file, .ini, .gdb, .snapshot)
-        │   ├── TEST_HARNESS_crypto_sign_keypair
-        │   └── output file of the test (.txt)
-        └── CANDIDATE_sign
+    └── INSTANCE     
+        ├── CANDIDATE_sign
             ├── required files for tests (.c file, .ini, .gdb, .snapshot)
             ├── TEST_HARNESS_crypto_sign
             └── output file of the test (.txt)
@@ -191,7 +167,6 @@ OPTIMISATION FOLDER
 
 - `tool`: binsec
 - `candidate`: ryde
-- `Optimizated Implementation folder`: Optimized_Implementation
 - `Instance`: ryde1f
 
 Note: For each candidate, the Optimized implementation folder has a
@@ -204,26 +179,16 @@ python3 toolchain-scripts/toolchain_script.py --candidate ryde --tools binsec --
 ```
 mpc-in-the-head
 └── ryde
-        ├── Optimized_Implementation
-            ├── binsec
-                └── ryde1f
-                    ├── ryde_keypair
-                    │   ├── cfg_keypair.ini
-                    │   ├── crypto_sign_keypair_output.txt
-                    │   ├── keypair.toml
-                    │   ├── test_harness_crypto_sign_keypair
-                    │   ├── test_harness_crypto_sign_keypair.c
-                    │   ├── test_harness_crypto_sign_kaypair.gdb
-                    │   └── test_harness_crypto_sign_keypair.snapshot
-                    └── ryde_sign
-                        ├── cfg_sign.ini
-                        ├── crypto_sign_output.txt
-                        ├── sign.toml
-                        ├── test_harness_crypto_sign
-                        ├── test_harness_crypto_sign.c
-                        ├── test_harness_crypto_sign.gdb
-                        └── test_harness_crypto_sign.snapshot
-
+        ├── binsec
+            └── ryde1f
+                ├── ryde_sign
+                    ├── cfg_sign.ini
+                    ├── crypto_sign_output.txt
+                    ├── sign.toml
+                    ├── test_harness_crypto_sign
+                    ├── test_harness_crypto_sign.c
+                    ├── test_harness_crypto_sign.gdb
+                    └── test_harness_crypto_sign.snapshot
 ```
 
 **NOTE**
@@ -239,19 +204,18 @@ python3 toolchain-scripts/toolchain_script.py --candidate ryde --tools timecop -
 ```
 mpc-in-the-head
 └── ryde
-        ├── Optimized_Implementation
-            ├── binsec
-                └── ryde1f
-                    └── ryde_sign
-                        ├── crypto_sign_output.txt
-                        ├── crypto_sign_output_report.json
-                        ├── crypto_sign_output_summary.log
-                        ├── test_harness_crypto_sign
-                        └── test_harness_crypto_sign.c
+        ├── Timecop
+            └── ryde1f
+                └── ryde_sign
+                    ├── crypto_sign_output.txt
+                    ├── crypto_sign_output_report.json
+                    ├── crypto_sign_output_summary.log
+                    ├── test_harness_crypto_sign
+                    └── test_harness_crypto_sign.c
 
 ```
 
-
+**NOTE**: For `mirath`, the test harness has already been created into each instance.
 
 #### Specific cases
 
@@ -319,88 +283,26 @@ The script invocation has no option `--instances`
 python3 cttoolchain/ct_toolchain.py pqdss-ct-tests --tools TOOL --candidate less
 ```
 
-### Feature: generic-ct-tests
-
-#### User entry point
-
-For generic constant-time tests, it is required from the user to fill a `.json` file (user entry point) with following information for a target:
-
-```
-{
-  "targets": [
-      {
-          "TARGET_BASENAME": {
-            "target_call": ,
-            "target_return_type": ,
-            "target_input_declaration": ,
-            "target_include_header":,
-            "link_binary": ,
-            "path_to_include_directory": ,
-            "secret_inputs": ,
-            "compiler": ,
-            "macro": ,
-            "random_data": 
-          }
-      }
-    
-  ]
-}
-```
-
-#### Example
-
-```
-{
-    "targets": [
-        {
-          "ct_compare_byte_arrays": {
-            "target_call": "ct_compare_byte_arrays(array1, array2, length)",
-            "target_return_type": "void",
-            "target_input_declaration": ["uint8_t array1[120]", "uint8_t *array2", "int length = 120"],
-            "target_include_header": ["tests.h"],
-            "link_binary": "examples/cttest.so",
-            "path_to_include_directory": "examples",
-            "secret_inputs": ["array1"],
-            "compiler": "gcc",
-            "macro": {"ARRAY_SIZE": 120},
-            "random_data": {"array2": "120"}
-          }
-        }
-    ]
-}
-```
 
 
-```shell
-python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point PATH_TO_USER_ENTRY_POINT --target_basename TARGET_NAME --tools TOOL(S)
-```
+#### Constant Time Tests results raw-output
 
-##### Example 
+For a given tool, the information on the execution of the tests on a given instance of a given candidate can be found in:
 
-```shell
-python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point user_entry_point/generics_tests.json --target_basename TARGET_NAME --tools TOOL(S)
-```
+`CANDIDATE/TOOL/INSTANCE/CANDIDATE_sign/crypto_sign_output.txt`
+
+#### Specific cases
+
+- For the candidates `less - cross - sqisign`, the raw-output can be found in: 
+
+`CANDIDATE/TOOL/CANDIDATE_sign/crypto_sign_output.txt`
+
+There some other specific cases, but for all the candidates, the common path to find the constant time 
+tests raw-output is: 
+
+`CANDIDATE/TOOL`.
+
+The tests with `Timecop` produce two additional files, namely `crypto_sign_output_summary.log` and its 
+corresponding `crypto_sign_output_report.json` file which consist in a summary of the issues raised by the tools.
 
 
-#### Generate templates only
-
-```shell
-python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point PATH_TO_USER_ENTRY_POINT  --target_basename TARGET_NAME --tools TOOL(S) --template_only yes
-```
-
-#### Compile and run
-
-When a template for a given tool is already generated, one can manually edit and improve it, then compile and run the tests.
-
-```shell
-python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point PATH_TO_USER_ENTRY_POINT --target_basename TARGET_NAME --tools TOOL(S) --compile_run yes
-```
-
-#### Run only
-
-When a template for a given tool is already generated and the test harness already compiled, 
-one can directly run the tests with different options of the given tool.
-
-```shell
-python3 cttoolchain/ct_toolchain.py generic-ct-tests --entry_point PATH_TO_THE_USER_ENTRY_POINT --target_basename TARGET_NAME --tools TOOL(S) --run_only yes
-```

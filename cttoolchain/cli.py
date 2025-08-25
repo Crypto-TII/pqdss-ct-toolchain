@@ -17,10 +17,10 @@ def add_cli_arguments(subparser,
                       additional_cmake_definitions: Optional[Union[str, list, dict]] = None,
                       link_to_library: bool = True,
                       number_of_measurements: str = '1e4',
-                      timeout: str ='900',
-                      implementation_type: str ='opt'):
+                      timeout: str = '900',
+                      implementation_type: str = 'opt'):
     # Default algorithms pattern to test
-    default_algorithms = ["keypair", "sign"]
+    default_algorithms = ["sign"]
     if candidate_default_instances is None:
         candidate_default_instances = []
     candidate_parser = subparser.add_parser(f'{test_mode}',
@@ -93,60 +93,17 @@ def add_cli_arguments(subparser,
                  f"default={cpu_cores_isolated}, help = 'cpu cores isolated'")
     add_args_commdand = f"candidate_parser.add_argument({arguments})"
     exec(add_args_commdand)
-    if test_mode == 'pqdss-ct-tests':
-        arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = 'tools'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = (f"'--number_measurements','-number_measurements', dest='number_measurements',\
-         default={number_of_measurements}, help = 'Number of measurements (Dudect)'")
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = (f"'--timeout','-timeout', dest='timeout',\
-         default={timeout}, help = 'timeout (Dudect)'")
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = f"'--depth', '-depth', dest='depth',default='1000000',help = 'depth'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-    if test_mode == 'generic-ct-tests':
-        arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = 'tools'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = f"'--target_basename', '-target',dest='target', nargs='+', help ='target basename'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = (f"'--test_harness', '-test_harness',dest='test_harness', type=str, \
-        help = 'path to the test harness file'")
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = f"'--runtime_output_directory', '-runtime_output_directory', dest='runtime', \
-        default='build'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = f"'--template_only','-template_only',dest='template_only',help = 'no', default='no'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = f"'--compile_run','-compile_run',dest='compile_run', help='no', default='no'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = f"'--redirect_output','-redirect_output',dest='redirect_output', default='yes', help='no'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = (f"'--number_measurements','-number_measurements', dest='number_measurements',\
-         default={number_of_measurements}, help = 'Number of measurements (Dudect)'")
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = (f"'--timeout','-timeout', dest='timeout',\
-         default={timeout}, help = 'timeout (Dudect)'")
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = f"'--depth', '-depth', dest='depth',default='1000000',help = 'depth'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = f"'--run_test_only','-run_test_only',dest='run_test_only', default='no', help='no'"
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
-        arguments = (f"'--compilation_flags', '-compilation_flags', dest='compilation_flags', nargs='+',"
-                     f" help = 'compilation flags'")
-        add_args_commdand = f"candidate_parser.add_argument({arguments})"
-        exec(add_args_commdand)
+    arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = 'tools'"
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = (f"'--number_measurements','-number_measurements', dest='number_measurements',\
+     default={number_of_measurements}, help = 'Number of measurements (Dudect)'")
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = (f"'--timeout','-timeout', dest='timeout',\
+     default={timeout}, help = 'timeout (Dudect)'")
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
+    arguments = f"'--depth', '-depth', dest='depth',default='1000000',help = 'depth'"
+    add_args_commdand = f"candidate_parser.add_argument({arguments})"
+    exec(add_args_commdand)
