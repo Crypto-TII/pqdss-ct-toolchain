@@ -10,9 +10,7 @@ import sys
 import textwrap
 import argparse
 
-from subprocess import Popen
-
-from typing import Optional, Union, List
+from typing import Optional, Union
 
 
 def create_directory(path_to_directory: str) -> None:
@@ -124,7 +122,7 @@ class Tools(object):
 
     def get_tool_flags_and_libs(self):
         if self.tool_name == 'binsec':
-            self.tool_flags = "-g" # -static
+            self.tool_flags = "-g"  # -static
             return self.tool_flags, self.tool_libs
         if self.tool_name == 'ctgrind':
             self.tool_flags = "-Wall -ggdb  -std=c99  -Wextra"
@@ -194,9 +192,7 @@ def tokenize_target(target: str) -> tuple:
     target_basename = target_return_type_and_basename_split[-1].strip()
     target_return_type_and_basename_split.remove(target_basename)
     target_return_type = " ".join(target_return_type_and_basename_split)
-    target_args = re.sub('\)\s*;', '', target_args)
-    target_args_names = []
-    target_args_types = []
+    target_args = re.sub(r'\)\s*;', '', target_args)
     target_args_type_name_length = []
     target_input_names = []
     target_input_initialization = []
@@ -236,7 +232,7 @@ def tokenize_target(target: str) -> tuple:
             input_argument = input_arg
             if '*' in input_arg:
                 default_length = 'DEFAULT_LENGTH'
-                input_argument = re.sub('\*', '', input_argument)
+                input_argument = re.sub(r'\*', '', input_argument)
             input_arg_split = input_argument.split()
             arg_type = " ".join(input_arg_split[0:-1])
             arg_type = arg_type.strip()
@@ -252,48 +248,6 @@ def tokenize_target(target: str) -> tuple:
               target_all_types_of_input, target_input_names,
               target_input_initialization, target_args_length)
     return output
-
-
-# Get crypto_sign_keypair and crypto_sign functions declarations given the path to the header file (api.h/sign.h)
-def find_target_by_basename2(target_basename: str, path_to_target_header_file: str) -> str:
-    target = ''
-    target_is_found = 0
-    try:
-        with open(path_to_target_header_file, 'r') as file:
-            file_content = file.read()
-            find_target_object = re.search(rf"[\w\s]*\W{target_basename}\W[\s*\(]*[\w\s*,\[\+\]\(\)-]*;", file_content)
-            if find_target_object is not None:
-                target_is_found = 1
-                matching_string = find_target_object.group()
-                matching_string_lines = matching_string.split('\n')
-                target_basename_nb_of_occurrence = matching_string.count(target_basename)
-                if target_basename_nb_of_occurrence >= 2:
-                    for line in matching_string_lines:
-                        if target_basename in line and (':' in line or '#' in line or 'define' in line):
-                            matching_string_lines.remove(line)
-                if '' in matching_string_lines:
-                    index_empty_str = matching_string_lines.index('')
-                    matching_string_lines = matching_string_lines[index_empty_str+1:]
-                find_target_index = 0
-                for line in matching_string_lines:
-                    if target_basename in line:
-                        find_target_index = matching_string_lines.index(line)
-                # if 'ndef' in matching_string_lines:
-                #     index_empty_str = matching_string_lines.index('')
-                #     matching_string_lines = matching_string_lines[index_empty_str+1:]
-                matching_string = "\n".join(matching_string_lines)
-                matching_string_split = matching_string.split()
-                matching_string_list_strip = [word.strip() for word in matching_string_split]
-                target = " ".join(matching_string_list_strip)
-            else:
-                error_message = f'''
-                Could not find {target_basename} into the file {path_to_target_header_file}
-                '''
-                print(textwrap.dedent(error_message))
-    except:
-        print("Could not open file '{}' .".format(path_to_target_header_file))
-
-    return target
 
 
 def find_target_by_basename(target_basename: str, path_to_target_header_file: str) -> str:
@@ -566,55 +520,6 @@ def generic_compilation(path_to_target_wrapper: str, path_to_target_binary: str,
     subprocess.call(cmd, stdin=sys.stdin, shell=True)
 
 
-def generic_target_compilation_1(path_candidate: str, path_to_test_library_directory: str,
-                               libraries_names: [Union[str, list]], path_to_include_directories: Union[str, list],
-                               cflags: Union[list, str], default_instance: str, instances: Optional[Union[str, list]] = None, compiler: str = 'gcc',
-                               binary_patterns: Optional[Union[str, list]] = None):
-
-    test_keypair_basename, test_sign_basename = '', '' # tool_type.get_tool_test_file_name() to be fixed
-    keypair_sign = []
-    path_to_tool_folder = f'{path_candidate}' # to be fixed
-    path_to_instances = [path_to_tool_folder]
-    candidate = path_candidate.split('/')[-1]
-    instances_list = []
-    if instances:
-        instances_list = []
-        if isinstance(instances, str):
-            instances_list = instances.split()
-        elif isinstance(instances, list):
-            instances_list = instances.copy()
-    else:
-        instances_list = ["."]
-    for instance in instances_list:
-        if instance == ".":
-            path_to_instance = f'{path_to_tool_folder}'
-        else:
-            path_to_instance = f'{path_to_tool_folder}/{instance}'
-            path_to_include_directories_split = path_to_include_directories.split(default_instance)
-            path_to_include_directories_split.insert(1, instance)
-            path_to_include_directories = "".join(path_to_include_directories_split)
-            if default_instance in path_to_test_library_directory:
-                path_to_test_library_directory_split = path_to_test_library_directory.split(default_instance)
-                path_to_test_library_directory_split.insert(1, instance)
-                path_to_test_library_directory = "".join(path_to_test_library_directory_split)
-
-        if binary_patterns is not None:
-            if isinstance(binary_patterns, str):
-                keypair_sign.append(binary_patterns.split())
-            else:
-                keypair_sign = binary_patterns.copy()
-        else:
-            binary_patterns = ['keypair', 'sign']
-        for bin_pattern in binary_patterns:
-            target_folder_basename = f'{candidate}_{bin_pattern}'
-            path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_sign_basename}'
-            if bin_pattern.strip() == 'keypair':
-                path_to_target_wrapper = f'{path_to_instance}/{target_folder_basename}/{test_keypair_basename}'
-            path_to_target_binary = path_to_target_wrapper.split('.c')[0]
-            generic_compilation(path_to_target_wrapper, path_to_target_binary, path_to_test_library_directory,
-                                libraries_names, path_to_include_directories, cflags, compiler)
-
-
 def parse_candidates_json_file(candidates_dict: dict, candidate: str):
     candidates = candidates_dict.keys()
     if candidate not in candidates:
@@ -650,11 +555,9 @@ def add_generic_cli_templates_arguments(subparser,
                                         number_of_measurements='1e4',
                                         timeout='86400'):
 
-    # if candidate_default_list_of_folders is None:
-    #     candidate_default_list_of_folders = []
     generic_parser = subparser.add_parser(f'{generate_template_run}',
-                                            help=f'{generate_template_run}:...',
-                                            formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+                                          help=f'{generate_template_run}:...',
+                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # Default tools list
     default_tools_list = ["binsec", "ctgrind", "dudect", "flowtracker"]
     arguments = f"'--tools', '-tools', dest='tools', nargs='+', default={default_tools_list}, help = '{tools_list}'"
