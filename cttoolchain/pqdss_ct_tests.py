@@ -719,12 +719,24 @@ def generic_init_compile(tools, candidate, abs_path_to_api_or_sign, abs_path_to_
                                     compile_target_candidate(path_to_candidate_makefile_cmake, build_with_make,
                                                              additional_cmake_definitions, tool, *args, **kwargs)
                                     path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake_initial
+                            else:
+                                for instance in instances:
+                                    instance_path_to_candidate_makefile_cmake = path_to_candidate_makefile_cmake.replace(default_instance, instance)
+                                    compile_target_candidate(instance_path_to_candidate_makefile_cmake, build_with_make,
+                                                             additional_cmake_definitions, tool, *args, **kwargs)
                 if build_with_make:
                     if candidate == 'uov':
                         pass
                     else:
                         generic_target_compilation(path_candidate, path_to_test_library_directory, libraries_names,
                                                    path_to_include_directories, tool, default_instance, instances,
+                                                   compiler, binary_patterns, keygen_sign_src)
+                else:
+                    for instance in instances:
+                        instance_path_to_test_library_directory = f'{path_to_candidate_makefile_cmake.replace(default_instance, instance)}/build'
+                        instance_path_to_include_directories = path_to_include_directories.replace(f'/{default_instance}', f'/{instance}')
+                        generic_target_compilation(path_candidate, instance_path_to_test_library_directory, libraries_names,
+                                                   instance_path_to_include_directories, tool, default_instance, instance.split(),
                                                    compiler, binary_patterns, keygen_sign_src)
 
 

@@ -265,6 +265,26 @@
       "cflags": null,
       "keygen_sign_src": ["sqisign.c"],
       "private_key_block_block": {"secret_block_offset": "CRYPTO_PUBLICKEYBYTES", "secret_block_size": "(CRYPTO_SECRETKEYBYTES - CRYPTO_PUBLICKEYBYTES)"}
+    },
+    "faest": {
+      "path_to_api": "candidates/symmetric/faest/Reference_Implementation/faest_128f/api.h",
+      "path_to_rng": "candidates/symmetric/faest/Reference_Implementation/faest_128f/NIST-KATs/rng.h",
+      "path_to_makefile_folder": "candidates/symmetric/faest/ct_tests",
+      "path_to_include_directory": ".",
+      "default_instance": "faest_128f",
+      "optimized_implementation": "Reference_Implementation",
+      "additional_implementation": null,
+      "link_libraries": {"ct_tests": ["-lcttest", "-lcrypto"], "bench":  "-lm -lcpucycles"},
+      "build_with_makefile": false,
+      "compiler": "gcc",
+      "security_level": {"lvl1":  ["_128"], "lvl3":  ["_192"], "lvl5":  ["_256"]},
+      "path_to_bench_binary": null,
+      "instances": ["faest_128f", "faest_128s", "faest_192f", "faest_192s", "faest_256f", "faest_256s",
+        "faest_em_128f", "faest_em_128s", "faest_em_192f", "faest_em_192s", "faest_em_256f", "faest_em_256s"],
+      "instance_format": null,
+      "cflags": null,
+      "keygen_sign_src": ["crypto_sign.c"],
+      "private_key_block_block": {"secret_block_offset": 0, "secret_block_size": "CRYPTO_SECRETKEYBYTES"}
     }
   },
   "tools": ["binsec", "dudect", "timecop"]
