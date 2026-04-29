@@ -69,4 +69,4 @@ ctgrind/
 flowtracker/
 
 # venv
-venv
+venvgenerated_local/
