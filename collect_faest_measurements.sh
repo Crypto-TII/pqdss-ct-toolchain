@@ -1,26 +1,15 @@
-#!/bin/bash
+#!/bin/sh
 
 # FAEST Dudect Measurement Collection Script
+# POSIX-compliant for Alpine Linux (ash shell)
 # Runs natively on remote machine (not in Docker)
 # 1. Compiles test harnesses with --run no
 # 2. Runs executables with taskset to collect 50k measurements
 
 set -e
 
-INSTANCES=(
-    "faest_128f"
-    "faest_128s"
-    "faest_192f"
-    "faest_192s"
-    "faest_256f"
-    "faest_256s"
-    "faest_em_128f"
-    "faest_em_128s"
-    "faest_em_192f"
-    "faest_em_192s"
-    "faest_em_256f"
-    "faest_em_256s"
-)
+# Space-separated list (no bash arrays for Alpine compatibility)
+INSTANCES="faest_128f faest_128s faest_192f faest_192s faest_256f faest_256s faest_em_128f faest_em_128s faest_em_192f faest_em_192s faest_em_256f faest_em_256s"
 
 TARGET=50000
 # FAEST: ~3s per sign, dudect does 2 signs per measurement = ~6s per measurement
@@ -35,7 +24,7 @@ echo ""
 
 # Step 1: Compile all instances (--run no)
 echo "Step 1: Compiling all instances..."
-for inst in "${INSTANCES[@]}"; do
+for inst in $INSTANCES; do
     echo "--- Compiling $inst ---"
     python3 cttoolchain/ct_toolchain.py pqdss-ct-tests \
         --tools dudect --candidate faest --instances "$inst" --run no 2>&1 | tail -5
@@ -53,10 +42,10 @@ done
 
 # Step 2: Run all instances to collect measurements
 echo "Step 2: Running measurements (pinned to CPU 4)..."
-for inst in "${INSTANCES[@]}"; do
+for inst in $INSTANCES; do
     echo "----------------------------------------"
     echo "Running: $inst (target: $TARGET measurements)"
-    echo "Timeout: ${TIMEOUT}s (~$((TIMEOUT / 3600))h)"
+    echo "Timeout: ${TIMEOUT}s (~$(($TIMEOUT / 3600))h)"
     echo "----------------------------------------"
     
     exe="./candidates/symmetric/faest/dudect/$inst/faest_sign/dude_crypto_sign"
@@ -78,7 +67,7 @@ done
 echo "========================================"
 echo "Final Status:"
 echo "========================================"
-for inst in "${INSTANCES[@]}"; do
+for inst in $INSTANCES; do
     mfile="./candidates/symmetric/faest/dudect/$inst/faest_sign/measurements.txt"
     if [ -f "$mfile" ]; then
         count=$(wc -l < "$mfile")
