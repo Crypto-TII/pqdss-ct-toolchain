@@ -2,9 +2,8 @@
 
 # FAEST Dudect Measurement Collection Script
 # Runs natively on remote machine (not in Docker)
-# 1. Builds libcttest.so
-# 2. Compiles test harnesses with --run no
-# 3. Runs executables with taskset to collect 50k measurements
+# 1. Compiles test harnesses with --run no
+# 2. Runs executables with taskset to collect 50k measurements
 
 set -e
 
@@ -33,40 +32,6 @@ echo "Target: $TARGET measurements per instance"
 echo "Timeout per instance: $((TIMEOUT / 3600))h $((TIMEOUT % 3600 / 60))m"
 echo "========================================"
 echo ""
-
-# Step 0: Check if libcttest.so exists, build if not
-build_libcttest() {
-    echo "Step 0: Checking/Building libcttest.so..."
-    
-    LIB_PATH="candidates/symmetric/faest/ct_tests/build/libcttest.so"
-    
-    if [ -f "$LIB_PATH" ]; then
-        echo "libcttest.so already exists"
-        return 0
-    fi
-    
-    echo "Building libcttest.so..."
-    rm -rf candidates/symmetric/faest/ct_tests/build
-    mkdir -p candidates/symmetric/faest/ct_tests/build
-    cd candidates/symmetric/faest/ct_tests/build
-    
-    echo "--- Running cmake..."
-    cmake -DRUN_CT_TESTS=ON -DRUN_BENCHMARKS=OFF ../
-    
-    echo "--- Running make..."
-    make VERBOSE=1
-    
-    cd ../../../../../../
-    
-    if [ ! -f "$LIB_PATH" ]; then
-        echo "ERROR: libcttest.so still not found!"
-        exit 1
-    fi
-    echo "libcttest.so built successfully"
-    echo ""
-}
-
-build_libcttest
 
 # Step 1: Compile all instances (--run no)
 echo "Step 1: Compiling all instances..."
